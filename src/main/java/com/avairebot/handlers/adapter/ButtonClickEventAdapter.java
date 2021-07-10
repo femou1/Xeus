@@ -34,9 +34,9 @@ import com.avairebot.factories.MessageFactory;
 import com.avairebot.factories.RequestFactory;
 import com.avairebot.handlers.DatabaseEventHolder;
 import com.avairebot.requests.Response;
+import com.avairebot.requests.service.kronos.database.GetUsersPoints;
 import com.avairebot.utilities.CheckPermissionUtil;
 import com.avairebot.utilities.NumberUtil;
-import com.google.gson.internal.LinkedTreeMap;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -110,9 +110,9 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     .addParameter("userids", reportedRobloxId)
                                                     .addHeader("Access-Key", avaire.getConfig().getString("apiKeys.kronosDatabaseApiKey"))
                                                     .send((Consumer<Response>) response -> {
-                                                        List<LinkedTreeMap<String, Long>> service = (List<LinkedTreeMap<String, Long>>) response.toService(List.class);
+                                                        GetUsersPoints service = (GetUsersPoints) response.toService(List.class);
                                                             Long userId = reportedRobloxId;
-                                                            Long points = service.size() != 0 ? service.get(0).get("Points") : 0L;
+                                                            Long points = service.hasData() ? service.getData().get(0).getPoints() : 0L;
 
                                                             tc.retrieveMessageById(c.getLong("report_message_id")).queue(v -> {
                                                                 if (v.getEmbeds().get(0).getColor().equals(new Color(0, 255, 0)))
@@ -123,18 +123,18 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                                     .requestedBy(e.getMember()).set("points", points).buildEmbed()).queue(z -> {
                                                                     avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class,
                                                                         p -> p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel()) && NumberUtil.isNumeric(p.getMessage().getContentStripped()), run -> {
-                                                                            v.editMessage(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
-                                                                                .setAuthor("Report created for: " + username, null, getImageByName(tc.getGuild(), username))
-                                                                                .setDescription(
-                                                                                    "**Violator**: " + username + "\n" +
-                                                                                        (rank != null ? "**Rank**: ``:rRank``\n" : "") +
-                                                                                        "**Information**: \n" + description + "\n\n" +
-                                                                                        "**Evidence**: \n" + evidence + "\n\n" +
-                                                                                        (warningEvidence != null ? "**Evidence of warning**:\n" + warningEvidence + "\n\n" : "") +
-                                                                                        "**Punishment**: \n``" + run.getMessage().getContentRaw() + "`` points pending removal.")
-                                                                                .requestedBy(memberAsReporter != null ? memberAsReporter : e.getMember().getUser())
-                                                                                .setTimestamp(Instant.now()).set("rRank", rank)
-                                                                                .buildEmbed()).setActionRows(Collections.emptyList())
+                                                                            v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
+                                                                                    .setAuthor("Report created for: " + username, null, getImageByName(tc.getGuild(), username))
+                                                                                    .setDescription(
+                                                                                            "**Violator**: " + username + "\n" +
+                                                                                                    (rank != null ? "**Rank**: ``:rRank``\n" : "") +
+                                                                                                    "**Information**: \n" + description + "\n\n" +
+                                                                                                    "**Evidence**: \n" + evidence + "\n\n" +
+                                                                                                    (warningEvidence != null ? "**Evidence of warning**:\n" + warningEvidence + "\n\n" : "") +
+                                                                                                    "**Punishment**: \n``" + run.getMessage().getContentRaw() + "`` points pending removal.")
+                                                                                    .requestedBy(memberAsReporter != null ? memberAsReporter : e.getMember().getUser())
+                                                                                    .setTimestamp(Instant.now()).set("rRank", rank)
+                                                                                    .buildEmbed()).setActionRows(Collections.emptyList())
                                                                                 .queue();
                                                                             try {
                                                                                 qb.useAsync(true).update(statement -> {
