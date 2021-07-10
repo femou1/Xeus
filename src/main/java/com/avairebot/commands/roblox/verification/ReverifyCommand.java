@@ -88,7 +88,7 @@ public class ReverifyCommand extends Command {
                         verificationEntities.add(bloxlink);
                     }
                     if (pinewood != null) {
-                        verificationEntities.add(pinewood);
+                        verificationEntities.add(bloxlink);
                     }
 
 
@@ -112,13 +112,12 @@ public class ReverifyCommand extends Command {
                     for (VerificationEntity ve : verificationEntities) {
                         VerificationProviders provider = VerificationProviders.resolveProviderFromProvider(ve.getProvider());
                         if (provider != null) {
-                            menu.addOption(ve.getRobloxUsername(), provider.provider + context.getMessage().getId(), "Verify with " + ve.getRobloxUsername() + " from " + provider.provider, Emoji.fromMarkdown(provider.emoji));
+                            menu.addOption(ve.getRobloxUsername(), ve.getProvider(), "Verify with " + ve.getRobloxUsername() + " from " + provider.provider, Emoji.fromMarkdown(provider.emoji));
                         }
                     }
 
                     unverifiedMessage.editMessageEmbeds(context.makeSuccess("Found `" + verificationEntities.size() + "` providers with your account in their database, please select the provider you want to verify with!").requestedBy(context).buildEmbed())
-                            .setActionRow(menu.build())
-                            .queue(menuSelection -> avaire.getWaiter().waitForEvent(SelectionMenuEvent.class,
+                            .setActionRow(menu.build()).queue(menuSelection -> avaire.getWaiter().waitForEvent(SelectionMenuEvent.class,
                             interaction -> {
                                 if (interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel)) {
                                     return true;
@@ -141,17 +140,17 @@ public class ReverifyCommand extends Command {
                                                 });
                                                 return;
                                             }
-                                            if (so.getValue().equals("rover"+ context.getMessage().getId())) {
+                                            if (so.getValue().equals("rover")) {
                                                 assert rover != null;
                                                 addAccountToDatabase(context, rover.getRobloxId(), rover.getRobloxUsername(), unverifiedMessage);
                                                 return;
                                             }
-                                            if (so.getValue().equals("bloxlink"+ context.getMessage().getId())) {
+                                            if (so.getValue().equals("bloxlink")) {
                                                 assert bloxlink != null;
                                                 addAccountToDatabase(context, bloxlink.getRobloxId(), bloxlink.getRobloxUsername(), unverifiedMessage);
                                                 return;
                                             }
-                                            if (so.getValue().equals("pinewood"+ context.getMessage().getId())) {
+                                            if (so.getValue().equals("pinewood")) {
                                                 assert pinewood != null;
                                                 addAccountToDatabase(context, pinewood.getRobloxId(), pinewood.getRobloxUsername(), unverifiedMessage);
                                                 return;

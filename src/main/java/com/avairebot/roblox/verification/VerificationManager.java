@@ -79,7 +79,7 @@ public class VerificationManager {
     public boolean verify(CommandMessage commandMessage, Member member, boolean useCache) {
         Guild guild = commandMessage.getGuild();
 
-        commandMessage.makeInfo("<a:loading:742658561414266890> Checking verification database <a:loading:742658561414266890>").requestedBy(commandMessage).queue(originalMessage -> {
+        commandMessage.makeInfo("<a:loading:742658561414266890> Checking verification database <a:loading:742658561414266890>").queue(originalMessage -> {
             if (commandMessage.getMember() == null) {
                 errorMessage(commandMessage, "Member entity doesn't exist. Verification cancelled on " + member.getEffectiveName(), originalMessage);
                 return;
@@ -188,18 +188,18 @@ public class VerificationManager {
             String rolesToRemoveAsString = "\nRoles to remove:\n" + (bindingRoleMap.size() > 0
                     ? (rolesToRemove.stream().map(role -> "- `" + role.getName() + "`")
                     .collect(Collectors.joining("\n"))) : "No roles have been removed");
-            //stringBuilder.append(rolesToRemoveAsString);
+            stringBuilder.append(rolesToRemoveAsString);
+            originalMessage.editMessageEmbeds(commandMessage.makeSuccess(stringBuilder.toString()).buildEmbed()).queue();
+
             if (!verificationEntity.getRobloxUsername().equals(member.getEffectiveName())) {
                 if (PermissionUtil.canInteract(guild.getSelfMember(), member)) {
                     commandMessage.getGuild().modifyNickname(member, verificationTransformer.getNicknameFormat().replace("%USERNAME%", verificationEntity.getRobloxUsername())).queue();
-                    stringBuilder.append("\n\n**Nickname has been set to **__`").append(verificationEntity.getRobloxUsername()).append("`__");
+                    stringBuilder.append("Nickname has been set to `").append(verificationEntity.getRobloxUsername()).append("`");
                 } else {
-                    commandMessage.makeError("I do not have the permission to modify your nickname, or your highest rank is above mine.").requestedBy(commandMessage).queue();
+                    commandMessage.makeError("I do not have the permission to modify your nickname, or your highest rank is above mine.").queue();
                     stringBuilder.append("Changing nickname failed :(");
                 }
             }
-
-            originalMessage.editMessageEmbeds(commandMessage.makeSuccess(stringBuilder.toString()).requestedBy(commandMessage).setTitle("Verified as: " + verificationEntity.getRobloxUsername(), "https://www.roblox.com/users/"+ verificationEntity.getRobloxId() +"/profile").setThumbnail("https://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&userid=" + verificationEntity.getRobloxId()).buildEmbed()).queue();
         });
 
         return false;
