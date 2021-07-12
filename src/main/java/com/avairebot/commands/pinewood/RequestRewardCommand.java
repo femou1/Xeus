@@ -15,7 +15,6 @@ import com.avairebot.requests.service.user.rank.RobloxUserGroupRankService;
 import com.avairebot.utilities.NumberUtil;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
-import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import java.time.Instant;
@@ -25,8 +24,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
-import static com.avairebot.utils.JsonReader.readJsonFromUrl;
 
 public class RequestRewardCommand extends Command {
 
@@ -309,8 +306,7 @@ public class RequestRewardCommand extends Command {
 
     public Long getRobloxId(String un) {
         try {
-            JSONObject json = readJsonFromUrl("http://api.roblox.com/users/get-by-username?username=" + un);
-            return json.getLong("Id");
+            return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un);
         } catch (Exception e) {
             return 0L;
         }

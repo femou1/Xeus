@@ -8,13 +8,13 @@ import spark.Request;
 import spark.Response;
 
 public class PostAccountVerificationLink extends SparkRoute {
-    private static final Logger log = LoggerFactory.getLogger(PostGuildCleanup.class);
+    private static final Logger log = LoggerFactory.getLogger(PostAccountVerificationLink.class);
 
     @Override
     public Object handle(Request request, Response response) throws Exception {
         if (!hasValidVerificationAuthorizationHeader(request)) {
-            log.warn("Unauthorized request, missing or invalid \"Authorization\" header give.");
-            return buildResponse(response, 401, "Unauthorized request, missing or invalid \"Authorization\" header give.");
+            log.warn("Unauthorized request, missing or invalid `Authorization` header give.");
+            return buildResponse(response, 401, "Unauthorized request, missing or invalid `Authorization` header give.");
         }
 
         JSONObject obj = new JSONObject(request.body());

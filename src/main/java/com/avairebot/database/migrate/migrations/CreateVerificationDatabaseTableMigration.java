@@ -36,9 +36,8 @@ public class CreateVerificationDatabaseTableMigration implements Migration {
     @Override
     public boolean up(Schema schema) throws SQLException {
         return schema.createIfNotExists(Constants.VERIFICATION_DATABASE_TABLE_NAME, table -> {
-            table.Long("id");
-            table.Long("robloxId");
-            table.String("username", 16);
+            table.Long("id"); // Discordid
+            table.Long("robloxId"); // Robloxid
         });
     }
 

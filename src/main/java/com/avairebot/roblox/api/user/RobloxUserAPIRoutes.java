@@ -52,6 +52,39 @@ public class RobloxUserAPIRoutes {
         return null;
     }
 
+    public String getUsername(Long botAccount) {
+        Request.Builder request = new Request.Builder()
+                .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
+                .url("https://users.roblox.com/v1/users/{userId}".replace("{userId}", botAccount.toString()));
+
+        try (Response response = manager.getClient().newCall(request.build()).execute()) {
+            if (response.code() == 200) {
+                JSONObject json = new JSONObject(response.body().string());
+                return json.getString("name");
+            }
+        } catch (IOException e) {
+            AvaIre.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public Long getIdFromUsername(String username) {
+        Request.Builder request = new Request.Builder()
+                .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
+                .url("https://api.roblox.com/users/get-by-username?username={userId}".replace("{userId}", username));
+
+        try (Response response = manager.getClient().newCall(request.build()).execute()) {
+            if (response.code() == 200) {
+                JSONObject json = new JSONObject(response.body().string());
+                return json.getLong("Id");
+            }
+        } catch (IOException e) {
+            AvaIre.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+        }
+        return null;
+    }
+
+
     public List<RobloxGamePassService.Datum> getUserGamePass(Long userId, Long gamepassId) {
         Request.Builder request = new Request.Builder()
                 .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)

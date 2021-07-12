@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static com.avairebot.utils.JsonReader.readJsonFromUrl;
-
 public class GroupRankCommand extends Command {
     private static final MediaType json = MediaType.parse("application/json; charset=utf-8");
     private final OkHttpClient client = new OkHttpClient();
@@ -324,8 +322,7 @@ public class GroupRankCommand extends Command {
 
     public Long getRobloxId(String un) {
         try {
-            JSONObject json = readJsonFromUrl("https://api.roblox.com/users/get-by-username?username=" + un);
-            return json.getLong("Id");
+            return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un);
         } catch (Exception e) {
             return null;
         }

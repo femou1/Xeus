@@ -10,7 +10,7 @@ import spark.Request;
 import spark.Response;
 
 public class GetRobloxUserByDiscordId extends SparkRoute {
-    private static final Logger log = LoggerFactory.getLogger(PostGuildCleanup.class);
+    private static final Logger log = LoggerFactory.getLogger(GetDiscordIdsByRobloxId.class);
 
     @Override
     public Object handle(Request request, Response response) throws Exception {
@@ -21,20 +21,20 @@ public class GetRobloxUserByDiscordId extends SparkRoute {
         String id = request.params("discordId");
 
         JSONObject root = new JSONObject();
-        VerificationEntity pinewood = AvaIre.getInstance().getRobloxAPIManager().getVerification().fetchVerification(id, true, "pinewood");
+        VerificationEntity verificationEntity = AvaIre.getInstance().getRobloxAPIManager().getVerification().fetchVerification(id, true, "pinewood");
 
-        if (pinewood == null) {
-            pinewood = AvaIre.getInstance().getRobloxAPIManager().getVerification().fetchVerification(id, true, "rover");
+        if (verificationEntity == null) {
+            verificationEntity = AvaIre.getInstance().getRobloxAPIManager().getVerification().callUserFromRoverAPI(id);
         }
 
-        if (pinewood == null) {
-            pinewood = AvaIre.getInstance().getRobloxAPIManager().getVerification().fetchVerification(id, true, "bloxlink");
+        if (verificationEntity == null) {
+            verificationEntity = AvaIre.getInstance().getRobloxAPIManager().getVerification().callUserFromBloxlinkAPI(id);
         }
 
-        if (pinewood != null) {
-            root.put("username", pinewood.getRobloxUsername());
-            root.put("robloxId", pinewood.getRobloxId());
-            root.put("provider", pinewood.getProvider());
+        if (verificationEntity != null) {
+            root.put("username", verificationEntity.getRobloxUsername());
+            root.put("robloxId", verificationEntity.getRobloxId());
+            root.put("provider", verificationEntity.getProvider());
             response.status(200);
         } else {
             root.put("error", true);

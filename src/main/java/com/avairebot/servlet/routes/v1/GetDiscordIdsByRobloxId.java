@@ -15,7 +15,7 @@ import spark.Response;
 import java.sql.SQLException;
 
 public class GetDiscordIdsByRobloxId extends SparkRoute {
-    private static final Logger log = LoggerFactory.getLogger(PostGuildCleanup.class);
+    private static final Logger log = LoggerFactory.getLogger(GetDiscordIdsByRobloxId.class);
 
     @Override
     public Object handle(Request request, Response response) throws Exception {
@@ -60,7 +60,7 @@ public class GetDiscordIdsByRobloxId extends SparkRoute {
             if (linkedAccounts.size() == 0) {
                 return null;
             } else {
-                return new VerificationEntity(linkedAccounts.first().getLong("robloxId"), linkedAccounts.first().getString("username"), linkedAccounts.first().getLong("id"), "pinewood");
+                return new VerificationEntity(linkedAccounts.first().getLong("robloxId"), AvaIre.getInstance().getRobloxAPIManager().getUserAPI().getUsername(linkedAccounts.first().getLong("robloxId")), linkedAccounts.first().getLong("id"), "pinewood");
             }
         } catch (SQLException throwables) {
             return null;

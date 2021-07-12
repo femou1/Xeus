@@ -6,13 +6,16 @@ import com.avairebot.commands.CommandMessage;
 import com.avairebot.contracts.commands.Command;
 import com.avairebot.contracts.commands.CommandGroup;
 import com.avairebot.contracts.commands.CommandGroups;
+import com.avairebot.contracts.verification.VerificationEntity;
 import com.avairebot.database.collection.Collection;
 import com.avairebot.database.collection.DataRow;
 import com.avairebot.utilities.ComparatorUtil;
+import com.avairebot.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -59,13 +62,13 @@ public class GlobalBanCommand extends Command {
     @Override
     public List<String> getUsageInstructions() {
         return Collections.singletonList(
-            "`:command` - Ban a member globally.");
+                "`:command` - Ban a member globally.");
     }
 
     @Override
     public List<String> getExampleUsage(@Nullable Message message) {
         return Collections.singletonList(
-            "`:command` - Ban a member globally.");
+                "`:command` - Ban a member globally.");
     }
 
     @Override
@@ -76,8 +79,8 @@ public class GlobalBanCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
-            "isValidPIAMember"
+                "isOfficialPinewoodGuild",
+                "isValidPIAMember"
         );
     }
 
@@ -92,9 +95,10 @@ public class GlobalBanCommand extends Command {
 
         if (args.length < 1) {
             context.makeError("Sorry, but you didn't give any member id to globbaly ban, or argument to use!\n\n" +
-                "``Valid arguments``: \n" +
-                " - **sync/s** - Sync all global-bans with a server.\n" +
-                " - **v/view/see** - View the reason why someone is global-banned.\n\n*In the **RARE** cases someone has to be banned from the PBAC, you can ban them with ``--pbac-ban``*").queue();
+                    "``Valid arguments``: \n" +
+                    " - **sync/s** - Sync all global-bans with a server.\n" +
+                    " - **v/view/see <discord-id>** - View the reason why someone is global-banned.\n" +
+                    " - **roblox/rb/roblox-ban <roblox-id> <reason>** - Add a roblox account in the auto-ban database `(PBAC Ban not applied with this command)`.\n\n*In the **RARE** cases someone has to be banned from the PBAC, you can ban them with ``--pbac-ban``*").queue();
             return false;
         }
 
@@ -114,6 +118,16 @@ public class GlobalBanCommand extends Command {
             case "mb": {
                 return showWhoBannedWho(context, args);
             }
+            case "robloxban":
+            case "roblox":
+            case "rb":
+            case "roblox-ban":
+                try {
+                    return banRobloxIdFromServer(context, args);
+                } catch (SQLException throwables) {
+                    context.makeError("Something went wrong...").queue();
+                    throwables.printStackTrace();
+                }
         }
 
         if (args.length == 1) {
@@ -156,36 +170,101 @@ public class GlobalBanCommand extends Command {
             String finalReason = reason;
             boolean finalPbacBan = pbacBan;
             avaire.getShardManager().getUserById(args[0]).openPrivateChannel().queue(p -> {
-                p.sendMessage(context.makeInfo(
-                    "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Agent. " +
-                        "For the reason: *```" + finalReason + "```\n\n" +
-                        (finalPbacBan ? "This ban has also banned you from the [PBAC (Pinewood Builders Appeal Center)](https://discord.gg/mWnQm25). " +
-                            "If you feel like this was still unjustified, contact ``Stefano#7366``" : "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
-                            "https://discord.gg/mWnQm25")).setColor(Color.BLACK).buildEmbed()).queue();
+                p.sendMessageEmbeds(context.makeInfo(
+                        "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Agent. " +
+                                "For the reason: *```" + finalReason + "```\n\n" +
+                                (finalPbacBan ? "This ban has also banned you from the [PBAC (Pinewood Builders Appeal Center)](https://discord.gg/mWnQm25). " +
+                                        "If you feel like this was still unjustified, contact ``Stefano#7366``" : "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
+                                        "https://discord.gg/mWnQm25")).setColor(Color.BLACK).buildEmbed()).queue();
             });
         }
 
         TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
         if (tc != null) {
-            tc.sendMessage(context.makeInfo("[``:global-unbanned-id`` was global-banned from all discords by :user for](:link):\n" +
-                "```:reason```").set("global-unbanned-id", args[0]).set("reason", reason).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+            tc.sendMessageEmbeds(context.makeInfo("[``:global-unbanned-id`` was global-banned from all discords by :user for](:link):\n" +
+                    "```:reason```").set("global-unbanned-id", args[0]).set("reason", reason).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
         }
 
-        StringBuilder sb = new StringBuilder();
-        for (Guild g : guild) {
-            g.ban(args[0], time, "Banned by: " + context.member.getEffectiveName() + "\n" +
-                "For: " + reason + "\n*THIS IS A PIA GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE PIA MEMBER WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT PIA APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason).queue();
-
-            sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
-        }
-
+        StringBuilder sb = GlobalBanMember(context, args[0], time, reason);
         context.makeSuccess("<@" + args[0] + "> has been banned from: \n\n" + sb).queue();
 
+        VerificationEntity ve = avaire.getRobloxAPIManager().getVerification().fetchInstantVerificationWithBackup(args[0]);
         try {
-            handleGlobalPermBan(context, args, reason);
+            handleGlobalPermBan(context, args, reason, ve);
         } catch (SQLException exception) {
             AvaIre.getLogger().error("ERROR: ", exception);
             context.makeError("Something went wrong adding this user to the global perm ban database.").queue();
+        }
+        return true;
+    }
+
+    @NotNull
+    private StringBuilder GlobalBanMember(CommandMessage context, String arg, int time, String reason) {
+        StringBuilder sb = new StringBuilder();
+        for (Guild g : guild) {
+            g.ban(arg, time, "Banned by: " + context.member.getEffectiveName() + "\n" +
+                    "For: " + reason + "\n*THIS IS A PIA GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE PIA MEMBER WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT PIA APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason).queue();
+
+            sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
+        }
+        return sb;
+    }
+
+    private boolean banRobloxIdFromServer(CommandMessage context, String[] args) throws SQLException {
+        if (args.length < 2) {
+            context.makeError("What roblox ID Would you like to ban?").queue();
+            return false;
+        }
+
+        if (args.length < 3) {
+            context.makeError("I'm missing the reason for the ban. Please run the command and add the reason.").queue();
+            return false;
+        }
+
+        if (NumberUtil.isNumeric(args[1])) {
+            String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+            Long userId = Long.valueOf(args[1]);
+            String username = avaire.getRobloxAPIManager().getUserAPI().getUsername(userId);
+            if (username != null) {
+                Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", args[0]).get();
+                if (c.size() < 1) {
+                    avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).insert(o -> {
+                        o
+                                .set("punisherId", context.getAuthor().getId())
+                                .set("reason", reason, true)
+                                .set("roblox_username", username)
+                                .set("roblox_user_id", userId);
+                    });
+                    context.makeSuccess("Permbanned ``" + args[0] + "`` in the database.").queue();
+                } else {
+                    context.makeError("This user already has a permban in the database!").queue();
+                }
+            } else {
+                context.makeError("User-ID doesn't exist").queue();
+            }
+        } else {
+            String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+            String username = args[1];
+            Long userId = avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(username);
+            if (userId != null) {
+                Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_username", args[0]).get();
+                if (c.size() < 1) {
+                    avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).insert(o -> {
+                        o
+                                .set("punisherId", context.getAuthor().getId())
+                                .set("reason", reason, true)
+                                .set("roblox_username", username)
+                                .set("roblox_user_id", userId);
+                    });
+                    context.makeSuccess("Permbanned ``" + args[0] + "`` in the database.").queue();
+                    return true;
+                } else {
+                    context.makeError("This user already has a permban in the database!").queue();
+                    return false;
+                }
+            } else {
+                context.makeError("Username doesn't exist").queue();
+            }
         }
         return true;
     }
@@ -206,8 +285,8 @@ public class GlobalBanCommand extends Command {
             }
             StringBuilder sb = new StringBuilder();
             for (DataRow d : c) {
-                sb.append("``userId`` was banned by <@punisherId> **(``punisherId``)** for:\n```reason```\n\n"
-                    .replace("userId", d.getString("userId"))
+                sb.append("``userId`` (").append(getRobloxUsername(d)).append(") was banned by <@punisherId> **(``punisherId``)** for:\n```reason```\n\n"
+                        .replace("userId", d.getString("userId"))
                         .replaceAll("punisherId", d.getString("punisherId"))
                         .replace("reason", d.getString("reason")));
             }
@@ -218,6 +297,13 @@ public class GlobalBanCommand extends Command {
             return false;
         }
     }
+
+    private String getRobloxUsername(DataRow d) {
+        String username = avaire.getRobloxAPIManager().getUserAPI().getUsername(d.getLong("roblox_user_id"));
+        return username != null ? username : "USERNAME NOT FOUND";
+
+    }
+
     private boolean showGlobalBanWithReason(CommandMessage context, String[] args) {
         if (args.length < 2) {
             context.makeError("I don't know what user id you'd like to view.").queue();
@@ -229,11 +315,13 @@ public class GlobalBanCommand extends Command {
             Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME)
                     .where("userId", id).get();
             if (c.size() < 1) {
-                context.makeInfo("``:userId`` was not found/is not banned.").set("userId", id).requestedBy(context).queue();
+                context.makeInfo("`:userId` was not found/is not banned.").set("userId", id).requestedBy(context).queue();
                 return makeGuildBans(context, args);
             } else if (c.size() == 1) {
-                context.makeSuccess("``:userId`` was banned by <@:punisherId> **(``:punisherId``)** for:\n```:reason```")
-                    .set("userId", c.get(0).getString("userId")).set("punisherId", c.get(0).getString("punisherId")).set("reason", c.get(0).getString("reason")).queue();
+                VerificationEntity ve = avaire.getRobloxAPIManager().getVerification().fetchInstantVerificationWithBackup(id);
+
+                context.makeSuccess("`:userId` (" + getRobloxIdFromVerificationEntity(ve) + ") was banned by <@:punisherId> **(``:punisherId``)** for:\n```:reason```")
+                        .set("userId", c.get(0).getString("userId")).set("punisherId", c.get(0).getString("punisherId")).set("reason", c.get(0).getString("reason")).queue();
                 return true;
             } else {
                 context.makeError("Something went wrong, there are more then 1 of the same punishment in the database. Ask Stefano to check this.").queue();
@@ -243,6 +331,13 @@ public class GlobalBanCommand extends Command {
             context.makeError("The database coudn't return anything, please check with the developer").queue();
             return false;
         }
+    }
+
+    private Long getRobloxIdFromVerificationEntity(VerificationEntity ve) {
+        if (ve != null) {
+            return ve.getRobloxId();
+        }
+        return null;
     }
 
     private boolean makeGuildBans(CommandMessage context, String[] args) {
@@ -259,7 +354,7 @@ public class GlobalBanCommand extends Command {
             g.retrieveBanList().queue(p -> {
                 for (Guild.Ban b : p) {
                     if (b.getUser().getId().equals(args[1])) {
-                        context.makeWarning(":white_check_mark: - `"+ g.getName() +"` - `"+ (b.getReason() != null ? b.getReason() : "Reason not given...") + "`").queue();
+                        context.makeWarning(":white_check_mark: - `" + g.getName() + "` - `" + (b.getReason() != null ? b.getReason() : "Reason not given...") + "`").queue();
                     }
                 }
             });
@@ -285,19 +380,22 @@ public class GlobalBanCommand extends Command {
         }
         return true;
     }
-    private void handleGlobalPermBan(CommandMessage context, String[] args, String reason) throws SQLException {
+
+    private void handleGlobalPermBan(CommandMessage context, String[] args, String reason, VerificationEntity ve) throws SQLException {
         Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("userId", args[0]).get();
         if (c.size() < 1) {
             avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).insert(o -> {
-                o.set("userId", args[0]);
-                o.set("punisherId", context.getAuthor().getId());
-                o.set("reason", reason, true);
+                o.set("userId", args[0])
+                        .set("punisherId", context.getAuthor().getId())
+                        .set("reason", reason, true)
+                        .set("roblox_user_id", getRobloxIdFromVerificationEntity(ve));
             });
             context.makeSuccess("Permbanned ``" + args[0] + "`` in the database.").queue();
         } else {
             context.makeError("This user already has a permban in the database!").queue();
         }
     }
+
     private boolean buildAndSendEmbed(StringBuilder sb, CommandMessage context) {
         if (sb.length() > 1900) {
             for (String s : splitStringEvery(sb.toString(), 2000)) {
@@ -308,6 +406,7 @@ public class GlobalBanCommand extends Command {
         }
         return true;
     }
+
     public String[] splitStringEvery(String s, int interval) {
         int arrayLength = (int) Math.ceil(((s.length() / (double) interval)));
         String[] result = new String[arrayLength];

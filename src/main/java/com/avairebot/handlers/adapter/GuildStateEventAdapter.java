@@ -38,10 +38,10 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.channel.voice.update.VoiceChannelUpdateRegionEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateNameEvent;
-import net.dv8tion.jda.api.events.guild.update.GuildUpdateRegionEvent;
 
 import java.awt.*;
 import java.sql.SQLException;
@@ -69,7 +69,7 @@ public class GuildStateEventAdapter extends EventAdapter {
         }
     }
 
-    public void onGuildUpdateRegion(GuildUpdateRegionEvent event) {
+    public void onGuildUpdateRegion(VoiceChannelUpdateRegionEvent event) {
         Metrics.geoTracker.labels(event.getOldRegion().getName()).dec();
         Metrics.geoTracker.labels(event.getNewRegion().getName()).inc();
     }

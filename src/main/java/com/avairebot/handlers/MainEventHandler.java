@@ -43,6 +43,7 @@ import net.dv8tion.jda.api.events.channel.text.TextChannelDeleteEvent;
 import net.dv8tion.jda.api.events.channel.text.update.TextChannelUpdateNameEvent;
 import net.dv8tion.jda.api.events.channel.text.update.TextChannelUpdatePositionEvent;
 import net.dv8tion.jda.api.events.channel.voice.VoiceChannelDeleteEvent;
+import net.dv8tion.jda.api.events.channel.voice.update.VoiceChannelUpdateRegionEvent;
 import net.dv8tion.jda.api.events.emote.EmoteRemovedEvent;
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
@@ -51,7 +52,6 @@ import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateNameEvent;
-import net.dv8tion.jda.api.events.guild.update.GuildUpdateRegionEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
@@ -149,7 +149,7 @@ public class MainEventHandler extends EventHandler {
     }
 
     @Override
-    public void onGuildUpdateRegion(GuildUpdateRegionEvent event) {
+    public void onVoiceChannelUpdateRegion(VoiceChannelUpdateRegionEvent event) {
         guildStateEvent.onGuildUpdateRegion(event);
     }
 

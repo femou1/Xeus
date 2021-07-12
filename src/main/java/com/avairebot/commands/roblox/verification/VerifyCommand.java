@@ -16,7 +16,6 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.Button;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
-import org.json.JSONObject;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -24,8 +23,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static com.avairebot.utils.JsonReader.readJsonFromUrl;
 
 public class VerifyCommand extends Command {
 
@@ -218,7 +215,7 @@ public class VerifyCommand extends Command {
                                                 if (interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel)) {
                                                     return true;
                                                 }
-                                                interaction.deferReply().setEphemeral(true).flatMap(emp -> emp.sendMessage("Sorry, but you're not allowed to use this interaction unless you're `" + context.getMember().getEffectiveName() + "`")).queue();
+                                                //interaction.deferReply().setEphemeral(true).flatMap(emp -> emp.sendMessage("Sorry, but you're not allowed to use this interaction unless you're `" + context.getMember().getEffectiveName() + "`")).queue();
                                                 return false;
                                             }, statusButton -> {
                                                 statusButton.deferEdit().queue();
@@ -246,18 +243,16 @@ public class VerifyCommand extends Command {
             QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME);
             Collection accounts = qb.where("id", context.getMember().getId()).get();
             if (accounts.size() > 0) {
-                qb.update(addAccount -> {
+                qb.where("id", context.getMember().getId()).update(addAccount -> {
                     addAccount
                             .set("id", context.getMember().getId())
-                            .set("robloxId", robloxId)
-                            .set("username", robloxUsername);
+                            .set("robloxId", robloxId);
                 });
             } else {
-                qb.insert(addAccount -> {
+                qb.where("id", context.getMember().getId()).insert(addAccount -> {
                     addAccount
                             .set("id", context.getMember().getId())
-                            .set("robloxId", robloxId)
-                            .set("username", robloxUsername);
+                            .set("robloxId", robloxId);
                 });
             }
 
@@ -266,14 +261,14 @@ public class VerifyCommand extends Command {
             avaire.getRobloxAPIManager().getVerification().verify(context, false);
         } catch (SQLException throwables) {
             originalMessage.editMessageEmbeds(context.makeError("Something went wrong adding your account to the database :(").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
+            throwables.printStackTrace();
         }
     }
 
 
     public Long getRobloxId(String un) {
         try {
-            JSONObject json = readJsonFromUrl("https://api.roblox.com/users/get-by-username?username=" + un);
-            return json.getLong("Id");
+            return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un);
         } catch (Exception e) {
             return 0L;
         }

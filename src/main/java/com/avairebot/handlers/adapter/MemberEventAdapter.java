@@ -89,7 +89,7 @@ public class MemberEventAdapter extends EventAdapter {
                     continue;
                 }
 
-                textChannel.sendMessage(
+                textChannel.sendMessageEmbeds(
                     MessageFactory.createEmbeddedBuilder()
                         .setDescription(message)
                         .setColor(Color.decode(embedColor))

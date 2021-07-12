@@ -61,8 +61,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static com.avairebot.utils.JsonReader.readJsonFromUrl;
-
 public class ButtonClickEventAdapter extends EventAdapter {
 
     private static final MediaType json = MediaType.parse("application/json; charset=utf-8");
@@ -110,17 +108,17 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     .addParameter("userids", reportedRobloxId)
                                                     .addHeader("Access-Key", avaire.getConfig().getString("apiKeys.kronosDatabaseApiKey"))
                                                     .send((Consumer<Response>) response -> {
-                                                        GetUsersPoints service = (GetUsersPoints) response.toService(List.class);
+                                                        GetUsersPoints[] service = (GetUsersPoints[]) response.toService(GetUsersPoints[].class);
                                                             Long userId = reportedRobloxId;
-                                                            Long points = service.hasData() ? service.getData().get(0).getPoints() : 0L;
+                                                            // Long points = Arrays.stream(service).findFirst().isPresent() ? Arrays.stream(service).findFirst().get().getPoints() : 0L;
 
                                                             tc.retrieveMessageById(c.getLong("report_message_id")).queue(v -> {
                                                                 if (v.getEmbeds().get(0).getColor().equals(new Color(0, 255, 0)))
                                                                     return;
 
                                                                 e.getChannel().sendMessage(e.getMember().getAsMention()).embed(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(100, 200, 200),
-                                                                    "You've chosen to approve this report, may I know the amount of points I have to remove? (This user currently has ``:points`` points)")
-                                                                    .requestedBy(e.getMember()).set("points", points).buildEmbed()).queue(z -> {
+                                                                    "You've chosen to approve this report, may I know the amount of points I have to remove? (This user currently has ``BROKEN`` points)")
+                                                                    .requestedBy(e.getMember())/*.set("points", points)*/.buildEmbed()).queue(z -> {
                                                                     avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class,
                                                                         p -> p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel()) && NumberUtil.isNumeric(p.getMessage().getContentStripped()), run -> {
                                                                             v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
@@ -346,7 +344,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                                 .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
                                                                 .addHeader("Access-Key", avaire.getConfig().getString("apiKeys.kronosDatabaseApiKey"))
                                                                 .url("https://www.pb-kronos.dev/api/v2/smartlog/pbst/single")
-                                                                .post(RequestBody.create(json, buildPayload(username, getRobloxId(username), Long.valueOf(run.getMessage().getContentRaw()))));
+                                                                .post(RequestBody.create(json, buildPayload(username, avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(username), Long.valueOf(run.getMessage().getContentRaw()))));
 
                                                             try (okhttp3.Response exportResponse = client.newCall(request.build()).execute()) {
                                                                 e.getChannel().sendMessage(MessageFactory.makeEmbeddedMessage(e.getChannel())
@@ -733,8 +731,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
 
     public Long getRobloxId(String un) {
         try {
-            JSONObject json = readJsonFromUrl("http://api.roblox.com/users/get-by-username?username=" + un);
-            return json.getLong("Id");
+            return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un);
         } catch (Exception e) {
             return null;
         }

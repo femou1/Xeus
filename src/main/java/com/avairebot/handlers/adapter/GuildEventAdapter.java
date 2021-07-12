@@ -26,6 +26,7 @@ import com.avairebot.Constants;
 import com.avairebot.cache.MessageCache;
 import com.avairebot.contracts.cache.CachedMessage;
 import com.avairebot.contracts.handlers.EventAdapter;
+import com.avairebot.contracts.verification.VerificationEntity;
 import com.avairebot.database.collection.Collection;
 import com.avairebot.database.controllers.GuildController;
 import com.avairebot.database.query.QueryBuilder;
@@ -66,8 +67,17 @@ public class GuildEventAdapter extends EventAdapter {
 
     public void onGuildPIAMemberBanEvent(GuildUnbanEvent e) {
         try {
-            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME)
-                    .where("userId", e.getUser().getId());
+            VerificationEntity ve = avaire.getRobloxAPIManager().getVerification().callUserFromRoverAPI(e.getUser().getId());
+
+            QueryBuilder qb;
+            if (ve != null) {
+                qb = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME)
+                        .where("userId", e.getUser().getId()).orWhere("roblox_user_id", ve.getRobloxId());
+            } else {
+                qb = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME)
+                        .where("userId", e.getUser().getId());
+            }
+
             Collection unbanCollection = qb.get();
             if (unbanCollection.size() > 0) {
                 e.getGuild().retrieveAuditLogs().queue(items -> {
@@ -76,23 +86,23 @@ public class GuildEventAdapter extends EventAdapter {
 
                     if (logs.size() < 1) {
                         if (tc != null) {
-                            tc.sendMessage(MessageFactory.makeEmbeddedMessage(tc).setDescription(e.getUser().getAsTag() + " has been unbanned from **" + e.getGuild() + "**, however, I could not find the user responsible for the unban. Please check the audit logs in the responsible server for more information. (User has been re-banned)").buildEmbed()).queue();
+                            tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription(e.getUser().getAsTag() + " has been unbanned from **" + e.getGuild() + "**, however, I could not find the user responsible for the unban. Please check the audit logs in the responsible server for more information. (User has been re-banned)").buildEmbed()).queue();
                         }
                         e.getGuild().ban(e.getUser().getId(), 0, "User was unbanned, user has been re-banned due to permban system in Xeus. Original ban reason (Do not unban without PIA permission): " + unbanCollection.get(0).getString("reason")).reason("PIA BAN: " + unbanCollection.get(0).getString("reason")).queue();
                     } else {
                         if (tc != null) {
                             if (Constants.piaMembers.contains(logs.get(0).getUser().getId())) {
-                                tc.sendMessage(MessageFactory.makeEmbeddedMessage(tc).setDescription("**" + e.getUser().getName() + e.getUser().getDiscriminator() + "**" + " has been unbanned from **" + e.getGuild().getName() + "**\nIssued by PIA Member: " + logs.get(0).getUser().getName() + "#" + logs.get(0).getUser().getDiscriminator() + "\nWith reason: " + (logs.get(0).getReason() != null ? logs.get(0).getReason() : "No reason given")).buildEmbed()).queue();
+                                tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription("**" + e.getUser().getName() + e.getUser().getDiscriminator() + "**" + " has been unbanned from **" + e.getGuild().getName() + "**\nIssued by PIA Member: " + logs.get(0).getUser().getName() + "#" + logs.get(0).getUser().getDiscriminator() + "\nWith reason: " + (logs.get(0).getReason() != null ? logs.get(0).getReason() : "No reason given")).buildEmbed()).queue();
                                 logs.get(0).getUser().openPrivateChannel().queue(o -> {
                                     if (o.getUser().isBot()) return;
-                                    o.sendMessage(MessageFactory.makeEmbeddedMessage(tc).setDescription("You have currently unbanned a Global-Banned user.").buildEmbed()).queue();
+                                    o.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription("You have currently unbanned a Global-Banned user.").buildEmbed()).queue();
                                 });
                             } else {
-                                tc.sendMessage(MessageFactory.makeEmbeddedMessage(tc).setDescription("**" + e.getUser().getName() + e.getUser().getDiscriminator() + "** has been unbanned from **" + e.getGuild().getName() + "**\nIssued by Guild Member: " + logs.get(0).getUser().getName() + "#" + logs.get(0).getUser().getDiscriminator() + " (User has been re-banned)").buildEmbed()).queue();
+                                tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription("**" + e.getUser().getName() + e.getUser().getDiscriminator() + "** has been unbanned from **" + e.getGuild().getName() + "**\nIssued by Guild Member: " + logs.get(0).getUser().getName() + "#" + logs.get(0).getUser().getDiscriminator() + " (User has been re-banned)").buildEmbed()).queue();
 
                                 logs.get(0).getUser().openPrivateChannel().queue(o -> {
                                     if (o.getUser().isBot()) return;
-                                    o.sendMessage(MessageFactory.makeEmbeddedMessage(tc).setDescription("Sorry, but this user **:bannedUser** was permbanned of PB though the Xeus blacklist feature and may **not** be unbanned. Please ask a PIA agent to handle an unban if deemed necessary.").set("bannedUser", e.getUser().getAsTag() + " / " + e.getUser().getName()).buildEmbed()).queue();
+                                    o.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription("Sorry, but this user **:bannedUser** was permbanned of PB though the Xeus blacklist feature and may **not** be unbanned. Please ask a PIA agent to handle an unban if deemed necessary.").set("bannedUser", e.getUser().getAsTag() + " / " + e.getUser().getName()).buildEmbed()).queue();
                                 });
 
                                 String agent = avaire.getShardManager().getUserById(unbanCollection.get(0).getLong("punishedId")) != null ? avaire.getShardManager().getUserById(unbanCollection.get(0).getLong("punishedId")).getName() : "No PIA Member found";

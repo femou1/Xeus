@@ -187,22 +187,16 @@ public class LogCommand extends Command {
     }
 
     public Long getRobloxId(String un) {
-
         try {
-            JSONObject json = readJsonFromUrl("http://api.roblox.com/users/get-by-username?username=" + un);
-            return json.getLong("Id");
+            return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un);
         } catch (Exception e) {
             return null;
         }
     }
 
     public boolean isValidRobloxUser(String un) {
-
         try {
-            JSONObject json = readJsonFromUrl("http://api.roblox.com/users/get-by-username?username=" + un);
-            String username = json.getString("Username");
-
-            return username != null;
+            return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un) != null;
         } catch (Exception e) {
             return false;
         }
