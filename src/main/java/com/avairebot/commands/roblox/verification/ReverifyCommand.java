@@ -1,33 +1,24 @@
 package com.avairebot.commands.roblox.verification;
 
 import com.avairebot.AvaIre;
-import com.avairebot.Constants;
 import com.avairebot.commands.CommandMessage;
-import com.avairebot.contracts.commands.Command;
+import com.avairebot.contracts.commands.VerificationCommand;
 import com.avairebot.contracts.verification.VerificationEntity;
 import com.avairebot.contracts.verification.VerificationProviders;
-import com.avairebot.database.collection.Collection;
-import com.avairebot.database.query.QueryBuilder;
 import net.dv8tion.jda.api.entities.Emoji;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.components.Button;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class ReverifyCommand extends Command {
-
-    private static final String[] names = {"roblox", "pinewood", "activity-center", "security", "apple", "lemons", "duel", "acapella", "kronos", "mega", "miners"};
-
+public class ReverifyCommand extends VerificationCommand {
 
     public ReverifyCommand(AvaIre avaire) {
         super(avaire);
@@ -116,7 +107,7 @@ public class ReverifyCommand extends Command {
                     unverifiedMessage.editMessageEmbeds(context.makeSuccess("Found `" + verificationEntities.size() + "` providers with your account in their database, please select the provider you want to verify with!").requestedBy(context).buildEmbed())
                             .setActionRow(menu.build()).queue(menuSelection -> {
                         avaire.getWaiter().waitForEvent(SelectionMenuEvent.class,
-                                interaction -> interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
+                                interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
                                 providerSelect -> {
                                     providerSelect.deferEdit().queue();
                                     selectProvider(context, unverifiedMessage, rover, bloxlink, pinewood, providerSelect);
@@ -135,7 +126,7 @@ public class ReverifyCommand extends Command {
                 if (so.getValue().equals("verify-new-account")) {
                     unverifiedMessage.editMessageEmbeds(context.makeWarning("You selected the option to verify with a new account\n**Please enter the Roblox name of said account**:").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue(unused -> {
                         avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class,
-                                interaction -> interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
+                                interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
                                 usernameMessage -> {
                                     verifyNewAccount(context, usernameMessage.getMessage().getContentRaw(), unverifiedMessage);
                                     usernameMessage.getMessage().delete().queue();
@@ -144,15 +135,15 @@ public class ReverifyCommand extends Command {
                     return;
                 }
                 if (so.getValue().equals("rover" + ":" + ve.getRobloxUsername())) {
-                    addAccountToDatabase(context, ve.getRobloxId(), ve.getRobloxUsername(), unverifiedMessage);
+                    addAccountToDatabase(context, ve.getRobloxId(), unverifiedMessage);
                     return;
                 }
                 if (so.getValue().equals("bloxlink" + ":" + bloxlink.getRobloxUsername())) {
-                    addAccountToDatabase(context, bloxlink.getRobloxId(), bloxlink.getRobloxUsername(), unverifiedMessage);
+                    addAccountToDatabase(context, bloxlink.getRobloxId(), unverifiedMessage);
                     return;
                 }
                 if (so.getValue().equals("pinewood" + ":" + pinewood.getRobloxUsername())) {
-                    addAccountToDatabase(context, pinewood.getRobloxId(), pinewood.getRobloxUsername(), unverifiedMessage);
+                    addAccountToDatabase(context, pinewood.getRobloxId(), unverifiedMessage);
                     return;
                 }
             }
@@ -177,80 +168,29 @@ public class ReverifyCommand extends Command {
 
         originalMessage.editMessageEmbeds(context.makeInfo("Account was found on roblox, how would you like to verify?").requestedBy(context).buildEmbed())
                 .setActionRow(menu).queue(m -> avaire.getWaiter().waitForEvent(SelectionMenuEvent.class,
-                interaction -> interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
-                accountSelect -> accountSelect.deferEdit().queue(k -> selectAccount(context, robloxUsername, originalMessage, robloxId, accountSelect)), 5, TimeUnit.MINUTES, () -> originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue()));
+                interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
+                accountSelect -> accountSelect.deferEdit().queue(k -> selectAccount(context, originalMessage, robloxId, accountSelect))
+                , 5, TimeUnit.MINUTES, () -> originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue()));
     }
 
-    private void selectAccount(CommandMessage context, String robloxUsername, Message originalMessage, Long robloxId, SelectionMenuEvent accountSelect) {
+    private void selectAccount(CommandMessage context, Message originalMessage, Long robloxId, SelectionMenuEvent accountSelect) {
         if (accountSelect.getSelectedOptions() != null) {
             for (SelectOption so : accountSelect.getSelectedOptions()) {
                 if (so.getValue().equals("game-verification")) {
-                    originalMessage.editMessageEmbeds(context.makeError("This feature is still in progress, please try again later.").requestedBy(context).buildEmbed()).queue();
+                    runGameVerification(context, originalMessage, robloxId);
                     return;
                 }
 
-                StringBuilder token = new StringBuilder();
-                for (int i = 0; i < 6; i++) {
-                    token.append(names[(int) (Math.random() * names.length)]).append(" ");
-                }
-                token.deleteCharAt(token.length() - 1);
 
                 if (so.getValue().equals("edit-description")) {
-                    Button b1 = Button.success("check:" + originalMessage.getId(), "Check your status").withEmoji(Emoji.fromUnicode("✅"));
-                    Button b2 = Button.danger("cancel:" + originalMessage.getId(), "Cancel verification").withEmoji(Emoji.fromUnicode("❌"));
-                    originalMessage.editMessageEmbeds(context.makeError("Please go to [your profile](https://www.roblox.com/users/:robloxId/profile) and edit your description!\n\nMake sure it contains the following text before confirming you`ve changed it!\n" +
-                            "```" + token + "```")
-                            .set("robloxId", robloxId)
-                            .setImage("https://i.imgur.com/VXoXcIS.png")
-                            .setThumbnail("https://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&userid=" + robloxId).requestedBy(context).buildEmbed())
-                            .setActionRow(b1.asEnabled(), b2.asEnabled())
-                            .queue(statusCheck -> avaire.getWaiter().waitForEvent(ButtonClickEvent.class,
-                                    interaction -> interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel)
-                                    , statusButton -> {
-                                        statusButton.deferEdit().queue();
-                                        if ("✅".equals(statusButton.getButton().getEmoji().getName())) {
-                                            String status = avaire.getRobloxAPIManager().getUserAPI().getUserStatus(robloxId);
-                                            if (status.contains(token)) {
-                                                addAccountToDatabase(context, robloxId, robloxUsername, originalMessage);
-                                            } else {
-                                                originalMessage.editMessageEmbeds(context.makeWarning("Your status does not contain the token, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
-                                            }
-                                            return;
-                                        }
-                                        originalMessage.editMessageEmbeds(context.makeWarning("System has been cancelled, if you want to verify again run the !verify command").requestedBy(context).buildEmbed()).queue();
-                                    }, 5, TimeUnit.MINUTES, () -> originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue()));
+                    runDescriptionVerification(context, originalMessage, robloxId);
                     return;
                 }
             }
         }
     }
 
-    private void addAccountToDatabase(CommandMessage context, Long robloxId, String robloxUsername, Message originalMessage) {
-        try {
-            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME);
-            Collection accounts = qb.where("id", context.getMember().getId()).get();
-            //Collection mainAccount = qb.where("main", "1").get();
-            if (accounts.size() > 0) {
-                qb.update(addAccount -> {
-                    addAccount
-                            .set("robloxId", robloxId);
-                });
-            } else {
-                qb.insert(addAccount -> {
-                    addAccount
-                            .set("id", context.getMember().getId())
-                            .set("robloxId", robloxId);
-                });
-            }
 
-            originalMessage.editMessageEmbeds(context.makeSuccess("Your profile has been verified and your account `:username` with id `:robloxId` has been linked to your discord account (`:id`). You will be verified on this discord in a few seconds.")
-                    .set("username", robloxUsername).set("robloxId", robloxId).set("id", context.getMember().getId()).requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
-            avaire.getRobloxAPIManager().getVerification().verify(context, false);
-        } catch (SQLException throwables) {
-            originalMessage.editMessageEmbeds(context.makeError("Something went wrong adding your account to the database :(").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
-            throwables.printStackTrace();
-        }
-    }
 
 
     public Long getRobloxId(String un) {

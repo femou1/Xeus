@@ -19,7 +19,7 @@
  *
  */
 
-package com.avairebot.servlet.routes.v1;
+package com.avairebot.servlet.routes.v1.get;
 
 import com.avairebot.contracts.metrics.SparkRoute;
 import spark.Request;

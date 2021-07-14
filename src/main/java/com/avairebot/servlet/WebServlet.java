@@ -24,7 +24,7 @@ package com.avairebot.servlet;
 import com.avairebot.servlet.filters.AreWeReadyYetFilter;
 import com.avairebot.servlet.filters.HttpFilter;
 import com.avairebot.servlet.handlers.SparkExceptionHandler;
-import com.avairebot.servlet.routes.v1.GetNotFoundRoute;
+import com.avairebot.servlet.routes.v1.get.GetNotFoundRoute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Route;

@@ -19,7 +19,7 @@
  *
  */
 
-package com.avairebot.servlet.routes.v1;
+package com.avairebot.servlet.routes.v1.post;
 
 import com.avairebot.AvaIre;
 import com.avairebot.Constants;

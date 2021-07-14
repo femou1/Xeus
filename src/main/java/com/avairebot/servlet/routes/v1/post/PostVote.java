@@ -19,7 +19,7 @@
  *
  */
 
-package com.avairebot.servlet.routes.v1;
+package com.avairebot.servlet.routes.v1.post;
 
 import com.avairebot.AvaIre;
 import com.avairebot.contracts.metrics.SparkRoute;
@@ -105,7 +105,6 @@ public class PostVote extends SparkRoute {
     }
 
     private class VoteRequest {
-
         private String bot;
         private String user;
         private String type;

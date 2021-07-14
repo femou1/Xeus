@@ -1,4 +1,4 @@
-package com.avairebot.servlet.routes.v1;
+package com.avairebot.servlet.routes.v1.get;
 
 import com.avairebot.AvaIre;
 import com.avairebot.contracts.metrics.SparkRoute;
@@ -24,11 +24,11 @@ public class GetRobloxUserByDiscordId extends SparkRoute {
         VerificationEntity verificationEntity = AvaIre.getInstance().getRobloxAPIManager().getVerification().fetchVerification(id, true, "pinewood");
 
         if (verificationEntity == null) {
-            verificationEntity = AvaIre.getInstance().getRobloxAPIManager().getVerification().callUserFromRoverAPI(id);
+            verificationEntity = AvaIre.getInstance().getRobloxAPIManager().getVerification().fetchVerification(id, true, "rover");
         }
 
         if (verificationEntity == null) {
-            verificationEntity = AvaIre.getInstance().getRobloxAPIManager().getVerification().callUserFromBloxlinkAPI(id);
+            verificationEntity = AvaIre.getInstance().getRobloxAPIManager().getVerification().fetchVerification(id, true, "bloxlink");
         }
 
         if (verificationEntity != null) {

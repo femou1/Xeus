@@ -6,7 +6,9 @@ import com.avairebot.Constants;
 import com.avairebot.commands.CommandMessage;
 import com.avairebot.contracts.verification.VerificationEntity;
 import com.avairebot.database.collection.Collection;
+import com.avairebot.database.transformers.GuildTransformer;
 import com.avairebot.database.transformers.VerificationTransformer;
+import com.avairebot.factories.MessageFactory;
 import com.avairebot.requests.service.group.GuildRobloxRanksService;
 import com.avairebot.requests.service.user.inventory.RobloxGamePassService;
 import com.avairebot.requests.service.user.rank.RobloxUserGroupRankService;
@@ -16,15 +18,16 @@ import com.avairebot.utilities.RoleUtil;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
-import com.google.gson.reflect.TypeToken;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.internal.utils.PermissionUtil;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
+import java.awt.*;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -45,6 +48,7 @@ public class VerificationManager {
     private final AvaIre avaire;
     private final RobloxAPIManager manager;
     private final ArrayList<Guild> guilde = new ArrayList<>();
+    private final HashMap<Long, String> inVerification = new HashMap<>();
 
     private final ArrayList<String> guilds = new ArrayList<String>() {{
         add("495673170565791754"); // Aerospace
@@ -88,7 +92,7 @@ public class VerificationManager {
                 return;
             }
 
-            VerificationEntity verificationEntity = fetchVerification(member.getId(), useCache);
+            VerificationEntity verificationEntity = fetchVerificationWithBackup(member.getId(), useCache);
             if (verificationEntity == null) {
                 errorMessage(commandMessage, "Xeus coudn't find your profile on the Pinewood Database, please verify an account with `!verify`.", originalMessage);
                 return;
@@ -121,27 +125,53 @@ public class VerificationManager {
                             guilde.add(g);
                         }
                     }
-                    GlobalBanMember(commandMessage, String.valueOf(verificationEntity.getDiscordId()), 0, "User has been global-banned by PIA. This is automatic ban.");
+
                     TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
                     if (tc != null) {
                         tc.sendMessageEmbeds(commandMessage.makeInfo("[``:global-unbanned-id`` was auto-global-banned from all discords by :user for](:link):\n" +
-                                "```:reason```").set("global-unbanned-id", verificationEntity.getRobloxId()).set("reason", accounts.get(0).get("reason")).set("user", "XEUS AUTO BAN").set("link", commandMessage.getMessage().getJumpUrl()).buildEmbed()).queue();
+                                "```:reason```").set("global-unbanned-id", verificationEntity.getRobloxId()).set("reason", accounts.get(0).getString("reason")).set("user", "XEUS AUTO BAN").set("link", commandMessage.getMessage().getJumpUrl()).buildEmbed()).queue();
                     }
+
+                    if (commandMessage.getGuildTransformer() != null) {
+                        GuildTransformer transformer = commandMessage.getGuildTransformer();
+                    if (transformer.getMemberToYoungChannelId() != null && commandMessage.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()) != null) {
+                        MessageFactory.makeEmbeddedMessage(commandMessage.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()), new Color(255, 0, 0))
+                                .setThumbnail(commandMessage.getAuthor().getEffectiveAvatarUrl())
+                                .setDescription("A global-banned user just tried to verify within this guild, user has been banned from all guilds and has been sent a message in DM's").queue();
+                    }}
+
+                    if (commandMessage.getMember() != null) {
+                        commandMessage.getAuthor().openPrivateChannel().queue(p -> {
+                            p.sendMessageEmbeds(commandMessage.makeInfo(
+                                    "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Agent. " +
+                                            "For the reason: *```" + accounts.get(0).getString("reason") + "```\n\n" +
+                                            "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
+                                            "https://discord.gg/mWnQm25").setColor(Color.BLACK).buildEmbed()).queue();
+                        });
+                    }
+                    avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", verificationEntity.getRobloxId())
+                            .update(p -> p.set("id", commandMessage.getAuthor().getId()));
+                    GlobalBanMember(commandMessage, String.valueOf(verificationEntity.getDiscordId()), 0, "User has been global-banned by PIA. This is automatic ban. | " + accounts.get(0).getString("reason"));
                     return;
                 }
             } catch (SQLException throwables) {
-                commandMessage.makeWarning("Something went wrong checking the PIA Anti-Unban table. Please check with the developer (`Stefano#7366`)").queue(k -> {k.delete().queueAfter(15, TimeUnit.SECONDS);});
+                commandMessage.makeWarning("Something went wrong checking the PIA Anti-Unban table. Please check with the developer (`Stefano#7366`)").queue(k -> {
+                    k.delete().queueAfter(15, TimeUnit.SECONDS);
+                });
                 throwables.printStackTrace();
+                return;
             }
 
             if (commandMessage.getGuild().getId().equals("438134543837560832")) {
                 if (avaire.getBlacklistManager().getPBSTBlacklist().contains(verificationEntity.getRobloxId())) {
-                    errorMessage(commandMessage, "You're blacklisted on PBST, access to the server has been denied.", originalMessage);
+                    errorMessage(commandMessage, "You're blacklisted on PBST, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
+                            "https://discord.gg/mWnQm25", originalMessage);
                     return;
                 }
             } else if (commandMessage.getGuild().getId().equals("572104809973415943")) {
                 if (avaire.getBlacklistManager().getTMSBlacklist().contains(verificationEntity.getRobloxId())) {
-                    errorMessage(commandMessage, "You're blacklisted on TMS, access to the server has been denied.", originalMessage);
+                    errorMessage(commandMessage, "You're blacklisted on TMS, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
+                            "https://discord.gg/mWnQm25", originalMessage);
                     return;
                 }
             }
@@ -305,10 +335,10 @@ public class VerificationManager {
     @CheckReturnValue
     public VerificationEntity fetchVerificationFromDatabase(String discordUserId, boolean fromCache) {
         if (!fromCache) {
-            return forgetAndCache(discordUserId);
+            return forgetAndCache("pinewood:" + discordUserId);
         }
         try {
-            return (VerificationEntity) CacheUtil.getUncheckedUnwrapped(cache, discordUserId, () -> callUserFromDatabaseAPI(discordUserId));
+            return (VerificationEntity) CacheUtil.getUncheckedUnwrapped(cache, "pinewood:" + discordUserId, () -> callUserFromDatabaseAPI(discordUserId));
         } catch (CacheLoader.InvalidCacheLoadException e) {
             return null;
         }
@@ -318,10 +348,10 @@ public class VerificationManager {
     @CheckReturnValue
     public VerificationEntity fetchVerificationFromRover(String discordUserId, boolean fromCache) {
         if (!fromCache) {
-            return forgetAndCache(discordUserId);
+            return forgetAndCache("rover:" + discordUserId);
         }
         try {
-            return (VerificationEntity) CacheUtil.getUncheckedUnwrapped(cache, discordUserId, () -> callUserFromRoverAPI(discordUserId));
+            return (VerificationEntity) CacheUtil.getUncheckedUnwrapped(cache, "rover:" + discordUserId, () -> callUserFromRoverAPI(discordUserId));
         } catch (CacheLoader.InvalidCacheLoadException e) {
             return null;
         }
@@ -331,10 +361,10 @@ public class VerificationManager {
     @CheckReturnValue
     public VerificationEntity fetchVerificationFromBloxlink(String discordUserId, boolean fromCache) {
         if (!fromCache) {
-            return forgetAndCache(discordUserId);
+            return forgetAndCache("bloxlink:" + discordUserId);
         }
         try {
-            return (VerificationEntity) CacheUtil.getUncheckedUnwrapped(cache, discordUserId, () -> callUserFromBloxlinkAPI(discordUserId));
+            return (VerificationEntity) CacheUtil.getUncheckedUnwrapped(cache, "bloxlink:" + discordUserId, () -> callUserFromBloxlinkAPI(discordUserId));
         } catch (CacheLoader.InvalidCacheLoadException e) {
             return null;
         }
@@ -348,12 +378,13 @@ public class VerificationManager {
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200 && response.body() != null) {
-                HashMap<String, String> responseJson = AvaIre.gson.fromJson(response.body().string(), new TypeToken<HashMap<String, String>>() {
-                }.getType());
-                VerificationEntity verificationEntity = new VerificationEntity(Long.valueOf(responseJson.get("primaryAccount")), manager.getUserAPI().getUsername(Long.valueOf(responseJson.get("primaryAccount"))), Long.valueOf(discordUserId),  "bloxlink");
-
-                cache.put(discordUserId, verificationEntity);
-                return verificationEntity;
+                JSONObject json = new JSONObject(response.body().string());
+                if (json.has("primaryAccount")) {
+                    VerificationEntity verificationEntity = new VerificationEntity(json.getLong("primaryAccount"), manager.getUserAPI().getUsername(json.getLong("primaryAccount")), Long.valueOf(discordUserId), "bloxlink");
+                    cache.put("bloxlink:" + discordUserId, verificationEntity);
+                    return verificationEntity;
+                }
+                return null;
             } else if (response.code() == 404) {
                 return null;
             } else {
@@ -370,9 +401,15 @@ public class VerificationManager {
     private VerificationEntity forgetAndCache(String discordUserId) {
         if (cache.getIfPresent(discordUserId) != null) {
             cache.invalidate(discordUserId);
-            return callUserFromDatabaseAPI(discordUserId);
         }
-        return callUserFromDatabaseAPI(discordUserId);
+        switch (discordUserId.split(":")[0]) {
+            case "rover":
+                return callUserFromRoverAPI(discordUserId.split(":")[1]);
+            case "bloxlink":
+                return callUserFromBloxlinkAPI(discordUserId.split(":")[1]);
+            default:
+                return callUserFromDatabaseAPI(discordUserId.split(":")[1]);
+        }
     }
 
     public VerificationEntity callUserFromDatabaseAPI(String discordUserId) {
@@ -381,7 +418,9 @@ public class VerificationManager {
             if (linkedAccounts.size() == 0) {
                 return null;
             } else {
-                return new VerificationEntity(linkedAccounts.first().getLong("robloxId"), manager.getUserAPI().getUsername(linkedAccounts.first().getLong("robloxId")), Long.valueOf(discordUserId), "pinewood");
+                VerificationEntity ve = new VerificationEntity(linkedAccounts.first().getLong("robloxId"), manager.getUserAPI().getUsername(linkedAccounts.first().getLong("robloxId")), Long.valueOf(discordUserId), "pinewood");
+                cache.put("pinewood:" + discordUserId, ve);
+                return ve;
             }
         } catch (SQLException throwables) {
             return null;
@@ -396,9 +435,9 @@ public class VerificationManager {
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200 && response.body() != null) {
-                HashMap<String, String> responseJson = AvaIre.gson.fromJson(response.body().string(), new TypeToken<HashMap<String, String>>() {
-                }.getType());
-                VerificationEntity verificationEntity = new VerificationEntity(Long.valueOf(responseJson.get("robloxId")), responseJson.get("robloxUsername"), Long.valueOf(discordUserId), "rover");
+                JSONObject json = new JSONObject(response.body().string());
+
+                VerificationEntity verificationEntity = new VerificationEntity(json.getLong("robloxId"), manager.getUserAPI().getUsername(json.getLong("robloxId")), Long.valueOf(discordUserId), "rover");
 
                 cache.put(discordUserId, verificationEntity);
                 return verificationEntity;
@@ -432,4 +471,7 @@ public class VerificationManager {
         return sb;
     }
 
+    public HashMap<Long, String> getInVerification() {
+        return inVerification;
+    }
 }

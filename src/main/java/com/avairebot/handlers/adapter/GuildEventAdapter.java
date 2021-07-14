@@ -190,12 +190,11 @@ public class GuildEventAdapter extends EventAdapter {
                     if (checkAccountAge(e)) {
                         if (transformer.getMemberToYoungChannelId() != null && event.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()) != null) {
                             MessageFactory.makeEmbeddedMessage(event.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()))
-                                .setThumbnail(e.getUser().getEffectiveAvatarUrl())
-                                .setDescription("User found with an *VERY* new account!!!\n\n" + e.getUser().getName() + "#" + e.getUser().getDiscriminator() + "\n" +
-                                    "**Created on**: " + e.getUser().getTimeCreated().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) + "\n**User ID**: ``" + e.getUser().getId() + "``"
-                                ).queue();
+                                    .setThumbnail(e.getUser().getEffectiveAvatarUrl())
+                                    .setDescription("User found with an *VERY* new account!!!\n\n" + e.getUser().getName() + "#" + e.getUser().getDiscriminator() + "\n" +
+                                            "**Created on**: " + e.getUser().getTimeCreated().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) + "\n**User ID**: ``" + e.getUser().getId() + "``"
+                                    ).queue();
                         }
-
                     }
                 } else if (event instanceof GuildMemberRoleAddEvent) {
                     GuildMemberRoleAddEvent e = (GuildMemberRoleAddEvent) event;

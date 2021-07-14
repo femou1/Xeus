@@ -74,7 +74,10 @@ import com.avairebot.plugin.PluginManager;
 import com.avairebot.roblox.RobloxAPIManager;
 import com.avairebot.scheduler.ScheduleHandler;
 import com.avairebot.servlet.WebServlet;
-import com.avairebot.servlet.routes.v1.*;
+import com.avairebot.servlet.routes.v1.delete.DeleteAccountVerificationLink;
+import com.avairebot.servlet.routes.v1.get.*;
+import com.avairebot.servlet.routes.v1.post.PostAccountVerificationLink;
+import com.avairebot.servlet.routes.v1.post.PostGuildCleanup;
 import com.avairebot.shard.ShardEntityCounter;
 import com.avairebot.shared.DiscordConstants;
 import com.avairebot.shared.ExitCodes;
@@ -436,7 +439,9 @@ public class AvaIre {
         if (getConfig().getBoolean("web-servlet.api-routes.roblox-verification", true)) {
             servlet.registerGet("/verification/discord/:discordId", new GetRobloxUserByDiscordId());
             servlet.registerGet("/verification/roblox/:robloxId", new GetDiscordIdsByRobloxId());
-            servlet.registerPost("/verification/confirmOwnership/:robloxId", new PostAccountVerificationLink());
+            servlet.registerPost("/verification/verify/:robloxId", new PostAccountVerificationLink());
+            servlet.registerGet("/verification/verify/:robloxId", new GetAccountVerificationLink());
+            servlet.registerDelete("/verification/verify/:robloxId", new DeleteAccountVerificationLink());
         }
 
         log.info("Preparing and setting up metrics");
