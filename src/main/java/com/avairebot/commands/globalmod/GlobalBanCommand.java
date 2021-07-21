@@ -226,7 +226,7 @@ public class GlobalBanCommand extends Command {
             Long userId = Long.valueOf(args[1]);
             String username = avaire.getRobloxAPIManager().getUserAPI().getUsername(userId);
             if (username != null) {
-                Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", args[0]).get();
+                Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", args[1]).get();
                 if (c.size() < 1) {
                     avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).insert(o -> {
                         o
@@ -235,7 +235,7 @@ public class GlobalBanCommand extends Command {
                                 .set("roblox_username", username)
                                 .set("roblox_user_id", userId);
                     });
-                    context.makeSuccess("Permbanned ``" + args[0] + "`` in the database.").queue();
+                    context.makeSuccess("Permbanned ``" + args[1] + "`` in the database.").queue();
                 } else {
                     context.makeError("This user already has a permban in the database!").queue();
                 }
@@ -247,7 +247,7 @@ public class GlobalBanCommand extends Command {
             String username = args[1];
             Long userId = avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(username);
             if (userId != null) {
-                Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_username", args[0]).get();
+                Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_username", args[1]).get();
                 if (c.size() < 1) {
                     avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).insert(o -> {
                         o
@@ -256,7 +256,7 @@ public class GlobalBanCommand extends Command {
                                 .set("roblox_username", username)
                                 .set("roblox_user_id", userId);
                     });
-                    context.makeSuccess("Permbanned ``" + args[0] + "`` in the database.").queue();
+                    context.makeSuccess("Permbanned ``" + args[1] + "`` in the database.").queue();
                     return true;
                 } else {
                     context.makeError("This user already has a permban in the database!").queue();

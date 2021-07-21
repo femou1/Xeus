@@ -88,7 +88,7 @@ public class VerifyCommand extends VerificationCommand {
                     if (verificationEntities.size() < 1) {
                         unverifiedMessage.editMessageEmbeds(context.makeWarning("An account could not be found that's linked to your discord id. Please enter your Roblox name:").requestedBy(context).buildEmbed()).queue(unused -> {
                             avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class,
-                                    message -> message.getMember().equals(context.getMember()) && message.getChannel().equals(context.channel),
+                                    message -> message.getMember() != null && message.getMember().equals(context.getMember()) && message.getChannel().equals(context.channel),
                                     usernameMessage -> {
                                         verifyNewAccount(context, usernameMessage.getMessage().getContentRaw(), unverifiedMessage);
                                         usernameMessage.getMessage().delete().queue();
@@ -112,7 +112,7 @@ public class VerifyCommand extends VerificationCommand {
                     unverifiedMessage.editMessageEmbeds(context.makeSuccess("Found `" + verificationEntities.size() + "` providers with your account in their database, please select the provider you want to verify with!").requestedBy(context).buildEmbed())
                             .setActionRow(menu.build()).queue();
                     avaire.getWaiter().waitForEvent(SelectionMenuEvent.class,
-                            interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
+                            interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(unverifiedMessage),
                             providerSelect -> {
                                 providerSelect.deferEdit().queue(k -> {
                                     if (providerSelect.getSelectedOptions() != null) {
@@ -120,7 +120,7 @@ public class VerifyCommand extends VerificationCommand {
                                             if (so.getValue().equals("verify-new-account")) {
                                                 unverifiedMessage.editMessageEmbeds(context.makeWarning("You selected the option to verify with a new account\n**Please enter the Roblox name of said account**:").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue(unused -> {
                                                     avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class,
-                                                            interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
+                                                            interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(unverifiedMessage),
                                                             usernameMessage -> {
                                                                 verifyNewAccount(context, usernameMessage.getMessage().getContentRaw(), unverifiedMessage);
                                                                 usernameMessage.getMessage().delete().queue();
@@ -148,7 +148,6 @@ public class VerifyCommand extends VerificationCommand {
     }
 
     private void verifyNewAccount(CommandMessage context, String robloxUsername, Message originalMessage) {
-
         Long robloxId = getRobloxId(robloxUsername);
         if (robloxId == null) {
             context.makeError("Verification failed. Username doesn't exist on roblox. (`:username`)").set("username", robloxUsername).queue();
@@ -165,7 +164,7 @@ public class VerifyCommand extends VerificationCommand {
 
         originalMessage.editMessageEmbeds(context.makeInfo("Account was found on roblox, how would you like to verify?").requestedBy(context).buildEmbed())
                 .setActionRow(menu).queue(m -> avaire.getWaiter().waitForEvent(SelectionMenuEvent.class,
-                interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
+                interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(originalMessage),
                 accountSelect -> {
                     accountSelect.deferEdit().queue(k -> {
                         if (accountSelect.getSelectedOptions() != null) {

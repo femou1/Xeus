@@ -21,7 +21,6 @@ public class BlacklistManager {
 
     @SuppressWarnings("unchecked")
     public ArrayList<Long> getTMSBlacklist() {
-        log.info("TMS Blacklist has been requested.");
         String TMSCacheToken = "blacklist.tms.blacklists";
         if (avaire.getCache().getAdapter(CacheType.FILE).has(TMSCacheToken)) {
             ArrayList<LinkedTreeMap<String, Double>> items = (ArrayList<LinkedTreeMap<String, Double>>) avaire.getCache()
@@ -32,7 +31,7 @@ public class BlacklistManager {
             for (LinkedTreeMap<String, Double> item : items) {
                 list.add(item.get("id").longValue());
             }
-
+            log.info("TMS Blacklist has been requested.");
             return list;
         }
         return null;
@@ -40,7 +39,6 @@ public class BlacklistManager {
 
     @SuppressWarnings("unchecked")
     public ArrayList<Long> getPBSTBlacklist() {
-        log.info("PBST Blacklist has been requested.");
         String PBSTCacheToken = "blacklist.pbst.blacklists";
         if (avaire.getCache().getAdapter(CacheType.FILE).has(PBSTCacheToken)) {
             List<LinkedTreeMap<String, Double>> items = (List<LinkedTreeMap<String, Double>>) avaire.getCache()
@@ -52,7 +50,43 @@ public class BlacklistManager {
             for (LinkedTreeMap<String, Double> item : items) {
                 list.add(item.get("id").longValue());
             }
+            log.info("PBST Blacklist has been requested.");
+            return list;
+        }
+        return null;
+    }
+    @SuppressWarnings("unchecked")
+    public ArrayList<Long> getPBMBlacklist() {
+        String PBSTCacheToken = "blacklist.pbm.blacklists";
+        if (avaire.getCache().getAdapter(CacheType.FILE).has(PBSTCacheToken)) {
+            List<LinkedTreeMap<String, Double>> items = (List<LinkedTreeMap<String, Double>>) avaire.getCache()
+                .getAdapter(CacheType.FILE).get(PBSTCacheToken);
 
+
+            ArrayList<Long> list = new ArrayList<>();
+
+            for (LinkedTreeMap<String, Double> item : items) {
+                list.add(item.get("id").longValue());
+            }
+            log.info("PBM Blacklist has been requested.");
+            return list;
+        }
+        return null;
+    }
+    @SuppressWarnings("unchecked")
+    public ArrayList<Long> getPETBlacklist() {
+        String PBSTCacheToken = "blacklist.pet.blacklists";
+        if (avaire.getCache().getAdapter(CacheType.FILE).has(PBSTCacheToken)) {
+            List<LinkedTreeMap<String, Double>> items = (List<LinkedTreeMap<String, Double>>) avaire.getCache()
+                .getAdapter(CacheType.FILE).get(PBSTCacheToken);
+
+
+            ArrayList<Long> list = new ArrayList<>();
+
+            for (LinkedTreeMap<String, Double> item : items) {
+                list.add(item.get("id").longValue());
+            }
+            log.info("PET Blacklist has been requested.");
             return list;
         }
         return null;

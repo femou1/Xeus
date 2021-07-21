@@ -253,7 +253,6 @@ public class SearchController {
         return updateQuery.toString();
     }
 
-    @SuppressWarnings("ConstantConditions")
     private static String createSearchQueryFromContext(TrackRequestContext context, long maxCacheAgeInMilis) throws SQLException {
         String base = AvaIre.getInstance().getDatabase().newQueryBuilder(Constants.MUSIC_SEARCH_CACHE_TABLE_NAME)
             .where("provider", context.getProvider().getId())

@@ -26,6 +26,7 @@ import com.avairebot.utilities.RestActionUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 
 import javax.annotation.Nullable;
@@ -68,8 +69,8 @@ public abstract class Restable {
     /**
      * Submits a Request for execution.
      * <br>Using the default callback functions:
-     * {@link net.dv8tion.jda.api.requests.RestAction#DEFAULT_SUCCESS DEFAULT_SUCCESS} and
-     * {@link net.dv8tion.jda.api.requests.RestAction#DEFAULT_FAILURE DEFAULT_FAILURE}
+     * {@link RestAction#getDefaultSuccess()}  EFAULT_SUCCESS} and
+     * {@link RestAction#getDefaultFailure()}  DEFAULT_FAILURE}
      * <br>
      * <p><b>This method is asynchronous</b>
      */

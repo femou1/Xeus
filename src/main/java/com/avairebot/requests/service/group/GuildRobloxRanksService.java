@@ -10,7 +10,16 @@ public class GuildRobloxRanksService {
         return groupRankBindings;
     }
 
-    public class Group {
+    public void setGroupRankBindings(List<GroupRankBinding> binds) {
+        this.groupRankBindings = binds;
+    }
+
+    public static class Group {
+        public Group(String groupId, List<Integer> groupRanks){
+            this.id = groupId;
+            this.ranks = groupRanks;
+        }
+
         private String id;
         private List<Integer> ranks;
 
@@ -22,9 +31,21 @@ public class GuildRobloxRanksService {
             return ranks;
         }
 
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public void setRanks(List<Integer> ranks) {
+            this.ranks = ranks;
+        }
     }
 
-    public class GroupRankBinding {
+    public static class GroupRankBinding {
+        public GroupRankBinding(String roleId, List<Group> groups){
+            this.role = roleId;
+            this.groups = groups;
+        }
+
         private String role;
         private List<Group> groups;
 
@@ -36,6 +57,13 @@ public class GuildRobloxRanksService {
             return groups;
         }
 
+        public void setRole(String role) {
+            this.role = role;
+        }
+
+        public void setGroups(List<Group> groups) {
+            this.groups = groups;
+        }
     }
 
 }

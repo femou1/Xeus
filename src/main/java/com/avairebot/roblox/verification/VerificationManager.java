@@ -19,6 +19,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.internal.utils.PermissionUtil;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -98,6 +99,8 @@ public class VerificationManager {
                 return;
             }
 
+
+
             if (!Constants.piaMembers.contains(member.getId())) {
                 for (String userId : Constants.piaMembers) {
                     Member m = commandMessage.getGuild().getMemberById(userId);
@@ -114,7 +117,7 @@ public class VerificationManager {
             }
 
             try {
-                Collection accounts = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", verificationEntity.getRobloxId()).get();
+                Collection accounts = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", verificationEntity.getRobloxId()).orWhere("roblox_username", verificationEntity.getRobloxUsername()).get();
                 if (accounts.size() > 0) {
                     if (guilde.size() > 0) {
                         guilde.clear();
@@ -137,21 +140,36 @@ public class VerificationManager {
                     if (transformer.getMemberToYoungChannelId() != null && commandMessage.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()) != null) {
                         MessageFactory.makeEmbeddedMessage(commandMessage.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()), new Color(255, 0, 0))
                                 .setThumbnail(commandMessage.getAuthor().getEffectiveAvatarUrl())
-                                .setDescription("A global-banned user just tried to verify within this guild, user has been banned from all guilds and has been sent a message in DM's").queue();
+                                .setDescription("A global-banned user just tried to verify within this guild, user has been banned from all guilds and has been sent a message in DM's.").requestedBy(member).queue();
                     }}
 
                     if (commandMessage.getMember() != null) {
                         commandMessage.getAuthor().openPrivateChannel().queue(p -> {
-                            p.sendMessageEmbeds(commandMessage.makeInfo(
+                            try {
+                                p.sendMessageEmbeds(commandMessage.makeInfo(
                                     "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Agent. " +
-                                            "For the reason: *```" + accounts.get(0).getString("reason") + "```\n\n" +
-                                            "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
-                                            "https://discord.gg/mWnQm25").setColor(Color.BLACK).buildEmbed()).queue();
+                                        "For the reason: *```" + accounts.get(0).getString("reason") + "```\n\n" +
+                                        "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
+                                        "https://discord.gg/mWnQm25").setColor(Color.BLACK).buildEmbed()).queue();
+                                originalMessage.editMessageEmbeds(commandMessage.makeInfo(
+                                    "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Agent. " +
+                                        "For the reason: ```" + accounts.get(0).getString("reason") + "```\n\n" +
+                                        "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
+                                        "https://discord.gg/mWnQm25").setColor(Color.BLACK).buildEmbed()).queue();
+                            } catch (ErrorResponseException e) {
+                                originalMessage.editMessageEmbeds(commandMessage.makeInfo(
+                                    "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Agent. " +
+                                        "For the reason: ```" + accounts.get(0).getString("reason") + "```\n\n" +
+                                        "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
+                                        "https://discord.gg/mWnQm25").setColor(Color.BLACK).buildEmbed()).queue();
+                            }
                         });
                     }
-                    avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", verificationEntity.getRobloxId())
-                            .update(p -> p.set("id", commandMessage.getAuthor().getId()));
                     GlobalBanMember(commandMessage, String.valueOf(verificationEntity.getDiscordId()), 0, "User has been global-banned by PIA. This is automatic ban. | " + accounts.get(0).getString("reason"));
+
+                    avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", verificationEntity.getRobloxId())
+                        .orWhere("roblox_username", verificationEntity.getRobloxUsername())
+                            .update(p -> p.set("userId", commandMessage.getAuthor().getId()));
                     return;
                 }
             } catch (SQLException throwables) {
@@ -171,7 +189,19 @@ public class VerificationManager {
             } else if (commandMessage.getGuild().getId().equals("572104809973415943")) {
                 if (avaire.getBlacklistManager().getTMSBlacklist().contains(verificationEntity.getRobloxId())) {
                     errorMessage(commandMessage, "You're blacklisted on TMS, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
-                            "https://discord.gg/mWnQm25", originalMessage);
+                        "https://discord.gg/mWnQm25", originalMessage);
+                    return;
+                }
+            } else if (commandMessage.getGuild().getId().equalsIgnoreCase("498476405160673286")) {
+                if (avaire.getBlacklistManager().getPBMBlacklist().contains(verificationEntity.getRobloxId())) {
+                    errorMessage(commandMessage, "You're blacklisted on PBM, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
+                        "https://discord.gg/mWnQm25", originalMessage);
+                    return;
+                }
+            } else if (commandMessage.getGuild().getId().equalsIgnoreCase("436670173777362944")) {
+                if (avaire.getBlacklistManager().getPETBlacklist().contains(verificationEntity.getRobloxId())) {
+                    errorMessage(commandMessage, "You're blacklisted on PET, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
+                        "https://discord.gg/mWnQm25", originalMessage);
                     return;
                 }
             }
@@ -204,7 +234,6 @@ public class VerificationManager {
                     guildRanks.getGroupRankBindings().stream()
                             .collect(Collectors.toMap(Function.identity(), groupRankBinding -> guild.getRoleById(groupRankBinding.getRole()))),
                     bindingRoleAddMap = new HashMap<>();
-
 
             //Loop through all the group-rank bindings
             bindingRoleMap.forEach((groupRankBinding, role) -> {
@@ -247,6 +276,13 @@ public class VerificationManager {
             java.util.Collection<Role> rolesToAdd = bindingRoleAddMap.values().stream().filter(role -> RoleUtil.canBotInteractWithRole(commandMessage.getMessage(), role)).collect(Collectors.toList()),
                     rolesToRemove = bindingRoleMap.values()
                             .stream().filter(role -> !bindingRoleAddMap.containsValue(role) && RoleUtil.canBotInteractWithRole(commandMessage.getMessage(), role)).collect(Collectors.toList());
+
+            if (verificationTransformer.getVerifiedRole() != 0) {
+                Role r = commandMessage.getGuild().getRoleById(verificationTransformer.getVerifiedRole());
+                if (r != null) {
+                    rolesToAdd.add(r);
+                }
+            }
 
             StringBuilder stringBuilder = new StringBuilder();
             //Modify the roles of the member

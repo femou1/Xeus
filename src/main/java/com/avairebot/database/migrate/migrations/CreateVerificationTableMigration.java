@@ -32,7 +32,7 @@ public class CreateVerificationTableMigration implements Migration {
 
     @Override
     public String created_at() {
-        return "Fri, Jun, 2021 11:56 PM";
+        return "Fri, Jun 1, 2021 11:56 PM";
     }
 
     @Override

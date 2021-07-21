@@ -3,7 +3,6 @@ package com.avairebot.commands.roblox.verification;
 import com.avairebot.AvaIre;
 import com.avairebot.Constants;
 import com.avairebot.commands.CommandMessage;
-import com.avairebot.contracts.commands.Command;
 import com.avairebot.database.controllers.VerificationController;
 import com.avairebot.database.transformers.VerificationTransformer;
 import com.avairebot.requests.service.group.GroupRanksService;
@@ -20,8 +19,9 @@ import org.json.JSONObject;
 
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
-public class VerificationCommand extends Command {
+public class VerificationCommand extends com.avairebot.contracts.commands.VerificationCommand {
     public VerificationCommand(AvaIre avaire) {
         super(avaire);
     }
@@ -37,29 +37,29 @@ public class VerificationCommand extends Command {
     }
 
     @Override
-    public List<String> getUsageInstructions() {
+    public List <String> getUsageInstructions() {
         return Arrays.asList(
-                "`:command` - Bind a role to a rank."
+            "`:command` - Bind a role to a rank."
         );
     }
 
     @Override
-    public List<String> getExampleUsage() {
+    public List <String> getExampleUsage() {
         return Arrays.asList(
-                "`:command`"
+            "`:command`"
         );
     }
 
     @Override
-    public List<String> getMiddleware() {
+    public List <String> getMiddleware() {
         return Arrays.asList(
-                "isOfficialPinewoodGuild",
-                "isManagerOrHigher"
+            "isOfficialPinewoodGuild",
+            "isManagerOrHigher"
         );
     }
 
     @Override
-    public List<String> getTriggers() {
+    public List <String> getTriggers() {
         return Collections.singletonList("verification");
     }
 
@@ -85,6 +85,9 @@ public class VerificationCommand extends Command {
                 case "vc":
                 case "verifychannel":
                     return setVerifyChannel(context, args);
+                case "verified-role":
+                case "vr":
+                    return setVerifiedRole(context, args);
                 case "b":
                 case "bind":
                     return runBindCommand(context, args);
@@ -96,6 +99,8 @@ public class VerificationCommand extends Command {
                     return setNicknameUsers(context, args);
                 case "unbindall":
                     return unbindAllSubcommand(context, args);
+                case "unbind":
+                    return unbindCommand(context, args);
                 case "list":
                     return listBoundRoles(context, manager);
                 case "creategroupranks":
@@ -108,22 +113,64 @@ public class VerificationCommand extends Command {
         return false;
     }
 
+    private boolean setVerifiedRole(CommandMessage context, String[] args) {
+        if (args.length == 1) {
+            context.makeError("Please run this argument again with the ID of the text channel you want to use (Or mention the channel).").queue();
+            return false;
+        }
+
+        if (args.length > 2) {
+            context.makeError("Please only give me the channel id you'd like to use.").queue();
+            return false;
+        }
+
+        if (args[1].equalsIgnoreCase("remove")) {
+            return changeSettingTo(context, null, "verified_role");
+        }
+
+        Role gc = MentionableUtil.getRole(context.getMessage(), args);
+        if (gc != null) {
+            return changeSettingTo(context, gc.getIdLong(), "verified_role");
+        }
+        context.makeError("Unable to update channel id.").queue();
+
+return false;
+    }
+
     private boolean listBoundRoles(CommandMessage context, RobloxAPIManager manager) {
         GuildRobloxRanksService guildRanks = (GuildRobloxRanksService) manager.toService(context.getVerificationTransformer().getRanks(), GuildRobloxRanksService.class);
         if (guildRanks != null) {
-            StringBuilder sb = new StringBuilder();
-            for (GuildRobloxRanksService.GroupRankBinding groupRankBinding : guildRanks.getGroupRankBindings()) {
-                Guild g = context.getGuild();
-                Role r = g.getRoleById(groupRankBinding.getRole());
-
+            List <MessageEmbed> meL = new LinkedList <>();
+            guildRanks.getGroupRankBindings().forEach(p -> {
+                StringBuilder sb = new StringBuilder();
+                Role r = context.getGuild().getRoleById(p.getRole());
                 if (r != null) {
-                    sb.append("**").append(r.getName()).append("** - ``");
-                    for (GuildRobloxRanksService.Group s : groupRankBinding.getGroups()) {
-                        sb.append(s.getId()).append("`` > ```yaml\n").append(s.getRanks().get(0)).append(s.getRanks().get(s.getRanks().size() - 1)).append("```");
-                    }
+                    sb.append("**").append(r.getName()).append("**\n");
+                } else {
+                    sb.append("**").append("INVALID ROLE (`").append(p.getRole()).append("`)").append("** ");
                 }
-            }
-            context.makeInfo(sb.toString()).queue();
+
+                p.getGroups().forEach(group -> {
+                    sb.append("``").append(group.getId()).append("``").append("\n");
+                    if (group.getRanks().size() == 255) {
+                        sb.append("```").append(group.getRanks().get(0)).append("-")
+                            .append(group.getRanks().get(group.getRanks().size() - 1)).append("```\n\n");
+                    } else {
+                        sb.append("```").append(group.getRanks()).append("```\n\n");
+                    }
+                });
+
+
+                context.makeSuccess(sb.toString()).queue();
+                /*if (guildRanks.getGroupRankBindings().size() > 5) {
+                    if (meL.size() > 5) {
+                        context.getChannel().sendMessageEmbeds(meL).queue();
+                        meL.clear();
+                    } else {
+                        meL.add(context.makeSuccess(sb.toString()).buildEmbed());
+                    }
+                }*/
+            });
             return true;
         } else {
             context.makeError("Groups have not been setup yet. Please set them up using `:command creategroupranks (group id)`").queue();
@@ -148,6 +195,20 @@ public class VerificationCommand extends Command {
     }
 
     private boolean setJoinDM(CommandMessage context, String[] args) {
+        /*Future <Integer> submit = ScheduleHandler.getScheduler().submit(() -> {
+            //avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername("Roblox");
+            return 1;
+        });
+        while (!submit.isDone()) {
+
+        }
+
+        try {
+            Integer result = submit.get();
+            context.makeInfo(result + " - Dave").queue();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }*/
         return false;
     }
 
@@ -160,29 +221,179 @@ public class VerificationCommand extends Command {
         return false;
     }
 
-    private boolean runBindCommand(CommandMessage context, String[] args) {
-        if (args.length < 2) {
-            //return goToBindStart(context, args);
-        }
+    private boolean unbindCommand(CommandMessage context, String[] args) {
         VerificationTransformer verificationTransformer = context.getVerificationTransformer();
         if (verificationTransformer == null) {
-            context.makeError("The VerificationTransformer seems to have broken, please consult the developer of the bot.").queue();
+            context.makeError("The VerificationTransformer seems to not have been filled, please try again in 5 minutes.").queue();
+            return false;
+        }
+
+        GuildRobloxRanksService binds = (GuildRobloxRanksService) avaire.getRobloxAPIManager().toService(context.getVerificationTransformer().getRanks(), GuildRobloxRanksService.class);
+        if (!NumberUtil.isNumeric(args[1])) {
+            context.makeError("The role has to be an ID, the name won't work.").queue();
+            return false;
+        }
+
+        if (binds == null) {
+            context.makeError("No bound roles have been found :(").queue();
+            return false;
+        }
+
+        if (binds.getGroupRankBindings().stream().noneMatch(m -> m.getRole().equals(args[1]))) {
+            context.makeError("Can't find a role with this ID.").queue();
+            return false;
+        }
+
+        binds.getGroupRankBindings().stream().filter(m -> m.getRole().equals(args[1])).collect(Collectors.toList()).forEach(
+            l -> {
+                binds.getGroupRankBindings().remove(l);
+            }
+        );
+
+        binds.setGroupRankBindings(binds.getGroupRankBindings());
+        try {
+            avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_TABLE_NAME)
+                .where("id", context.getGuild().getId()).update(r -> r.set("ranks", AvaIre.gson.toJson(binds)));
+            VerificationController.forgetCache(context.getGuild().getIdLong());
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+            context.makeError("Something went wrong *pouts*").queue();
+            return false;
+        }
+        context.makeSuccess("Removed `:roleId` from binds.").set("roleId", args[1]).queue();
+        return true;
+    }
+
+    private boolean runBindCommand(CommandMessage context, String[] args) {
+        VerificationTransformer verificationTransformer = context.getVerificationTransformer();
+        if (verificationTransformer == null) {
+            context.makeError("The VerificationTransformer seems to not have been filled, please try again in 5 minutes.").queue();
             return false;
         }
 
         if (verificationTransformer.getNicknameFormat() == null) {
-            context.makeError("The nickname format is not set (Wierd, it's the default but ok then, command cancelled).").queue();
+            context.makeError("The nickname format is not set (Wierd, it's the default but ok then, command cancelled?).").queue();
             return false;
         }
 
-        if (verificationTransformer.getRanks() == null || verificationTransformer.getRanks().length() < 2) {
-            context.makeError("Ranks have not been setup on this guild yet. Please ask the admins to setup the roles on this server.").queue();
+        //if (args.length < 3) return goToBindStartWaiter(context, args);
+
+        GuildRobloxRanksService binds = (GuildRobloxRanksService) avaire.getRobloxAPIManager().toService(context.getVerificationTransformer().getRanks(), GuildRobloxRanksService.class);
+        if (!NumberUtil.isNumeric(args[1])) {
+            context.makeError("The role has to be an ID, the name won't work.").queue();
             return false;
         }
 
-        GuildRobloxRanksService guildRanks = (GuildRobloxRanksService) avaire.getRobloxAPIManager().toService(context.getVerificationTransformer().getRanks(), GuildRobloxRanksService.class);
+        Role role = context.getGuild().getRoleById(args[1]);
+        if (role == null) {
+            context.makeError("The role doesn't exist. Please check if you've copied the correct ID.").queue();
+            return false;
+        }
 
+        if (binds != null) {
+            if (binds.getGroupRankBindings().stream().anyMatch(m -> m.getRole().equals(args[1]))) {
+                context.makeError("This role is already bound to a group/groups, unbind this role to bind a group/groups again.").queue();
+                return false;
+            }
+        }
 
+        if (!RoleUtil.canBotInteractWithRole(context.message, role)) return false;
+        if (!(args[2].contains(":") || NumberUtil.isNumeric(args[2]))) {
+            context.makeError("Make sure the argument for the group ID is a number!").queue();
+            return false;
+        }
+
+        final String groupsAndRanks = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+        final String[] groupAndRanksList = groupsAndRanks.split(" ");
+
+        List <GuildRobloxRanksService.GroupRankBinding> groupRankBindings = new ArrayList <>();
+        List <GuildRobloxRanksService.Group> groups = new LinkedList <>();
+        for (String groupAndRank : groupAndRanksList) {
+            List <Integer> ranks = new LinkedList <>();
+            if (groupAndRank.contains(":")) {
+                String[] groupAndRankSeperated = groupAndRank.split(":");
+                if (groupAndRankSeperated[1].contains("-")) {
+                    String[] ranksBetween = groupAndRankSeperated[1].split("-");
+                    int highNum, lowNum;
+                    lowNum = Integer.parseInt(ranksBetween[0]);
+                    highNum = Integer.parseInt(ranksBetween[1]);
+
+                    if (!(lowNum > 0 && highNum < 256)) {
+                        context.makeError("Incorrect number found in ranks, make sure either ranks are **lower** then 256, or **higher** then 0. Skipped group :group.")
+                            .set("group", groupAndRankSeperated[0]).queue();
+                        continue;
+                    }
+
+                    for (int i = lowNum; i <= highNum; i++) {
+                        lowNum++;
+                        ranks.add(i);
+                    }
+                } else {
+                    if (groupAndRankSeperated[1].contains(",")) {
+                        String[] ranksFromSingleGroup = groupAndRankSeperated[1].split(",");
+                        for (String rank : ranksFromSingleGroup) {
+                            ranks.add(Integer.parseInt(rank));
+                        }
+                    } else {
+                        ranks.add(Integer.parseInt(groupAndRankSeperated[1]));
+                    }
+
+                }
+            } else {
+                int lowNumber = 1;
+                for (int i = lowNumber; i <= 255; i++) {
+                    lowNumber++;
+                    ranks.add(i);
+                }
+            }
+
+            String groupId = groupAndRank;
+            if (groupId.contains(":")) {
+                groupId = groupId.split(":")[0];
+            }
+            groups.add(new GuildRobloxRanksService.Group(groupId, ranks));
+        }
+        groupRankBindings.add(new GuildRobloxRanksService.GroupRankBinding(args[1], groups));
+
+        if (binds != null) groupRankBindings.addAll(binds.getGroupRankBindings());
+        //List<MessageEmbed> meL = new LinkedList<>();
+        groupRankBindings.forEach(p -> {
+            StringBuilder sb = new StringBuilder();
+            Role r = context.getGuild().getRoleById(p.getRole());
+            if (r != null) {
+                sb.append("**").append(r.getName()).append("**\n");
+            } else {
+                sb.append("**").append("INVALID ROLE (`").append(p.getRole()).append("`)").append("** ");
+            }
+
+            p.getGroups().forEach(group -> {
+                sb.append("``").append(group.getId()).append("``").append("\n");
+                if (group.getRanks().size() == 255) {
+                    sb.append("```").append(group.getRanks().get(0)).append("-")
+                        .append(group.getRanks().get(group.getRanks().size() - 1)).append("```\n\n");
+                } else {
+                    sb.append("```").append(group.getRanks()).append("```\n\n");
+                }
+            });
+
+            context.makeSuccess(sb.toString()).queue();
+            /*if (meL.size() == 10) {
+                context.getChannel().sendMessageEmbeds(meL).queue();
+                meL.clear();
+            } else {
+                meL.add(context.makeSuccess(sb.toString()).buildEmbed());
+            }*/
+        });
+
+        binds.setGroupRankBindings(groupRankBindings);
+        try {
+            avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_TABLE_NAME)
+                .where("id", context.getGuild().getId()).update(r -> r.set("ranks", AvaIre.gson.toJson(binds)));
+            VerificationController.forgetCache(context.getGuild().getIdLong());
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+            context.makeError("Something went wrong *pout*").queue();
+        }
         return false;
     }
 
@@ -191,16 +402,16 @@ public class VerificationCommand extends Command {
     }
 
 
-    public RestAction<Message> createVerificationCategory(Guild guild) {
+    public RestAction <Message> createVerificationCategory(Guild guild) {
         return guild.createCategory("Verification")
-                .addPermissionOverride(guild.getSelfMember(), EnumSet.of(Permission.MESSAGE_WRITE, Permission.MESSAGE_READ), null)
-                .flatMap((category) -> category.createTextChannel("verify"))
-                .flatMap((channel) -> channel.sendMessage("Hello! In this channel, all verification commands are being posted. All messages (eventually) get deleted!"))
-                .flatMap((channel) -> channel.getCategory().createTextChannel("verify-instructions")
-                        .addPermissionOverride(guild.getPublicRole(), EnumSet.of(Permission.MESSAGE_READ), EnumSet.of(Permission.MESSAGE_WRITE)))
-                .flatMap((channel) -> channel.sendMessage("This server uses a Roblox verification system. In order to unlock all the features of this server, you'll need to verify your Roblox account with your Discord account!\n" +
-                        "\n" +
-                        "Visit https://verify.eryn.io/ and follow the instructions. Then, say !verify in #verify and it will update you accordingly."));
+            .addPermissionOverride(guild.getSelfMember(), EnumSet.of(Permission.MESSAGE_WRITE, Permission.MESSAGE_READ), null)
+            .flatMap((category) -> category.createTextChannel("verify"))
+            .flatMap((channel) -> channel.sendMessage("Hello! In this channel, all verification commands are being posted. All messages (eventually) get deleted!"))
+            .flatMap((channel) -> channel.getCategory().createTextChannel("verify-instructions")
+                .addPermissionOverride(guild.getPublicRole(), EnumSet.of(Permission.MESSAGE_READ), EnumSet.of(Permission.MESSAGE_WRITE)))
+            .flatMap((channel) -> channel.sendMessage("This server uses a Roblox verification system. In order to unlock all the features of this server, you'll need to verify your Roblox account with your Discord account!\n" +
+                "\n" +
+                "Visit https://verify.eryn.io/ and follow the instructions. Then, say !verify in #verify and it will update you accordingly."));
     }
 
 
@@ -246,19 +457,19 @@ public class VerificationCommand extends Command {
         return false;
     }
 
-    private boolean changeSettingTo(CommandMessage context, long tc, String setting) {
+    private boolean changeSettingTo(CommandMessage context, Object tc, String setting) {
         try {
             avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_TABLE_NAME).where("id", context.getGuild().getId())
-                    .update(m -> {
-                        m.set(setting, tc);
-                        context.makeSuccess("Updated `:setting` to `:value` in the VerificationTransformer")
-                                .set("value", tc).set("setting", setting).queue();
-                    });
+                .update(m -> {
+                    m.set(setting, tc);
+                    context.makeSuccess("Updated `:setting` to `:value` in the VerificationTransformer")
+                        .set("value", tc).set("setting", setting).queue();
+                });
             return true;
         } catch (SQLException throwables) {
             context.makeError("Something went wrong trying to update `:setting` to `:value`.")
-                    .set("value", tc).set("setting", setting)
-                    .queue();
+                .set("value", tc).set("setting", setting)
+                .queue();
             return false;
         }
     }
@@ -281,7 +492,7 @@ public class VerificationCommand extends Command {
         JSONArray groupRanksBindings = new JSONArray();
         for (GroupRanksService.Role role : ranks.getRoles()) {
             Guild g = context.getGuild();
-            List<Role> r = g.getRolesByName(role.getName(), true);
+            List <Role> r = g.getRolesByName(role.getName(), true);
             if (r.size() > 0) {
                 if (RoleUtil.canBotInteractWithRole(context.getMessage(), r.get(0))) {
                     JSONObject roleObject = new JSONObject();
@@ -290,7 +501,7 @@ public class VerificationCommand extends Command {
                     JSONArray groups = new JSONArray();
                     JSONObject group = new JSONObject();
                     group.put("id", ranks.getGroupId());
-                    List<Integer> Rranks = new ArrayList<>();
+                    List <Integer> Rranks = new ArrayList <>();
                     Rranks.add(role.getRank());
                     group.put("ranks", Rranks);
                     groups.put(group);

@@ -107,7 +107,7 @@ public class ReverifyCommand extends VerificationCommand {
                     unverifiedMessage.editMessageEmbeds(context.makeSuccess("Found `" + verificationEntities.size() + "` providers with your account in their database, please select the provider you want to verify with!").requestedBy(context).buildEmbed())
                             .setActionRow(menu.build()).queue(menuSelection -> {
                         avaire.getWaiter().waitForEvent(SelectionMenuEvent.class,
-                                interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
+                                interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(unverifiedMessage),
                                 providerSelect -> {
                                     providerSelect.deferEdit().queue();
                                     selectProvider(context, unverifiedMessage, rover, bloxlink, pinewood, providerSelect);
@@ -126,7 +126,7 @@ public class ReverifyCommand extends VerificationCommand {
                 if (so.getValue().equals("verify-new-account")) {
                     unverifiedMessage.editMessageEmbeds(context.makeWarning("You selected the option to verify with a new account\n**Please enter the Roblox name of said account**:").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue(unused -> {
                         avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class,
-                                interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
+                                message -> message.getMember() != null && message.getMember().equals(context.getMember()) && message.getChannel().equals(context.channel),
                                 usernameMessage -> {
                                     verifyNewAccount(context, usernameMessage.getMessage().getContentRaw(), unverifiedMessage);
                                     usernameMessage.getMessage().delete().queue();
@@ -134,15 +134,16 @@ public class ReverifyCommand extends VerificationCommand {
                     });
                     return;
                 }
-                if (so.getValue().equals("rover" + ":" + ve.getRobloxUsername())) {
+
+                if (ve != null && so.getValue().equals("rover" + ":" + ve.getRobloxUsername())) {
                     addAccountToDatabase(context, ve.getRobloxId(), unverifiedMessage);
                     return;
                 }
-                if (so.getValue().equals("bloxlink" + ":" + bloxlink.getRobloxUsername())) {
+                if (bloxlink != null && so.getValue().equals("bloxlink" + ":" + bloxlink.getRobloxUsername())) {
                     addAccountToDatabase(context, bloxlink.getRobloxId(), unverifiedMessage);
                     return;
                 }
-                if (so.getValue().equals("pinewood" + ":" + pinewood.getRobloxUsername())) {
+                if (pinewood != null && so.getValue().equals("pinewood" + ":" + pinewood.getRobloxUsername())) {
                     addAccountToDatabase(context, pinewood.getRobloxId(), unverifiedMessage);
                     return;
                 }
@@ -168,7 +169,7 @@ public class ReverifyCommand extends VerificationCommand {
 
         originalMessage.editMessageEmbeds(context.makeInfo("Account was found on roblox, how would you like to verify?").requestedBy(context).buildEmbed())
                 .setActionRow(menu).queue(m -> avaire.getWaiter().waitForEvent(SelectionMenuEvent.class,
-                interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
+                interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(originalMessage),
                 accountSelect -> accountSelect.deferEdit().queue(k -> selectAccount(context, originalMessage, robloxId, accountSelect))
                 , 5, TimeUnit.MINUTES, () -> originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue()));
     }
@@ -180,7 +181,6 @@ public class ReverifyCommand extends VerificationCommand {
                     runGameVerification(context, originalMessage, robloxId);
                     return;
                 }
-
 
                 if (so.getValue().equals("edit-description")) {
                     runDescriptionVerification(context, originalMessage, robloxId);

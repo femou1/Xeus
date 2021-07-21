@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class VerificationCommand extends Command {
 
     private static final String[] names = {"roblox", "pinewood", "activity-center", "security", "apple", "lemons", "duel", "acapella", "kronos", "mega", "miners"};
-    private String game_link = "https://www.roblox.com/games/7066289510/xover-lol";
+    private final String game_link = "https://www.roblox.com/games/4966946553/Xeus-Verification-Place";
 
     /**
      * Creates the given command instance by calling {@link #VerificationCommand(AvaIre, boolean)} with allowDM set to true.
@@ -42,6 +42,11 @@ public abstract class VerificationCommand extends Command {
         super(avaire, allowDM);
     }
 
+    /**
+     * This method is used to generate a 5 word code to put on your description.,
+     *
+     * @return Random code of 5 words (roblox safe)
+     */
     protected String generateToken() {
         StringBuilder token = new StringBuilder();
         for (int i = 0; i < 6; i++) {
@@ -51,6 +56,12 @@ public abstract class VerificationCommand extends Command {
         return token.toString();
     }
 
+
+    /**
+     * @param context         {@link CommandMessage} from the command
+     * @param robloxId        The roblox ID for the user you want to add to the database
+     * @param originalMessage The {@link Message} object for editing the message when going to the next step.
+     */
     public void addAccountToDatabase(CommandMessage context, Long robloxId, Message originalMessage) {
         try {
             QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME);
@@ -143,10 +154,14 @@ public abstract class VerificationCommand extends Command {
                             statusButton.deferEdit().queue();
                             if ("✅".equals(statusButton.getButton().getEmoji().getName())) {
                                 String status = avaire.getRobloxAPIManager().getUserAPI().getUserStatus(robloxId);
-                                if (status.contains(token)) {
-                                    addAccountToDatabase(context, robloxId, originalMessage);
+                                if (status != null) {
+                                    if (status.contains(token)) {
+                                        addAccountToDatabase(context, robloxId, originalMessage);
+                                    } else {
+                                        originalMessage.editMessageEmbeds(context.makeWarning("Your status does not contain the token, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                    }
                                 } else {
-                                    originalMessage.editMessageEmbeds(context.makeWarning("Your status does not contain the token, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                    originalMessage.editMessageEmbeds(context.makeWarning("Status is empty, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
                                 }
                                 return;
                             }

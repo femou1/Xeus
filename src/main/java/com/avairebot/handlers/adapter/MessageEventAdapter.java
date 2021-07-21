@@ -218,7 +218,7 @@ public class MessageEventAdapter extends EventAdapter {
 
         for (String word : badWordsList) {
             if (words.contains(word)) {
-                warnUserColor(messageId, guild, "**GLOBAL AUTOMOD**: Global Filter was activated!\n**Type**: " + "``WILDCARD``\n**Sentance Filtered**: " + contentStripped, new Color(0, 0, 0), messageId.getTextChannel());
+                warnUserColor(messageId, guild, "**GLOBAL AUTOMOD**: Global Filter was activated!\n**Type**: " + "``WILDCARD``\n**Sentence Filtered**: " + contentStripped, new Color(0, 0, 0), messageId.getTextChannel());
                 return true;
             }
         }
