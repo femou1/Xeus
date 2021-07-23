@@ -444,6 +444,13 @@ public class AvaIre {
             servlet.registerDelete("/verification/verify/:robloxId", new DeleteAccountVerificationLink());
         }
 
+        if (getConfig().getBoolean("web-servlet.api-routes.evaluations", true)) {
+            servlet.registerGet("/evaluations/status/:robloxId", new GetEvaluationStatus());
+            servlet.registerGet("/evaluations/questions/:robloxId", new GetRobloxUserByDiscordId());
+            servlet.registerGet("/evaluations/answers/:robloxId", new GetRobloxUserByDiscordId());
+            servlet.registerGet("/evaluations//:robloxId", new GetRobloxUserByDiscordId());
+        }
+
         log.info("Preparing and setting up metrics");
         Metrics.setup(this);
 

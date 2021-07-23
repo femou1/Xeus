@@ -171,7 +171,7 @@ public class GlobalBanCommand extends Command {
             boolean finalPbacBan = pbacBan;
             avaire.getShardManager().getUserById(args[0]).openPrivateChannel().queue(p -> {
                 p.sendMessageEmbeds(context.makeInfo(
-                        "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Agent. " +
+                        "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Moderator. " +
                                 "For the reason: *```" + finalReason + "```\n\n" +
                                 (finalPbacBan ? "This ban has also banned you from the [PBAC (Pinewood Builders Appeal Center)](https://discord.gg/mWnQm25). " +
                                         "If you feel like this was still unjustified, contact ``Stefano#7366``" : "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +

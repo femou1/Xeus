@@ -118,7 +118,7 @@ public class GlobalKickCommand extends Command {
         if (u != null) {
             String finalReason = reason;
             u.openPrivateChannel().queue(p -> {
-                p.sendMessage(context.makeInfo("*You have been **global-kicked** from all the Pinewood Builders discords by an PIA Agent. For the reason: *```" + finalReason + "```\n\n" +
+                p.sendMessage(context.makeInfo("*You have been **global-kicked** from all the Pinewood Builders discords by an PIA Moderator*. For the reason: *```" + finalReason + "```\n\n" +
                     "You may rejoin the guilds you where kicked from, unless you where banned in one.").setColor(Color.BLACK).buildEmbed()).queue();
             });
         }

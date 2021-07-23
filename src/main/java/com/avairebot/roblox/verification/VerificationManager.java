@@ -99,8 +99,6 @@ public class VerificationManager {
                 return;
             }
 
-
-
             if (!Constants.piaMembers.contains(member.getId())) {
                 for (String userId : Constants.piaMembers) {
                     Member m = commandMessage.getGuild().getMemberById(userId);
@@ -144,21 +142,21 @@ public class VerificationManager {
                     }}
 
                     if (commandMessage.getMember() != null) {
-                        commandMessage.getAuthor().openPrivateChannel().queue(p -> {
+                        member.getUser().openPrivateChannel().queue(p -> {
                             try {
                                 p.sendMessageEmbeds(commandMessage.makeInfo(
-                                    "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Agent. " +
+                                    "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Moderator. " +
                                         "For the reason: *```" + accounts.get(0).getString("reason") + "```\n\n" +
                                         "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
                                         "https://discord.gg/mWnQm25").setColor(Color.BLACK).buildEmbed()).queue();
                                 originalMessage.editMessageEmbeds(commandMessage.makeInfo(
-                                    "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Agent. " +
+                                    "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Moderator. " +
                                         "For the reason: ```" + accounts.get(0).getString("reason") + "```\n\n" +
                                         "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
                                         "https://discord.gg/mWnQm25").setColor(Color.BLACK).buildEmbed()).queue();
                             } catch (ErrorResponseException e) {
                                 originalMessage.editMessageEmbeds(commandMessage.makeInfo(
-                                    "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Agent. " +
+                                    "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Moderator. " +
                                         "For the reason: ```" + accounts.get(0).getString("reason") + "```\n\n" +
                                         "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
                                         "https://discord.gg/mWnQm25").setColor(Color.BLACK).buildEmbed()).queue();
@@ -170,7 +168,7 @@ public class VerificationManager {
                     avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", verificationEntity.getRobloxId())
                         .orWhere("roblox_username", verificationEntity.getRobloxUsername())
                             .update(p -> p.set("userId", commandMessage.getAuthor().getId()));
-                    return;
+                    if (!commandMessage.getGuild().getId().equalsIgnoreCase("750471488095780966")) return;
                 }
             } catch (SQLException throwables) {
                 commandMessage.makeWarning("Something went wrong checking the PIA Anti-Unban table. Please check with the developer (`Stefano#7366`)").queue(k -> {
@@ -195,12 +193,6 @@ public class VerificationManager {
             } else if (commandMessage.getGuild().getId().equalsIgnoreCase("498476405160673286")) {
                 if (avaire.getBlacklistManager().getPBMBlacklist().contains(verificationEntity.getRobloxId())) {
                     errorMessage(commandMessage, "You're blacklisted on PBM, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
-                        "https://discord.gg/mWnQm25", originalMessage);
-                    return;
-                }
-            } else if (commandMessage.getGuild().getId().equalsIgnoreCase("436670173777362944")) {
-                if (avaire.getBlacklistManager().getPETBlacklist().contains(verificationEntity.getRobloxId())) {
-                    errorMessage(commandMessage, "You're blacklisted on PET, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
                         "https://discord.gg/mWnQm25", originalMessage);
                     return;
                 }

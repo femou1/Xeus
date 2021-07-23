@@ -102,7 +102,7 @@ public class GuildEventAdapter extends EventAdapter {
 
                                 logs.get(0).getUser().openPrivateChannel().queue(o -> {
                                     if (o.getUser().isBot()) return;
-                                    o.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription("Sorry, but this user **:bannedUser** was permbanned of PB though the Xeus blacklist feature and may **not** be unbanned. Please ask a PIA agent to handle an unban if deemed necessary.").set("bannedUser", e.getUser().getAsTag() + " / " + e.getUser().getName()).buildEmbed()).queue();
+                                    o.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription("Sorry, but this user **:bannedUser** was permbanned of PB though the Xeus blacklist feature and may **not** be unbanned. Please ask a PIA Moderator to handle an unban if deemed necessary.").set("bannedUser", e.getUser().getAsTag() + " / " + e.getUser().getName()).buildEmbed()).queue();
                                 });
 
                                 String agent = avaire.getShardManager().getUserById(unbanCollection.get(0).getLong("punishedId")) != null ? avaire.getShardManager().getUserById(unbanCollection.get(0).getLong("punishedId")).getName() : "No PIA Member found";

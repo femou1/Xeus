@@ -108,7 +108,7 @@ public class EvaluationCommand extends Command {
 
                         if (transformer.getModlog() != null) {
                             context.getGuild().getTextChannelById(transformer.getModlog())
-                                .sendMessage(context.makeEmbeddedMessage()
+                                .sendMessageEmbeds(context.makeEmbeddedMessage()
                                     .setTitle("\uD83D\uDCDC Evaluator Role Removed")
                                     .addField("User", m.getEffectiveName(), true).addField("Command Executor", context.member.getEffectiveName(), true)
                                     .buildEmbed()).queue();
@@ -128,7 +128,7 @@ public class EvaluationCommand extends Command {
 
                         if (transformer.getModlog() != null) {
                             context.getGuild().getTextChannelById(transformer.getModlog())
-                                .sendMessage(context.makeEmbeddedMessage()
+                                .sendMessageEmbeds(context.makeEmbeddedMessage()
                                     .setTitle("\uD83D\uDCDC Evaluator Role Added")
                                     .addField("User", m.getEffectiveName(), true).addField("Command Executor", context.member.getEffectiveName(), true)
                                     .buildEmbed()).queue();
