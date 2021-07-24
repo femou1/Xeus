@@ -20,7 +20,7 @@ public class IsValidPIAMemberMiddleware extends Middleware {
 
     @Override
     public String buildHelpDescription(@Nonnull CommandMessage context, @Nonnull String[] arguments) {
-        return "**This command can only be executed by an official PIA Member!**";
+        return "**This command can only be executed by an official PIA Moderator!**";
     }
 
     @Override

@@ -91,8 +91,9 @@ public class GuildEventAdapter extends EventAdapter {
                         e.getGuild().ban(e.getUser().getId(), 0, "User was unbanned, user has been re-banned due to permban system in Xeus. Original ban reason (Do not unban without PIA permission): " + unbanCollection.get(0).getString("reason")).reason("PIA BAN: " + unbanCollection.get(0).getString("reason")).queue();
                     } else {
                         if (tc != null) {
+                            if (logs.get(0).getUser().equals(e.getJDA().getSelfUser())) return;
                             if (Constants.piaMembers.contains(logs.get(0).getUser().getId())) {
-                                tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription("**" + e.getUser().getName() + e.getUser().getDiscriminator() + "**" + " has been unbanned from **" + e.getGuild().getName() + "**\nIssued by PIA Member: " + logs.get(0).getUser().getName() + "#" + logs.get(0).getUser().getDiscriminator() + "\nWith reason: " + (logs.get(0).getReason() != null ? logs.get(0).getReason() : "No reason given")).buildEmbed()).queue();
+                                tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription("**" + e.getUser().getName() + e.getUser().getDiscriminator() + "**" + " has been unbanned from **" + e.getGuild().getName() + "**\nIssued by PIA Moderator: " + logs.get(0).getUser().getName() + "#" + logs.get(0).getUser().getDiscriminator() + "\nWith reason: " + (logs.get(0).getReason() != null ? logs.get(0).getReason() : "No reason given")).buildEmbed()).queue();
                                 logs.get(0).getUser().openPrivateChannel().queue(o -> {
                                     if (o.getUser().isBot()) return;
                                     o.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription("You have currently unbanned a Global-Banned user.").buildEmbed()).queue();
@@ -105,9 +106,9 @@ public class GuildEventAdapter extends EventAdapter {
                                     o.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription("Sorry, but this user **:bannedUser** was permbanned of PB though the Xeus blacklist feature and may **not** be unbanned. Please ask a PIA Moderator to handle an unban if deemed necessary.").set("bannedUser", e.getUser().getAsTag() + " / " + e.getUser().getName()).buildEmbed()).queue();
                                 });
 
-                                String agent = avaire.getShardManager().getUserById(unbanCollection.get(0).getLong("punishedId")) != null ? avaire.getShardManager().getUserById(unbanCollection.get(0).getLong("punishedId")).getName() : "No PIA Member found";
+                                String agent = avaire.getShardManager().getUserById(unbanCollection.get(0).getLong("punishedId")) != null ? avaire.getShardManager().getUserById(unbanCollection.get(0).getLong("punishedId")).getName() : "No PIA Moderator found";
                                 e.getGuild().ban(e.getUser().getId(), 0, "Banned by: " + agent + "\n" +
-                                    "For: " + unbanCollection.get(0).getString("reason") + "\n*THIS IS A PIA GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE PIA MEMBER WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT PIA APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + agent + ". For: \n" + unbanCollection.get(0).getString("reason")).queue();
+                                    "For: " + unbanCollection.get(0).getString("reason") + "\n*THIS IS A PIA GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE PIA MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT PIA APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + agent + ". For: \n" + unbanCollection.get(0).getString("reason")).queue();
                             }
                         }
                     }

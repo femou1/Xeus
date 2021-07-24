@@ -605,9 +605,11 @@ web-servlet:
   # any requests to the vote route that is either missing the auth header, or
   # has a key that does not match the key below will be ignored.
   #
-  authToken: 'avaire-auth-token'
+  authToken: 'xeus-auth-token'
   verificationTokens:
-    - 'avaire-verify-token'
+    - 'xeus-verify-token'
+  evaluationTokens:
+    - 'xeus-verification-token'
 #--------------------------------------------------------------------------
 # Vote Locking
 #--------------------------------------------------------------------------

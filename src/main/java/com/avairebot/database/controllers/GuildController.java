@@ -64,7 +64,7 @@ public class GuildController {
         "guilds.automod_mass_mention", "guilds.automod_message_spam", "guilds.audit_log", "guilds.roblox_group_id",
         "guilds.member_to_young_channel_id", "guilds.join_logs", "guilds.event_request_channel", "guilds.patrol_remittance_channel",
         "guilds.patrol_remittance_message", "guilds.patrol_remittance_emote_id", "guilds.main_discord_role", "guilds.approved_suggestion_channel",
-        "guilds.group_shout_roles", "guilds.minimum_hr_rank", "guilds.minimum_lead_rank"
+        "guilds.group_shout_roles", "guilds.minimum_hr_rank", "guilds.minimum_lead_rank", "guilds.eval_questions", "guilds.evaluation_answer_channel"
     };
 
     /**

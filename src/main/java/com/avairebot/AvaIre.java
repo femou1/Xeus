@@ -77,6 +77,7 @@ import com.avairebot.servlet.WebServlet;
 import com.avairebot.servlet.routes.v1.delete.DeleteAccountVerificationLink;
 import com.avairebot.servlet.routes.v1.get.*;
 import com.avairebot.servlet.routes.v1.post.PostAccountVerificationLink;
+import com.avairebot.servlet.routes.v1.post.PostEvalAnswers;
 import com.avairebot.servlet.routes.v1.post.PostGuildCleanup;
 import com.avairebot.shard.ShardEntityCounter;
 import com.avairebot.shared.DiscordConstants;
@@ -131,6 +132,7 @@ public class AvaIre {
             )
             .disableHtmlEscaping()
             .serializeNulls()
+            .setLenient()
             .create();
 
     private static final Logger log = LoggerFactory.getLogger("Xeus");
@@ -446,9 +448,8 @@ public class AvaIre {
 
         if (getConfig().getBoolean("web-servlet.api-routes.evaluations", true)) {
             servlet.registerGet("/evaluations/status/:robloxId", new GetEvaluationStatus());
-            servlet.registerGet("/evaluations/questions/:robloxId", new GetRobloxUserByDiscordId());
-            servlet.registerGet("/evaluations/answers/:robloxId", new GetRobloxUserByDiscordId());
-            servlet.registerGet("/evaluations//:robloxId", new GetRobloxUserByDiscordId());
+            servlet.registerGet("/evaluations/questions/:guildId", new GetEvaluationQuestions());
+            servlet.registerPost("/evaluations/answers/:guildId", new PostEvalAnswers());
         }
 
         log.info("Preparing and setting up metrics");

@@ -59,7 +59,7 @@ public class Constants {
     public static final String PB_SUGGESTIONS_TABLE_NAME = "pinewood_suggestions";
     public static final String REPORTS_DATABASE_TABLE_NAME = "pinewood_reports";
     public static final String REMITTANCE_DATABASE_TABLE_NAME = "pinewood_patrol_remittance";
-    public static final String EVENT_SCHEDULE_REQUESTS_TABLE = "pinewood_event_requests";
+    public static final String EVENT_SCHEDULE_REQUESTS_TABLE_NAME = "pinewood_event_requests";
 
     public static final String ON_WATCH_TABLE_NAME = "on_watch";
     public static final String ON_WATCH_LOG_TABLE_NAME = "on_watch_logs";
@@ -72,6 +72,7 @@ public class Constants {
 
     public static final String EVALS_DATABASE_TABLE_NAME = "pinewood_evaluations";
     public static final String EVALS_LOG_DATABASE_TABLE_NAME = "pinewood_evaluations_log";
+    public static final String PENDING_QUIZ_TABLE_NAME = "pinewood_pending_quiz";
 
     // Package Specific Information
     public static final String PACKAGE_MIGRATION_PATH = "com.avairebot.database.migrate";

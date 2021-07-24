@@ -15,7 +15,7 @@ public class CreateEventRequestsTableMigration implements Migration {
 
     @Override
     public boolean up(Schema schema) throws SQLException {
-        return schema.createIfNotExists(Constants.EVENT_SCHEDULE_REQUESTS_TABLE, table -> {
+        return schema.createIfNotExists(Constants.EVENT_SCHEDULE_REQUESTS_TABLE_NAME, table -> {
             table.Increments("id");
             table.Long("guild_id");
             table.Long("request_message_id");
@@ -26,6 +26,6 @@ public class CreateEventRequestsTableMigration implements Migration {
 
     @Override
     public boolean down(Schema schema) throws SQLException {
-        return schema.dropIfExists(Constants.EVENT_SCHEDULE_REQUESTS_TABLE);
+        return schema.dropIfExists(Constants.EVENT_SCHEDULE_REQUESTS_TABLE_NAME);
     }
 }

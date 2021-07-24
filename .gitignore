@@ -28,7 +28,6 @@ hs_err_pid*
 /*.iws
 /*.ipr
 /*.iml
-/*.iml
 
 # Compile location
 .gradle/*

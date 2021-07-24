@@ -23,7 +23,7 @@ public class AddMemberIsToNewNotificationChannelIdColumnToGuildsTableMigration i
         if (schema.getDbm().getConnection() instanceof MySQL) {
             schema.getDbm().queryUpdate(String.format(
 
-                "ALTER TABLE `%s` ADD `member_to_young_channel_id` VARCHAR(32) NULL DEFAULT NULL AFTER `filter`;",
+                "ALTER TABLE `%s` ADD `is` VARCHAR(32) NULL DEFAULT NULL AFTER `filter`;",
                 Constants.GUILD_TABLE_NAME
             ));
         } else {

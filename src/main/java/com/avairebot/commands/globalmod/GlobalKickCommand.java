@@ -118,13 +118,13 @@ public class GlobalKickCommand extends Command {
         if (u != null) {
             String finalReason = reason;
             u.openPrivateChannel().queue(p -> {
-                p.sendMessage(context.makeInfo("*You have been **global-kicked** from all the Pinewood Builders discords by an PIA Moderator*. For the reason: *```" + finalReason + "```\n\n" +
+                p.sendMessageEmbeds(context.makeInfo("*You have been **global-kicked** from all the Pinewood Builders discords by an PIA Moderator*. For the reason: *```" + finalReason + "```\n\n" +
                     "You may rejoin the guilds you where kicked from, unless you where banned in one.").setColor(Color.BLACK).buildEmbed()).queue();
             });
         }
         TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
         if (tc != null) {
-            tc.sendMessage(context.makeInfo("[``:global-unbanned-id`` was global-kicked from all discords by :user for](:link):\n" +
+            tc.sendMessageEmbeds(context.makeInfo("[``:global-unbanned-id`` was global-kicked from all discords by :user for](:link):\n" +
                 "```:reason```").set("global-unbanned-id", args[0]).set("reason", reason).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
         }
 
@@ -132,14 +132,11 @@ public class GlobalKickCommand extends Command {
 
         StringBuilder sb = new StringBuilder();
         for (Guild g : guild) {
-
             Member m = g.getMemberById(args[0]);
             if (m != null) {
                 g.kick(m, "Kicked by: " + context.member.getEffectiveName() + "\n" +
                     "For: " + reason + "\n*THIS IS A PIA GLOBAL KICK*").reason("Global Kick, executed by " + context.member.getEffectiveName() + ". For: \n" + reason).queue();
             }
-
-
             sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
         }
 

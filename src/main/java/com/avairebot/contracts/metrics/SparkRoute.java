@@ -68,7 +68,13 @@ public abstract class SparkRoute implements Route {
     protected boolean hasValidVerificationAuthorizationHeader(Request request) {
         String authorization = request.headers("Authorization");
 
-        return authorization != null && getVerifyAuthorizationTokens().contains(authorization);
+        return authorization != null && getVerifyAPIAuthorizationTokens().contains(authorization);
+    }
+
+    protected boolean hasValidEvaluationsAuthorizationHeader(Request request) {
+        String authorization = request.headers("Authorization");
+
+        return authorization != null && getEvaluationAPIAuthorizationTokens().contains(authorization);
     }
 
     /**
@@ -91,7 +97,11 @@ public abstract class SparkRoute implements Route {
      * @return The string representing the auth token.
      */
     @SuppressWarnings("WeakerAccess")
-    protected List<String> getVerifyAuthorizationTokens() {
+    protected List<String> getVerifyAPIAuthorizationTokens() {
         return AvaIre.getInstance().getConfig().getStringList("web-servlet.verificationTokens");
+    }
+
+    protected List<String> getEvaluationAPIAuthorizationTokens() {
+        return AvaIre.getInstance().getConfig().getStringList("web-servlet.evaluationTokens");
     }
 }

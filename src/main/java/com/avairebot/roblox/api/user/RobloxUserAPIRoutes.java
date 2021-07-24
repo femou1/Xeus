@@ -5,18 +5,26 @@ import com.avairebot.AvaIre;
 import com.avairebot.requests.service.user.inventory.RobloxGamePassService;
 import com.avairebot.requests.service.user.rank.RobloxUserGroupRankService;
 import com.avairebot.roblox.RobloxAPIManager;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class RobloxUserAPIRoutes {
 
     private final AvaIre avaire;
     private final RobloxAPIManager manager;
     public RobloxUserAPIRoutes(AvaIre avaire, RobloxAPIManager robloxAPIManager) {this.avaire = avaire; this.manager = robloxAPIManager;}
+
+    public static final Cache <String, String> cache = CacheBuilder.newBuilder()
+        .recordStats()
+        .expireAfterWrite(5, TimeUnit.MINUTES)
+        .build();
 
     public List<RobloxUserGroupRankService.Data> getUserRanks(Long botAccount) {
         Request.Builder request = new Request.Builder()

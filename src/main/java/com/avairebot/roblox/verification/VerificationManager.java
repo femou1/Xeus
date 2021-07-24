@@ -107,7 +107,7 @@ public class VerificationManager {
                                 member.getEffectiveName().contains(m.getUser().getName()) ||
                                 member.getEffectiveName().equals(m.getEffectiveName()) ||
                                 member.getEffectiveName().equals(m.getUser().getName())) {
-                            errorMessage(commandMessage, "Please do not try to join the server as a PIA Member or higher, usernames are checked on join. Violation of this rule can be punished by being banned across the entire Pinewood Community.", originalMessage);
+                            errorMessage(commandMessage, "Please do not try to join the server as a PIA Moderator or higher, usernames are checked on join. Violation of this rule can be punished by being banned across the entire Pinewood Community.", originalMessage);
                             return;
                         }
                     }
@@ -149,12 +149,7 @@ public class VerificationManager {
                                         "For the reason: *```" + accounts.get(0).getString("reason") + "```\n\n" +
                                         "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
                                         "https://discord.gg/mWnQm25").setColor(Color.BLACK).buildEmbed()).queue();
-                                originalMessage.editMessageEmbeds(commandMessage.makeInfo(
-                                    "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Moderator. " +
-                                        "For the reason: ```" + accounts.get(0).getString("reason") + "```\n\n" +
-                                        "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
-                                        "https://discord.gg/mWnQm25").setColor(Color.BLACK).buildEmbed()).queue();
-                            } catch (ErrorResponseException e) {
+                                } catch (ErrorResponseException e) {
                                 originalMessage.editMessageEmbeds(commandMessage.makeInfo(
                                     "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Moderator. " +
                                         "For the reason: ```" + accounts.get(0).getString("reason") + "```\n\n" +
@@ -167,7 +162,7 @@ public class VerificationManager {
 
                     avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", verificationEntity.getRobloxId())
                         .orWhere("roblox_username", verificationEntity.getRobloxUsername())
-                            .update(p -> p.set("userId", commandMessage.getAuthor().getId()));
+                            .update(p -> p.set("userId", member.getUser().getId()));
                     if (!commandMessage.getGuild().getId().equalsIgnoreCase("750471488095780966")) return;
                 }
             } catch (SQLException throwables) {
@@ -492,7 +487,7 @@ public class VerificationManager {
         StringBuilder sb = new StringBuilder();
         for (Guild g : guilde) {
             g.ban(arg, time, "Banned by: " + context.member.getEffectiveName() + "\n" +
-                    "For: " + reason + "\n*THIS IS A PIA GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE PIA MEMBER WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT PIA APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason).queue();
+                    "For: " + reason + "\n*THIS IS A PIA GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE PIA MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT PIA APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason).queue();
 
             sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
         }

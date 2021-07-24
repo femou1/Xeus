@@ -53,6 +53,7 @@ public class GuildTransformer extends Transformer {
     private final List <String> piaWordsWildcard = new ArrayList <>();
 
     private final List <String> reportPermissionRoles = new ArrayList <>();
+    private final List <String> evalQuestions = new ArrayList <>();
 
     private final Set <Long> levelExemptChannels = new HashSet <>();
     private final Set <Long> levelExemptRoles = new HashSet <>();
@@ -118,6 +119,7 @@ public class GuildTransformer extends Transformer {
     private double levelModifier = -1;
     private long reportCategory = 0;
     private long audit_log = 0;
+    private long evalAnswerChannel = 0;
     private long join_logs = 0;
 
     private int robloxGroupId = 0;
@@ -195,6 +197,7 @@ public class GuildTransformer extends Transformer {
             robloxGroupId = data.getInt("roblox_group_id");
             minimalHrRank = data.getInt("minimum_hr_rank");
             minimumLeadRank = data.getInt("minimum_lead_rank");
+            evalAnswerChannel = data.getLong("evaluation_answer_channel");
 
             patrolRemittanceChannel = data.getString("patrol_remittance_channel");
             patrolRemittanceEmoteId = data.getString("patrol_remittance_emote_id");
@@ -266,6 +269,15 @@ public class GuildTransformer extends Transformer {
                     }.getType());
 
                 piaWordsWildcard.addAll(dbFilter);
+            }
+
+            if (data.getString("eval_questions", null) != null) {
+                ArrayList <String> evaluationQuestions = AvaIre.gson.fromJson(
+                    data.getString("eval_questions"),
+                    new TypeToken <ArrayList <String>>() {
+                    }.getType());
+
+                evalQuestions.addAll(evaluationQuestions);
             }
 
             if (data.getString("report_discord", null) != null) {
@@ -643,6 +655,14 @@ public class GuildTransformer extends Transformer {
         return minimumLeadRank;
     }
 
+    public void setEvalAnswerChannel(long evalAnswerChannel) {
+        this.evalAnswerChannel = evalAnswerChannel;
+    }
+
+    public long getEvalAnswerChannel() {
+        return evalAnswerChannel;
+    }
+
     public void setMinimumLeadRank(int minimumLeadRank) {
         this.minimumLeadRank = minimumLeadRank;
     }
@@ -946,6 +966,10 @@ public class GuildTransformer extends Transformer {
 
     public List <ChannelTransformer> getChannels() {
         return channels;
+    }
+
+    public List <String> getEvalQuestions() {
+        return evalQuestions;
     }
 
     public Map <String, Map <String, String>> getCategories() {
