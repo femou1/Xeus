@@ -1,20 +1,29 @@
 package com.avairebot.servlet.routes.v1.get;
 
 import com.avairebot.AvaIre;
+import com.avairebot.contracts.metrics.SparkRoute;
 import com.avairebot.database.controllers.GuildController;
 import com.avairebot.database.transformers.GuildTransformer;
 import net.dv8tion.jda.api.entities.Guild;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.Request;
 import spark.Response;
-import spark.Route;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-public class GetEvaluationQuestions implements Route {
+public class GetEvaluationQuestions extends SparkRoute {
+    private static final Logger log = LoggerFactory.getLogger(GetEvaluationQuestions.class);
+
     @Override
     public Object handle(Request request, Response response) throws Exception {
+        if (!hasValidEvaluationsAuthorizationHeader(request)) {
+            log.warn("Unauthorized request, missing or invalid `Authorization` header give.");
+            return buildResponse(response, 401, "Unauthorized request, missing or invalid `Authorization` header give.");
+        }
+
         String guildId = request.params("guildId");
         JSONObject root = new JSONObject();
         ArrayList<String> questions = new ArrayList<>();

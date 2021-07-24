@@ -5,7 +5,6 @@ import com.avairebot.Constants;
 import com.avairebot.contracts.metrics.SparkRoute;
 import com.avairebot.database.collection.Collection;
 import com.avairebot.database.collection.DataRow;
-import com.avairebot.servlet.routes.v1.post.PostAccountVerificationLink;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +12,7 @@ import spark.Request;
 import spark.Response;
 
 public class GetEvaluationStatus extends SparkRoute {
-    private static final Logger log = LoggerFactory.getLogger(PostAccountVerificationLink.class);
+    private static final Logger log = LoggerFactory.getLogger(GetEvaluationStatus.class);
 
     @Override
     public Object handle(Request request, Response response) throws Exception {

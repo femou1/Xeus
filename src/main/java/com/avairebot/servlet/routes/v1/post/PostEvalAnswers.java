@@ -28,7 +28,7 @@ public class PostEvalAnswers extends SparkRoute {
 
     @Override
     public Object handle(Request request, Response response) throws Exception {
-        if (!hasValidVerificationAuthorizationHeader(request)) {
+        if (!hasValidEvaluationsAuthorizationHeader(request)) {
             log.warn("Unauthorized request, missing or invalid `Authorization` header give.");
             return buildResponse(response, 401, "Unauthorized request, missing or invalid `Authorization` header give.");
         }
