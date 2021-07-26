@@ -3,6 +3,7 @@ package com.avairebot.servlet.routes.v1.get;
 import com.avairebot.AvaIre;
 import com.avairebot.contracts.metrics.SparkRoute;
 import com.avairebot.contracts.verification.VerificationEntity;
+import net.dv8tion.jda.api.entities.User;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,13 +36,23 @@ public class GetRobloxUserByDiscordId extends SparkRoute {
             root.put("username", verificationEntity.getRobloxUsername());
             root.put("robloxId", verificationEntity.getRobloxId());
             root.put("provider", verificationEntity.getProvider());
+            log.info("[Verification (Discord -> Roblox)] {} ({}) -> {} ({})", verificationEntity.getDiscordId(), returnUsernameFromDiscord(verificationEntity.getDiscordId()), verificationEntity.getRobloxId(), verificationEntity.getRobloxUsername());
             response.status(200);
         } else {
             root.put("error", true);
             root.put("message", "The ID " + id + " doesn't have a user in any verification database.");
+            log.info("[Verification (Discord -> Roblox)] {} -> None", id);
             response.status(404);
         }
 
         return root;
+    }
+
+    private String returnUsernameFromDiscord(Long discordId) {
+        User u = AvaIre.getInstance().getShardManager().getUserById(discordId);
+        if (u != null) {
+            return u.getName() + "#" + u.getDiscriminator();
+        }
+        return "Unkown";
     }
 }

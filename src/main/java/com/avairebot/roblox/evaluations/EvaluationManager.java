@@ -6,21 +6,24 @@ import com.avairebot.contracts.roblox.evaluations.PassedEvals;
 import com.avairebot.database.collection.Collection;
 import com.avairebot.database.query.QueryBuilder;
 import com.avairebot.roblox.RobloxAPIManager;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.avairebot.contracts.roblox.evaluations.PassedEvals.COMBAT;
 import static com.avairebot.contracts.roblox.evaluations.PassedEvals.PATROL;
 
 public class EvaluationManager {
 
-    /*public final Cache <String, VerificationEntity> cache = CacheBuilder.newBuilder()
+    public final Cache <String, Boolean> cooldownCache = CacheBuilder.newBuilder()
         .recordStats()
         .expireAfterWrite(24, TimeUnit.HOURS)
         .build();
-    */
+
 
     private final AvaIre avaire;
     private final RobloxAPIManager manager;
@@ -117,12 +120,14 @@ public class EvaluationManager {
 
         try {
             QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.PENDING_QUIZ_TABLE_NAME).where("roblox_id", robloxId);
-            return qb.get().isEmpty();
+            return !qb.get().isEmpty();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
             return false;
         }
     }
 
-
+    public Cache <String, Boolean> getCooldownCache() {
+        return cooldownCache;
+    }
 }

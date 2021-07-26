@@ -362,6 +362,7 @@ public class MainEventHandler extends EventHandler {
         buttonClickEventAdapter.onPatrolRemittanceButtonClickEvent(event);
         buttonClickEventAdapter.onReportsButtonClickEvent(event);
         buttonClickEventAdapter.onFeedbackButtonClickEvent(event);
+        buttonClickEventAdapter.onQuizButtonClickEvent(event);
     }
 
     @Override

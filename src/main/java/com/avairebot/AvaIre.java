@@ -285,7 +285,7 @@ public class AvaIre {
         CategoryHandler.addCategory(this, "Evaluations", defaultPrefix);
         CategoryHandler.addCategory(this, "Reports", defaultPrefix);
         CategoryHandler.addCategory(this, "Roblox", defaultPrefix);
-        CategoryHandler.addCategory(this, "Verification", "v!");
+        CategoryHandler.addCategory(this, "Verification", defaultPrefix);
         CategoryHandler.addCategory(this, "System", getConfig().getString(
             "system-prefix", DiscordConstants.DEFAULT_SYSTEM_PREFIX
         ));
@@ -447,7 +447,7 @@ public class AvaIre {
         }
 
         if (getConfig().getBoolean("web-servlet.api-routes.evaluations", true)) {
-            servlet.registerGet("/evaluations/status/:robloxId", new GetEvaluationStatus());
+            servlet.registerGet("/evaluations/status/:guildId/:robloxId", new GetEvaluationStatus());
             servlet.registerGet("/evaluations/questions/:guildId", new GetEvaluationQuestions());
             servlet.registerPost("/evaluations/answers/:guildId", new PostEvalAnswers());
         }

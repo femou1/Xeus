@@ -7,9 +7,8 @@ import com.avairebot.database.controllers.GuildController;
 import com.avairebot.database.transformers.GuildTransformer;
 import com.avairebot.roblox.RobloxAPIManager;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.interactions.components.Button;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -71,6 +70,7 @@ public class PostEvalAnswers extends SparkRoute {
             response.status(401);
             root.put("error", "XEUS_QUIZ_IS_PENDING");
             root.put("message", "This user already has a quiz pending.");
+            return root;
         }
 
 
@@ -136,22 +136,29 @@ public class PostEvalAnswers extends SparkRoute {
                 return root;
             }
 
-            messageList.add(buildQuestionAndAnswerEmbed(jsonObj.getString("question"), jsonObj.getString("answer"), messageList, username));
+            String question = jsonObj.getString("question");
+            String answer = jsonObj.getString("answer").length() > 0 ? jsonObj.getString("answer") : "Question was not answered.";
+            messageList.add(buildQuestionAndAnswerEmbed(question, answer, messageList, username));
         }
+
+
+
         TextChannel tc = guild.getTextChannelById(transformer.getEvalAnswerChannel());
-        tc.sendMessageEmbeds(messageList).queue(m -> {
-            boolean addedToDatabase = manager.getEvaluationManager().addQuizToDatabase(userId, guild.getIdLong(), m.getIdLong());
-            if (addedToDatabase) {
-                root.put("messageId", m.getIdLong());
-                root.put("success", true);
-            } else {
-                response.status(500);
-                root.put("messageId", m.getIdLong());
-                root.put("error", "XEUS_MISSING_FINAL_MESSAGE");
-                root.put("message", "Something went wrong posting the message to the quiz database. Please check with the developer");
-                m.editMessageEmbeds(new EmbedBuilder().setDescription("Something went wrong with adding the quiz to the database for "+username+" (`"+userId+"`), please check with the developer").build()).queue();
-            }
-        });
+
+
+
+        Message m = tc.sendMessageEmbeds(messageList).setActionRow(Button.success("approve", Emoji.fromUnicode("\uD83D\uDC4D")), Button.danger("reject", Emoji.fromUnicode("⛔"))).complete(true);
+        boolean addedToDatabase = manager.getEvaluationManager().addQuizToDatabase(userId, guild.getIdLong(), m.getIdLong());
+        if (addedToDatabase) {
+            root.put("messageId", m.getIdLong());
+            root.put("success", true);
+        } else {
+            response.status(500);
+            root.put("messageId", m.getIdLong());
+            root.put("error", "XEUS_MISSING_FINAL_MESSAGE");
+            root.put("message", "Something went wrong posting the message to the quiz database. Please check with the developer");
+            m.editMessageEmbeds(new EmbedBuilder().setDescription("Something went wrong with adding the quiz to the database for "+username+" (`"+userId+"`), please check with the developer").build()).queue();
+        }
 
         return root;
     }

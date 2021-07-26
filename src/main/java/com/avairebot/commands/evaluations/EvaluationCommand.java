@@ -235,8 +235,9 @@ public class EvaluationCommand extends Command {
         }
 
         try {
+            context.getGuildTransformer().setEvalAnswerChannel(Long.parseLong(args[1]));
             avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.getGuild().getId()).update(statement -> {
-                statement.set("evaluation_answer_channel", args[1]);
+                statement.set("evaluation_answer_channel", context.getGuildTransformer().getEvalAnswerChannel());
             });
             context.makeSuccess("Eval answers channel has been set to :channelName.").set("channelName",
                 tc.getAsMention()).queue();
@@ -331,6 +332,8 @@ public class EvaluationCommand extends Command {
                                         }
                                     });
                                 context.makeSuccess("Successfully added the record to the database").queue();
+                                avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`"+args[0] + "` has passed the `"+args[2]+"` eval.").buildEmbed()).queue();
+
                                 return true;
                             }
                             if (collection.size() > 2) {
@@ -354,6 +357,10 @@ public class EvaluationCommand extends Command {
                                         statement.set("evaluator", context.getMember().getEffectiveName());
                                     });
                                 context.makeSuccess("Successfully updated the record in the database").queue();
+                                avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`"+args[0] + "` has passed the `"+args[2]+"` eval.").buildEmbed()).queue();
+                                if (avaire.getRobloxAPIManager().getEvaluationManager().getPassedEvals(roblox_id).size() == 3) {
+                                    avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`"+args[0] + "` has now passed all evaluations!").buildEmbed()).queue();
+                                }
                             }
 
                             return true;

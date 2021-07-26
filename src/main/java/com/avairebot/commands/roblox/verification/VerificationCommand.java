@@ -3,27 +3,48 @@ package com.avairebot.commands.roblox.verification;
 import com.avairebot.AvaIre;
 import com.avairebot.Constants;
 import com.avairebot.commands.CommandMessage;
+import com.avairebot.contracts.commands.VerificationCommandContract;
+import com.avairebot.contracts.verification.VerificationEntity;
 import com.avairebot.database.controllers.VerificationController;
 import com.avairebot.database.transformers.VerificationTransformer;
 import com.avairebot.requests.service.group.GroupRanksService;
 import com.avairebot.requests.service.group.GuildRobloxRanksService;
 import com.avairebot.roblox.RobloxAPIManager;
+import com.avairebot.utilities.CheckPermissionUtil;
 import com.avairebot.utilities.MentionableUtil;
 import com.avairebot.utilities.NumberUtil;
 import com.avairebot.utilities.RoleUtil;
+import com.avairebot.utilities.menu.Paginator;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.internal.utils.PermissionUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class VerificationCommand extends com.avairebot.contracts.commands.VerificationCommand {
+public class VerificationCommand extends VerificationCommandContract {
+    private final Paginator.Builder builder;
+
+
     public VerificationCommand(AvaIre avaire) {
         super(avaire);
+        builder = new Paginator.Builder()
+            .setColumns(1)
+            .setFinalAction(m -> {try {m.clearReactions().queue();} catch (PermissionException ignore) {}})
+            .setItemsPerPage(1)
+            .waitOnSinglePage(false)
+            .useNumberedItems(true)
+            .showPageNumbers(true)
+            .wrapPageEnds(true)
+            .setEventWaiter(avaire.getWaiter())
+            .setTimeout(1,TimeUnit.MINUTES);
     }
 
     @Override
@@ -105,12 +126,57 @@ public class VerificationCommand extends com.avairebot.contracts.commands.Verifi
                     return listBoundRoles(context, manager);
                 case "creategroupranks":
                     return createGroupRanks(context, args, manager);
+                case "mass-unbind":
+                    return massUnbindUsers(context, manager);
+                case "get-user-id":
+                    return getUserIds(context, manager);
                 default:
                     context.makeError("Invalid argument given.").queue();
                     return false;
             }
         }
         return false;
+    }
+
+    private boolean getUserIds(CommandMessage context, RobloxAPIManager manager) {
+        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.FACILITATOR.getLevel()) {
+            context.makeError("You're required to be an facilitator, bot admin or above to run this command").queue();
+            return false;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (User u : context.getJDA().getUsers()) {
+            VerificationEntity ve = manager.getVerification().callUserFromDatabaseAPI(u.getId());
+            if (ve != null) continue;
+            sb.append(u.getId()).append(",");
+        }
+        System.out.println(sb);
+        context.makeSuccess("Please check the console!").queue();
+        return true;
+    }
+
+    private boolean massUnbindUsers(CommandMessage context, RobloxAPIManager manager) {
+        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.FACILITATOR.getLevel()) {
+            context.makeError("You're required to be an facilitator, bot admin or above to run this command").queue();
+            return false;
+        }
+        GuildRobloxRanksService guildRanks = (GuildRobloxRanksService) manager.toService(context.getVerificationTransformer().getRanks(), GuildRobloxRanksService.class);
+
+        Map <GuildRobloxRanksService.GroupRankBinding, Role> bindingRoleMap =
+            guildRanks.getGroupRankBindings().stream()
+                .collect(Collectors.toMap(Function.identity(), groupRankBinding -> context.getGuild().getRoleById(groupRankBinding.getRole())));
+        List<Role> rolesToRemove = bindingRoleMap.values()
+            .stream().filter(role -> RoleUtil.canBotInteractWithRole(context.getMessage(), role)).collect(Collectors.toList());
+
+        for (Member m : context.getGuild().getMembers()) {
+            if (!PermissionUtil.canInteract(context.getGuild().getSelfMember(), m)) continue;
+            VerificationEntity ve = manager.getVerification().callUserFromDatabaseAPI(m.getId());
+            if (ve != null) continue;
+            context.guild.modifyMemberRoles(m, null, rolesToRemove).queue();
+        }
+
+        context.makeSuccess("All members that aren't in the database had their roles stripped!").queue();
+        return true;
     }
 
     private boolean setVerifiedRole(CommandMessage context, String[] args) {
@@ -140,7 +206,7 @@ return false;
     private boolean listBoundRoles(CommandMessage context, RobloxAPIManager manager) {
         GuildRobloxRanksService guildRanks = (GuildRobloxRanksService) manager.toService(context.getVerificationTransformer().getRanks(), GuildRobloxRanksService.class);
         if (guildRanks != null) {
-            List <MessageEmbed> meL = new LinkedList <>();
+            List <String> finalMessage = new LinkedList <>();
             guildRanks.getGroupRankBindings().forEach(p -> {
                 StringBuilder sb = new StringBuilder();
                 Role r = context.getGuild().getRoleById(p.getRole());
@@ -161,19 +227,18 @@ return false;
                 });
 
 
-                context.makeSuccess(sb.toString()).queue();
-                /*if (guildRanks.getGroupRankBindings().size() > 5) {
-                    if (meL.size() > 5) {
-                        context.getChannel().sendMessageEmbeds(meL).queue();
-                        meL.clear();
-                    } else {
-                        meL.add(context.makeSuccess(sb.toString()).buildEmbed());
-                    }
-                }*/
+                finalMessage.add(sb.toString());
             });
+            builder.setText("Current questions in the list: ")
+                .setItems(finalMessage)
+                .setLeftRightText("Click this to go left", "Click this to go right")
+                .setUsers(context.getAuthor())
+                .setColor(context.getGuild().getSelfMember().getColor());
+
+            builder.build().paginate(context.getChannel(), 0);
             return true;
         } else {
-            context.makeError("Groups have not been setup yet. Please set them up using `:command creategroupranks (group id)`").queue();
+            context.makeError("Groups have not been setup yet. Please set them up using `:verification creategroupranks (group id)`").queue();
             return false;
         }
     }
@@ -356,7 +421,7 @@ return false;
         groupRankBindings.add(new GuildRobloxRanksService.GroupRankBinding(args[1], groups));
 
         if (binds != null) groupRankBindings.addAll(binds.getGroupRankBindings());
-        //List<MessageEmbed> meL = new LinkedList<>();
+        List<String> finalMessage = new LinkedList<>();
         groupRankBindings.forEach(p -> {
             StringBuilder sb = new StringBuilder();
             Role r = context.getGuild().getRoleById(p.getRole());
@@ -376,14 +441,15 @@ return false;
                 }
             });
 
-            context.makeSuccess(sb.toString()).queue();
-            /*if (meL.size() == 10) {
-                context.getChannel().sendMessageEmbeds(meL).queue();
-                meL.clear();
-            } else {
-                meL.add(context.makeSuccess(sb.toString()).buildEmbed());
-            }*/
+            finalMessage.add(sb.toString());
         });
+        builder.setText("Current questions in the list: ")
+            .setItems(finalMessage)
+            .setLeftRightText("Click this to go left", "Click this to go right")
+            .setUsers(context.getAuthor())
+            .setColor(context.getGuild().getSelfMember().getColor());
+
+        builder.build().paginate(context.getChannel(), 0);
 
         binds.setGroupRankBindings(groupRankBindings);
         try {

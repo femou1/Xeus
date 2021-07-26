@@ -57,6 +57,10 @@ public class UpdateCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
+        if (args.length == 0) {
+            context.makeError("Who/whom would you like to verify?").queue();
+            return false;
+        }
         User u = MentionableUtil.getUser(context, args);
         if (u != null) {
             Member m = context.guild.getMember(u);

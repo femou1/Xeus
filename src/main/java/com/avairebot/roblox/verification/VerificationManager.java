@@ -42,16 +42,16 @@ import java.util.stream.Collectors;
 
 public class VerificationManager {
 
-    public final Cache<String, VerificationEntity> cache = CacheBuilder.newBuilder()
-            .recordStats()
-            .expireAfterWrite(24, TimeUnit.HOURS)
-            .build();
+    public final Cache <String, VerificationEntity> cache = CacheBuilder.newBuilder()
+        .recordStats()
+        .expireAfterWrite(24, TimeUnit.HOURS)
+        .build();
     private final AvaIre avaire;
     private final RobloxAPIManager manager;
-    private final ArrayList<Guild> guilde = new ArrayList<>();
-    private final HashMap<Long, String> inVerification = new HashMap<>();
+    private final ArrayList <Guild> guilde = new ArrayList <>();
+    private final HashMap <Long, String> inVerification = new HashMap <>();
 
-    private final ArrayList<String> guilds = new ArrayList<String>() {{
+    private final ArrayList <String> guilds = new ArrayList <String>() {{
         add("495673170565791754"); // Aerospace
         add("438134543837560832"); // PBST
         add("791168471093870622"); // Kronos Dev
@@ -85,11 +85,17 @@ public class VerificationManager {
 
     @SuppressWarnings("ConstantConditions")
     public boolean verify(CommandMessage commandMessage, Member member, boolean useCache) {
+
         Guild guild = commandMessage.getGuild();
 
         commandMessage.makeInfo("<a:loading:742658561414266890> Checking verification database <a:loading:742658561414266890>").queue(originalMessage -> {
-            if (commandMessage.getMember() == null) {
+            if (member == null) {
                 errorMessage(commandMessage, "Member entity doesn't exist. Verification cancelled on " + member.getEffectiveName(), originalMessage);
+                return;
+            }
+
+            if (member.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("Xeus Bypass") || r.getName().equalsIgnoreCase("RoVer Bypass"))) {
+                errorMessage(commandMessage, member.getAsMention() + " has the Xeus/RoVer bypass role, this user cannot be verified/updated.", originalMessage);
                 return;
             }
 
@@ -104,9 +110,9 @@ public class VerificationManager {
                     Member m = commandMessage.getGuild().getMemberById(userId);
                     if (m != null) {
                         if (member.getEffectiveName().contains(m.getEffectiveName()) ||
-                                member.getEffectiveName().contains(m.getUser().getName()) ||
-                                member.getEffectiveName().equals(m.getEffectiveName()) ||
-                                member.getEffectiveName().equals(m.getUser().getName())) {
+                            member.getEffectiveName().contains(m.getUser().getName()) ||
+                            member.getEffectiveName().equals(m.getEffectiveName()) ||
+                            member.getEffectiveName().equals(m.getUser().getName())) {
                             errorMessage(commandMessage, "Please do not try to join the server as a PIA Moderator or higher, usernames are checked on join. Violation of this rule can be punished by being banned across the entire Pinewood Community.", originalMessage);
                             return;
                         }
@@ -130,16 +136,17 @@ public class VerificationManager {
                     TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
                     if (tc != null) {
                         tc.sendMessageEmbeds(commandMessage.makeInfo("[``:global-unbanned-id`` was auto-global-banned from all discords by :user for](:link):\n" +
-                                "```:reason```").set("global-unbanned-id", verificationEntity.getRobloxId()).set("reason", accounts.get(0).getString("reason")).set("user", "XEUS AUTO BAN").set("link", commandMessage.getMessage().getJumpUrl()).buildEmbed()).queue();
+                            "```:reason```").set("global-unbanned-id", verificationEntity.getRobloxId()).set("reason", accounts.get(0).getString("reason")).set("user", "XEUS AUTO BAN").set("link", commandMessage.getMessage().getJumpUrl()).buildEmbed()).queue();
                     }
 
                     if (commandMessage.getGuildTransformer() != null) {
                         GuildTransformer transformer = commandMessage.getGuildTransformer();
-                    if (transformer.getMemberToYoungChannelId() != null && commandMessage.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()) != null) {
-                        MessageFactory.makeEmbeddedMessage(commandMessage.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()), new Color(255, 0, 0))
+                        if (transformer.getMemberToYoungChannelId() != null && commandMessage.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()) != null) {
+                            MessageFactory.makeEmbeddedMessage(commandMessage.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()), new Color(255, 0, 0))
                                 .setThumbnail(commandMessage.getAuthor().getEffectiveAvatarUrl())
                                 .setDescription("A global-banned user just tried to verify within this guild, user has been banned from all guilds and has been sent a message in DM's.").requestedBy(member).queue();
-                    }}
+                        }
+                    }
 
                     if (commandMessage.getMember() != null) {
                         member.getUser().openPrivateChannel().queue(p -> {
@@ -149,7 +156,7 @@ public class VerificationManager {
                                         "For the reason: *```" + accounts.get(0).getString("reason") + "```\n\n" +
                                         "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
                                         "https://discord.gg/mWnQm25").setColor(Color.BLACK).buildEmbed()).queue();
-                                } catch (ErrorResponseException e) {
+                            } catch (ErrorResponseException e) {
                                 originalMessage.editMessageEmbeds(commandMessage.makeInfo(
                                     "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Moderator. " +
                                         "For the reason: ```" + accounts.get(0).getString("reason") + "```\n\n" +
@@ -162,7 +169,7 @@ public class VerificationManager {
 
                     avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", verificationEntity.getRobloxId())
                         .orWhere("roblox_username", verificationEntity.getRobloxUsername())
-                            .update(p -> p.set("userId", member.getUser().getId()));
+                        .update(p -> p.set("userId", member.getUser().getId()));
                     if (!commandMessage.getGuild().getId().equalsIgnoreCase("750471488095780966")) return;
                 }
             } catch (SQLException throwables) {
@@ -176,7 +183,7 @@ public class VerificationManager {
             if (commandMessage.getGuild().getId().equals("438134543837560832")) {
                 if (avaire.getBlacklistManager().getPBSTBlacklist().contains(verificationEntity.getRobloxId())) {
                     errorMessage(commandMessage, "You're blacklisted on PBST, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
-                            "https://discord.gg/mWnQm25", originalMessage);
+                        "https://discord.gg/mWnQm25", originalMessage);
                     return;
                 }
             } else if (commandMessage.getGuild().getId().equals("572104809973415943")) {
@@ -209,7 +216,7 @@ public class VerificationManager {
                 return;
             }
 
-            List<RobloxUserGroupRankService.Data> robloxRanks = manager.getUserAPI().getUserRanks(verificationEntity.getRobloxId());
+            List <RobloxUserGroupRankService.Data> robloxRanks = manager.getUserAPI().getUserRanks(verificationEntity.getRobloxId());
             if (robloxRanks == null || robloxRanks.size() == 0) {
                 errorMessage(commandMessage, verificationEntity.getRobloxUsername() + " does not have any ranks or groups on his name.", originalMessage);
                 return;
@@ -217,15 +224,15 @@ public class VerificationManager {
 
             GuildRobloxRanksService guildRanks = (GuildRobloxRanksService) manager.toService(verificationTransformer.getRanks(), GuildRobloxRanksService.class);
 
-            Map<GuildRobloxRanksService.GroupRankBinding, Role> bindingRoleMap =
-                    guildRanks.getGroupRankBindings().stream()
-                            .collect(Collectors.toMap(Function.identity(), groupRankBinding -> guild.getRoleById(groupRankBinding.getRole()))),
-                    bindingRoleAddMap = new HashMap<>();
+            Map <GuildRobloxRanksService.GroupRankBinding, Role> bindingRoleMap =
+                guildRanks.getGroupRankBindings().stream()
+                    .collect(Collectors.toMap(Function.identity(), groupRankBinding -> guild.getRoleById(groupRankBinding.getRole()))),
+                bindingRoleAddMap = new HashMap <>();
 
             //Loop through all the group-rank bindings
             bindingRoleMap.forEach((groupRankBinding, role) -> {
-                List<String> robloxGroups = robloxRanks.stream().map(data -> data.getGroup().getId() + ":" + data.getRole().getRank())
-                        .collect(Collectors.toList());
+                List <String> robloxGroups = robloxRanks.stream().map(data -> data.getGroup().getId() + ":" + data.getRole().getRank())
+                    .collect(Collectors.toList());
 
                 for (String groupRank : robloxGroups) {
                     String[] rank = groupRank.split(":");
@@ -233,8 +240,8 @@ public class VerificationManager {
                     String rankId = rank[1];
 
                     if (groupRankBinding.getGroups().stream()
-                            .filter(group -> !group.getId().equals("GamePass"))
-                            .anyMatch(group -> group.getId().equals(groupId) && group.getRanks().contains(Integer.valueOf(rankId)))) {
+                        .filter(group -> !group.getId().equals("GamePass"))
+                        .anyMatch(group -> group.getId().equals(groupId) && group.getRanks().contains(Integer.valueOf(rankId)))) {
                         bindingRoleAddMap.put(groupRankBinding, role);
                     }
 
@@ -242,15 +249,15 @@ public class VerificationManager {
             });
 
             bindingRoleMap.forEach((groupRankBinding, role) -> {
-                List<String> gamepassBinds = groupRankBinding.getGroups().stream().map(data -> data.getId() + ":" + data.getRanks().get(0))
-                        .collect(Collectors.toList());
+                List <String> gamepassBinds = groupRankBinding.getGroups().stream().map(data -> data.getId() + ":" + data.getRanks().get(0))
+                    .collect(Collectors.toList());
 
                 for (String groupRank : gamepassBinds) {
                     // Loop through all the gamepass-bindings
                     String[] rank = groupRank.split(":");
                     String rankId = rank[1];
                     gamepassBinds.stream().filter(group -> group.split(":")[0].equals("GamePass") && group.split(":")[1].equals(rankId)).forEach(gamepass -> {
-                        List<RobloxGamePassService.Datum> rgs = manager.getUserAPI().getUserGamePass(verificationEntity.getRobloxId(), Long.valueOf(rankId));
+                        List <RobloxGamePassService.Datum> rgs = manager.getUserAPI().getUserGamePass(verificationEntity.getRobloxId(), Long.valueOf(rankId));
                         if (rgs != null) {
                             bindingRoleAddMap.put(groupRankBinding, role);
                         }
@@ -260,9 +267,9 @@ public class VerificationManager {
             });
 
             //Collect the toAdd and toRemove roles from the previous maps
-            java.util.Collection<Role> rolesToAdd = bindingRoleAddMap.values().stream().filter(role -> RoleUtil.canBotInteractWithRole(commandMessage.getMessage(), role)).collect(Collectors.toList()),
-                    rolesToRemove = bindingRoleMap.values()
-                            .stream().filter(role -> !bindingRoleAddMap.containsValue(role) && RoleUtil.canBotInteractWithRole(commandMessage.getMessage(), role)).collect(Collectors.toList());
+            java.util.Collection <Role> rolesToAdd = bindingRoleAddMap.values().stream().filter(role -> RoleUtil.canBotInteractWithRole(commandMessage.getMessage(), role)).collect(Collectors.toList()),
+                rolesToRemove = bindingRoleMap.values()
+                    .stream().filter(role -> !bindingRoleAddMap.containsValue(role) && RoleUtil.canBotInteractWithRole(commandMessage.getMessage(), role)).collect(Collectors.toList());
 
             if (verificationTransformer.getVerifiedRole() != 0) {
                 Role r = commandMessage.getGuild().getRoleById(verificationTransformer.getVerifiedRole());
@@ -274,21 +281,20 @@ public class VerificationManager {
             StringBuilder stringBuilder = new StringBuilder();
             //Modify the roles of the member
             guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove)
-                    .queue(unused -> {
-                        stringBuilder.append("\n\n**Succesfully changed roles!**");
-                    }, throwable -> commandMessage.makeError(throwable.getMessage()));
+                .queue(unused -> {
+                    stringBuilder.append("\n\n**Succesfully changed roles!**");
+                }, throwable -> commandMessage.makeError(throwable.getMessage()));
 
             String rolesToAddAsString = "\nRoles to add:\n" + (rolesToAdd.size() > 0
-                    ? (rolesToAdd.stream().map(role -> "- `" + role.getName() + "`")
-                    .collect(Collectors.joining("\n"))) : "No roles have been added");
+                ? (rolesToAdd.stream().map(role -> "- `" + role.getName() + "`")
+                .collect(Collectors.joining("\n"))) : "No roles have been added");
             stringBuilder.append(rolesToAddAsString);
 
             String rolesToRemoveAsString = "\nRoles to remove:\n" + (bindingRoleMap.size() > 0
-                    ? (rolesToRemove.stream().map(role -> "- `" + role.getName() + "`")
-                    .collect(Collectors.joining("\n"))) : "No roles have been removed");
+                ? (rolesToRemove.stream().map(role -> "- `" + role.getName() + "`")
+                .collect(Collectors.joining("\n"))) : "No roles have been removed");
             //stringBuilder.append(rolesToRemoveAsString);
 
-            originalMessage.editMessageEmbeds(commandMessage.makeSuccess(stringBuilder.toString()).buildEmbed()).queue();
 
             if (!verificationEntity.getRobloxUsername().equals(member.getEffectiveName())) {
                 if (PermissionUtil.canInteract(guild.getSelfMember(), member)) {
@@ -299,6 +305,7 @@ public class VerificationManager {
                     stringBuilder.append("Changing nickname failed :(");
                 }
             }
+            originalMessage.editMessageEmbeds(commandMessage.makeSuccess(stringBuilder.toString()).buildEmbed()).queue();
         });
 
         return false;
@@ -396,8 +403,8 @@ public class VerificationManager {
     @Nullable
     public VerificationEntity callUserFromBloxlinkAPI(String discordUserId) {
         Request.Builder request = new Request.Builder()
-                .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
-                .url("https://api.blox.link/v1/user/" + discordUserId);
+            .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
+            .url("https://api.blox.link/v1/user/" + discordUserId);
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200 && response.body() != null) {
@@ -453,8 +460,8 @@ public class VerificationManager {
     @Nullable
     public VerificationEntity callUserFromRoverAPI(String discordUserId) {
         Request.Builder request = new Request.Builder()
-                .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
-                .url("https://verify.eryn.io/api/user/" + discordUserId);
+            .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
+            .url("https://verify.eryn.io/api/user/" + discordUserId);
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200 && response.body() != null) {
@@ -477,6 +484,23 @@ public class VerificationManager {
         return null;
     }
 
+    public VerificationEntity callDiscordUserFromDatabaseAPI(Long robloxId) {
+        try {
+            Collection linkedAccounts = AvaIre.getInstance().getDatabase().newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME).where("robloxId", robloxId).get();
+            if (linkedAccounts.size() == 0) {
+                return null;
+            } else {
+                return new VerificationEntity(linkedAccounts.first().getLong("robloxId"), AvaIre.getInstance().getRobloxAPIManager().getUserAPI().getUsername(linkedAccounts.first().getLong("robloxId")), linkedAccounts.first().getLong("id"), "pinewood");
+            }
+        } catch (SQLException throwables) {
+            return null;
+        }
+    }
+
+    public VerificationEntity callDiscordUserFromDatabaseAPI(String robloxId) {
+        return callDiscordUserFromDatabaseAPI(Long.valueOf(robloxId));
+    }
+
     private boolean errorMessage(CommandMessage em, String s, Message mess) {
         mess.editMessageEmbeds(em.makeError(s).setTitle("Error during verification!").requestedBy(em).setTimestamp(Instant.now()).buildEmbed()).queue();
         return false;
@@ -487,14 +511,14 @@ public class VerificationManager {
         StringBuilder sb = new StringBuilder();
         for (Guild g : guilde) {
             g.ban(arg, time, "Banned by: " + context.member.getEffectiveName() + "\n" +
-                    "For: " + reason + "\n*THIS IS A PIA GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE PIA MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT PIA APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason).queue();
+                "For: " + reason + "\n*THIS IS A PIA GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE PIA MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT PIA APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason).queue();
 
             sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
         }
         return sb;
     }
 
-    public HashMap<Long, String> getInVerification() {
+    public HashMap <Long, String> getInVerification() {
         return inVerification;
     }
 }

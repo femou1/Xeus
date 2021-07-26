@@ -2,7 +2,7 @@ package com.avairebot.commands.roblox.verification;
 
 import com.avairebot.AvaIre;
 import com.avairebot.commands.CommandMessage;
-import com.avairebot.contracts.commands.VerificationCommand;
+import com.avairebot.contracts.commands.VerificationCommandContract;
 import com.avairebot.contracts.verification.VerificationEntity;
 import com.avairebot.contracts.verification.VerificationProviders;
 import net.dv8tion.jda.api.entities.Emoji;
@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class VerifyCommand extends VerificationCommand {
+public class VerifyCommand extends VerificationCommandContract {
 
     public VerifyCommand(AvaIre avaire) {
         super(avaire);

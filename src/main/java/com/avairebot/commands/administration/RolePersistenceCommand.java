@@ -10,22 +10,37 @@ import com.avairebot.database.collection.Collection;
 import com.avairebot.database.query.QueryBuilder;
 import com.avairebot.utilities.MentionableUtil;
 import com.avairebot.utilities.NumberUtil;
+import com.avairebot.utilities.menu.Paginator;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class RolePersistenceCommand extends Command {
+    private final Paginator.Builder builder;
 
     public RolePersistenceCommand(AvaIre avaire) {
         super(avaire, false);
+        builder = new Paginator.Builder()
+            .setColumns(1)
+            .setFinalAction(m -> {try {m.clearReactions().queue();} catch (PermissionException ignore) {}})
+            .setItemsPerPage(10)
+            .waitOnSinglePage(false)
+            .useNumberedItems(true)
+            .showPageNumbers(true)
+            .wrapPageEnds(true)
+            .setEventWaiter(avaire.getWaiter())
+            .setTimeout(1, TimeUnit.MINUTES);
     }
 
     @Override
@@ -39,7 +54,7 @@ public class RolePersistenceCommand extends Command {
     }
 
     @Override
-    public List<String> getUsageInstructions() {
+    public List <String> getUsageInstructions() {
         return Arrays.asList(
             "`:command <role> <user(ID)> ` - Toggle someone on a persistent role.",
             "`:command l/list` - Shows all roles persistent on the guild you executed the command in.",
@@ -49,7 +64,7 @@ public class RolePersistenceCommand extends Command {
     }
 
     @Override
-    public List<String> getExampleUsage(@Nullable Message message) {
+    public List <String> getExampleUsage(@Nullable Message message) {
         return Arrays.asList(
             "`:command l/list` - Shows all persistent roles in the guild you ran the command in.",
             "`:command 438142943648415745 251818929226383361` - Force the `PIA` role on `CombatSwift`.",
@@ -57,12 +72,12 @@ public class RolePersistenceCommand extends Command {
     }
 
     @Override
-    public List<String> getTriggers() {
+    public List <String> getTriggers() {
         return Arrays.asList("rolepersist", "role-persist", "rp");
     }
 
     @Override
-    public List<String> getMiddleware() {
+    public List <String> getMiddleware() {
         return Arrays.asList(
             "isOfficialPinewoodGuild",
             "isManagerOrHigher"
@@ -71,7 +86,7 @@ public class RolePersistenceCommand extends Command {
 
     @Nonnull
     @Override
-    public List<CommandGroup> getGroups() {
+    public List <CommandGroup> getGroups() {
         return Collections.singletonList(
             CommandGroups.ROLE_ASSIGNMENTS
         );
@@ -187,10 +202,11 @@ public class RolePersistenceCommand extends Command {
 
         Collection c = avaire.getDatabase().newQueryBuilder(Constants.ROLE_PERSISTENCE_TABLE_NAME)
             .where("guild_id", context.guild.getId()).get();
-        StringBuilder sb = new StringBuilder();
+        List<String> finalMessage = new ArrayList <>();
 
         if (!c.isEmpty()) {
             c.forEach(p -> {
+                StringBuilder sb = new StringBuilder();
                 Role r = context.guild.getRoleById(p.getLong("role_id"));
                 Member m = context.guild.getMemberById(p.getLong("user_id"));
 
@@ -206,9 +222,15 @@ public class RolePersistenceCommand extends Command {
                 } else {
                     sb.append("*MEMBER NOT FOUND IN GUILD*\n");
                 }
+                finalMessage.add(sb.toString());
             });
+            builder.setText("Current questions in the list: ")
+                .setItems(finalMessage)
+                .setLeftRightText("Click this to go left", "Click this to go right")
+                .setUsers(context.getAuthor())
+                .setColor(context.getGuild().getSelfMember().getColor());
 
-            context.makeSuccess(sb.toString()).queue();
+            builder.build().paginate(context.getChannel(), 0);
         } else {
             context.makeWarning("No persistence's found").queue();
         }

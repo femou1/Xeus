@@ -1,18 +1,14 @@
 package com.avairebot.servlet.routes.v1.get;
 
 import com.avairebot.AvaIre;
-import com.avairebot.Constants;
 import com.avairebot.contracts.metrics.SparkRoute;
 import com.avairebot.contracts.verification.VerificationEntity;
-import com.avairebot.database.collection.Collection;
 import net.dv8tion.jda.api.entities.User;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Request;
 import spark.Response;
-
-import java.sql.SQLException;
 
 public class GetDiscordIdsByRobloxId extends SparkRoute {
     private static final Logger log = LoggerFactory.getLogger(GetDiscordIdsByRobloxId.class);
@@ -27,7 +23,7 @@ public class GetDiscordIdsByRobloxId extends SparkRoute {
         String id = request.params("robloxId");
 
         JSONObject root = new JSONObject();
-        VerificationEntity verificationEntity = callUserFromDatabaseAPI(id);
+        VerificationEntity verificationEntity = AvaIre.getInstance().getRobloxAPIManager().getVerification().callDiscordUserFromDatabaseAPI(id);
 
         if (verificationEntity != null) {
             root.put("username", verificationEntity.getRobloxUsername());
@@ -35,10 +31,11 @@ public class GetDiscordIdsByRobloxId extends SparkRoute {
             root.put("provider", verificationEntity.getProvider());
             root.put("discordId", verificationEntity.getDiscordId());
             root.put("discordUsername", returnUsernameFromDiscord(verificationEntity.getDiscordId()));
-            response.status(200);
+            log.info("[Verification (Roblox -> Discord)] {} ({}) -> {} ({})", verificationEntity.getRobloxId(), verificationEntity.getRobloxUsername(), verificationEntity.getDiscordId(), returnUsernameFromDiscord(verificationEntity.getDiscordId()));
         } else {
             root.put("error", true);
             root.put("message", "The ID " + id + " doesn't have a user in any verification database.");
+            log.info("[Verification (Roblox -> Discord)] {} -> None", id);
             response.status(404);
         }
 
@@ -54,16 +51,4 @@ public class GetDiscordIdsByRobloxId extends SparkRoute {
     }
 
 
-    public VerificationEntity callUserFromDatabaseAPI(String robloxId) {
-        try {
-            Collection linkedAccounts = AvaIre.getInstance().getDatabase().newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME).where("robloxId", robloxId).get();
-            if (linkedAccounts.size() == 0) {
-                return null;
-            } else {
-                return new VerificationEntity(linkedAccounts.first().getLong("robloxId"), AvaIre.getInstance().getRobloxAPIManager().getUserAPI().getUsername(linkedAccounts.first().getLong("robloxId")), linkedAccounts.first().getLong("id"), "pinewood");
-            }
-        } catch (SQLException throwables) {
-            return null;
-        }
-    }
 }

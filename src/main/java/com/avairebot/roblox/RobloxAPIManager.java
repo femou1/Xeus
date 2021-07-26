@@ -4,6 +4,7 @@ import com.avairebot.AvaIre;
 import com.avairebot.roblox.api.group.GroupAPIRoutes;
 import com.avairebot.roblox.api.user.RobloxUserAPIRoutes;
 import com.avairebot.roblox.evaluations.EvaluationManager;
+import com.avairebot.roblox.kronos.KronosManager;
 import com.avairebot.roblox.verification.VerificationManager;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
@@ -17,12 +18,14 @@ public class RobloxAPIManager {
     private final VerificationManager verification;
     private final GroupAPIRoutes groupAPI;
     private final EvaluationManager evaluationManager;
+    private final KronosManager kronosManager;
 
     public RobloxAPIManager(AvaIre avaire) {
         this.userAPI = new RobloxUserAPIRoutes(avaire, this);
         this.verification = new VerificationManager(avaire, this);
         this.groupAPI = new GroupAPIRoutes(avaire, this);
         this.evaluationManager = new EvaluationManager(avaire, this);
+        this.kronosManager = new KronosManager(avaire, this);
     }
 
     public RobloxUserAPIRoutes getUserAPI() {
@@ -38,6 +41,10 @@ public class RobloxAPIManager {
     }
 
     public EvaluationManager getEvaluationManager() {return evaluationManager;}
+
+    public KronosManager getKronosManager() {
+        return kronosManager;
+    }
 
     public OkHttpClient getClient() {
         return client;
