@@ -17,6 +17,7 @@ import com.avairebot.utilities.RoleUtil;
 import com.avairebot.utilities.menu.Paginator;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.internal.utils.PermissionUtil;
@@ -34,17 +35,16 @@ public class VerificationCommand extends VerificationCommandContract {
 
 
     public VerificationCommand(AvaIre avaire) {
-        super(avaire);
+        super(avaire, false);
         builder = new Paginator.Builder()
             .setColumns(1)
             .setFinalAction(m -> {try {m.clearReactions().queue();} catch (PermissionException ignore) {}})
             .setItemsPerPage(1)
             .waitOnSinglePage(false)
-            .useNumberedItems(true)
             .showPageNumbers(true)
             .wrapPageEnds(true)
             .setEventWaiter(avaire.getWaiter())
-            .setTimeout(1,TimeUnit.MINUTES);
+            .setTimeout(1, TimeUnit.MINUTES);
     }
 
     @Override
@@ -130,12 +130,75 @@ public class VerificationCommand extends VerificationCommandContract {
                     return massUnbindUsers(context, manager);
                 case "get-user-id":
                     return getUserIds(context, manager);
+                case "kick-unranked":
+                    return kickUnranked(context, manager);
                 default:
                     context.makeError("Invalid argument given.").queue();
                     return false;
             }
         }
         return false;
+    }
+
+    private boolean kickUnranked(CommandMessage context, RobloxAPIManager manager) {
+        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.ADMIN.getLevel()) {
+            context.makeError("You're required to be an server admin or above to run this command").queue();
+            return false;
+        }
+
+        if (context.getGuildTransformer().getMainDiscordRole() == null) {
+            context.makeError("Main discord role has not been set, please add the main discord role (;rmanage set-main-role").queue();
+            return false;
+        }
+
+        List <Member> members = new ArrayList <>();
+        int count = 0;
+        for (Member m : context.guild.getMembers()) {
+            if (!PermissionUtil.canInteract(context.getGuild().getSelfMember(), m)) {
+                continue;
+            }
+
+            if (m.getRoles().stream().anyMatch(r -> r.getId().equalsIgnoreCase(context.getGuildTransformer().getMainDiscordRole()))) {
+                continue;
+            }
+            count++;
+            members.add(m);
+            //   System.out.println(m.getEffectiveName() + " ("+m.getUser().getName() + "#" + m.getUser().getDiscriminator() +")");
+        }
+        int finalCount = count;
+        context.makeWarning("Would you like to prune `:count` member who don't have the main discord role.").set("count", count).queue(countMessage -> {
+            countMessage.addReaction("\uD83D\uDC4D").queue();
+            countMessage.addReaction("\uD83D\uDC4E").queue();
+            avaire.getWaiter().waitForEvent(GuildMessageReactionAddEvent.class, check -> check.getMember().equals(context.member) && check.getMessageId().equals(countMessage.getId()), action -> {
+
+                    switch (action.getReactionEmote().getName()) {
+                        case "\uD83D\uDC4D":
+                            for (Member m : members) {
+                                m.getUser().openPrivateChannel().queue(k -> k.sendMessage("You have been kicked from `" + context.getGuild().getName() + "` due to not being verified in the group. If you want to join back, rejoin with one of these invites. \n" +
+                                    "\n" +
+                                    "PBSTAC: https://discord.gg/DDUzTwM\n" +
+                                    "PBAC: https://discord.gg/ZAMJwD7Zuc\n" +
+                                    "PB: https://discord.gg/RHWxvhc\n" +
+                                    "PET: https://discord.gg/t4KBPkM\n" +
+                                    "PBQA: https://discord.gg/6xwcuRh\n" +
+                                    "PBA: https://discord.gg/MVAcxTS\n" +
+                                    "PBM: https://discord.gg/yTVFKne\n" +
+                                    "MM: https://discord.gg/EjBYFCd\n" +
+                                    "PBOP: https://discord.gg/4wytX7z\n" +
+                                    "KDD: https://discord.gg/v4BsK3Kbv8\n" +
+                                    "TMS: https://discord.gg/3axZ5tb\n\n***NOTICE FOR DISCORD STAFF***: ```This is not an advert, this user has been kicked and notified for the kick. We apologise for the inconvenience.```").queue());
+                                action.getGuild().kick(m, "Unverified kick - Not in the group.").queue();
+                            }
+                            context.makeSuccess("`:count` members have been kicked!").set("count", finalCount).queue();
+                            break;
+                        case "\uD83D\uDC4E":
+                            context.makeInfo("Stopped kick, no-one has been kicked.").queue();
+                    }
+                }
+            );
+        });
+
+        return true;
     }
 
     private boolean getUserIds(CommandMessage context, RobloxAPIManager manager) {
@@ -165,7 +228,7 @@ public class VerificationCommand extends VerificationCommandContract {
         Map <GuildRobloxRanksService.GroupRankBinding, Role> bindingRoleMap =
             guildRanks.getGroupRankBindings().stream()
                 .collect(Collectors.toMap(Function.identity(), groupRankBinding -> context.getGuild().getRoleById(groupRankBinding.getRole())));
-        List<Role> rolesToRemove = bindingRoleMap.values()
+        List <Role> rolesToRemove = bindingRoleMap.values()
             .stream().filter(role -> RoleUtil.canBotInteractWithRole(context.getMessage(), role)).collect(Collectors.toList());
 
         for (Member m : context.getGuild().getMembers()) {
@@ -200,7 +263,7 @@ public class VerificationCommand extends VerificationCommandContract {
         }
         context.makeError("Unable to update channel id.").queue();
 
-return false;
+        return false;
     }
 
     private boolean listBoundRoles(CommandMessage context, RobloxAPIManager manager) {
@@ -421,7 +484,7 @@ return false;
         groupRankBindings.add(new GuildRobloxRanksService.GroupRankBinding(args[1], groups));
 
         if (binds != null) groupRankBindings.addAll(binds.getGroupRankBindings());
-        List<String> finalMessage = new LinkedList<>();
+        List <String> finalMessage = new LinkedList <>();
         groupRankBindings.forEach(p -> {
             StringBuilder sb = new StringBuilder();
             Role r = context.getGuild().getRoleById(p.getRole());

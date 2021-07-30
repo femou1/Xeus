@@ -33,7 +33,6 @@ import com.avairebot.database.collection.DataRow;
 import com.avairebot.language.I18n;
 import com.avairebot.modlog.ModlogType;
 import com.avairebot.time.Carbon;
-import com.avairebot.utilities.MentionableUtil;
 import com.avairebot.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.User;
 
@@ -61,21 +60,21 @@ public class ModlogHistoryCommand extends Command {
     }
 
     @Override
-    public List<String> getUsageInstructions() {
+    public List <String> getUsageInstructions() {
         return Collections.singletonList(
             "`:command <user>` - Displays the modlog history for the mentioned user."
         );
     }
 
     @Override
-    public List<String> getExampleUsage() {
+    public List <String> getExampleUsage() {
         return Collections.singletonList(
             "`:command @Senither` - Displays all the bad things Senither has done."
         );
     }
 
     @Override
-    public List<Class<? extends Command>> getRelations() {
+    public List <Class <? extends Command>> getRelations() {
         return Arrays.asList(
             ModlogCommand.class,
             ModlogReasonCommand.class
@@ -83,12 +82,12 @@ public class ModlogHistoryCommand extends Command {
     }
 
     @Override
-    public List<String> getTriggers() {
+    public List <String> getTriggers() {
         return Arrays.asList("modloghistory", "history", "warnings", "warns");
     }
 
     @Override
-    public List<String> getMiddleware() {
+    public List <String> getMiddleware() {
         return Arrays.asList(
             "isModOrHigher",
             "throttle:channel,1,5"
@@ -97,14 +96,30 @@ public class ModlogHistoryCommand extends Command {
 
     @Nonnull
     @Override
-    public List<CommandGroup> getGroups() {
+    public List <CommandGroup> getGroups() {
         return Collections.singletonList(CommandGroups.MODERATION);
     }
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        User user = MentionableUtil.getUser(context, args);
-        if (user == null) {
+        String user = null;
+        if (args.length == 0) {
+            return sendErrorMessage(context, context.i18n("mustMentionUser"));
+        }
+
+        if (NumberUtil.isNumeric(args[0])) {
+            User u = avaire.getShardManager().getUserById(args[0]);
+            if (u != null) {
+                user = u.getId();
+            }
+        } else {
+            if (context.getMessage().getMentionedUsers().size() == 1) {
+                user = context.getMessage().getMentionedUsers().get(0).getId();
+            } else {user = args[0];}
+
+        }
+
+        if (!NumberUtil.isNumeric(args[0])) {
             return sendErrorMessage(context, context.i18n("mustMentionUser"));
         }
 
@@ -114,28 +129,31 @@ public class ModlogHistoryCommand extends Command {
             if (context.getMessage().getContentRaw().endsWith("--show-pardoned") || context.getMessage().getContentRaw().endsWith("-sP")) {
                 items = avaire.getDatabase().newQueryBuilder(Constants.LOG_TABLE_NAME)
                     .where("guild_id", context.getGuild().getId())
-                    .where("target_id", user.getId())
+                    .where("target_id", user)
                     .where("pardon", 1)
                     .get();
             } else {
                 items = avaire.getDatabase().newQueryBuilder(Constants.LOG_TABLE_NAME)
                     .where("guild_id", context.getGuild().getId())
-                    .where("target_id", user.getId())
+                    .where("target_id", user)
                     .where("pardon", 0)
                     .get();
             }
 
             if (items.isEmpty()) {
-                context.makeWarning(context.i18n("noHistory"))
-                    .setTitle(context.i18n("title",
-                        user.getName(), user.getDiscriminator(), 0
-                    ))
-                    .queue();
+                User u = avaire.getShardManager().getUserById(user);
+                if (u != null) {
+                    context.makeWarning(context.i18n("noHistory"))
+                        .setTitle(context.i18n("title",
+                            u.getName(), u.getDiscriminator(), 0
+                        ))
+                        .queue();
 
-                return true;
+                    return true;
+                }
             }
 
-            List<String> records = new ArrayList<>();
+            List <String> records = new ArrayList <>();
             items.forEach(row -> {
                 ModlogType type = ModlogType.fromId(row.getInt("type", 0));
                 String reason = row.getString("reason", context.i18n("noReasonGiven"));
@@ -160,8 +178,8 @@ public class ModlogHistoryCommand extends Command {
                 ));
             });
 
-            List<String> messages = new ArrayList<>();
-            SimplePaginator<String> paginator = new SimplePaginator<>(records, 5);
+            List <String> messages = new ArrayList <>();
+            SimplePaginator <String> paginator = new SimplePaginator <>(records, 5);
             if (args.length > 1) {
                 paginator.setCurrentPage(NumberUtil.parseInt(args[1], 1));
             }
@@ -169,14 +187,23 @@ public class ModlogHistoryCommand extends Command {
             paginator.forEach((_index, _key, val) -> messages.add(val));
             messages.add("\n" + paginator.generateFooter(context.getGuild(), generateCommandTrigger(context.getMessage())));
 
-            context.makeInfo(String.join("\n", messages))
-                .setTitle(context.i18n("title",
-                    user.getName(), user.getDiscriminator(), paginator.getTotal()
-                ))
-                .queue();
+            User u = avaire.getShardManager().getUserById(user);
+            if (u != null) {
+                context.makeInfo(String.join("\n", messages))
+                    .setTitle(context.i18n("title",
+                        u.getName(), u.getDiscriminator(), paginator.getTotal()
+                    ))
+                    .queue();
+            } else {
+                context.makeInfo(String.join("\n", messages))
+                    .setTitle(context.i18n("title",
+                        user, "DNF", paginator.getTotal()
+                    ))
+                    .queue();
+            }
         } catch (SQLException e) {
             AvaIre.getLogger().error("Failed to load log records for user {} in guild {}",
-                user.getId(), context.getGuild().getId(), e
+                user, context.getGuild().getId(), e
             );
 
             return sendErrorMessage(context, "errors.errorOccurredWhileLoading", "modlog records");

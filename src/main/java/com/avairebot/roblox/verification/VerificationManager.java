@@ -23,7 +23,6 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.internal.utils.PermissionUtil;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import javax.annotation.CheckReturnValue;
@@ -165,7 +164,7 @@ public class VerificationManager {
                             }
                         });
                     }
-                    GlobalBanMember(commandMessage, String.valueOf(verificationEntity.getDiscordId()), 0, "User has been global-banned by PIA. This is automatic ban. | " + accounts.get(0).getString("reason"));
+                    GlobalBanMember(commandMessage, String.valueOf(verificationEntity.getDiscordId()), "User has been global-banned by PIA. This is automatic ban. | " + accounts.get(0).getString("reason"));
 
                     avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", verificationEntity.getRobloxId())
                         .orWhere("roblox_username", verificationEntity.getRobloxUsername())
@@ -299,13 +298,16 @@ public class VerificationManager {
             if (!verificationEntity.getRobloxUsername().equals(member.getEffectiveName())) {
                 if (PermissionUtil.canInteract(guild.getSelfMember(), member)) {
                     commandMessage.getGuild().modifyNickname(member, verificationTransformer.getNicknameFormat().replace("%USERNAME%", verificationEntity.getRobloxUsername())).queue();
-                    stringBuilder.append("Nickname has been set to `").append(verificationEntity.getRobloxUsername()).append("`");
+                    stringBuilder.append("\n\nNickname has been set to `").append(verificationEntity.getRobloxUsername()).append("`");
                 } else {
                     commandMessage.makeError("I do not have the permission to modify your nickname, or your highest rank is above mine.").queue();
-                    stringBuilder.append("Changing nickname failed :(");
+                    stringBuilder.append("\n\nChanging nickname failed :(");
                 }
             }
-            originalMessage.editMessageEmbeds(commandMessage.makeSuccess(stringBuilder.toString()).buildEmbed()).queue();
+            originalMessage.editMessageEmbeds(commandMessage.makeSuccess(stringBuilder.toString()).buildEmbed()).queue(deleteAfter5 -> {
+                deleteAfter5.delete().queueAfter(5, TimeUnit.MINUTES);
+                originalMessage.delete().queueAfter(5, TimeUnit.MINUTES);
+            });
         });
 
         return false;
@@ -502,20 +504,18 @@ public class VerificationManager {
     }
 
     private boolean errorMessage(CommandMessage em, String s, Message mess) {
-        mess.editMessageEmbeds(em.makeError(s).setTitle("Error during verification!").requestedBy(em).setTimestamp(Instant.now()).buildEmbed()).queue();
+        mess.editMessageEmbeds(em.makeError(s).setTitle("Error during verification!").requestedBy(em).setTimestamp(Instant.now()).buildEmbed()).queue();;
         return false;
     }
 
-    @NotNull
-    private StringBuilder GlobalBanMember(CommandMessage context, String arg, int time, String reason) {
+    private void GlobalBanMember(CommandMessage context, String arg, String reason) {
         StringBuilder sb = new StringBuilder();
         for (Guild g : guilde) {
-            g.ban(arg, time, "Banned by: " + context.member.getEffectiveName() + "\n" +
+            g.ban(arg, 0, "Banned by: " + context.member.getEffectiveName() + "\n" +
                 "For: " + reason + "\n*THIS IS A PIA GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE PIA MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT PIA APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason).queue();
 
             sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
         }
-        return sb;
     }
 
     public HashMap <Long, String> getInVerification() {

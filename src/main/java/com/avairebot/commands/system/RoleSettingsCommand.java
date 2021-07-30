@@ -37,15 +37,14 @@ import com.avairebot.utilities.NumberUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.internal.utils.PermissionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class RoleSettingsCommand extends SystemCommand {
 
@@ -128,11 +127,61 @@ public class RoleSettingsCommand extends SystemCommand {
             case "smr":
             case "set-main-role":
                 return runSetMainRole(context, args);
+            case "kick-non-mods":
+                return kickNonMods(context);
             default:
                 return handleRoleSetupArguments(context, args);
         }
 
 
+    }
+
+    private boolean kickNonMods(CommandMessage context) {
+        int level = CheckPermissionUtil.getPermissionLevel(context).getLevel();
+        if (level < CheckPermissionUtil.GuildPermissionCheckType.PIA.getLevel()) {
+            context.makeError("You got to be PIA or above to run this command.").queue();
+            return false;
+        }
+        List <Member> members = new ArrayList <>();
+        int count = 0;
+        for (Member m : context.guild.getMembers()) {
+            if (!PermissionUtil.canInteract(context.getGuild().getSelfMember(), m)) {
+                continue;
+            }
+
+            int kickedLevel = CheckPermissionUtil.getPermissionLevel(context.getGuildTransformer(), context.guild, m).getLevel();
+            if (kickedLevel >= CheckPermissionUtil.GuildPermissionCheckType.ADMIN.getLevel()) {
+                continue;
+            }
+
+            count++;
+            members.add(m);
+        }
+
+
+        int finalCount = count;
+        context.makeWarning("Would you like to prune `:count` members for archiving the server?").set("count", count).queue(countMessage -> {
+            countMessage.addReaction("\uD83D\uDC4D").queue();
+            countMessage.addReaction("\uD83D\uDC4E").queue();
+            avaire.getWaiter().waitForEvent(GuildMessageReactionAddEvent.class, check -> check.getMember().equals(context.member) && check.getMessageId().equals(countMessage.getId()), action -> {
+
+                    switch (action.getReactionEmote().getName()) {
+                        case "\uD83D\uDC4D":
+                            for (Member m : members) {
+                                m.getUser().openPrivateChannel().queue(k -> k.sendMessage("You have been kicked from `" + context.getGuild().getName() + "` due to it being archived.\n" +
+                                    "\n" +
+                                    "\n***NOTICE FOR DISCORD STAFF***: ```This is not an advert, this user has been kicked and notified for the kick. We apologise for the inconvenience.```").queue());
+                                action.getGuild().kick(m, "Unverified kick - Not in the group.").queue();
+                            }
+                            context.makeSuccess("`:count` members have been kicked and the server has been archived!").set("count", finalCount).queue();
+                            break;
+                        case "\uD83D\uDC4E":
+                            context.makeInfo("Stopped archive, nothing has happened.").queue();
+                    }
+                }
+            );
+        });
+        return true;
     }
 
     private boolean updateMinimalLeadRank(GuildTransformer transformer, CommandMessage context) {

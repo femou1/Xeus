@@ -157,7 +157,7 @@ public class GlobalBanCommand extends Command {
             }
         }
 
-        int time = !soft.getValue() ? 0 : 7;
+        int time = soft.getValue() ? 7 : 0;
         String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
         boolean pbacBan = false;
         if (reason.endsWith("--pbac-ban")) {
@@ -185,6 +185,7 @@ public class GlobalBanCommand extends Command {
                     "```:reason```").set("global-unbanned-id", args[0]).set("reason", reason).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
         }
 
+
         StringBuilder sb = GlobalBanMember(context, args[0], time, reason);
         context.makeSuccess("<@" + args[0] + "> has been banned from: \n\n" + sb).queue();
 
@@ -203,7 +204,8 @@ public class GlobalBanCommand extends Command {
         StringBuilder sb = new StringBuilder();
         for (Guild g : guild) {
             g.ban(arg, time, "Banned by: " + context.member.getEffectiveName() + "\n" +
-                    "For: " + reason + "\n*THIS IS A PIA GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE PIA MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT PIA APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason).queue();
+                "For: " + reason + "\n*THIS IS A PIA GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE PIA MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT PIA APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason)
+                .queue( );
 
             sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
         }

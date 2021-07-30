@@ -131,7 +131,7 @@ public class FeedbackCommand extends Command {
                         }
                     }
                 });
-                l.editMessage(context.makeInfo("Welcome to the pinewood suggestion system, please submit a suggestion for any of the selected guilds.\nIf you want to suggest a feature for Xeus, [then please go to the Xeus issue's page, and create a suggestion](https://gitlab.com/pinewood-builders/discord/xeus/-/issues).\n\n" + sb.toString()).buildEmbed()).queue();
+                l.editMessageEmbeds(context.makeInfo("Welcome to the pinewood suggestion system, please submit a suggestion for any of the selected guilds.\nIf you want to suggest a feature for Xeus, [then please go to the Xeus issue's page, and create a suggestion](https://gitlab.com/pinewood-builders/discord/xeus/-/issues).\n\n" + sb.toString()).buildEmbed()).queue();
 
                 startEmojiWaiter(context, l, avaire.getWaiter(), qb);
             } catch (SQLException throwables) {

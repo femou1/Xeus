@@ -114,25 +114,25 @@ public abstract class VerificationCommandContract extends Command {
                                                 verification.remove(robloxId);
                                                 addAccountToDatabase(context, robloxId, originalMessage);
                                             } else {
-                                                originalMessage.editMessageEmbeds(context.makeWarning("Verification has not been confirmed, verification cancelled.").buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                                originalMessage.editMessageEmbeds(context.makeWarning("Verification has not been confirmed, verification cancelled.").buildEmbed()).setActionRows(Collections.emptyList()).queue();;
                                                 verification.remove(robloxId);
                                             }
                                             break;
                                         } else {
-                                            originalMessage.editMessageEmbeds(context.makeWarning("Verification code has disappeared. Try again later").buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                            originalMessage.editMessageEmbeds(context.makeWarning("Verification code has disappeared. Try again later").buildEmbed()).setActionRows(Collections.emptyList()).queue();;
                                         }
                                         break;
                                     case "❌":
                                         verification.remove(robloxId);
-                                        originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (User action)...").buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                        originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (User action)...").buildEmbed()).setActionRows(Collections.emptyList()).queue();;
                                         break;
                                     default:
                                         verification.remove(robloxId);
-                                        originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (Invalid Emoji)...").buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                        originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (Invalid Emoji)...").buildEmbed()).setActionRows(Collections.emptyList()).queue();;
                                 }
                             }, 5, TimeUnit.MINUTES, () -> {
                                 verification.remove(robloxId);
-                                originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue();
+                                originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue();;
                             });
                 });
 
@@ -158,10 +158,10 @@ public abstract class VerificationCommandContract extends Command {
                                     if (status.contains(token)) {
                                         addAccountToDatabase(context, robloxId, originalMessage);
                                     } else {
-                                        originalMessage.editMessageEmbeds(context.makeWarning("Your status does not contain the token, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                        originalMessage.editMessageEmbeds(context.makeWarning("Your status does not contain the token, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();;
                                     }
                                 } else {
-                                    originalMessage.editMessageEmbeds(context.makeWarning("Status is empty, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                    originalMessage.editMessageEmbeds(context.makeWarning("Status is empty, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();;
                                 }
                                 return;
                             }

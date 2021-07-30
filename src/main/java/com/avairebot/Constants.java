@@ -126,7 +126,7 @@ public class Constants {
         add("142083279309373440"); // Wickey
         add("723151849640820759"); // Csdi
         add("315231688290730005"); // LENEMAR
-        add("257193596074065921"); // Omni
+        //add("257193596074065921"); // Omni - Not PIA Anymore.
         add("137235914924490761"); // ood
         add("235086178309636096"); // RogueVader
         add("252228224904331268"); // Supremo
