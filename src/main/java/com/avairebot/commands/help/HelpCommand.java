@@ -285,13 +285,13 @@ public class HelpCommand extends Command {
 
         long before = categories.size();
         List<Category> filteredCategories = categories.stream()
-            .filter(channel::isCategoryEnabled)
+            .filter(category -> !channel.isCategoryDisabled(category))
             .collect(Collectors.toList());
 
         long disabled = before - filteredCategories.size();
 
         return formatCategoriesStream(
-            filteredCategories.stream().filter(channel::isCategoryEnabled),
+            filteredCategories.stream().filter(category -> !channel.isCategoryDisabled(category)),
             adminUser,
             disabled != 0 ? I18n.format(
                 "\n\n" + (disabled == 1 ?

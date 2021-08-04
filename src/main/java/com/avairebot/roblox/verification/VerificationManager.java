@@ -304,10 +304,7 @@ public class VerificationManager {
                     stringBuilder.append("\n\nChanging nickname failed :(");
                 }
             }
-            originalMessage.editMessageEmbeds(commandMessage.makeSuccess(stringBuilder.toString()).buildEmbed()).queue(deleteAfter5 -> {
-                deleteAfter5.delete().queueAfter(5, TimeUnit.MINUTES);
-                originalMessage.delete().queueAfter(5, TimeUnit.MINUTES);
-            });
+            originalMessage.editMessageEmbeds(commandMessage.makeSuccess(stringBuilder.toString()).buildEmbed()).queue();
         });
 
         return false;

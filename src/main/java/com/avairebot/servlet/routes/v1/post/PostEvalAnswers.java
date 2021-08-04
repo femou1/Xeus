@@ -7,7 +7,10 @@ import com.avairebot.database.controllers.GuildController;
 import com.avairebot.database.transformers.GuildTransformer;
 import com.avairebot.roblox.RobloxAPIManager;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Emoji;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -74,7 +77,7 @@ public class PostEvalAnswers extends SparkRoute {
         }
 
 
-        List<PassedEvals> evals = manager.getEvaluationManager().getPassedEvals(userId);
+        List <PassedEvals> evals = manager.getEvaluationManager().getPassedEvals(userId);
         if (evals == null) {
             response.status(500);
             root.put("error", "XEUS_NO_EVAL_LIST");
@@ -111,10 +114,10 @@ public class PostEvalAnswers extends SparkRoute {
         }
 
         JSONArray questionsWithAnswers = post.getJSONArray("questions");
-        if (questionsWithAnswers.length() != 8) {
+        if (questionsWithAnswers.length() > 10) {
             response.status(400);
             root.put("error", "XEUS_LESS_OR_MORE_THEN_EIGHT_RESPONSES");
-            root.put("message", "I need 8 questions, sorry. This endpoint won't expect less or more. :(");
+            root.put("message", "I need less then 10 questions, sorry. This endpoint won't expect more. :(");
             return root;
         }
 
@@ -128,7 +131,6 @@ public class PostEvalAnswers extends SparkRoute {
                 return root;
             }
 
-
             if (transformer.getEvalAnswerChannel() == 0 || guild.getTextChannelById(transformer.getEvalAnswerChannel()) == null) {
                 response.status(500);
                 root.put("error", "XEUS_MISSING_GUILD_EVAL_CHANNEL");
@@ -138,32 +140,20 @@ public class PostEvalAnswers extends SparkRoute {
 
             String question = jsonObj.getString("question");
             String answer = jsonObj.getString("answer").length() > 0 ? jsonObj.getString("answer") : "Question was not answered.";
-            messageList.add(buildQuestionAndAnswerEmbed(question, answer, messageList, username));
+            messageList.add(buildQuestionAndAnswerEmbed(question, answer, messageList, username, post.has("points") ? post.getLong("points") : null));
         }
-
 
 
         TextChannel tc = guild.getTextChannelById(transformer.getEvalAnswerChannel());
+        tc.sendMessageEmbeds(messageList).setActionRow(Button.success("approve", Emoji.fromUnicode("\uD83D\uDC4D")), Button.danger("reject", Emoji.fromUnicode("⛔"))).queue(
+            message -> manager.getEvaluationManager().addQuizToDatabase(userId, guild.getIdLong(), message.getIdLong()));
 
-
-
-        Message m = tc.sendMessageEmbeds(messageList).setActionRow(Button.success("approve", Emoji.fromUnicode("\uD83D\uDC4D")), Button.danger("reject", Emoji.fromUnicode("⛔"))).complete(true);
-        boolean addedToDatabase = manager.getEvaluationManager().addQuizToDatabase(userId, guild.getIdLong(), m.getIdLong());
-        if (addedToDatabase) {
-            root.put("messageId", m.getIdLong());
-            root.put("success", true);
-        } else {
-            response.status(500);
-            root.put("messageId", m.getIdLong());
-            root.put("error", "XEUS_MISSING_FINAL_MESSAGE");
-            root.put("message", "Something went wrong posting the message to the quiz database. Please check with the developer");
-            m.editMessageEmbeds(new EmbedBuilder().setDescription("Something went wrong with adding the quiz to the database for "+username+" (`"+userId+"`), please check with the developer").build()).queue();
-        }
+        root.put("success", true);
 
         return root;
     }
 
-    private MessageEmbed buildQuestionAndAnswerEmbed(String question, String answer, List <MessageEmbed> messageList, String username) {
+    private MessageEmbed buildQuestionAndAnswerEmbed(String question, String answer, List <MessageEmbed> messageList, String username, Long points) {
         EmbedBuilder eb = new EmbedBuilder();
         if (messageList.size() == 0) {
             eb.setTitle(username);
@@ -172,7 +162,7 @@ public class PostEvalAnswers extends SparkRoute {
         eb.setDescription("**" + question + "**\n```" + answer + "```");
 
         if (messageList.size() == 7) {
-            eb.setFooter(username, "https://xeus.pinewood-builders.com/img/xeus-1024x1024.png")
+            eb.setFooter(username + ( points != null ? " - " + points : ""), "https://xeus.pinewood-builders.com/img/xeus-1024x1024.png")
                 .setTimestamp(Instant.now());
         }
         return eb.build();

@@ -2,13 +2,13 @@ package com.avairebot.servlet.routes.v1.get;
 
 import com.avairebot.AvaIre;
 import com.avairebot.Constants;
+import com.avairebot.contracts.cache.CacheAdapter;
 import com.avairebot.contracts.metrics.SparkRoute;
 import com.avairebot.database.collection.Collection;
 import com.avairebot.database.collection.DataRow;
 import com.avairebot.database.controllers.GuildController;
 import com.avairebot.database.transformers.GuildTransformer;
 import com.avairebot.requests.service.user.rank.RobloxUserGroupRankService;
-import com.google.common.cache.Cache;
 import net.dv8tion.jda.api.entities.Guild;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -41,13 +41,16 @@ public class GetEvaluationStatus extends SparkRoute {
             return root;
         }
 
+        Long points = checkPoints(robloxId);
+
         Collection collection = AvaIre.getInstance().getDatabase().newQueryBuilder(Constants.EVALS_DATABASE_TABLE_NAME).where("roblox_id", robloxId).get();
         if (collection.size() < 1) {
             root.put("passed_quiz", false);
             root.put("passed_combat", false);
             root.put("passed_patrol", false);
             root.put("quizPending", AvaIre.getInstance().getRobloxAPIManager().getEvaluationManager().hasPendingQuiz(robloxId));
-            root.put("enoughPoints", checkPoints(robloxId));
+            root.put("enoughPoints", points >= 75);
+            root.put("points", points);
             root.put("rankLocked", AvaIre.getInstance().getRobloxAPIManager().getKronosManager().isRanklocked(robloxId));
             root.put("onCooldown", getCooldownFromCache(robloxId));
             root.put("isEvalRank", isEvalRank(guildId, robloxId));
@@ -76,16 +79,16 @@ public class GetEvaluationStatus extends SparkRoute {
         root.put("evaluator", evaluator);
         root.put("roblox_id", robloxId);
         root.put("quizPending", AvaIre.getInstance().getRobloxAPIManager().getEvaluationManager().hasPendingQuiz(robloxId));
-        root.put("enoughPoints", checkPoints(robloxId));
+        root.put("enoughPoints", points >= 75);
+        root.put("points", points);
         root.put("rankLocked", AvaIre.getInstance().getRobloxAPIManager().getKronosManager().isRanklocked(robloxId));
         root.put("onCooldown", getCooldownFromCache(robloxId));
         root.put("isEvalRank", isEvalRank(guildId, robloxId));
         return root;
     }
 
-    private boolean checkPoints(Long robloxId) {
-        long points = AvaIre.getInstance().getRobloxAPIManager().getKronosManager().getPoints(robloxId);
-        return points >= 75;
+    private long checkPoints(Long robloxId) {
+        return AvaIre.getInstance().getRobloxAPIManager().getKronosManager().getPoints(robloxId);
     }
 
     private boolean isEvalRank(Long id, Long robloxId) {
@@ -112,7 +115,7 @@ public class GetEvaluationStatus extends SparkRoute {
     }
 
     private boolean getCooldownFromCache(Long robloxId) {
-        Cache <String, Boolean> cache = AvaIre.getInstance().getRobloxAPIManager().getEvaluationManager().getCooldownCache();
-        return cache.getIfPresent("evaluation." + robloxId + ".cooldown") != null;
+        CacheAdapter cache = AvaIre.getInstance().getRobloxAPIManager().getEvaluationManager().getCooldownCache();
+        return cache.get("evaluation." + robloxId + ".cooldown") != null;
     }
 }

@@ -127,7 +127,7 @@ public class GroupRankCommand extends Command {
                 RobloxUserGroupRankService grs = (RobloxUserGroupRankService) toService(response, RobloxUserGroupRankService.class);
                 if (grs.hasData()) {
                     Optional<RobloxUserGroupRankService.Data> b = grs.getData().stream().filter(g -> g.getGroup().getId() == context.getGuildTransformer().getRobloxGroupId()).findFirst();
-                    if (!b.isPresent()) {
+                    if (b.isEmpty()) {
                         context.makeError("PB_Xbot has not been found in the group linked to this server (`:groupId`). Please check if this is the correct group. And that PB_Xbot has the permission to rank in the group.").requestedBy(context).set("groupId", context.getGuildTransformer().getRobloxGroupId()).queue();
                         return false;
                     }

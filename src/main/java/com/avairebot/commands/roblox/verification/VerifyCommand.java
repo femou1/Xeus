@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class VerifyCommand extends VerificationCommandContract {
 
     public VerifyCommand(AvaIre avaire) {
-        super(avaire);
+        super(avaire, false);
     }
 
     @Override

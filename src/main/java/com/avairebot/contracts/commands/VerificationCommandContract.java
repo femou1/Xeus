@@ -92,8 +92,11 @@ public abstract class VerificationCommandContract extends Command {
     public void runGameVerification(CommandMessage context, Message originalMessage, Long robloxId) {
         String verificationCode = RandomUtil.generateString(16);
         HashMap<Long, String> verification = avaire.getRobloxAPIManager().getVerification().getInVerification();
+        if (verification.containsKey(robloxId)) {
+            originalMessage.editMessageEmbeds(context.makeError("This account is already running an in game verification, please try again in 5 minutes.").buildEmbed()).queue();
+            return;
+        }
         verification.put(robloxId, context.getAuthor().getId() + ":" + verificationCode);
-
         originalMessage.editMessageEmbeds(context.makeInfo("[Please join this game](" + game_link + "), and click on `Yes` to verify your account. When you've verified the confirmation, please click the :white_check_mark: button.").setImage("https://i.imgur.com/63XmSe7.png").buildEmbed())
                 .setActionRow(
                         Button.success("confirm-verify:" + originalMessage.getId(), "I've clicked yes!").withEmoji(Emoji.fromUnicode("✅")).asEnabled(),

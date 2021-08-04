@@ -129,6 +129,6 @@ public class RequestSong extends Intent {
         ChannelTransformer channel = context.getDatabaseEventHolder()
             .getGuild().getChannel(context.getMessageChannel().getId());
 
-        return channel == null || channel.isCategoryEnabled("music");
+        return channel == null || !channel.isCategoryDisabled("music");
     }
 }

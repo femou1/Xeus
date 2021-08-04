@@ -101,36 +101,19 @@ public class ChannelTransformer extends Transformer {
         return objects;
     }
 
-    public boolean isCategoryEnabled(@Nonnull Category category) {
-        return isCategoryEnabled(category.getName());
+    public boolean isCategoryDisabled(@Nonnull Category category) {
+        return isCategoryDisabled(category.getName());
     }
 
-    public boolean isCategoryEnabled(@Nonnull String category) {
-        if (!isCategoryEnabledGlobally(category)) {
-            return false;
-        }
-
+    public boolean isCategoryDisabled(@Nonnull String category) {
         if (guildTransformer.getCategories().containsKey(getId())) {
             return guildTransformer.getCategories().get(getId())
-                .getOrDefault(category.toLowerCase(), "true")
-                .equalsIgnoreCase("true");
-        }
-
-        return true;
-    }
-
-    public boolean isCategoryEnabledGlobally(@Nonnull Category category) {
-        return isCategoryEnabledGlobally(category.getName());
-    }
-
-    public boolean isCategoryEnabledGlobally(@Nonnull String category) {
-        if (guildTransformer.getCategories().containsKey("all")) {
-            return guildTransformer.getCategories().get("all")
-                .getOrDefault(category.toLowerCase(), "true")
-                .equalsIgnoreCase("true");
+                .getOrDefault(category.toLowerCase(), "false")
+                .equalsIgnoreCase("false");
         }
         return true;
     }
+
 
     public class MessageModule extends Evalable {
         private boolean enabled = false;

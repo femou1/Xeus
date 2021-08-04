@@ -37,7 +37,10 @@ import net.dv8tion.jda.api.entities.Message;
 
 import javax.annotation.Nonnull;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 public class ToggleCategoryCommand extends Command {
 
@@ -118,12 +121,11 @@ public class ToggleCategoryCommand extends Command {
             return sendErrorMessage(context, context.i18n("missingArgumentType"));
         }
 
-        if (!args[1].equalsIgnoreCase("global") && context.getMessage().getMentionedChannels().size() != 1) {
+        if (context.getMessage().getMentionedChannels().size() != 1) {
             return sendErrorMessage(context, context.i18n("invalidChannelOrGlobalString"));
         }
 
-        String channelId = args[1].equalsIgnoreCase("global") ?
-            "all" : context.getMessage().getMentionedChannels().get(0).getId();
+        String channelId = context.getMessage().getMentionedChannels().get(0).getId();
 
         GuildTransformer transformer = context.getGuildTransformer();
         if (transformer == null) {
@@ -132,21 +134,12 @@ public class ToggleCategoryCommand extends Command {
 
         ChannelTransformer channel = transformer.getChannel(channelId);
 
-        boolean status = !channel.isCategoryEnabled(category);
+        boolean status = channel.isCategoryDisabled(category);
         if (args.length > 2) {
             ComparatorUtil.ComparatorType type = ComparatorUtil.getFuzzyType(args[2]);
             if (!type.equals(ComparatorUtil.ComparatorType.UNKNOWN)) {
                 status = type.getValue();
             }
-        }
-
-        if (!channelId.equals("all") && status && !channel.isCategoryEnabledGlobally(category)) {
-            context.makeError(context.i18n("cantEnabledCategory"))
-                .set("command", generateCommandTrigger(context.getMessage()))
-                .set("category", category.getName())
-                .queue();
-
-            return false;
         }
 
         if (!transformer.getCategories().containsKey(channelId)) {
@@ -156,22 +149,10 @@ public class ToggleCategoryCommand extends Command {
         transformer.getCategories().get(channelId).
             put(category.getName().toLowerCase(), status ? "true" : "false");
 
-        if (channelId.equals("all")) {
-            for (Map.Entry<String, Map<String, String>> item : transformer.getCategories().entrySet()) {
-                if (item.getKey().equalsIgnoreCase("all")) {
-                    continue;
-                }
-
-                if (item.getValue().containsKey(category.getName().toLowerCase())) {
-                    transformer.getCategories().get(item.getKey()).remove(category.getName().toLowerCase());
-                }
-            }
-        }
-
         try {
             updateGuildCategories(context.getMessage(), transformer);
 
-            context.makeSuccess(getStatusMessage(context, channelId))
+            context.makeSuccess(getStatusMessage(context))
                 .set("category", category.getName())
                 .set("channel", "<#" + channel.getId() + ">")
                 .set("status", context.i18n("status." + (status ? "enabled" : "disabled")))
@@ -192,9 +173,7 @@ public class ToggleCategoryCommand extends Command {
             });
     }
 
-    private String getStatusMessage(CommandMessage context, String channelId) {
-        return channelId.equals("all")
-            ? context.i18n("update.globally")
-            : context.i18n("update.category");
+    private String getStatusMessage(CommandMessage context) {
+        return context.i18n("update.category");
     }
 }

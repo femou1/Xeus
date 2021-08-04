@@ -2,28 +2,23 @@ package com.avairebot.roblox.evaluations;
 
 import com.avairebot.AvaIre;
 import com.avairebot.Constants;
+import com.avairebot.cache.CacheType;
+import com.avairebot.contracts.cache.CacheAdapter;
 import com.avairebot.contracts.roblox.evaluations.PassedEvals;
 import com.avairebot.database.collection.Collection;
 import com.avairebot.database.query.QueryBuilder;
 import com.avairebot.roblox.RobloxAPIManager;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static com.avairebot.contracts.roblox.evaluations.PassedEvals.COMBAT;
 import static com.avairebot.contracts.roblox.evaluations.PassedEvals.PATROL;
 
 public class EvaluationManager {
 
-    public final Cache <String, Boolean> cooldownCache = CacheBuilder.newBuilder()
-        .recordStats()
-        .expireAfterWrite(24, TimeUnit.HOURS)
-        .build();
-
+    public final CacheAdapter cooldownCache = AvaIre.getInstance().getCache().getAdapter(CacheType.FILE);
 
     private final AvaIre avaire;
     private final RobloxAPIManager manager;
@@ -127,7 +122,7 @@ public class EvaluationManager {
         }
     }
 
-    public Cache <String, Boolean> getCooldownCache() {
+    public CacheAdapter getCooldownCache() {
         return cooldownCache;
     }
 }

@@ -104,7 +104,7 @@ public class IsCategoryEnabled extends Middleware {
             return stack.next();
         }
 
-        if (!channel.isCategoryEnabled(stack.getCommandContainer().getCategory()) && !isModOrHigher(stack, message)) {
+        if (channel.isCategoryDisabled(stack.getCommandContainer().getCategory()) && !isModOrHigher(stack, message)) {
             if (isHelpCommand(stack) && stack.isMentionableCommand()) {
                 MessageFactory.makeError(message, "The help command is disabled in this channel, you can enable it by using the `:category` command.")
                     .set("category", CommandHandler.getCommand(ToggleCategoryCommand.class).getCommand().generateCommandTrigger(message))

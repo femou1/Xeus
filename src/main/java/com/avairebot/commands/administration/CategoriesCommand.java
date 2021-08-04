@@ -105,12 +105,12 @@ public class CategoriesCommand extends Command {
         for (Category category : CategoryHandler.getValues()) {
             if (category.isGlobalOrSystem()) continue;
 
-            if (!transformer.isCategoryEnabledGlobally(category)) {
+            if (category.getName().equalsIgnoreCase("System")) {
                 items.add(Constants.EMOTE_DND + category.getName());
                 continue;
             }
 
-            if (!transformer.isCategoryEnabled(category)) {
+            if (transformer.isCategoryDisabled(category)) {
                 items.add(Constants.EMOTE_AWAY + category.getName());
                 continue;
             }

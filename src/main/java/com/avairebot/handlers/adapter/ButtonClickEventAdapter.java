@@ -25,6 +25,7 @@ import com.avairebot.AppInfo;
 import com.avairebot.AvaIre;
 import com.avairebot.Constants;
 import com.avairebot.chat.PlaceholderMessage;
+import com.avairebot.contracts.cache.CacheAdapter;
 import com.avairebot.contracts.handlers.EventAdapter;
 import com.avairebot.contracts.verification.VerificationEntity;
 import com.avairebot.database.collection.Collection;
@@ -41,7 +42,6 @@ import com.avairebot.roblox.RobloxAPIManager;
 import com.avairebot.utilities.CheckPermissionUtil;
 import com.avairebot.utilities.NumberUtil;
 import com.avairebot.utilities.RestActionUtil;
-import com.google.common.cache.Cache;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -808,8 +808,8 @@ public class ButtonClickEventAdapter extends EventAdapter {
                 }
                 event.getMessage().editMessageEmbeds(event.getMessage().getEmbeds()).setActionRows(Collections.emptyList()).queue();
                 event.getChannel().sendMessageEmbeds(MessageFactory.makeError(event.getMessage(), "Eval has been rejected, record has been updated in the database!").buildEmbed()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
-                Cache <String, Boolean> cache = AvaIre.getInstance().getRobloxAPIManager().getEvaluationManager().getCooldownCache();
-                cache.put("evaluation." + userId + ".cooldown", true);
+                CacheAdapter cache = AvaIre.getInstance().getRobloxAPIManager().getEvaluationManager().getCooldownCache();
+                cache.put("evaluation." + userId + ".cooldown", true,  60 * 60 * 24);
             });
         } catch (SQLException throwables) {
             throwables.printStackTrace();
