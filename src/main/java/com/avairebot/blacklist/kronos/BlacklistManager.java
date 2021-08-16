@@ -31,7 +31,24 @@ public class BlacklistManager {
             for (LinkedTreeMap<String, Double> item : items) {
                 list.add(item.get("id").longValue());
             }
-            log.info("TMS Blacklist has been requested.");
+            //log.info("TMS Blacklist has been requested.");
+            return list;
+        }
+        return null;
+    }
+    @SuppressWarnings("unchecked")
+    public ArrayList<Long> getPETBlacklist() {
+        String TMSCacheToken = "blacklist.pet.blacklists";
+        if (avaire.getCache().getAdapter(CacheType.FILE).has(TMSCacheToken)) {
+            ArrayList<LinkedTreeMap<String, Double>> items = (ArrayList<LinkedTreeMap<String, Double>>) avaire.getCache()
+                .getAdapter(CacheType.FILE).get(TMSCacheToken);
+
+            ArrayList<Long> list = new ArrayList<>();
+
+            for (LinkedTreeMap<String, Double> item : items) {
+                list.add(item.get("id").longValue());
+            }
+            //log.info("PET Blacklist has been requested.");
             return list;
         }
         return null;
@@ -50,7 +67,7 @@ public class BlacklistManager {
             for (LinkedTreeMap<String, Double> item : items) {
                 list.add(item.get("id").longValue());
             }
-            log.info("PBST Blacklist has been requested.");
+            //log.info("PBST Blacklist has been requested.");
             return list;
         }
         return null;
@@ -69,7 +86,7 @@ public class BlacklistManager {
             for (LinkedTreeMap<String, Double> item : items) {
                 list.add(item.get("id").longValue());
             }
-            log.info("PBM Blacklist has been requested.");
+            //log.info("PBM Blacklist has been requested.");
             return list;
         }
         return null;

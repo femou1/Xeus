@@ -30,9 +30,14 @@ import com.avairebot.database.query.QueryBuilder;
 import com.avairebot.database.schema.Blueprint;
 import com.avairebot.language.I18n;
 import com.avairebot.utilities.NumberUtil;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 import javax.annotation.Nonnull;
-import java.sql.*;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
@@ -72,7 +77,7 @@ public class MySQL extends HostnameDatabase {
     @Override
     protected boolean initialize() {
         try {
-            Class.forName("com.mysql.jdbc.jdbc2.optional.MysqlDataSource");
+            Class.forName("com.mysql.cj.jdbc.MysqlDataSource");
 
             return true;
         } catch (ClassNotFoundException ex) {
@@ -85,13 +90,21 @@ public class MySQL extends HostnameDatabase {
     @Override
     public boolean open() throws SQLException {
         try {
-            String url = String.format("jdbc:mysql://%s:%d/%s?autoReconnect=true&verifyServerCertificate=%s&useSSL=true",
+            String url = String.format("jdbc:mysql://%s:%d/%s?autoReconnect=true&verifyServerCertificate=%s&useSSL=false",
                 getHostname(), getPort(), getDatabase(),
                 dbm.getAvaire().getConfig().getBoolean("database.verifyServerCertificate", true) ? "true" : "false"
             );
 
             if (initialize()) {
-                connection = DriverManager.getConnection(url, getUsername(), getPassword());
+                HikariConfig config = new HikariConfig();
+                config.setJdbcUrl(url);
+                config.setUsername(getUsername());
+                config.setPassword(getPassword());
+                config.setDriverClassName("com.mysql.jdbc.Driver");
+                HikariDataSource ds = new HikariDataSource(config);
+
+                connection = ds.getConnection();
+
 
                 // Sets a timeout of 20 seconds(This is an extremely long time, however the default
                 // is around 10 minutes so this should give some improvements with the threads

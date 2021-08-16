@@ -26,31 +26,35 @@ import com.avairebot.cache.CacheType;
 import com.avairebot.contracts.scheduler.Job;
 import com.avairebot.factories.RequestFactory;
 import com.avairebot.requests.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public class GithubChangesJob extends Job {
+public class TrellobanUpdateJob extends Job {
 
-    private final String cacheToken = "gitlab.commits";
+    private final String cacheToken = "trelloban.global";
+    private static final Logger log = LoggerFactory.getLogger(TMSBlacklistUpdateJob.class);
 
-    public GithubChangesJob(AvaIre avaire) {
+    public TrellobanUpdateJob(AvaIre avaire) {
         super(avaire, 90, 90, TimeUnit.MINUTES);
-
-        if (!avaire.getCache().getAdapter(CacheType.FILE).has(cacheToken)) {
-            run();
-        }
+        run();
     }
 
     @Override
     public void run() {
         handleTask(avaire -> {
-            RequestFactory.makeGET("https://gitlab.com/api/v4/projects/17658373/repository/commits")
+            RequestFactory.makeGET("https://pb-kronos.dev/api/v2/moderation/admin")
+                .addHeader("Access-Key", avaire.getConfig().getString("apiKeys.kronosTrellobanKey"))
                 .send((Consumer<Response>) response -> {
-                    List service = (List) response.toService(List.class);
+                    log.info("Trello ban list has been updated.");
+                    try {
+                        avaire.getCache().getAdapter(CacheType.FILE).forever(cacheToken, response.getResponse().body().string());
+                    } catch (IOException ignored) {
 
-                    avaire.getCache().getAdapter(CacheType.FILE).forever(cacheToken, service);
+                    }
                 });
         });
     }

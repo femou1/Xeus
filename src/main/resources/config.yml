@@ -715,9 +715,10 @@ apiKeys:
   # Gitlabs API Key for the gitlab API
   gitlabKey: ''
 
-  # Kronos API Key for connecting to the Kronos API (Blacklist and Database)
+  # Kronos API Key for connecting to the Kronos API (Blacklist, Database and Trellobans)
   kronosApiKey: ''
   kronosDatabaseApiKey: ''
+  kronosTrellobanKey:
 
   # API key for connecting to an selfhosted noblox.js server
   nobloxServerAPIKey: ''

@@ -382,7 +382,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     if (v.getEmbeds().get(0).getColor().equals(new Color(0, 255, 0)))
                                                         return;
 
-                                                    e.getChannel().sendMessage(e.getMember().getAsMention()).embed(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(100, 200, 200), "You've chosen to approve a report, may I know the punishment you're giving to the user?").buildEmbed()).queue(z -> {
+                                                    e.getChannel().sendMessage(e.getMember().getAsMention()).embed(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(100, 200, 200), "You've chosen to approve a remittance request, may I know the reward you're giving to the user?").buildEmbed()).queue(z -> {
                                                         avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
                                                             return p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel());
                                                         }, run -> {
@@ -766,9 +766,9 @@ public class ButtonClickEventAdapter extends EventAdapter {
                 event.getMessage().editMessageEmbeds(event.getMessage().getEmbeds()).setActionRows(Collections.emptyList()).queue();
                 event.getChannel().sendMessageEmbeds(MessageFactory.makeSuccess(event.getMessage(), "Eval has been accepted, record has been updated in the database!").buildEmbed()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
 
-                avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(MessageFactory.makeSuccess(event.getMessage(), "`" + username + "` has passed the quiz evaluation.").buildEmbed()).queue();
+                avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(MessageFactory.makeSuccess(event.getMessage(), "`" + username + "` has passed the `quiz` evaluation.").requestedBy(event.getMember()).buildEmbed()).queue();
                 if (avaire.getRobloxAPIManager().getEvaluationManager().getPassedEvals(userId).size() == 3) {
-                    avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(MessageFactory.makeSuccess(event.getMessage(), "`"+username + "` has now passed all evaluations!").buildEmbed()).queue();
+                    avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(MessageFactory.makeSuccess(event.getMessage(), "`"+username + "` has now passed all evaluations!").setColor(new Color(255, 215, 0)).buildEmbed()).queue();
                 }
             });
         } catch (SQLException throwables) {

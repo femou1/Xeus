@@ -32,10 +32,7 @@ import java.sql.SQLException;
 
 public class Main {
 
-
-
-
-    public static void main(String[] args) throws IOException, SQLException, InvalidApplicationEnvironmentException {
+   public static void main(String[] args) throws IOException, SQLException, InvalidApplicationEnvironmentException {
         Options options = new Options();
 
         options.addOption(new Option("h", "help", false, "Displays this help menu."));
@@ -58,11 +55,11 @@ public class Main {
             Settings settings = new Settings(cmd, args);
             ConsoleColor.setSettings(settings);
             if (!settings.useColors()) {
-                System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "logback_nocolor" + (
+                System.setProperty(ContextInitializer.AUTOCONFIG_FILE, "logback_nocolor" + (
                     settings.useDebugging() ? "_debug" : ""
                 ) + ".xml");
             } else if (settings.useDebugging()) {
-                System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "logback_debug.xml");
+                System.setProperty(ContextInitializer.TEST_AUTOCONFIG_FILE, "logback_debug.xml");
             }
 
             if (cmd.hasOption("help")) {

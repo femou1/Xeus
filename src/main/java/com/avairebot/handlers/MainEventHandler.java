@@ -55,6 +55,7 @@ import net.dv8tion.jda.api.events.guild.update.GuildUpdateNameEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.GenericMessageEvent;
 import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -75,6 +76,7 @@ import net.dv8tion.jda.api.events.user.update.UserUpdateAvatarEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateDiscriminatorEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
 import net.dv8tion.jda.api.utils.concurrent.Task;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,6 +99,7 @@ public class MainEventHandler extends EventHandler {
     private final GuildEventAdapter guildEventAdapter;
     private final WhitelistEventAdapter whitelistEventAdapter;
     private final ButtonClickEventAdapter buttonClickEventAdapter;
+    private final SlashCommandEventAdapter slashCommandEventAdapter;
 
     public static final Cache <Long, Boolean> cache = CacheBuilder.newBuilder()
         .recordStats()
@@ -124,6 +127,7 @@ public class MainEventHandler extends EventHandler {
         this.guildEventAdapter = new GuildEventAdapter(avaire);
         this.whitelistEventAdapter = new WhitelistEventAdapter(avaire, avaire.getVoiceWhitelistManager());
         this.buttonClickEventAdapter = new ButtonClickEventAdapter(avaire);
+        this.slashCommandEventAdapter = new SlashCommandEventAdapter(avaire);
     }
 
     @Override
@@ -203,7 +207,7 @@ public class MainEventHandler extends EventHandler {
 
 
     @Override
-    public void onGuildMemberJoin(GuildMemberJoinEvent event) {
+    public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
         if (!avaire.getSettings().isMusicOnlyMode()) {
             memberEvent.onGuildMemberJoin(event);
         }
@@ -220,6 +224,12 @@ public class MainEventHandler extends EventHandler {
         if (!avaire.getSettings().isMusicOnlyMode()) {
             memberEvent.onGuildMemberRemove(event);
         }
+    }
+
+
+    @Override
+    public void onSlashCommand(@NotNull SlashCommandEvent event) {
+        slashCommandEventAdapter.runSlashCommandCheck(event);
     }
 
     @Override

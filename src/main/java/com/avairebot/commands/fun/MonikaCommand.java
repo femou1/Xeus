@@ -75,7 +75,7 @@ public class MonikaCommand extends Command {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
         RequestFactory.makeGET("https://i.imgur.com/ZupgGkI.jpg")
-            .send((Consumer<Response>) response -> {
+            .send((Consumer <Response>) response -> {
                 ResponseBody body = response.getResponse().body();
 
                 if (body == null) {
@@ -83,7 +83,7 @@ public class MonikaCommand extends Command {
                 }
 
                 context.getChannel().sendMessage(
-                    new MessageBuilder().setEmbed(
+                    new MessageBuilder().setEmbeds(
                         new EmbedBuilder()
                             .setImage("attachment://just-monika.jpg")
                             .setDescription("Just Monika")
@@ -93,7 +93,6 @@ public class MonikaCommand extends Command {
                     "just-monika.jpg"
                 ).queue();
             });
-
         return true;
     }
 }

@@ -121,6 +121,8 @@ public class PostEvalAnswers extends SparkRoute {
             return root;
         }
 
+
+
         List <MessageEmbed> messageList = new LinkedList <>();
         for (Object questionsWithAnswer : questionsWithAnswers) {
             JSONObject jsonObj = (JSONObject) questionsWithAnswer;
@@ -140,7 +142,7 @@ public class PostEvalAnswers extends SparkRoute {
 
             String question = jsonObj.getString("question");
             String answer = jsonObj.getString("answer").length() > 0 ? jsonObj.getString("answer") : "Question was not answered.";
-            messageList.add(buildQuestionAndAnswerEmbed(question, answer, messageList, username, post.has("points") ? post.getLong("points") : null));
+            messageList.add(buildQuestionAndAnswerEmbed(question, answer, messageList, username, post.has("points") ? post.getLong("points") : null, questionsWithAnswers.length()));
         }
 
 
@@ -153,7 +155,7 @@ public class PostEvalAnswers extends SparkRoute {
         return root;
     }
 
-    private MessageEmbed buildQuestionAndAnswerEmbed(String question, String answer, List <MessageEmbed> messageList, String username, Long points) {
+    private MessageEmbed buildQuestionAndAnswerEmbed(String question, String answer, List <MessageEmbed> messageList, String username, Long points, int questionAmount) {
         EmbedBuilder eb = new EmbedBuilder();
         if (messageList.size() == 0) {
             eb.setTitle(username);
@@ -161,8 +163,8 @@ public class PostEvalAnswers extends SparkRoute {
 
         eb.setDescription("**" + question + "**\n```" + answer + "```");
 
-        if (messageList.size() == 7) {
-            eb.setFooter(username + ( points != null ? " - " + points : ""), "https://xeus.pinewood-builders.com/img/xeus-1024x1024.png")
+        if (messageList.size() == questionAmount) {
+            eb.setFooter(username + (points != null ? " - " + points : ""), "https://xeus.pinewood-builders.com/img/xeus-1024x1024.png")
                 .setTimestamp(Instant.now());
         }
         return eb.build();

@@ -52,8 +52,6 @@ public class WhoAmICommand extends Command {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
         VerificationEntity verifiedRobloxUser;
-
-
         if (args.length == 1) {
             User u = MentionableUtil.getUser(context, args);
             if (u != null) {
@@ -66,7 +64,7 @@ public class WhoAmICommand extends Command {
         }
 
         if (verifiedRobloxUser == null) {
-            context.makeError("No account found on the RoVer API. Please verify yourself on: https://verify.eryn.io/").requestedBy(context).queue();
+            context.makeError("No account found on any API. Please verify yourself by running `!verify`").requestedBy(context).queue();
             return false;
         }
 
@@ -91,16 +89,25 @@ public class WhoAmICommand extends Command {
             }
 
             context.makeInfo(
-                    "**Roblox Username**: :rusername\n" +
+                "**Roblox Username**: :rusername\n" +
                     "**Roblox ID**: :userId\n" +
                     "**Ranks**:\n" +
                     ":userRanks")
                 .set("rusername", verifiedRobloxUser.getRobloxUsername())
                 .set("userId", verifiedRobloxUser.getRobloxId())
-                .set("userRanks", sb.toString()).queue();
+                .set("userRanks", sb.toString())
+                .setThumbnail(getImageFromVerificationEntity(verifiedRobloxUser))
+                .requestedBy(context).queue();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
         return false;
+    }
+
+    private String getImageFromVerificationEntity(VerificationEntity ve) {
+        if (ve == null) {
+            return null;
+        }
+        return "https://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&userid=" + ve.getRobloxId();
     }
 }

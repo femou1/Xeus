@@ -26,30 +26,33 @@ import com.avairebot.cache.CacheType;
 import com.avairebot.contracts.scheduler.Job;
 import com.avairebot.factories.RequestFactory;
 import com.avairebot.requests.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public class GithubChangesJob extends Job {
+public class PETBlacklistUpdateJob extends Job {
 
-    private final String cacheToken = "gitlab.commits";
+    private final String cacheToken = "blacklist.pet.blacklists";
+    private static final Logger log = LoggerFactory.getLogger(PETBlacklistUpdateJob.class);
 
-    public GithubChangesJob(AvaIre avaire) {
+    public PETBlacklistUpdateJob(AvaIre avaire) {
         super(avaire, 90, 90, TimeUnit.MINUTES);
 
-        if (!avaire.getCache().getAdapter(CacheType.FILE).has(cacheToken)) {
-            run();
-        }
+        run();
+
     }
 
     @Override
     public void run() {
         handleTask(avaire -> {
-            RequestFactory.makeGET("https://gitlab.com/api/v4/projects/17658373/repository/commits")
+            RequestFactory.makeGET("https://pb-kronos.dev/pet/blacklist")
+                .addHeader("Access-Key", avaire.getConfig().getString("apiKeys.kronosApiKey"))
                 .send((Consumer<Response>) response -> {
+                    log.info("PET Blacklist has been updated.");
                     List service = (List) response.toService(List.class);
-
                     avaire.getCache().getAdapter(CacheType.FILE).forever(cacheToken, service);
                 });
         });

@@ -100,7 +100,7 @@ public abstract class VerificationCommandContract extends Command {
         originalMessage.editMessageEmbeds(context.makeInfo("[Please join this game](" + game_link + "), and click on `Yes` to verify your account. When you've verified the confirmation, please click the :white_check_mark: button.").setImage("https://i.imgur.com/63XmSe7.png").buildEmbed())
                 .setActionRow(
                         Button.success("confirm-verify:" + originalMessage.getId(), "I've clicked yes!").withEmoji(Emoji.fromUnicode("✅")).asEnabled(),
-                        Button.danger("confirm-verify:" + originalMessage.getId(), "I don't wanna confirm anymore.").withEmoji(Emoji.fromUnicode("❌")).asEnabled(),
+                        Button.danger("confirm-reject:" + originalMessage.getId(), "I don't wanna confirm anymore.").withEmoji(Emoji.fromUnicode("❌")).asEnabled(),
                         Button.link(game_link, "Join this game to verify").withEmoji(Emoji.fromUnicode("\uD83D\uDD17")).asEnabled())
                 .queue(verifyMessage -> {
                     avaire.getWaiter().waitForEvent(ButtonClickEvent.class,

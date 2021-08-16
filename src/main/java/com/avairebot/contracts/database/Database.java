@@ -28,7 +28,6 @@ import com.avairebot.database.DatabaseManager;
 import com.avairebot.database.query.QueryBuilder;
 import com.avairebot.database.schema.Blueprint;
 import com.avairebot.metrics.Metrics;
-import com.mysql.jdbc.exceptions.jdbc4.MySQLNonTransientConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -206,7 +205,7 @@ public abstract class Database implements DatabaseConnection, Grammarable {
 
                 return lastState;
             } catch (SQLException e) {
-                if (e instanceof MySQLNonTransientConnectionException) {
+                if (e instanceof SQLNonTransientConnectionException) {
                     log.warn("Failed to check if the database connection is open due to a non transient connection exception!", e);
                 }
                 // If the exception type is anything else, we just ignore it.
@@ -391,7 +390,7 @@ public abstract class Database implements DatabaseConnection, Grammarable {
     private ResultSet handleQuery(SupplierWithSQL<ResultSet> callback) throws SQLException {
         try {
             return callback.get();
-        } catch (MySQLNonTransientConnectionException e) {
+        } catch (SQLNonTransientConnectionException e) {
             if (e.getMessage().contains("connection closed")) {
                 log.error("Attempted to run a query after the connection was closed, closing and re-opening the connection.", e);
 

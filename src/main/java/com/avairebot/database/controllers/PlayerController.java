@@ -58,6 +58,7 @@ public class PlayerController {
         return fetchPlayer(avaire, message, message.getAuthor());
     }
 
+
     @CheckReturnValue
     public static PlayerTransformer fetchPlayer(AvaIre avaire, Message message, User user) {
         if (!message.getChannelType().isGuild()) {

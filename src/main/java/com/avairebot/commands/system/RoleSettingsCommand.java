@@ -299,7 +299,7 @@ public class RoleSettingsCommand extends SystemCommand {
                 q.set("main_discord_role", transformer.getMainDiscordRole());
             });
 
-            context.makeSuccess("Set the main discord role for ``:guild`` to ``:id``").set("guild", context.getGuild().getName()).set("id", transformer.getRobloxGroupId()).queue();
+            context.makeSuccess("Set the main discord role for ``:guild`` to ``:id``").set("guild", context.getGuild().getName()).set("id", transformer.getMainDiscordRole()).queue();
             return true;
         } catch (SQLException throwables) {
             context.makeError("Something went wrong in the database, please check with the developer. (Stefano#7366)").queue();

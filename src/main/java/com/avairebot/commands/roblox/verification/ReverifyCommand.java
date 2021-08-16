@@ -49,13 +49,6 @@ public class ReverifyCommand extends VerificationCommandContract {
     }
 
     @Override
-    public List<String> getMiddleware() {
-        return Arrays.asList(
-                "isOfficialPinewoodGuild"
-        );
-    }
-
-    @Override
     public List<String> getTriggers() {
         return Arrays.asList("reverify", "re-verify");
     }

@@ -74,7 +74,6 @@ public class VerificationCommand extends VerificationCommandContract {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
             "isManagerOrHigher"
         );
     }
@@ -161,6 +160,10 @@ public class VerificationCommand extends VerificationCommandContract {
             if (m.getRoles().stream().anyMatch(r -> r.getId().equalsIgnoreCase(context.getGuildTransformer().getMainDiscordRole()))) {
                 continue;
             }
+
+            if (m.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("bot") || r.getName().equalsIgnoreCase("RoVer Bypass") || r.getName().equalsIgnoreCase("Xeus Bypass"))) {
+                continue;
+            }
             count++;
             members.add(m);
             //   System.out.println(m.getEffectiveName() + " ("+m.getUser().getName() + "#" + m.getUser().getDiscriminator() +")");
@@ -169,24 +172,17 @@ public class VerificationCommand extends VerificationCommandContract {
         context.makeWarning("Would you like to prune `:count` member who don't have the main discord role.").set("count", count).queue(countMessage -> {
             countMessage.addReaction("\uD83D\uDC4D").queue();
             countMessage.addReaction("\uD83D\uDC4E").queue();
+
+            builder.setItems(members.stream().map(member -> "\n- `"+member.getEffectiveName() + "`").collect(Collectors.toList()));
+            builder.setItemsPerPage(10).build().paginate(context.getChannel(), 0);
+
             avaire.getWaiter().waitForEvent(GuildMessageReactionAddEvent.class, check -> check.getMember().equals(context.member) && check.getMessageId().equals(countMessage.getId()), action -> {
 
                     switch (action.getReactionEmote().getName()) {
                         case "\uD83D\uDC4D":
                             for (Member m : members) {
-                                m.getUser().openPrivateChannel().queue(k -> k.sendMessage("You have been kicked from `" + context.getGuild().getName() + "` due to not being verified in the group. If you want to join back, rejoin with one of these invites. \n" +
-                                    "\n" +
-                                    "PBSTAC: https://discord.gg/DDUzTwM\n" +
-                                    "PBAC: https://discord.gg/ZAMJwD7Zuc\n" +
-                                    "PB: https://discord.gg/RHWxvhc\n" +
-                                    "PET: https://discord.gg/t4KBPkM\n" +
-                                    "PBQA: https://discord.gg/6xwcuRh\n" +
-                                    "PBA: https://discord.gg/MVAcxTS\n" +
-                                    "PBM: https://discord.gg/yTVFKne\n" +
-                                    "MM: https://discord.gg/EjBYFCd\n" +
-                                    "PBOP: https://discord.gg/4wytX7z\n" +
-                                    "KDD: https://discord.gg/v4BsK3Kbv8\n" +
-                                    "TMS: https://discord.gg/3axZ5tb\n\n***NOTICE FOR DISCORD STAFF***: ```This is not an advert, this user has been kicked and notified for the kick. We apologise for the inconvenience.```").queue());
+                                m.getUser().openPrivateChannel().queue(k -> k.sendMessage("You have been kicked from `" + context.getGuild().getName() + "` due to not being verified in the group. If you want to join back, rejoin by going to the group page and clicking the \"Discord\" button. \n" +
+                                    "\n").queue());
                                 action.getGuild().kick(m, "Unverified kick - Not in the group.").queue();
                             }
                             context.makeSuccess("`:count` members have been kicked!").set("count", finalCount).queue();
@@ -639,10 +635,27 @@ public class VerificationCommand extends VerificationCommandContract {
 
                     groupRanksBindings.put(roleObject);
                 }
+            } else {
+                Role m = context.getGuild().createRole().setName(role.getName()).complete();
+                JSONObject roleObject = new JSONObject();
+                roleObject.put("role", m.getId());
+
+                JSONArray groups = new JSONArray();
+                JSONObject group = new JSONObject();
+                group.put("id", ranks.getGroupId());
+                List <Integer> Rranks = new ArrayList <>();
+                Rranks.add(role.getRank());
+                group.put("ranks", Rranks);
+                groups.put(group);
+
+                roleObject.put("groups", groups);
+
+                groupRanksBindings.put(roleObject);
             }
         }
+
         groupRankBindings.put("groupRankBindings", groupRanksBindings);
-        context.makeInfo("```json\n" + groupRanksBindings.toString() + "\n```").queue();
+        context.makeInfo("```json\n" + groupRanksBindings + "\n```").queue();
         return groupRankBindings;
     }
 }

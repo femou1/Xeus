@@ -133,14 +133,6 @@ public class GuildEventAdapter extends EventAdapter {
                         .setDescription(e.getUser().getName() + "#" + e.getUser().getDiscriminator() + "**(:banned)**")
                         .set("banned", e.getUser().getAsMention())
                         .setTimestamp(Instant.now()).queue();
-                } else if (event instanceof GuildUnbanEvent) {
-                    GuildUnbanEvent e = (GuildUnbanEvent) event;
-                    MessageFactory.makeEmbeddedMessage(tc, new Color(255, 233, 44))
-                        .setAuthor("User unbanned"
-                            , null, e.getUser().getEffectiveAvatarUrl())
-                        .setDescription(e.getUser().getName() + "#" + e.getUser().getDiscriminator() + "**(:unbanned)**")
-                        .set("unbanned", e.getUser().getAsMention())
-                        .setTimestamp(Instant.now()).queue();
                 } else if (event instanceof GuildUpdateAfkChannelEvent) {
                     GuildChannel oldChannel = getModifiedChannel(event, false);
                     GuildChannel newChannel = getModifiedChannel(event, true);

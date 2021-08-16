@@ -2,13 +2,23 @@ package com.avairebot.roblox.kronos;
 
 import com.avairebot.AppInfo;
 import com.avairebot.AvaIre;
+import com.avairebot.cache.CacheType;
+import com.avairebot.contracts.kronos.TrellobanLabels;
+import com.avairebot.requests.service.kronos.trelloban.TrellobanService;
+import com.avairebot.requests.service.kronos.trelloban.trello.Card;
+import com.avairebot.requests.service.kronos.trelloban.trello.Datum;
+import com.avairebot.requests.service.kronos.trelloban.trello.Label;
 import com.avairebot.roblox.RobloxAPIManager;
+import com.avairebot.utilities.NumberUtil;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class KronosManager {
 
@@ -88,5 +98,39 @@ public class KronosManager {
         return false;
     }
 
+
+    public HashMap <Long, List<TrellobanLabels>> getTrelloBans() {
+        TrellobanService tbs = (TrellobanService) avaire.getRobloxAPIManager().toService((String) avaire.getCache().getAdapter(CacheType.FILE).get("trelloban.global"), TrellobanService.class);
+        //System.out.println(avaire.getCache().getAdapter(CacheType.FILE).get("trelloban.global"));
+        //System.out.println(tbs.getLoaded());
+
+        HashMap<Long, List<TrellobanLabels>> root = new HashMap<>();
+        for (Datum d : tbs.getData()) {
+            if ((d.getId().equals("59eb2341cdaf6ca9203ab35f") && d.getName().equals("Banlist"))
+                || (d.getId().equals("5bb6a2564f067782ad4e21e9") && d.getName().equals("Alt Banlist"))) {
+                for (Card c : d.getCards()) {
+                    if (!c.getName().contains(":")) {
+                        continue;
+                    }
+
+                    if (c.getName().endsWith(":")) continue;
+
+                    String userId = c.getName().split(":")[1].trim();
+                    if (!NumberUtil.isNumeric(userId)) continue;
+
+                    List<TrellobanLabels> labels = new ArrayList <>();
+                    for (Label l : c.getLabels()) {
+                        TrellobanLabels label = TrellobanLabels.getLabelFromId(l.getId());
+                        if (label == null) {
+                            continue;
+                        }
+                        labels.add(label);
+                    }
+                    root.put(Long.valueOf(userId), labels);
+                }
+            }
+        }
+        return root;
+    }
 
 }

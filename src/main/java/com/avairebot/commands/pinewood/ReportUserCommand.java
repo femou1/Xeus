@@ -161,10 +161,10 @@ public class ReportUserCommand extends Command {
                                 TextChannel c = avaire.getShardManager().getTextChannelById(d.getString("handbook_report_channel"));
                                 if (c != null) {
                                     if (avaire.getFeatureBlacklist().isBlacklisted(context.getAuthor(), c.getGuild().getIdLong(), FeatureScope.REPORTS)) {
-                                        message.editMessage(context.makeError("You have been blacklisted from creating reports for this guild. Please ask a **Level 4** (Or higher) member to remove you from the ``"+c.getGuild().getName()+"`` reports blacklist.").buildEmbed()).queue();
+                                        message.editMessageEmbeds(context.makeError("You have been blacklisted from creating reports for this guild. Please ask a **Level 4** (Or higher) member to remove you from the ``"+c.getGuild().getName()+"`` reports blacklist.").buildEmbed()).queue();
                                         return;
                                     }
-                                    message.editMessage(context.makeInfo(d.getString("report_info_message", "A report message for ``:guild`` could not be found. Ask the HR's of ``:guild`` to set one.\n" +
+                                    message.editMessageEmbeds(context.makeInfo(d.getString("report_info_message", "A report message for ``:guild`` could not be found. Ask the HR's of ``:guild`` to set one.\n" +
                                         "If you'd like to report someone, say their name right now.")).set("guild", d.getString("name")).set(":user", context.member.getEffectiveName()).buildEmbed()).queue(
                                         nameMessage -> {
                                             avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, m -> {
@@ -182,12 +182,10 @@ public class ReportUserCommand extends Command {
                                     message.clearReactions().queue();
                                 } else {
                                     context.makeError("The guild doesn't have a (valid) channel for suggestions").queue();
-                                    return;
                                 }
 
                             } catch (SQLException throwables) {
                                 context.makeError("Something went wrong while checking the database, please check with the developer for any errors.").queue();
-                                return;
                             }
                         },
                             5, TimeUnit.MINUTES,
@@ -199,7 +197,6 @@ public class ReportUserCommand extends Command {
 
             } catch (SQLException throwables) {
                 context.makeError("Something went wrong while checking the database, please check with the developer for any errors.").queue();
-                return;
             }
         });
 
@@ -214,6 +211,8 @@ public class ReportUserCommand extends Command {
             return avaire.getBlacklistManager().getPBSTBlacklist().contains(requestedId);
         } else if (c.getGuild().getId().equalsIgnoreCase("572104809973415943")) {
             return avaire.getBlacklistManager().getTMSBlacklist().contains(requestedId);
+        } else if (c.getGuild().getId().equalsIgnoreCase("436670173777362944")) {
+            return avaire.getBlacklistManager().getPETBlacklist().contains(requestedId);
         } else {
             return false;
         }
@@ -368,7 +367,7 @@ public class ReportUserCommand extends Command {
         Button b1 = Button.success("yes", "Yes").withEmoji(Emoji.fromUnicode("✅"));
         Button b2 = Button.danger("no", "No").withEmoji(Emoji.fromUnicode("❌"));
 
-        message.editMessage(context.makeInfo("Ok, so. I've collected everything you've told me. And this is the data I got:\n\n" +
+        message.editMessageEmbeds(context.makeInfo("Ok, so. I've collected everything you've told me. And this is the data I got:\n\n" +
             "**Username**: " + username + "\n" +
             "**Group**: " + dataRow.getString("name") + "\n" + (groupInfo.map(data -> "**Rank**: " + data.getRole().getName() + "\n").orElse("\n")) +
             "**Description**: \n" + description + "\n\n" +
@@ -404,7 +403,7 @@ public class ReportUserCommand extends Command {
             Button b2 = Button.danger("reject:" + message.getId(), "Reject").withEmoji(Emoji.fromUnicode("❌"));
             Button b3 = Button.secondary("remove:" + message.getId(), "Delete").withEmoji(Emoji.fromUnicode("\uD83D\uDEAB"));
 
-            tc.sendMessage(context.makeEmbeddedMessage(new Color(32, 34, 37))
+            tc.sendMessageEmbeds(context.makeEmbeddedMessage(new Color(32, 34, 37))
                 .setAuthor("Report created for: " + username, null, getImageByName(context.guild, username))
                 .setDescription(
                     "**Violator**: " + username + "\n" +

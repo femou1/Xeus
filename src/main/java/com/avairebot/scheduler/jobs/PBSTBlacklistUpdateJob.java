@@ -51,7 +51,7 @@ public class PBSTBlacklistUpdateJob extends Job {
             RequestFactory.makeGET("https://pb-kronos.dev/pbst/blacklist")
                 .addHeader("Access-Key", avaire.getConfig().getString("apiKeys.kronosApiKey"))
                 .send((Consumer<Response>) response -> {
-                    log.info("PBST Blacklist has been requested.");
+                    log.info("PBST Blacklist has been updated.");
                     List service = (List) response.toService(List.class);
                     avaire.getCache().getAdapter(CacheType.FILE).forever(cacheToken, service);
                 });

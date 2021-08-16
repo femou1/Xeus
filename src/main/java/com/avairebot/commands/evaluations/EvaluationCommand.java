@@ -357,9 +357,9 @@ public class EvaluationCommand extends Command {
                                         statement.set("evaluator", context.getMember().getEffectiveName());
                                     });
                                 context.makeSuccess("Successfully updated the record in the database").queue();
-                                avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`"+args[0] + "` has passed the `"+args[2]+"` eval.").buildEmbed()).queue();
+                                avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`"+args[0] + "` has passed the `"+args[2]+"` eval.").requestedBy(context.getMember()).buildEmbed()).queue();
                                 if (avaire.getRobloxAPIManager().getEvaluationManager().getPassedEvals(roblox_id).size() == 3) {
-                                    avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`"+args[0] + "` has now passed all evaluations!").buildEmbed()).queue();
+                                    avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`"+args[0] + "` has now passed all evaluations!").setColor(new Color(255, 215, 0)).buildEmbed()).queue();
                                 }
                             }
 

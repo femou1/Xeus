@@ -94,7 +94,6 @@ import com.sedmelluq.discord.lavaplayer.jdaudp.NativeAudioSendFactory;
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration;
 import com.sedmelluq.discord.lavaplayer.tools.PlayerLibrary;
 import io.sentry.Sentry;
-import io.sentry.SentryClient;
 import io.sentry.logback.SentryAppender;
 import lavalink.client.io.Link;
 import lavalink.client.player.LavalinkPlayer;
@@ -126,14 +125,14 @@ import java.util.concurrent.ScheduledFuture;
 public class AvaIre {
 
     public static final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(
-                    PlaylistTransformer.PlaylistSong.class,
-                    new PlaylistSongSerializer()
-            )
-            .disableHtmlEscaping()
-            .serializeNulls()
-            .setLenient()
-            .create();
+        .registerTypeAdapter(
+            PlaylistTransformer.PlaylistSong.class,
+            new PlaylistSongSerializer()
+        )
+        .disableHtmlEscaping()
+        .serializeNulls()
+        .setLenient()
+        .create();
 
     private static final Logger log = LoggerFactory.getLogger("Xeus");
 
@@ -167,7 +166,6 @@ public class AvaIre {
     private ShardManager shardManager = null;
 
 
-
     public AvaIre(Settings settings) throws IOException, SQLException, InvalidApplicationEnvironmentException {
         this.settings = settings;
         AvaIre.avaire = this;
@@ -192,8 +190,8 @@ public class AvaIre {
         if (!config.exists() || !constants.exists()) {
             getLogger().info("The {} or {} configuration files is missing!", "config.yml", "constants.yml");
             getLogger().info(settings.isGenerateJsonFileMode()
-                    ? "Creating files and skipping terminating process due to command generation flag. "
-                    : "Creating files and terminating program..."
+                ? "Creating files and skipping terminating process due to command generation flag. "
+                : "Creating files and terminating program..."
             );
 
             config.saveDefaultConfig();
@@ -211,8 +209,8 @@ public class AvaIre {
             EnvironmentOverride.overrideWithPrefix("AVA", constants);
         }
 
-        botAdmins = new BotAdmin(this, Collections.unmodifiableSet(new HashSet<>(
-                config.getStringList("botAccess")
+        botAdmins = new BotAdmin(this, Collections.unmodifiableSet(new HashSet <>(
+            config.getStringList("botAccess")
         )));
 
         applicationEnvironment = Environment.fromName(config.getString("environment", Environment.PRODUCTION.getName()));
@@ -315,7 +313,7 @@ public class AvaIre {
         Object commandCategoryStates = cache.getAdapter(CacheType.FILE).get("command-category.toggle");
         if (commandCategoryStates != null) {
             //noinspection SingleStatementInBlock,unchecked,unchecked
-            ((LinkedTreeMap<String, String>) commandCategoryStates).forEach((key, value) -> {
+            ((LinkedTreeMap <String, String>) commandCategoryStates).forEach((key, value) -> {
                 Category category = CategoryHandler.fromLazyName(key);
                 if (category != null) {
                     IsCategoryEnabled.disableCategory(category, value);
@@ -372,7 +370,7 @@ public class AvaIre {
             log.info("Preparations for generating the command file have finished!");
             log.info("Generating file...");
 
-            LinkedHashMap<String, CategoryDataContext> map = CommandHandler.generateCommandMapFrom(null);
+            LinkedHashMap <String, CategoryDataContext> map = CommandHandler.generateCommandMapFrom(null);
 
             try (FileWriter file = new FileWriter("commandMap.json")) {
                 file.write(AvaIre.gson.toJson(map));
@@ -458,25 +456,21 @@ public class AvaIre {
         String sentryDsn = config.getString("sentryDsn", "").trim();
         if (sentryDsn.length() > 0) {
             log.info("SentryDSN found, initializing Sentry.io");
-            SentryClient sentryClient = Sentry.init(sentryDsn);
+            Sentry.init(sentryClient -> {
+                sentryClient.setDsn(sentryDsn);
 
-            sentryClient.addMdcTag(SentryConstants.SENTRY_MDC_TAG_GUILD);
-            sentryClient.addMdcTag(SentryConstants.SENTRY_MDC_TAG_CHANNEL);
-            sentryClient.addMdcTag(SentryConstants.SENTRY_MDC_TAG_SHARD);
-            sentryClient.addMdcTag(SentryConstants.SENTRY_MDC_TAG_AUTHOR);
-            sentryClient.addMdcTag(SentryConstants.SENTRY_MDC_TAG_MESSAGE);
+                sentryClient.setEnvironment(getEnvironment().getName());
+                switch (getEnvironment()) {
+                    case PRODUCTION:
+                        sentryClient.setRelease(GitInfo.getGitInfo().commitId);
+                        break;
 
-            sentryClient.setEnvironment(getEnvironment().getName());
-            switch (getEnvironment()) {
-                case PRODUCTION:
-                    sentryClient.setRelease(GitInfo.getGitInfo().commitId);
-                    break;
+                    default:
+                        sentryClient.setRelease(AppInfo.getAppInfo().version);
+                        break;
+                }
 
-                default:
-                    sentryClient.setRelease(AppInfo.getAppInfo().version);
-                    break;
-            }
-
+            });
             getSentryLogbackAppender().start();
         } else {
             getSentryLogbackAppender().stop();
@@ -683,7 +677,7 @@ public class AvaIre {
 
         FeatureToggleContextHandler.saveToStorage();
 
-        for (ScheduledFuture<?> scheduledFuture : ScheduleHandler.entrySet()) {
+        for (ScheduledFuture <?> scheduledFuture : ScheduleHandler.entrySet()) {
             scheduledFuture.cancel(false);
         }
 
@@ -691,7 +685,7 @@ public class AvaIre {
 
         getLogger().info("Shutting down bot instance gracefully with exit code " + exitCode);
 
-        List<AudioState> audioStates = new ArrayList<>();
+        List <AudioState> audioStates = new ArrayList <>();
         for (GuildMusicManager manager : AudioHandler.getDefaultAudioHandler().musicManagers.values()) {
             if (manager.getLastActiveMessage() != null) {
                 manager.getLastActiveMessage().makeInfo(
@@ -759,7 +753,7 @@ public class AvaIre {
             }
         }
 
-        for (ScheduledFuture<?> job : ScheduleHandler.entrySet()) {
+        for (ScheduledFuture <?> job : ScheduleHandler.entrySet()) {
             job.cancel(true);
         }
 

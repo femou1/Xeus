@@ -33,7 +33,7 @@ import com.avairebot.database.query.QueryBuilder;
 import com.avairebot.database.schema.Schema;
 import com.avairebot.database.seeder.SeederManager;
 import com.avairebot.metrics.Metrics;
-import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
+import com.mysql.cj.jdbc.exceptions.MySQLTransactionRollbackException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;

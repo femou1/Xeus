@@ -114,6 +114,7 @@ public class Constants {
         add("699379074505637908"); // PTE (PBST Tier Evals)
         add("750471488095780966"); // PBA (Pinewood Builders Appeals)
         add("758057400635883580"); // PBOP
+        add("853888061476438017"); // MegaRaidOrg Server
     }};
 
     // BYPASS USERS
@@ -130,7 +131,7 @@ public class Constants {
         add("137235914924490761"); // ood
         add("235086178309636096"); // RogueVader
         add("252228224904331268"); // Supremo
-        add("329668217515540482"); // TenX
+        //add("329668217515540482"); // TenX - Has left
         add("148420768324124672"); // Diddleshot
         add("314505421870333952"); // AnuCat
         add("446775463441072130"); // Oak

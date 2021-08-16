@@ -4,6 +4,7 @@ import com.avairebot.AppInfo;
 import com.avairebot.AvaIre;
 import com.avairebot.Constants;
 import com.avairebot.commands.CommandMessage;
+import com.avairebot.contracts.kronos.TrellobanLabels;
 import com.avairebot.contracts.verification.VerificationEntity;
 import com.avairebot.database.collection.Collection;
 import com.avairebot.database.transformers.GuildTransformer;
@@ -13,11 +14,13 @@ import com.avairebot.requests.service.group.GuildRobloxRanksService;
 import com.avairebot.requests.service.user.inventory.RobloxGamePassService;
 import com.avairebot.requests.service.user.rank.RobloxUserGroupRankService;
 import com.avairebot.roblox.RobloxAPIManager;
+import com.avairebot.roblox.verification.methods.VerificationMethodsManager;
 import com.avairebot.utilities.CacheUtil;
 import com.avairebot.utilities.RoleUtil;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.internal.utils.PermissionUtil;
@@ -47,6 +50,7 @@ public class VerificationManager {
         .build();
     private final AvaIre avaire;
     private final RobloxAPIManager manager;
+    private final VerificationMethodsManager verificationMethodsManager;
     private final ArrayList <Guild> guilde = new ArrayList <>();
     private final HashMap <Long, String> inVerification = new HashMap <>();
 
@@ -67,8 +71,12 @@ public class VerificationManager {
     public VerificationManager(AvaIre avaire, RobloxAPIManager robloxAPIManager) {
         this.avaire = avaire;
         this.manager = robloxAPIManager;
+        this.verificationMethodsManager = new VerificationMethodsManager(avaire, robloxAPIManager);
     }
 
+    public VerificationMethodsManager getVerificationMethodsManager() {
+        return verificationMethodsManager;
+    }
 
     public boolean verify(CommandMessage context, boolean useCache) {
         return verify(context, context.member, useCache);
@@ -83,41 +91,104 @@ public class VerificationManager {
     }
 
     @SuppressWarnings("ConstantConditions")
-    public boolean verify(CommandMessage commandMessage, Member member, boolean useCache) {
-
-        Guild guild = commandMessage.getGuild();
-
-        commandMessage.makeInfo("<a:loading:742658561414266890> Checking verification database <a:loading:742658561414266890>").queue(originalMessage -> {
+    public boolean verify(CommandMessage context, Member member, boolean useCache) {
+        Guild guild = context.getGuild();
+        context.makeInfo("<a:loading:742658561414266890> Checking verification database <a:loading:742658561414266890>").queue(originalMessage -> {
             if (member == null) {
-                errorMessage(commandMessage, "Member entity doesn't exist. Verification cancelled on " + member.getEffectiveName(), originalMessage);
+                errorMessage(context, "Member entity doesn't exist. Verification cancelled on " + member.getEffectiveName(), originalMessage);
                 return;
             }
 
             if (member.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("Xeus Bypass") || r.getName().equalsIgnoreCase("RoVer Bypass"))) {
-                errorMessage(commandMessage, member.getAsMention() + " has the Xeus/RoVer bypass role, this user cannot be verified/updated.", originalMessage);
+                errorMessage(context, member.getAsMention() + " has the Xeus/RoVer bypass role, this user cannot be verified/updated.", originalMessage);
                 return;
             }
 
             VerificationEntity verificationEntity = fetchVerificationWithBackup(member.getId(), useCache);
             if (verificationEntity == null) {
-                errorMessage(commandMessage, "Xeus coudn't find your profile on the Pinewood Database, please verify an account with `!verify`.", originalMessage);
+                errorMessage(context, "Xeus coudn't find your profile on the Pinewood Database, please verify an account with `!verify`.", originalMessage);
                 return;
+            }
+
+
+            HashMap <Long, List <TrellobanLabels>> trellobans = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans();
+            if (trellobans != null) {
+                if (avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().containsKey(verificationEntity.getRobloxId())) {
+                    List<TrellobanLabels> banLabels = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().get(verificationEntity.getRobloxId());
+                    if (banLabels.size() > 0) {
+                        String canAppealRoleId = "834326360628658187";
+                        String trellobanRoleId = "875251061638701086";
+                        boolean canAppeal = true;
+                        boolean isPermenant = false;
+                        for (TrellobanLabels banLabel : banLabels) {
+                            if (banLabel.isPermban()) {
+                                isPermenant = true;
+                            }
+                            if (!banLabel.isAppealable()) {
+                                canAppeal = false;
+                            }
+                        }
+
+                        if (!context.getGuild().getId().equals("750471488095780966")) {
+                            if (canAppeal && isPermenant) {
+                                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message...")).flatMap(m -> m.editMessage(member.getAsMention())
+                                    .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned forever within Pinewood, however you are still allowed to appeal within the PBAC.\n\n" +
+                                        "Your trello-ban has the following labels, I'd suggest sharing these with your ticket handler:)" + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining())).buildEmbed())).queue();
+                            }
+
+                            if (canAppeal && !isPermenant) {
+                                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message...")).flatMap(m -> m.editMessage(member.getAsMention())
+                                    .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned within Pinewood, however you are still allowed to appeal within the PBAC.\n\n" +
+                                        "Your trello-ban has the following labels, I'd suggest sharing these with your ticket handler:" + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining())).buildEmbed())).queue();
+
+                            }
+
+                            if (!canAppeal && isPermenant) {
+                                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Loading ban message...")).flatMap(m -> m.editMessage(member.getAsMention())
+                                    .setEmbeds(MessageFactory.makeSuccess(m, "[You have been trello-banned forever within Pinewood, this ban is permenant, so you're not allowed to appeal it. We wish you a very good day sir, and goodbye.](https://www.youtube.com/watch?v=BXUhfoUJjuQ)").buildEmbed())).queue();
+                                avaire.getShardManager().getTextChannelById("778853992704507945").sendMessage("Loading...").flatMap(message -> message.editMessage("Shut the fuck up.").setEmbeds(MessageFactory.makeInfo(message, member.getAsMention() + " tried to verify in `"+context.guild.getName()+"`. However, this person has a permenant trelloban to his name. He has been sent the STFU video (If his DM's are on) and have been global-banned.").buildEmbed())).queue();
+                            }
+                            TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
+                            if (tc != null) {
+                                tc.sendMessageEmbeds(context.makeInfo("[``:global-unbanned-id`` has tried to verify in "+guild.getName()+" but was trello banned, and has been global-banned. His labels are:](:link):\n" +
+                                    "```:reason```").set("global-unbanned-id", verificationEntity.getRobloxId()).set("reason", banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining())).set("user", "XEUS AUTO BAN").set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+                            }
+                            GlobalBanMember(context, member.getId(), "User was trello banned, due to this. He's not allowed in guilds. *DO NOT REVOKE THIS BAN WITHOUT PRIOR AUTHORISATION FROM A FACILITATOR*");
+                            return;
+                        } else {
+                            if (canAppeal) {
+                                context.guild.modifyMemberRoles(context.member, context.guild.getRoleById(canAppealRoleId)).queue();
+                                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message...")).flatMap(m -> m.editMessage(member.getAsMention())
+                                    .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned within Pinewood, [however you are still allowed to appeal within the PBAC]().\n\n" +
+                                        "Your trello-ban has the following labels, I'd suggest sharing these with your ticket handler:" + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining())).buildEmbed())).queue();
+                            }
+
+                            if (!canAppeal && isPermenant) {
+                                context.guild.modifyMemberRoles(context.member, context.guild.getRoleById(trellobanRoleId)).queue();
+                                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Loading ban message...")).flatMap(m -> m.editMessage(member.getAsMention())
+                                    .setEmbeds(MessageFactory.makeSuccess(m, "[You have been trello-banned forever within Pinewood, this ban is permenant, so you're not allowed to appeal it. We wish you a very good day sir, and goodbye.](https://www.youtube.com/watch?v=BXUhfoUJjuQ)").buildEmbed())).queue();
+                                avaire.getShardManager().getTextChannelById("778853992704507945").sendMessage("Loading...").flatMap(message -> message.editMessage("Shut the fuck up.").setEmbeds(MessageFactory.makeInfo(message, member.getAsMention() + " has a permanent trelloban. They have been sent the STFU video (if their DMs are on).").buildEmbed())).queue();
+                            }
+                        }
+                    }
+                }
             }
 
             if (!Constants.piaMembers.contains(member.getId())) {
                 for (String userId : Constants.piaMembers) {
-                    Member m = commandMessage.getGuild().getMemberById(userId);
+                    Member m = context.getGuild().getMemberById(userId);
                     if (m != null) {
                         if (member.getEffectiveName().contains(m.getEffectiveName()) ||
                             member.getEffectiveName().contains(m.getUser().getName()) ||
                             member.getEffectiveName().equals(m.getEffectiveName()) ||
                             member.getEffectiveName().equals(m.getUser().getName())) {
-                            errorMessage(commandMessage, "Please do not try to join the server as a PIA Moderator or higher, usernames are checked on join. Violation of this rule can be punished by being banned across the entire Pinewood Community.", originalMessage);
+                            errorMessage(context, "Please do not try to join the server as a PIA Moderator or higher, usernames are checked on join. Violation of this rule can be punished by being banned across the entire Pinewood Community.", originalMessage);
                             return;
                         }
                     }
                 }
             }
+
 
             try {
                 Collection accounts = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", verificationEntity.getRobloxId()).orWhere("roblox_username", verificationEntity.getRobloxUsername()).get();
@@ -134,29 +205,29 @@ public class VerificationManager {
 
                     TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
                     if (tc != null) {
-                        tc.sendMessageEmbeds(commandMessage.makeInfo("[``:global-unbanned-id`` was auto-global-banned from all discords by :user for](:link):\n" +
-                            "```:reason```").set("global-unbanned-id", verificationEntity.getRobloxId()).set("reason", accounts.get(0).getString("reason")).set("user", "XEUS AUTO BAN").set("link", commandMessage.getMessage().getJumpUrl()).buildEmbed()).queue();
+                        tc.sendMessageEmbeds(context.makeInfo("[``:global-unbanned-id`` was auto-global-banned from all discords by :user for](:link):\n" +
+                            "```:reason```").set("global-unbanned-id", verificationEntity.getRobloxId()).set("reason", accounts.get(0).getString("reason")).set("user", "XEUS AUTO BAN").set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
                     }
 
-                    if (commandMessage.getGuildTransformer() != null) {
-                        GuildTransformer transformer = commandMessage.getGuildTransformer();
-                        if (transformer.getMemberToYoungChannelId() != null && commandMessage.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()) != null) {
-                            MessageFactory.makeEmbeddedMessage(commandMessage.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()), new Color(255, 0, 0))
-                                .setThumbnail(commandMessage.getAuthor().getEffectiveAvatarUrl())
+                    if (context.getGuildTransformer() != null) {
+                        GuildTransformer transformer = context.getGuildTransformer();
+                        if (transformer.getMemberToYoungChannelId() != null && context.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()) != null) {
+                            MessageFactory.makeEmbeddedMessage(context.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()), new Color(255, 0, 0))
+                                .setThumbnail(context.getAuthor().getEffectiveAvatarUrl())
                                 .setDescription("A global-banned user just tried to verify within this guild, user has been banned from all guilds and has been sent a message in DM's.").requestedBy(member).queue();
                         }
                     }
 
-                    if (commandMessage.getMember() != null) {
+                    if (context.getMember() != null) {
                         member.getUser().openPrivateChannel().queue(p -> {
                             try {
-                                p.sendMessageEmbeds(commandMessage.makeInfo(
+                                p.sendMessageEmbeds(context.makeInfo(
                                     "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Moderator. " +
                                         "For the reason: *```" + accounts.get(0).getString("reason") + "```\n\n" +
                                         "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
                                         "https://discord.gg/mWnQm25").setColor(Color.BLACK).buildEmbed()).queue();
                             } catch (ErrorResponseException e) {
-                                originalMessage.editMessageEmbeds(commandMessage.makeInfo(
+                                originalMessage.editMessageEmbeds(context.makeInfo(
                                     "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Moderator. " +
                                         "For the reason: ```" + accounts.get(0).getString("reason") + "```\n\n" +
                                         "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
@@ -164,60 +235,66 @@ public class VerificationManager {
                             }
                         });
                     }
-                    GlobalBanMember(commandMessage, String.valueOf(verificationEntity.getDiscordId()), "User has been global-banned by PIA. This is automatic ban. | " + accounts.get(0).getString("reason"));
+                    GlobalBanMember(context, String.valueOf(verificationEntity.getDiscordId()), "User has been global-banned by PIA. This is automatic ban. | " + accounts.get(0).getString("reason"));
 
                     avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", verificationEntity.getRobloxId())
                         .orWhere("roblox_username", verificationEntity.getRobloxUsername())
                         .update(p -> p.set("userId", member.getUser().getId()));
-                    if (!commandMessage.getGuild().getId().equalsIgnoreCase("750471488095780966")) return;
+                    if (!context.getGuild().getId().equalsIgnoreCase("750471488095780966")) return;
                 }
             } catch (SQLException throwables) {
-                commandMessage.makeWarning("Something went wrong checking the PIA Anti-Unban table. Please check with the developer (`Stefano#7366`)").queue(k -> {
+                context.makeWarning("Something went wrong checking the PIA Anti-Unban table. Please check with the developer (`Stefano#7366`)").queue(k -> {
                     k.delete().queueAfter(15, TimeUnit.SECONDS);
                 });
                 throwables.printStackTrace();
                 return;
             }
 
-            if (commandMessage.getGuild().getId().equals("438134543837560832")) {
+            if (context.getGuild().getId().equals("438134543837560832")) {
                 if (avaire.getBlacklistManager().getPBSTBlacklist().contains(verificationEntity.getRobloxId())) {
-                    errorMessage(commandMessage, "You're blacklisted on PBST, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
+                    errorMessage(context, "You're blacklisted on PBST, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
                         "https://discord.gg/mWnQm25", originalMessage);
                     return;
                 }
-            } else if (commandMessage.getGuild().getId().equals("572104809973415943")) {
+            } else if (context.getGuild().getId().equals("572104809973415943")) {
                 if (avaire.getBlacklistManager().getTMSBlacklist().contains(verificationEntity.getRobloxId())) {
-                    errorMessage(commandMessage, "You're blacklisted on TMS, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
+                    errorMessage(context, "You're blacklisted on TMS, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
                         "https://discord.gg/mWnQm25", originalMessage);
                     return;
                 }
-            } else if (commandMessage.getGuild().getId().equalsIgnoreCase("498476405160673286")) {
+            } else if (context.getGuild().getId().equalsIgnoreCase("498476405160673286")) {
                 if (avaire.getBlacklistManager().getPBMBlacklist().contains(verificationEntity.getRobloxId())) {
-                    errorMessage(commandMessage, "You're blacklisted on PBM, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
+                    errorMessage(context, "You're blacklisted on PBM, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
+                        "https://discord.gg/mWnQm25", originalMessage);
+                    return;
+                }
+            } else if (context.getGuild().getId().equalsIgnoreCase("436670173777362944")) {
+                if (avaire.getBlacklistManager().getPETBlacklist().contains(verificationEntity.getRobloxId())) {
+                    errorMessage(context, "You're blacklisted on PET, access to the server has been denied.\n" + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
                         "https://discord.gg/mWnQm25", originalMessage);
                     return;
                 }
             }
 
-            VerificationTransformer verificationTransformer = commandMessage.getVerificationTransformer();
+            VerificationTransformer verificationTransformer = context.getVerificationTransformer();
             if (verificationTransformer == null) {
-                errorMessage(commandMessage, "The VerificationTransformer seems to have broken, please consult the developer of the bot.", originalMessage);
+                errorMessage(context, "The VerificationTransformer seems to have broken, please consult the developer of the bot.", originalMessage);
                 return;
             }
 
             if (verificationTransformer.getNicknameFormat() == null) {
-                errorMessage(commandMessage, "The nickname format is not set (Wierd, it's the default but ok).", originalMessage);
+                errorMessage(context, "The nickname format is not set (Wierd, it's the default but ok).", originalMessage);
                 return;
             }
 
             if (verificationTransformer.getRanks() == null || verificationTransformer.getRanks().length() < 2) {
-                errorMessage(commandMessage, "Ranks have not been setup on this guild yet. Please ask the admins to setup the roles on this server.", originalMessage);
+                errorMessage(context, "Ranks have not been setup on this guild yet. Please ask the admins to setup the roles on this server.", originalMessage);
                 return;
             }
 
             List <RobloxUserGroupRankService.Data> robloxRanks = manager.getUserAPI().getUserRanks(verificationEntity.getRobloxId());
             if (robloxRanks == null || robloxRanks.size() == 0) {
-                errorMessage(commandMessage, verificationEntity.getRobloxUsername() + " does not have any ranks or groups on his name.", originalMessage);
+                errorMessage(context, verificationEntity.getRobloxUsername() + " does not have any ranks or groups on his name.", originalMessage);
                 return;
             }
 
@@ -266,12 +343,12 @@ public class VerificationManager {
             });
 
             //Collect the toAdd and toRemove roles from the previous maps
-            java.util.Collection <Role> rolesToAdd = bindingRoleAddMap.values().stream().filter(role -> RoleUtil.canBotInteractWithRole(commandMessage.getMessage(), role)).collect(Collectors.toList()),
+            java.util.Collection <Role> rolesToAdd = bindingRoleAddMap.values().stream().filter(role -> RoleUtil.canBotInteractWithRole(context.getMessage(), role)).collect(Collectors.toList()),
                 rolesToRemove = bindingRoleMap.values()
-                    .stream().filter(role -> !bindingRoleAddMap.containsValue(role) && RoleUtil.canBotInteractWithRole(commandMessage.getMessage(), role)).collect(Collectors.toList());
+                    .stream().filter(role -> !bindingRoleAddMap.containsValue(role) && RoleUtil.canBotInteractWithRole(context.getMessage(), role)).collect(Collectors.toList());
 
             if (verificationTransformer.getVerifiedRole() != 0) {
-                Role r = commandMessage.getGuild().getRoleById(verificationTransformer.getVerifiedRole());
+                Role r = context.getGuild().getRoleById(verificationTransformer.getVerifiedRole());
                 if (r != null) {
                     rolesToAdd.add(r);
                 }
@@ -282,10 +359,14 @@ public class VerificationManager {
             guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove)
                 .queue(unused -> {
                     stringBuilder.append("\n\n**Succesfully changed roles!**");
-                }, throwable -> commandMessage.makeError(throwable.getMessage()));
+                }, throwable -> context.makeError(throwable.getMessage()));
 
-            String rolesToAddAsString = "\nRoles to add:\n" + (rolesToAdd.size() > 0
-                ? (rolesToAdd.stream().map(role -> "- `" + role.getName() + "`")
+            String rolesToAddAsString = "__**`" + member.getEffectiveName() + "`**__\nRoles to add:\n" + (rolesToAdd.size() > 0
+                ? (rolesToAdd.stream().map(role -> {if (role.hasPermission(Permission.BAN_MEMBERS)) {
+                return "- **" + role.getName() + "**";
+            } else {
+                return "- " + role.getName();
+            }})
                 .collect(Collectors.joining("\n"))) : "No roles have been added");
             stringBuilder.append(rolesToAddAsString);
 
@@ -297,14 +378,14 @@ public class VerificationManager {
 
             if (!verificationEntity.getRobloxUsername().equals(member.getEffectiveName())) {
                 if (PermissionUtil.canInteract(guild.getSelfMember(), member)) {
-                    commandMessage.getGuild().modifyNickname(member, verificationTransformer.getNicknameFormat().replace("%USERNAME%", verificationEntity.getRobloxUsername())).queue();
+                    context.getGuild().modifyNickname(member, verificationTransformer.getNicknameFormat().replace("%USERNAME%", verificationEntity.getRobloxUsername())).queue();
                     stringBuilder.append("\n\nNickname has been set to `").append(verificationEntity.getRobloxUsername()).append("`");
                 } else {
-                    commandMessage.makeError("I do not have the permission to modify your nickname, or your highest rank is above mine.").queue();
+                    context.makeError("I do not have the permission to modify your nickname, or your highest rank is above mine.").queue();
                     stringBuilder.append("\n\nChanging nickname failed :(");
                 }
             }
-            originalMessage.editMessageEmbeds(commandMessage.makeSuccess(stringBuilder.toString()).buildEmbed()).queue();
+            originalMessage.editMessageEmbeds(context.makeSuccess(stringBuilder.toString()).setThumbnail(getImageFromVerificationEntity(verificationEntity)).buildEmbed()).queue();
         });
 
         return false;
@@ -517,5 +598,17 @@ public class VerificationManager {
 
     public HashMap <Long, String> getInVerification() {
         return inVerification;
+    }
+
+
+    private boolean isTrelloBanned(VerificationEntity verificationEntity) {
+        return avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().containsKey(verificationEntity.getRobloxId());
+    }
+
+    private String getImageFromVerificationEntity(VerificationEntity ve) {
+        if (ve == null) {
+            return null;
+        }
+        return "https://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&userid=" + ve.getRobloxId();
     }
 }
