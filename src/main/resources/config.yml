@@ -1,6 +1,6 @@
 #
 #--------------------------------------------------------------------------
-# Welcome to the AvaIre Configuration
+# Welcome to the Xeus Configuration
 #--------------------------------------------------------------------------
 #
 # Below you'll find all the configurable options for Ava, if you're using
@@ -26,7 +26,7 @@
 # since having the console flooded with information can be very
 # overwhelming if you don't know what you're looking at.
 #
-# AvaIre supports two different environments, "production" and "development"
+# Xeus supports two different environments, "production" and "development"
 #
 # Production is used for minimal console output and for all parts of the
 # application to be enabled. Development is used for debugging messages
@@ -49,7 +49,7 @@ environment: 'production'
 # name, then click on "Create a Bot User", and you're good to go!
 # https://discordapp.com/developers/applications/me
 #
-# AvaIre needs your Discord application token to login and interact with
+# Xeus needs your Discord application token to login and interact with
 # users, and optionally the application ID for handling music using
 # Lavalink instead of doing it internally, you can also use the
 # application ID to create a invite link for your bot.
@@ -82,10 +82,10 @@ discord:
 # Database Information
 #--------------------------------------------------------------------------
 #
-# AvaIre uses a database for storing things like custom prefixes, playlists,
+# Xeus uses a database for storing things like custom prefixes, playlists,
 # user XP and levels, statistics, autoroles, aliases and everything else.
 #
-# AvaIre currently supports MySQL and SQLite database types, with support for
+# Xeus currently supports MySQL and SQLite database types, with support for
 # more types coming in the future, to get started simply just populate the
 # fields below with your database login information.
 #
@@ -170,7 +170,7 @@ database:
 # All internal commands registered with Ava will be linked to a command
 # category, each category has a default prefix which are used for all
 # commands linked to that category, below you can set the default
-# prefix used by all the official AvaIre command categories.
+# prefix used by all the official Xeus command categories.
 #
 # Note: Plugins that adds commands and categories to the Ava registry doesn't
 # necessarily have to follow the default prefix set below, check in with the

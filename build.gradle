@@ -8,10 +8,10 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'idea'
 
-version = '1.4.3'
+version = '2.0.0'
 group = 'com.pinewoodbuilders'
 description = 'Xeus Discord Bot'
-mainClassName = 'com.avairebot.Main'
+mainClassName = 'com.pinewoodbuilders.Main'
 
 sourceCompatibility = 11
 targetCompatibility = 11
@@ -41,7 +41,7 @@ task fatJar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'Xeus: Pinewood Discord Bot',
             'Implementation-Version': getArchiveVersion(),
-            'Main-Class': 'com.avairebot.Main'
+            'Main-Class': 'com.pinewoodbuilders.Main'
     }
 
     getArchiveBaseName().set(project.name)
@@ -78,10 +78,6 @@ repositories {
 dependencies {
     compile group: 'com.avairebot', name: 'Shared', version: '80809049d2'
     compile group: 'net.dv8tion', name: 'JDA', version: '4.3.0_309'
-    compile group: 'com.sedmelluq', name: 'lavaplayer', version: '1.3.78'
-    compile group: 'com.sedmelluq', name: 'lavaplayer-ext-youtube-rotator', version: '0.2.3'
-    compile group: 'com.sedmelluq', name: 'jda-nas', version: '1.1.0'
-    compile group: 'com.github.FredBoat', name: 'Lavalink-Client', version: '4.0'
 
     compile group: 'commons-cli', name: 'commons-cli', version: '1.3.1'
     compile group: 'org.apache.commons', name: 'commons-text', version: '1.9'
@@ -92,7 +88,6 @@ dependencies {
     compile group: 'com.google.code.gson', name: 'gson', version: '2.8.7'
     compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.26'
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.36.0.1'
-    compile group: 'ai.api', name: 'libai', version: '1.6.12'
 
     compile group: 'com.sparkjava', name: 'spark-core', version: '2.9.3'
     compile group: 'io.prometheus', name: 'simpleclient', version: '0.11.0'
@@ -107,8 +102,8 @@ dependencies {
     compile group: 'io.sentry', name: 'sentry-logback', version: '5.1.0-beta.9'
     compile group: 'org.reflections', name: 'reflections', version: '0.9.12'
 
-    // JDA Utils
-    compile 'com.jagrosh:jda-utilities:3.0.5'
+    // JDA Util
+    compile 'com.github.JDA-Applications.JDA-Utilities:jda-utilities:master-SNAPSHOT'
 
     // Gitlab API
     compile group: 'org.gitlab4j', name: 'gitlab4j-api', version: '4.17.0'

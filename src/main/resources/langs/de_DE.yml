@@ -82,7 +82,7 @@ administration:
     invalidAmountGiven: "Die Eigenschaft `amount` muss zwischen 1 und {0} sein, um XP von einem Benutzer hinzuzufügen oder zu nehmen."
     aboutToResetEverything: "Du bist dabei die XP für alle auf dem gesamten Server zurückzusetzen. Wenn du sicher bist, dass du fortfahren willst, führe den Befehl aus, um die Server XP komplett zurückzusetzen.\n\n```:command server-reset :token```\nDieser Befehl funktioniert nur für 60 Sekunden. danach wird das Token ungültig und das Kommando muss erneut ausgeführt werden, um einen neuen Token zu erhalten."
     aboutToSyncEverything: "Du bist dabei, die XP mit der globalen Rangliste zu synchronisieren. Das wird effektiv alle benutzerdefinierten XP-Änderungen auf dem gesamten Server rückgängig machen. Wenn Du sicher bist, dass Du trotzdem fortfahren willst, führe den Befehl aus, um die Server XP komplett zu synchronisieren.\n\n```:command server-sync :token`\nDieser Befehl funktioniert nur für 60 Sekunden, danach wird der Token ungültig und der Befehl muss erneut ausgeführt werden, um einen neuen Token zu erhalten."
-    failedToSaveChanges: "Fehler beim Versuch die Änderungen in der Datenbank zu speichern. Bitte versuche es erneut. Bei weiterem Misslingen bitten wir dich uns auf unserem offiziellen Discordserver zu kontaktieren: [AvaIre support server](https://avairebot.com/support)"
+    failedToSaveChanges: "Fehler beim Versuch die Änderungen in der Datenbank zu speichern. Bitte versuche es erneut. Bei weiterem Misslingen bitten wir dich uns auf unserem offiziellen Discordserver zu kontaktieren: [Xeus support server](https://avairebot.com/support)"
     mustBeAnAdmin: "Du musst Serveradmin sein, um diese Aktion ausführen zu können."
     invalidSecurityToken: "Ungültiger Sicherheitsschlüssel angegeben. Bitte gebe den korrekten Schlüssel ein, um die XP von allen Servern zurückzusetzen."
     warning: "Warnung!"
@@ -136,7 +136,7 @@ administration:
     invalidChannel: "Ungültigen Channel angegeben. Der Channel muss ein gültiger Textchannel sein."
     cantTalkInChannel: "Ich kann nicht im Channel {0} nicht schreiben. Daher wird keiner für das Schreiben in dem Channel belohnt. Wenn du möchtest, dass ich anderen dafür XP gebe, bitte teile mir die Berechtigung zum Senden von Nachrichten zu."
     noChannelsWithRewardsDisabled: "Es gibt derzeit keine Channels mit dem Level Rewards, die deaktiviert sind. Du kannst welche mit dem `{0} <channel>` Befehl hinzufügen."
-    failedToUpdate: "Fehler beim Versuch die Änderungen in der Datenbank zu speichern. Bitte versuche es erneut. Bei weiterem Misslingen bitten wir dich uns auf unserem offiziellen Discordserver zu kontaktieren: [AvaIre support server](https://avairebot.com/support)"
+    failedToUpdate: "Fehler beim Versuch die Änderungen in der Datenbank zu speichern. Bitte versuche es erneut. Bei weiterem Misslingen bitten wir dich uns auf unserem offiziellen Discordserver zu kontaktieren: [Xeus support server](https://avairebot.com/support)"
     listChannels: "Alle unten erwähnten Channels haben derzeit Level Rewards deaktiviert. Jeder Channel, der nicht in der Liste steht, ist unbetroffen. \n\n:channels"
     listChannelsTitle: "Channels mit Level Rewards deaktivert ({0})"
     success: "Die XP Rewards für den :channel Channel wurden **:status**!"
@@ -882,17 +882,12 @@ utility:
     fields:
       weatherFor: "Wetter für {0}, {1}"
       country: "Land"
-<<<<<<< HEAD
-      temperature: "Temperature"
-      windDirection: "Wind Direction"
-      windSpeed: "Wind Speed"
+
+temperature: "Temperatur"
+windDirection: "Windrichtung"
+windSpeed: "Windgeschwindigkeit"
 economy:
   BaltopCommand:
     title: "Balance leaderboard for guild {0}"
     yourRank: "Your rank"
     line: '`:num` **:username** **:balance**.'
-=======
-      temperature: "Temperatur"
-      windDirection: "Windrichtung"
-      windSpeed: "Windgeschwindigkeit"
->>>>>>> master
