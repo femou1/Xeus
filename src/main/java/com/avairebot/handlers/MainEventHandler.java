@@ -254,6 +254,9 @@ public class MainEventHandler extends EventHandler {
                         messageEvent.onPBSTEventGalleryMessageSent(event);
                     }
                 }
+                if (event.getChannel().getId().equals("871890084121673738")) {
+                    messageEvent.sendPBACRaidVoteEmojis(event);
+                }
             }
 
         }

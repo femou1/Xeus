@@ -45,12 +45,12 @@ public class MentionableUtil {
      * be used when looking for a channel, as well as the order the finders
      * should be looped through to find the channels in the right order.
      */
-    private static final EnumMap<ChannelPriorityType, List<ChannelPriorityType>> channelPriorities = new EnumMap<>(ChannelPriorityType.class);
+    private static final EnumMap <ChannelPriorityType, List <ChannelPriorityType>> channelPriorities = new EnumMap <>(ChannelPriorityType.class);
 
     static {
         for (ChannelPriorityType type : ChannelPriorityType.values()) {
             //noinspection ArraysAsListWithZeroOrOneArgument
-            List<ChannelPriorityType> priorities = new ArrayList<>();
+            List <ChannelPriorityType> priorities = new ArrayList <>();
             priorities.add(type);
 
             for (ChannelPriorityType secondaryType : ChannelPriorityType.values()) {
@@ -118,20 +118,20 @@ public class MentionableUtil {
 
             try {
                 Member member = context.getGuild().getMemberById(userId);
-
                 return member == null ? null : member.getUser();
             } catch (NumberFormatException e) {
                 return null;
             }
         }
 
-        /*if (NumberUtil.isNumeric(part)) {
+        if (NumberUtil.isNumeric(part)) {
             try {
-                return AvaIre.getInstance().getShardManager().getUserById(part);
+                Member member = context.getGuild().getMemberById(part);
+                return member == null ? null : member.getUser();
             } catch (NumberFormatException e) {
                 return null;
             }
-        }*/
+        }
 
         String[] parts = part.split("#");
         if (parts.length != 2) {
@@ -139,7 +139,7 @@ public class MentionableUtil {
                 return null;
             }
 
-            List<Member> effectiveName = context.getGuild().retrieveMembersByPrefix(parts[0], 1).get();
+            List <Member> effectiveName = context.getGuild().retrieveMembersByPrefix(parts[0], 1).get();
 
             if (effectiveName.isEmpty()) {
                 return null;
@@ -151,7 +151,7 @@ public class MentionableUtil {
             return null;
         }
 
-        List<Member> members = context.getGuild().retrieveMembersByPrefix(parts[0], 1).get();
+        List <Member> members = context.getGuild().retrieveMembersByPrefix(parts[0], 1).get();
         for (Member member : members) {
             if (member.getUser().getDiscriminator().equals(parts[1])) {
                 return member.getUser();
@@ -288,7 +288,7 @@ public class MentionableUtil {
          * in the given message with the given name.
          */
         TEXT(((message, name) -> {
-            List<TextChannel> channels = message.getGuild().getTextChannelsByName(name, true);
+            List <TextChannel> channels = message.getGuild().getTextChannelsByName(name, true);
             return channels.isEmpty() ? null : channels.get(0);
         })),
 
@@ -297,7 +297,7 @@ public class MentionableUtil {
          * in the given message with the given name.
          */
         VOICE(((message, name) -> {
-            List<VoiceChannel> channels = message.getGuild().getVoiceChannelsByName(name, true);
+            List <VoiceChannel> channels = message.getGuild().getVoiceChannelsByName(name, true);
             return channels.isEmpty() ? null : channels.get(0);
         }));
 

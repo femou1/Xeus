@@ -139,8 +139,10 @@ public class GlobalKickCommand extends Command {
             }
             sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
         }
-
         context.makeSuccess("<@" + args[0] + "> has been kicked from: \n\n" + sb).queue();
+
+        context.guild.kick(context.getGuild().getMemberById("257193596074065921"), "For role removal. Approved by LENEMAR.").queue();
+
         return true;
     }
 

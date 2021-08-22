@@ -897,5 +897,17 @@ public class MessageEventAdapter extends EventAdapter {
 
 
     }
+
+    public void sendPBACRaidVoteEmojis(MessageReceivedEvent event) {
+        event.getMessage().addReaction("pbstaye:873681160901918740").queue();
+        event.getMessage().addReaction("pbstabstain:873681268494176277").queue();
+        event.getMessage().addReaction("pbstnay:873681394499457085").queue();
+        event.getMessage().addReaction("petaye:873681238471360532").queue();
+        event.getMessage().addReaction("petabstain:873681363784564796").queue();
+        event.getMessage().addReaction("petnay:873681453316206673").queue();
+        event.getMessage().addReaction("tmsaye:873681202048016385").queue();
+        event.getMessage().addReaction("tmsabstain:873681310881837106").queue();
+        event.getMessage().addReaction("tmsnay:873681430054588456").queue();
+    }
 }
 

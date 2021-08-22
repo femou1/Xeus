@@ -139,7 +139,7 @@ public class JDAStateEventAdapter extends EventAdapter {
             }
 
             connectedChannels++;
-            textChannel.sendMessage(MessageFactory.createEmbeddedBuilder()
+            textChannel.sendMessageEmbeds(MessageFactory.createEmbeddedBuilder()
                 .setDescription(I18n.getString(guild, "music.internal.resumeMusic"))
                 .build()).queue(message -> {
 
@@ -148,7 +148,7 @@ public class JDAStateEventAdapter extends EventAdapter {
                 );
 
                 if (!voiceConnectStatus.isSuccess()) {
-                    message.editMessage(MessageFactory.createEmbeddedBuilder()
+                    message.editMessageEmbeds(MessageFactory.createEmbeddedBuilder()
                         .setColor(MessageType.WARNING.getColor())
                         .setDescription(voiceConnectStatus.getErrorMessage())
                         .build()
