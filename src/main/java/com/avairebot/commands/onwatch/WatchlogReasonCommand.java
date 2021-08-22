@@ -197,7 +197,7 @@ public class WatchlogReasonCommand extends Command {
                     embeddedBuilder.addField("Reason", reason, field.isInline());
                 }
 
-                message.editMessage(embeddedBuilder.build()).queue(newMessage -> {
+                message.editMessageEmbeds(embeddedBuilder.build()).queue(newMessage -> {
                     context.makeSuccess(context.i18n("success"))
                         .set("id", caseId)
                         .set("reason", reason)

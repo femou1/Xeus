@@ -147,7 +147,7 @@ public class GroupShoutCommand extends Command {
 
             TextChannel tc = context.getGuild().getTextChannelById(context.getGuildTransformer().getAuditLogChannel());
             if (tc != null) {
-                tc.sendMessage(context.makeWarning("The following was sent to the [group](https://www.roblox.com/groups/:RobloxID) shout by **:memberAsMention**:\n```:message```")
+                tc.sendMessageEmbeds(context.makeWarning("The following was sent to the [group](https://www.roblox.com/groups/:RobloxID) shout by **:memberAsMention**:\n```:message```")
                     .set("RobloxID", context.getGuildTransformer().getRobloxGroupId())
                     .set("message", message)
                     .set("memberAsMention", context.getMember().getAsMention()).buildEmbed()).queue();

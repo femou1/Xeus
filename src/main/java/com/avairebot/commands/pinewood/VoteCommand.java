@@ -463,7 +463,7 @@ public class VoteCommand extends Command {
 
                         String description = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
                         avaire.getShardManager().getTextChannelById(gt.getVoteValidationChannel())
-                            .sendMessage(context.makeEmbeddedMessage(new Color(54, 57, 63)).setAuthor(context.getAuthor().getName() + "#" + context.getAuthor().getDiscriminator() + " - " + args[1], null, context.getAuthor().getEffectiveAvatarUrl())
+                            .sendMessageEmbeds(context.makeEmbeddedMessage(new Color(54, 57, 63)).setAuthor(context.getAuthor().getName() + "#" + context.getAuthor().getDiscriminator() + " - " + args[1], null, context.getAuthor().getEffectiveAvatarUrl())
                                 .setDescription(description).setFooter(args[0]).setTimestamp(Instant.now()).buildEmbed()).queue(message -> {
                             try {
                                 QueryBuilder ivote = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTE_TABLE_NAME);

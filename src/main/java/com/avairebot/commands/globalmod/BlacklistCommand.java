@@ -196,7 +196,7 @@ public class BlacklistCommand extends Command {
 
         TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
         if (tc != null) {
-            tc.sendMessage(context.makeInfo("[<@:id> **(``:id``)** was blacklisted from Xeus everywhere in ``:guild`` by :punisher](:link)")
+            tc.sendMessageEmbeds(context.makeInfo("[<@:id> **(``:id``)** was blacklisted from Xeus everywhere in ``:guild`` by :punisher](:link)")
                 .set("id", id)
                 .set("guild", context.getGuild().getName())
                 .set("punisher", context.getMember().getAsMention())

@@ -121,7 +121,7 @@ public class MuteRatelimit {
         String guildName = g != null ? g.getName() : "``GUILD NOT AVAILABLE``";
 
         user.openPrivateChannel().queue(channel -> {
-            channel.sendMessage(MessageFactory.createEmbeddedBuilder()
+            channel.sendMessageEmbeds(MessageFactory.createEmbeddedBuilder()
                 .setColor(Color.decode("#A5306B"))
                 .setTitle("Whoa there!", "https://xeus.pinewood-builders.com/")
                 .setFooter("Expires", null)
@@ -145,7 +145,7 @@ public class MuteRatelimit {
      * @param expires The carbon time instance for when the blacklist expires.
      */
     public void sendBlacklissendtMessage(MessageChannel channel, Carbon expires) {
-        channel.sendMessage(MessageFactory.createEmbeddedBuilder()
+        channel.sendMessageEmbeds(MessageFactory.createEmbeddedBuilder()
             .setColor(Color.decode("#A5306B"))
             .setTitle("Whoa there!", "https://xeus.pinewood-builders.com/")
             .setFooter("Expires", null)

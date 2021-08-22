@@ -215,7 +215,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                             if (message.getEmbeds().size() > 0) {
                                 try {
                                     if (e.getReactionEmote().getName().equals("✅")) {
-                                        message.editMessage(MessageFactory.makeEmbeddedMessage(message.getTextChannel(), new Color(0, 255, 0))
+                                        message.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(message.getTextChannel(), new Color(0, 255, 0))
                                             .setAuthor(message.getEmbeds().get(0).getAuthor().getName(), null, message.getEmbeds().get(0).getAuthor().getIconUrl())
                                             .setDescription(message.getEmbeds().get(0).getDescription())
                                             .setFooter(message.getEmbeds().get(0).getFooter().getText() + " | Accepted by: " + e.getMember().getEffectiveName())
@@ -226,7 +226,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                         if (c.size() > 0) {
                                             User u = avaire.getShardManager().getUserById(c.get(0).getLong("voter_user_id"));
                                             if (u != null) {
-                                                u.openPrivateChannel().queue(v -> v.sendMessage(MessageFactory.makeEmbeddedMessage(e.getChannel()).setDescription("Congrats! Your vote for ``:Us`` has been approved. This means your vote is within against the total!")
+                                                u.openPrivateChannel().queue(v -> v.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel()).setDescription("Congrats! Your vote for ``:Us`` has been approved. This means your vote is within against the total!")
                                                     .set("Us", c.get(0).getString("voted_for")).buildEmbed()).queue());
                                             }
 
@@ -236,7 +236,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                 });
                                         }
                                     } else if (e.getReactionEmote().getName().equals("❌")) {
-                                        message.editMessage(MessageFactory.makeEmbeddedMessage(message.getTextChannel(), new Color(255, 0, 0))
+                                        message.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(message.getTextChannel(), new Color(255, 0, 0))
                                             .setAuthor(message.getEmbeds().get(0).getAuthor().getName(), null, message.getEmbeds().get(0).getAuthor().getIconUrl())
                                             .setDescription(message.getEmbeds().get(0).getDescription())
                                             .setFooter(message.getEmbeds().get(0).getFooter().getText() + " | Denied by: " + e.getMember().getEffectiveName())
@@ -247,7 +247,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                         if (c.size() > 0) {
                                             User u = avaire.getShardManager().getUserById(c.get(0).getLong("voter_user_id"));
                                             if (u != null) {
-                                                u.openPrivateChannel().queue(v -> v.sendMessage(MessageFactory.makeEmbeddedMessage(e.getChannel()).setDescription("Sorry, but your vote for ``:Us`` has been rejected. Please vote again (Might have to be with a better reason) if you want to vote for this person.")
+                                                u.openPrivateChannel().queue(v -> v.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel()).setDescription("Sorry, but your vote for ``:Us`` has been rejected. Please vote again (Might have to be with a better reason) if you want to vote for this person.")
                                                     .set("Us", c.get(0).getString("voted_for")).buildEmbed()).queue());
                                             }
                                             avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTE_TABLE_NAME).useAsync(true)
@@ -308,7 +308,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                     if (react.size() > 30) {
                                         tc.retrieveMessageById(c.getLong("report_message_id")).queue(v -> {
                                             if (v.getEmbeds().get(0).getColor().equals(new Color(255, 120, 0))) return;
-                                            v.editMessage(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 120, 0))
+                                            v.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 120, 0))
                                                 .setAuthor("Report created for: " + username, null, getImageByName(tc.getGuild(), username))
                                                 .setDescription(
                                                     "**Violator**: " + username + "\n" +
@@ -469,7 +469,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                 e.getReaction().removeReaction(e.getUser()).queueAfter(1, TimeUnit.SECONDS);
                                                 return;
                                             }
-                                            msg.editMessage(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(255, 0, 0))
+                                            msg.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(255, 0, 0))
                                                 .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Denied by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
                                                 .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                 .setDescription(msg.getEmbeds().get(0).getDescription())
@@ -490,7 +490,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                             if (databaseEventHolder.getGuild().getSuggestionApprovedChannelId() != null) {
                                                 TextChannel atc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuild().getSuggestionApprovedChannelId());
                                                 if (atc != null) {
-                                                    atc.sendMessage(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
+                                                    atc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
                                                         .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Approved by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
                                                         .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                         .setDescription(msg.getEmbeds().get(0).getDescription())
@@ -498,7 +498,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                         .buildEmbed()).queue();
                                                     msg.delete().queue();
                                                 } else {
-                                                    msg.editMessage(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
+                                                    msg.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
                                                         .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Approved by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
                                                         .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                         .setDescription(msg.getEmbeds().get(0).getDescription())
@@ -508,7 +508,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
                                                 }
                                             } else {
-                                                msg.editMessage(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
+                                                msg.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
                                                     .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Approved by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
                                                     .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                     .setDescription(msg.getEmbeds().get(0).getDescription())

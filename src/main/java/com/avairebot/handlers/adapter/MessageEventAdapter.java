@@ -867,7 +867,7 @@ public class MessageEventAdapter extends EventAdapter {
     private void cadetRemoveLinksMessage(Message message, Message event, String sendMessage) {
         message.delete().queue();
         event.getAuthor().openPrivateChannel().queue(pc -> {
-            pc.sendMessage(MessageFactory.makeWarning(message, sendMessage).buildEmbed()).queue();
+            pc.sendMessageEmbeds(MessageFactory.makeWarning(message, sendMessage).buildEmbed()).queue();
         });
         MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, message.getAuthor().getIdLong(), event);
 
@@ -888,7 +888,7 @@ public class MessageEventAdapter extends EventAdapter {
 
         event.getMessage().delete().queue();
         event.getAuthor().openPrivateChannel().queue(privateChannel -> {
-            privateChannel.sendMessage(MessageFactory.makeWarning(event.getMessage(), "Sorry, but you're only allowed to post screenshots in this channel. Make sure these are actual **PBST** screenshots, made during either a raid or patrol.").buildEmbed()).queue();
+            privateChannel.sendMessageEmbeds(MessageFactory.makeWarning(event.getMessage(), "Sorry, but you're only allowed to post screenshots in this channel. Make sure these are actual **PBST** screenshots, made during either a raid or patrol.").buildEmbed()).queue();
         });
 
         event.getChannel().sendMessage(event.getMember().getAsMention()).embed(MessageFactory.makeError(event.getMessage(), "<a:ALERTA:720439101249290250> **Only post actual event images here, don't talk in this channel!** <a:ALERTA:720439101249290250>").setTimestamp(Instant.now()).setThumbnail(event.getAuthor().getEffectiveAvatarUrl()).setFooter("This message self-destructs after 30 seconds.").buildEmbed()).queue(

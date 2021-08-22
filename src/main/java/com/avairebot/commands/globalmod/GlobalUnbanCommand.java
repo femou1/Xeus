@@ -110,7 +110,7 @@ public class GlobalUnbanCommand extends Command {
 
         TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
         if (tc != null) {
-            tc.sendMessage(context.makeInfo("[``:global-unbanned-id`` was unbanned from all discords by :user](:link)").set("global-unbanned-id", args[0]).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+            tc.sendMessageEmbeds(context.makeInfo("[``:global-unbanned-id`` was unbanned from all discords by :user](:link)").set("global-unbanned-id", args[0]).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
         }
 
 

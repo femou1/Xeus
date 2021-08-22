@@ -394,7 +394,7 @@ public class RequestRewardCommand extends Command {
             message.startsWith("https://streamable.com/") ||
             message.contains("cdn.discordapp.com") ||
             message.contains("media.discordapp.com"))) {
-            pm.getChannel().sendMessage(context.makeError("Sorry, but we are only accepting [YouTube links](https://www.youtube.com/upload) or [Streamable](https://streamable.com/) as evidence. Try again").buildEmbed()).queue();
+            pm.getChannel().sendMessageEmbeds(context.makeError("Sorry, but we are only accepting [YouTube links](https://www.youtube.com/upload) or [Streamable](https://streamable.com/) as evidence. Try again").buildEmbed()).queue();
             return false;
         }
         return true;

@@ -96,7 +96,7 @@ public class VoteMessenger {
      *                <code>null</code> to specify the current command.
      */
     public void sendMustVoteMessage(@Nonnull MessageChannel channel, @Nullable String feature) {
-        channel.sendMessage(MessageFactory.createEmbeddedBuilder()
+        channel.sendMessageEmbeds(MessageFactory.createEmbeddedBuilder()
             .setColor(Color.decode("#E91E63"))
             .setTitle("Vote for AvaIre on DBL", "https://discordbots.org/bot/avaire")
             .setDescription(String.format(

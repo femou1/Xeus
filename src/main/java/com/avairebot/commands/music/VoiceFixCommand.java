@@ -116,7 +116,7 @@ public class VoiceFixCommand extends Command {
     }
 
     private void stageChangeToOriginalRegion(CommandMessage context, Message message, Region region, Region swapRegion) {
-        message.editMessage(buildTodoEmbed(context, swapRegion, region, true, false))
+        message.editMessageEmbeds(buildTodoEmbed(context, swapRegion, region, true, false))
             .queue(editMessage -> context.getGuild().getManager().setRegion(region).queueAfter(2500, TimeUnit.MILLISECONDS, bVoid -> {
                     stageChangeHasFinished(context, editMessage, region, swapRegion);
                 }, error -> logError(context, error)
@@ -124,7 +124,7 @@ public class VoiceFixCommand extends Command {
     }
 
     private void stageChangeHasFinished(CommandMessage context, Message message, Region region, Region swapRegion) {
-        message.editMessage(buildTodoEmbed(context, swapRegion, region, true, true))
+        message.editMessageEmbeds(buildTodoEmbed(context, swapRegion, region, true, true))
             .queue(null, error -> logError(context, error));
     }
 

@@ -110,7 +110,7 @@ public class AddAutoModExactCommand  extends Command {
 
                 TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
                 if (tc != null) {
-                    tc.sendMessage(context.makeInfo("[The following words have been added to the **LOCAL** exact filter by :user in ``:guild``](:link):\n" +
+                    tc.sendMessageEmbeds(context.makeInfo("[The following words have been added to the **LOCAL** exact filter by :user in ``:guild``](:link):\n" +
                         "```:words```").set("guild", context.getGuild().getName()).setColor(new Color(255, 128, 0)).set("words", words).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
                 }
 

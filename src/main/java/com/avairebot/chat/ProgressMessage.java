@@ -318,7 +318,7 @@ public class ProgressMessage extends Restable {
             }
 
             MessageAction messageAction = getChannelPermissionType().canSendEmbed()
-                ? message.editMessage(buildEmbed())
+                ? message.editMessageEmbeds(buildEmbed())
                 : message.editMessage(toString());
 
             boolean finalResult = result;

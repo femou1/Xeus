@@ -333,7 +333,7 @@ public class GuildEventAdapter extends EventAdapter {
 
             if ((newMessage.isPinned() && !oldMessage.isPinned()) || (!newMessage.isPinned() && oldMessage.isPinned()) || (oldContent.equals(newContent) && oldMessage.getEmbedList().size() == newMessage.getEmbeds().size())) {
                 if (!oldMessage.isPinned()) {
-                    tc.sendMessage(MessageFactory.makeEmbeddedMessage(tc)
+                    tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
                         .setAuthor("A message was pinned", newMessage.getJumpUrl(), guild.getIconUrl())
                         .setDescription("**Message sent by**: " + newMessage.getAuthor().getAsMention() +
                             "\n**Sent In**: " + guild.getTextChannelById(channel.getId()).getAsMention() +
@@ -344,7 +344,7 @@ public class GuildEventAdapter extends EventAdapter {
                         .setTimestamp(Instant.now()).set("jumpurl", newMessage.getJumpUrl())
                         .buildEmbed()).queue();
                 } else {
-                    tc.sendMessage(MessageFactory.makeEmbeddedMessage(tc)
+                    tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
                         .setAuthor("A message was unpinned", newMessage.getJumpUrl(), guild.getIconUrl())
                         .setDescription("**Message sent by**: " + newMessage.getAuthor().getAsMention() +
                             "\n**Sent In**: " + guild.getTextChannelById(channel.getId()).getAsMention() +
@@ -356,7 +356,7 @@ public class GuildEventAdapter extends EventAdapter {
                         .buildEmbed()).queue();
                 }
             } else {
-                tc.sendMessage(MessageFactory.makeEmbeddedMessage(tc)
+                tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
                     .setAuthor("A message was edited", newMessage.getJumpUrl(), newMessage.getAuthor().getEffectiveAvatarUrl())
                     .setDescription("**Author**: " + newMessage.getAuthor().getAsMention() +
                         "\n**Sent In**: " + guild.getTextChannelById(channel.getId()).getAsMention() +
@@ -388,7 +388,7 @@ public class GuildEventAdapter extends EventAdapter {
                     if (message.getAuthor().isBot()) return;
                     if (content.length() >= 1500) content = content.substring(0, 1500) + " **...**";
 
-                    tc.sendMessage(MessageFactory.makeEmbeddedMessage(tc)
+                    tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
                         .setAuthor("A message was deleted", null, message.getAuthor().getGetEffectiveAvatarUrl())
                         .setDescription("**Author**: " + message.getAuthor().getAsMention() +
                             "\n**Sent In**: " + guild.getTextChannelById(channel.getId()).getAsMention() +

@@ -163,7 +163,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                                             .post(RequestBody.create(json, buildPayload(username, userId, -Long.parseLong(run.getMessage().getContentRaw()))));
 
                                                                         try (okhttp3.Response exportResponse = client.newCall(request.build()).execute()) {
-                                                                            e.getChannel().sendMessage(MessageFactory.makeEmbeddedMessage(e.getChannel())
+                                                                            e.getChannel().sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel())
                                                                                 .requestedBy(e.getMember()).setDescription("Sent point export to the database, please use ``;smartlogs`` in a bot commands channel to update the smartlog that was just sent to Kronos. Debugging info: \n```json\n" +
                                                                                     ":info```").set("info", exportResponse.body() != null ? exportResponse.body().string() : "Empty Body").setFooter("This message self-destructs after 25 seconds").buildEmbed()).queue(b -> {
                                                                                 b.delete().queueAfter(25, TimeUnit.SECONDS);
@@ -189,7 +189,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                         avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
                                                             return p.getMember() != null && p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel());
                                                         }, run -> {
-                                                            v.editMessage(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
+                                                            v.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
                                                                 .setAuthor("Report created for: " + username, null, getImageByName(tc.getGuild(), username))
                                                                 .setDescription(
                                                                     "**Violator**: " + username + "\n" +
@@ -234,7 +234,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
                                                         return p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel());
                                                     }, run -> {
-                                                        v.editMessage(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 0, 0))
+                                                        v.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 0, 0))
                                                             .setAuthor("Report created for: " + username, null, getImageByName(tc.getGuild(), username))
                                                             .setDescription(
                                                                 "**Violator**: " + username + "\n" +
@@ -334,7 +334,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                         avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
                                                             return p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel()) && NumberUtil.isNumeric(p.getMessage().getContentRaw());
                                                         }, run -> {
-                                                            v.editMessage(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
+                                                            v.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
                                                                 .setAuthor("Remittance created for: " + username, null, getImageByName(tc.getGuild(), username))
                                                                 .setDescription(
                                                                     "**Username**: " + username + "\n" +
@@ -353,7 +353,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                                 .post(RequestBody.create(json, buildPayload(username, avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(username), Long.valueOf(run.getMessage().getContentRaw()))));
 
                                                             try (okhttp3.Response exportResponse = client.newCall(request.build()).execute()) {
-                                                                e.getChannel().sendMessage(MessageFactory.makeEmbeddedMessage(e.getChannel())
+                                                                e.getChannel().sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel())
                                                                     .setDescription("Sent point export to the database, please use ``;smartlogs`` in a bot commands channel to update the smartlog that was just sent to Kronos. Debugging info: \n```json\n" +
                                                                         ":info```").set("info", exportResponse.body() != null ? exportResponse.body().string() : "Empty Body").setFooter("This message self-destructs after 25 seconds").buildEmbed()).queue(b -> {
                                                                     b.delete().queueAfter(25, TimeUnit.SECONDS);
@@ -386,7 +386,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                         avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
                                                             return p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel());
                                                         }, run -> {
-                                                            v.editMessage(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
+                                                            v.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
                                                                 .setAuthor("Remittance created for: " + username, null, getImageByName(tc.getGuild(), username))
                                                                 .setDescription(
                                                                     "**Username**: " + username + "\n" +
@@ -431,7 +431,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
                                                         return p.getMember() != null && p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel());
                                                     }, run -> {
-                                                        v.editMessage(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 0, 0))
+                                                        v.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 0, 0))
                                                             .setAuthor("Report created for: " + username, null, getImageByName(tc.getGuild(), username))
                                                             .setDescription(
                                                                 "**Username**: " + username + "\n" +
@@ -536,7 +536,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     deferReply.setEphemeral(true).sendMessage("Sorry, but you have to be a **Manager** or above to reject an report.").queue();
                                                     return;
                                                 }
-                                                msg.editMessage(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(255, 0, 0))
+                                                msg.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(255, 0, 0))
                                                     .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Denied by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
                                                     .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                     .setDescription(msg.getEmbeds().get(0).getDescription())
@@ -554,7 +554,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                 if (databaseEventHolder.getGuild().getSuggestionApprovedChannelId() != null) {
                                                     TextChannel atc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuild().getSuggestionApprovedChannelId());
                                                     if (atc != null) {
-                                                        atc.sendMessage(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
+                                                        atc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
                                                             .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Approved by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
                                                             .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                             .setDescription(msg.getEmbeds().get(0).getDescription())
@@ -562,7 +562,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                             .buildEmbed()).setActionRows(Collections.emptyList()).queue();
                                                         msg.delete().queue();
                                                     } else {
-                                                        msg.editMessage(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
+                                                        msg.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
                                                             .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Approved by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
                                                             .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                             .setDescription(msg.getEmbeds().get(0).getDescription())
@@ -572,7 +572,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
 
                                                     }
                                                 } else {
-                                                    msg.editMessage(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
+                                                    msg.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
                                                         .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Approved by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
                                                         .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                         .setDescription(msg.getEmbeds().get(0).getDescription())

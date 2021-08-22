@@ -137,7 +137,7 @@ public class Ratelimit {
      */
     public void sendBlacklistMessage(User user, Carbon expires) {
         user.openPrivateChannel().queue(channel -> {
-            channel.sendMessage(MessageFactory.createEmbeddedBuilder()
+            channel.sendMessageEmbeds(MessageFactory.createEmbeddedBuilder()
                 .setColor(Color.decode("#A5306B"))
                 .setTitle("Whoa there!", "https://xeus.pinewood-builders.com/")
                 .setFooter("Expires", null)
@@ -162,7 +162,7 @@ public class Ratelimit {
      * @param expires The carbon time instance for when the blacklist expires.
      */
     public void sendBlacklistMessage(MessageChannel channel, Carbon expires) {
-        channel.sendMessage(MessageFactory.createEmbeddedBuilder()
+        channel.sendMessageEmbeds(MessageFactory.createEmbeddedBuilder()
             .setColor(Color.decode("#A5306B"))
             .setTitle("Whoa there!", "https://xeus.pinewood-builders.com/")
             .setFooter("Expires", null)

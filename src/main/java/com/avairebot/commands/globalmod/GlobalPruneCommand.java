@@ -135,7 +135,7 @@ public class GlobalPruneCommand extends Command {
 
         TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
         if (tc != null) {
-            tc.sendMessage(context.makeInfo("[``:guildName`` where pruned by :mention](:link)")
+            tc.sendMessageEmbeds(context.makeInfo("[``:guildName`` where pruned by :mention](:link)")
                 .set("guildName", "ALL GUILDS")
                 .set("mention", context.getMember().getAsMention())
                 .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();

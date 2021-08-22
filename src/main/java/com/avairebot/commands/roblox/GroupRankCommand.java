@@ -258,7 +258,7 @@ public class GroupRankCommand extends Command {
 
         Button b1 = Button.success("yes:" + username, "Yes").withEmoji(Emoji.fromUnicode("✅"));
         Button b2 = Button.secondary("no:" + username, "No").withEmoji(Emoji.fromUnicode("❌"));
-        context.getChannel().sendMessage(context.makeInfo("Are you sure you want to rank **:username** to **:rank** in `:robloxGroupId`?").requestedBy(context)
+        context.getChannel().sendMessageEmbeds(context.makeInfo("Are you sure you want to rank **:username** to **:rank** in `:robloxGroupId`?").requestedBy(context)
                 .set("username", username).set("rank", rank.getName() + " (`" + rank.getRank() + "`)").set("robloxGroupId", robloxGroupId).buildEmbed()).setActionRow(b1, b2).queue(v -> {
 
             avaire.getWaiter().waitForEvent(ButtonClickEvent.class, r -> r.getChannel().equals(context.getChannel()) &&
@@ -287,7 +287,7 @@ public class GroupRankCommand extends Command {
                                 if (member.size() > 0) {
                                     for (Member mem : member) {
                                         mem.getUser().openPrivateChannel().queue(l -> {
-                                            l.sendMessage(context.makeInfo("Your rank has been changed to `" + rank.getName() + "` in **" + context.getGuild().getName() + "**").buildEmbed()).queue();
+                                            l.sendMessageEmbeds(context.makeInfo("Your rank has been changed to `" + rank.getName() + "` in **" + context.getGuild().getName() + "**").buildEmbed()).queue();
                                         });
                                     }
                                 }

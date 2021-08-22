@@ -145,14 +145,14 @@ public class ReportUserCommand extends Command {
 
                 });
                 l.addReaction("❌").queue();
-                l.editMessage(context.makeInfo("Welcome to the pinewood report system. With this feature, you can report any Pinewood member in any of the pinewood groups!\n\n" + sb.toString()).buildEmbed()).queue(
+                l.editMessageEmbeds(context.makeInfo("Welcome to the pinewood report system. With this feature, you can report any Pinewood member in any of the pinewood groups!\n\n" + sb.toString()).buildEmbed()).queue(
                     message -> {
                         avaire.getWaiter().waitForEvent(GuildMessageReactionAddEvent.class, event -> {
                             return event.getMember().equals(context.member) && event.getMessageId().equalsIgnoreCase(message.getId());
                         }, react -> {
                             try {
                                 if (react.getReactionEmote().getName().equalsIgnoreCase("❌")) {
-                                    message.editMessage(context.makeWarning("Cancelled the system").buildEmbed()).queue();
+                                    message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).queue();
                                     message.clearReactions().queue();
                                     return;
                                 }
@@ -223,7 +223,7 @@ public class ReportUserCommand extends Command {
             List<Message> messagesToRemove = new ArrayList<>();
             messagesToRemove.add(content.getMessage());
             if (content.getMessage().getContentRaw().equalsIgnoreCase("cancel")) {
-                message.editMessage(context.makeWarning("Cancelled the system").buildEmbed()).queue();
+                message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).queue();
                 removeAllUserMessages(messagesToRemove);
                 return;
             }
@@ -237,7 +237,7 @@ public class ReportUserCommand extends Command {
 
             boolean isBlacklisted = checkIfBlacklisted(requestedId, c);
             if (isBlacklisted) {
-                message.editMessage(context.makeWarning("This user is already blacklisted in ``" + c.getGuild().getName() + "``.").buildEmbed()).queue();
+                message.editMessageEmbeds(context.makeWarning("This user is already blacklisted in ``" + c.getGuild().getName() + "``.").buildEmbed()).queue();
                 removeAllUserMessages(messagesToRemove);
                 return;
             }
@@ -250,7 +250,7 @@ public class ReportUserCommand extends Command {
                         Optional <RobloxUserGroupRankService.Data> b = grs.getData().stream().filter(g -> g.getGroup().getId() == d.getInt("roblox_group_id")).findFirst();
 
                         if (b.isPresent()) {
-                            message.editMessage(context.makeInfo(
+                            message.editMessageEmbeds(context.makeInfo(
                                 "You're trying to report: ``:reported``\n" +
                                     "With the rank: ``:rank``\n\nPlease tell me what he did wrong. (Make sure this is an actual handbook violation)").set("reported", content.getMessage().getContentRaw()).set("rank", b.get().getRole().getName()).buildEmbed()).queue(
                                 getEvidence -> {
@@ -265,7 +265,7 @@ public class ReportUserCommand extends Command {
                     }
                 });
             } else {
-                message.editMessage(context.makeInfo(
+                message.editMessageEmbeds(context.makeInfo(
                     "You're trying to report: ``:reported``\n" +
                         "\nPlease tell me what he did wrong. (Make sure this is an actual handbook violation)").set("reported", content.getMessage().getContentRaw()).buildEmbed()).queue(
                     getEvidence -> {
@@ -288,7 +288,7 @@ public class ReportUserCommand extends Command {
             r -> {
                 messagesToRemove.add(r.getMessage());
                 if (r.getMessage().getContentRaw().equalsIgnoreCase("cancel")) {
-                    message.editMessage(context.makeWarning("Cancelled the system").buildEmbed()).queue();
+                    message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).queue();
                     removeAllUserMessages(messagesToRemove);
                     return;
                 }
@@ -303,7 +303,7 @@ public class ReportUserCommand extends Command {
     }
 
     private void startEvidenceWaiter(CommandMessage context, String contentRaw, Message message, Optional <RobloxUserGroupRankService.Data> groupInfo, DataRow dataRow, String username, List <Message> messagesToRemove) {
-        message.editMessage(context.makeSuccess("I've collected the violation you entered, but I need to be sure he actually did something bad.\n" +
+        message.editMessageEmbeds(context.makeSuccess("I've collected the violation you entered, but I need to be sure he actually did something bad.\n" +
             "Please enter a **LINK** to evidence.\n\n" +
             "**We're accepting**:\n" +
             "- [YouTube Links](https://www.youtube.com/upload)\n" +
@@ -317,7 +317,7 @@ public class ReportUserCommand extends Command {
             evidence -> {
                 messagesToRemove.add(evidence.getMessage());
                 if (evidence.getMessage().getContentRaw().equalsIgnoreCase("cancel")) {
-                    message.editMessage(context.makeWarning("Cancelled the system").buildEmbed()).queue();
+                    message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).queue();
                     removeAllUserMessages(messagesToRemove);
                     return;
                 }
@@ -333,7 +333,7 @@ public class ReportUserCommand extends Command {
 
     private void startConfirmWarnedEvidence(CommandMessage context, Message message, Optional<RobloxUserGroupRankService.Data> groupInfo, DataRow dataRow, String username, String contentRaw, String evidence, List<Message> messagesToRemove) {
         if (!(dataRow.getString("id").equalsIgnoreCase("572104809973415943") || dataRow.getString("id").equalsIgnoreCase("371062894315569173"))) {
-            message.editMessage(context.makeWarning("You've given evidence about reporting someone, **however** we now need proof that they did something wrong.\n" +
+            message.editMessageEmbeds(context.makeWarning("You've given evidence about reporting someone, **however** we now need proof that they did something wrong.\n" +
                 "Please enter a **LINK** to evidence to proof you've warned the user about their misbehavior.\n\n" +
                 "**We're accepting**:\n" +
                 "- [YouTube Links](https://www.youtube.com/upload)\n" +
@@ -416,7 +416,7 @@ public class ReportUserCommand extends Command {
                 .buildEmbed()).setActionRow(b1.asEnabled(), b2.asEnabled(), b3.asEnabled())
                 .queue(
                     finalMessage -> {
-                        message.editMessage(context.makeSuccess("[Your report has been created in the correct channel.](:link).").set("link", finalMessage.getJumpUrl())
+                        message.editMessageEmbeds(context.makeSuccess("[Your report has been created in the correct channel.](:link).").set("link", finalMessage.getJumpUrl())
                             .buildEmbed()).setActionRows(Collections.emptyList())
                             .queue();
                         createReactions(finalMessage);
@@ -502,7 +502,7 @@ public class ReportUserCommand extends Command {
             message.contains("gyazo.com") ||
             message.contains("prntscr.com") ||
             message.contains("prnt.sc") || message.contains("imgur.com"))) {
-            pm.getChannel().sendMessage(context.makeError("Sorry, but we are only accepting [YouTube links](https://www.youtube.com/upload), [Gyazo Links](https://gyazo.com), [LightShot Links](https://app.prntscr.com/), [Discord Image Links](https://cdn.discordapp.com/attachments/689520756891189371/733599719351123998/unknown.png) or [Imgur links](https://imgur.com/upload) as evidence. Try again").buildEmbed()).queue();
+            pm.getChannel().sendMessageEmbeds(context.makeError("Sorry, but we are only accepting [YouTube links](https://www.youtube.com/upload), [Gyazo Links](https://gyazo.com), [LightShot Links](https://app.prntscr.com/), [Discord Image Links](https://cdn.discordapp.com/attachments/689520756891189371/733599719351123998/unknown.png) or [Imgur links](https://imgur.com/upload) as evidence. Try again").buildEmbed()).queue();
             return false;
         }
         return true;
@@ -513,7 +513,7 @@ public class ReportUserCommand extends Command {
 
         int length = l.getMessage().getContentRaw().length();
         if (length <= 25 || length >= 700) {
-            context.getChannel().sendMessage(context.makeError("Sorry, but reports have to have a minimal of 25 characters and a maximum of 700 characters.\n" +
+            context.getChannel().sendMessageEmbeds(context.makeError("Sorry, but reports have to have a minimal of 25 characters and a maximum of 700 characters.\n" +
                 "Your report currently has **``" + length + "``** characters").buildEmbed()).queue();
             return false;
 

@@ -231,7 +231,7 @@ public class GlobalModCommand extends Command {
 
             TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
             if (tc != null) {
-                tc.sendMessage(context.makeInfo("[``:tableSetting`` was changed to ``:value`` by :mention](:link)")
+                tc.sendMessageEmbeds(context.makeInfo("[``:tableSetting`` was changed to ``:value`` by :mention](:link)")
                     .set("tableSetting", table)
                     .set("value", setTo)
                     .set("mention", context.getMember().getAsMention())

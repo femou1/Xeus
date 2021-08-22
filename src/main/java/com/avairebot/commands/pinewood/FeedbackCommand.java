@@ -157,11 +157,11 @@ public class FeedbackCommand extends Command {
                 if (c != null) {
 
                     if (avaire.getFeatureBlacklist().isBlacklisted(context.getAuthor(), c.getGuild().getIdLong(), FeatureScope.SUGGESTIONS)) {
-                        message.editMessage(context.makeError("You have been blacklisted from creating suggestions for this guild. Please ask a **Level 4** or higher to remove you from the ``"+c.getGuild().getName()+"`` suggestion blacklist. (Or global, if you're globally banned from all features)").buildEmbed()).queue();
+                        message.editMessageEmbeds(context.makeError("You have been blacklisted from creating suggestions for this guild. Please ask a **Level 4** or higher to remove you from the ``"+c.getGuild().getName()+"`` suggestion blacklist. (Or global, if you're globally banned from all features)").buildEmbed()).queue();
                         return;
                     }
 
-                    message.editMessage(context.makeInfo("You've selected a suggestion for: ``:guild``\nPlease tell me, what is your suggestion?").set("guild", d.getString("name")).buildEmbed()).queue();
+                    message.editMessageEmbeds(context.makeInfo("You've selected a suggestion for: ``:guild``\nPlease tell me, what is your suggestion?").set("guild", d.getString("name")).buildEmbed()).queue();
                     message.clearReactions().queue();
 
 
@@ -216,7 +216,7 @@ public class FeedbackCommand extends Command {
                 AvaIre.getLogger().error("ERROR: ", throwables);
             }
         }, 5, TimeUnit.MINUTES, () -> {
-            message.editMessage(context.makeEmbeddedMessage().setColor(Color.BLACK).setDescription("Stopped the suggestion system. Timeout of 5 minutes reached .").buildEmbed()).queue();
+            message.editMessageEmbeds(context.makeEmbeddedMessage().setColor(Color.BLACK).setDescription("Stopped the suggestion system. Timeout of 5 minutes reached .").buildEmbed()).queue();
         });
     }
 

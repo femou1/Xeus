@@ -107,7 +107,7 @@ public class AddPIAModWildcardCommand extends Command {
 
                 TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
                 if (tc != null) {
-                    tc.sendMessage(context.makeInfo("[The following words have been added to the **GLOBAL** wildcard filter by :user](:link):\n" +
+                    tc.sendMessageEmbeds(context.makeInfo("[The following words have been added to the **GLOBAL** wildcard filter by :user](:link):\n" +
                         "```:words```").set("words", words).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
                 }
                 return true;

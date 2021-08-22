@@ -250,7 +250,7 @@ public class FeatureBlacklistCommand extends Command {
 
         TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
         if (tc != null) {
-            tc.sendMessage(context.makeInfo("[<@:id> **(``:id``)** was feature blacklisted for ``:type`` in ``:guild`` by :punisher](:link)")
+            tc.sendMessageEmbeds(context.makeInfo("[<@:id> **(``:id``)** was feature blacklisted for ``:type`` in ``:guild`` by :punisher](:link)")
                 .set("type", featureScope.getName())
                 .set("id", id)
                 .set("punisher", context.getMember().getAsMention())
