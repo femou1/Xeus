@@ -215,7 +215,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                             if (message.getEmbeds().size() > 0) {
                                 try {
                                     if (e.getReactionEmote().getName().equals("✅")) {
-                                        message.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(message.getTextChannel(), new Color(0, 255, 0))
+                                        message.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(message.getTextChannel(), new Color(0, 255, 0))
                                             .setAuthor(message.getEmbeds().get(0).getAuthor().getName(), null, message.getEmbeds().get(0).getAuthor().getIconUrl())
                                             .setDescription(message.getEmbeds().get(0).getDescription())
                                             .setFooter(message.getEmbeds().get(0).getFooter().getText() + " | Accepted by: " + e.getMember().getEffectiveName())
@@ -236,7 +236,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                 });
                                         }
                                     } else if (e.getReactionEmote().getName().equals("❌")) {
-                                        message.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(message.getTextChannel(), new Color(255, 0, 0))
+                                        message.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(message.getTextChannel(), new Color(255, 0, 0))
                                             .setAuthor(message.getEmbeds().get(0).getAuthor().getName(), null, message.getEmbeds().get(0).getAuthor().getIconUrl())
                                             .setDescription(message.getEmbeds().get(0).getDescription())
                                             .setFooter(message.getEmbeds().get(0).getFooter().getText() + " | Denied by: " + e.getMember().getEffectiveName())
@@ -308,7 +308,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                     if (react.size() > 30) {
                                         tc.retrieveMessageById(c.getLong("report_message_id")).queue(v -> {
                                             if (v.getEmbeds().get(0).getColor().equals(new Color(255, 120, 0))) return;
-                                            v.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 120, 0))
+                                            v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 120, 0))
                                                 .setAuthor("Report created for: " + username, null, getImageByName(tc.getGuild(), username))
                                                 .setDescription(
                                                     "**Violator**: " + username + "\n" +
@@ -469,7 +469,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                 e.getReaction().removeReaction(e.getUser()).queueAfter(1, TimeUnit.SECONDS);
                                                 return;
                                             }
-                                            msg.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(255, 0, 0))
+                                            msg.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(255, 0, 0))
                                                 .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Denied by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
                                                 .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                 .setDescription(msg.getEmbeds().get(0).getDescription())
@@ -498,7 +498,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                         .buildEmbed()).queue();
                                                     msg.delete().queue();
                                                 } else {
-                                                    msg.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
+                                                    msg.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
                                                         .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Approved by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
                                                         .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                         .setDescription(msg.getEmbeds().get(0).getDescription())
@@ -508,7 +508,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
                                                 }
                                             } else {
-                                                msg.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
+                                                msg.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
                                                     .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Approved by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
                                                     .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                     .setDescription(msg.getEmbeds().get(0).getDescription())
@@ -550,7 +550,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                 } //🚫
                                 if (e.getReactionEmote().getName().equals("\uD83D\uDCAC")) {
                                     if (!(e.getMember().hasPermission(Permission.MESSAGE_MANAGE) || isValidReportManager(e, 1))) {
-                                        /*e.getMember().getUser().openPrivateChannel().queue(v -> v.sendMessage(new EmbedBuilder().setDescription("Sorry, but you need to be an mod or higher to comment on a suggestion!").build()).queue());
+                                        /*e.getMember().getUser().openPrivateChannel().queue(v -> v.sendMessageEmbeds(new EmbedBuilder().setDescription("Sorry, but you need to be an mod or higher to comment on a suggestion!").build()).queue());
                                          */
                                         e.getReaction().removeReaction(e.getUser()).queueAfter(1, TimeUnit.SECONDS);
                                         return;
@@ -571,7 +571,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                 if (e.getGuild().getMembersByEffectiveName(msg.getEmbeds().get(0).getFooter().getText(), true).size() > 0) {
                                                     for (Member u : e.getGuild().getMembersByEffectiveName(msg.getEmbeds().get(0).getFooter().getText(), true)) {
                                                         u.getUser().openPrivateChannel().complete()
-                                                            .sendMessage(new EmbedBuilder()
+                                                            .sendMessageEmbeds(new EmbedBuilder()
                                                                 .setDescription("Hello there ``" + u.getEffectiveName() + "``.\n" +
                                                                     "It seems like you have gotten a comment on one of your suggestions!\n" +
                                                                     "If you want to check the feedback, [click here](" + msg.getJumpUrl() + ")\n" +
@@ -687,7 +687,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
             }
             if (emote.getName().equals("✅") || emote.getName().equals("❌")) {
                 if (!(isValidReportManager(event, 1) || event.getMember().getId().equals("173839105615069184"))) {
-                    event.getMember().getUser().openPrivateChannel().queue(v -> v.sendMessage(new EmbedBuilder().setDescription("Sorry, but you need to be the manager of points in your division to approve or deny a reward request.").build()).queue());
+                    event.getMember().getUser().openPrivateChannel().queue(v -> v.sendMessageEmbeds(new EmbedBuilder().setDescription("Sorry, but you need to be the manager of points in your division to approve or deny a reward request.").build()).queue());
                     event.getReaction().removeReaction(event.getUser()).queueAfter(1, TimeUnit.SECONDS);
                     return;
                 }
@@ -721,7 +721,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                             if (event.getGuild().getMembersByEffectiveName(m.getEmbeds().get(0).getFooter().getText(), true).size() > 0) {
                                 for (Member u : event.getGuild().getMembersByEffectiveName(m.getEmbeds().get(0).getTitle(), true)) {
                                     u.getUser().openPrivateChannel().complete()
-                                        .sendMessage(new EmbedBuilder()
+                                        .sendMessageEmbeds(new EmbedBuilder()
                                             .setDescription("Hello there ``" + u.getEffectiveName() + "``.\n" +
                                                 "It seems like you have gotten reward!\n" +
                                                 "If you want to check the report, [click here](" + m.getJumpUrl() + ")\n" +
@@ -744,7 +744,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                         if (event.getGuild().getMembersByEffectiveName(m.getEmbeds().get(0).getFooter().getText(), true).size() > 0) {
                             for (Member u : event.getGuild().getMembersByEffectiveName(m.getEmbeds().get(0).getFooter().getText(), true)) {
                                 u.getUser().openPrivateChannel().complete()
-                                    .sendMessage(new EmbedBuilder()
+                                    .sendMessageEmbeds(new EmbedBuilder()
                                         .setColor(new Color(255, 0, 0))
                                         .setDescription("Hello there ``" + u.getEffectiveName() + "``.\n" +
                                             "It seems like your reward request on ``" + m.getEmbeds().get(0).getTitle() + "`` has been denied!\n" +
@@ -762,7 +762,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
             }
             if (emote.getName().equals("trash")) {
                 if (!(isValidReportManager(event, 1) || event.getMember().getId().equals("173839105615069184"))) {
-                    event.getMember().getUser().openPrivateChannel().queue(v -> v.sendMessage(new EmbedBuilder().setDescription("Sorry, but you need to be the manager of points in your division to remove a report.").build()).queue());
+                    event.getMember().getUser().openPrivateChannel().queue(v -> v.sendMessageEmbeds(new EmbedBuilder().setDescription("Sorry, but you need to be the manager of points in your division to remove a report.").build()).queue());
                     event.getReaction().removeReaction(event.getUser()).queueAfter(1, TimeUnit.SECONDS);
                     return;
                 }
@@ -770,7 +770,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
             }
             if (emote.getName().equals("\uD83D\uDD04")) {
                 if (!(isValidReportManager(event, 1) || event.getMember().getId().equals("173839105615069184"))) {
-                    event.getMember().getUser().openPrivateChannel().queue(v -> v.sendMessage(new EmbedBuilder().setDescription("Sorry, but you need to be the manager of points in your division to refresh the emoji's.").build()).queue());
+                    event.getMember().getUser().openPrivateChannel().queue(v -> v.sendMessageEmbeds(new EmbedBuilder().setDescription("Sorry, but you need to be the manager of points in your division to refresh the emoji's.").build()).queue());
                     event.getReaction().removeReaction(event.getUser()).queueAfter(1, TimeUnit.SECONDS);
                     return;
                 }

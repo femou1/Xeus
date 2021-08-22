@@ -105,7 +105,7 @@ public class GuildStateEventAdapter extends EventAdapter {
         double guildBots = event.getGuild().getMembers().stream().filter(member -> member.getUser().isBot()).count();
         double percentage = (guildBots / (guildBots + guildMembers)) * 100;
 
-        channel.sendMessage(
+        channel.sendMessageEmbeds(
             new EmbedBuilder()
                 .setColor(Color.decode("#66BB6A"))
                 .setTimestamp(Instant.now())
@@ -149,7 +149,7 @@ public class GuildStateEventAdapter extends EventAdapter {
             return;
         }
 
-        channel.sendMessage(
+        channel.sendMessageEmbeds(
             new EmbedBuilder()
                 .setColor(Color.decode("#EF5350"))
                 .setTimestamp(Instant.now())

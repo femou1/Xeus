@@ -9,7 +9,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 version = '1.4.3'
-group = 'com.avairebot'
+group = 'com.pinewoodbuilders'
 description = 'Xeus Discord Bot'
 mainClassName = 'com.avairebot.Main'
 
@@ -17,15 +17,15 @@ sourceCompatibility = 11
 targetCompatibility = 11
 
 ext {
-    moduleName = 'AvaIre'
+    moduleName = 'Xeus'
 }
 
 shadowJar {
-    archiveName = "AvaIre.jar"
+    getArchiveBaseName().set("Xeus.jar")
 
     doLast {
         copy {
-            from 'build/libs/AvaIre.jar'
+            from 'build/libs/Xeus.jar'
             into '.'
         }
     }
@@ -34,24 +34,24 @@ shadowJar {
 tasks.withType(JavaCompile) {
     dependsOn 'clean'
     options.encoding = 'UTF-8'
-    options.compilerArgs << "-Xlint:-unchecked"
+    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
 }
 
 task fatJar(type: Jar) {
     manifest {
-        attributes 'Implementation-Title': 'AvaIre: Discord Bot',
-            'Implementation-Version': version,
+        attributes 'Implementation-Title': 'Xeus: Pinewood Discord Bot',
+            'Implementation-Version': getArchiveVersion(),
             'Main-Class': 'com.avairebot.Main'
     }
 
-    baseName = project.name
+    getArchiveBaseName().set(project.name)
 
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
+    getArchiveClassifier().set('javadoc')
     from javadoc.destinationDir
 }
 
@@ -65,7 +65,6 @@ javadoc {
 
 repositories {
     mavenCentral()                     // Main maven repo
-    jcenter()                          // JDA and some other stuff
     mavenLocal()                       // Useful for developing
     maven { url "https://jitpack.io" } // Build projects directly from github
 

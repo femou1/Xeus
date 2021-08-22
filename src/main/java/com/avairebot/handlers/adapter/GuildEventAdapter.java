@@ -44,7 +44,10 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
-import net.dv8tion.jda.api.events.guild.update.*;
+import net.dv8tion.jda.api.events.guild.update.GuildUpdateAfkChannelEvent;
+import net.dv8tion.jda.api.events.guild.update.GuildUpdateBoostCountEvent;
+import net.dv8tion.jda.api.events.guild.update.GuildUpdateBoostTierEvent;
+import net.dv8tion.jda.api.events.guild.update.GuildUpdateSystemChannelEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
@@ -152,14 +155,6 @@ public class GuildEventAdapter extends EventAdapter {
                             , null, event.getGuild().getIconUrl())
                         .addField("**Old Channel**:", oldChannel.getName(), true)
                         .addField("**New channel**:", newChannel.getName(), true)
-                        .setTimestamp(Instant.now()).queue();
-                } else if (event instanceof GuildUpdateRegionEvent) {
-                    GuildUpdateRegionEvent e = (GuildUpdateRegionEvent) event;
-                    MessageFactory.makeEmbeddedMessage(tc, new Color(255, 71, 15))
-                        .setAuthor("Region was updated"
-                            , null, event.getGuild().getIconUrl())
-                        .addField("**Old region**:", e.getOldRegion().getName() + " - " + e.getOldRegion().getEmoji(), true)
-                        .addField("**New region**:", e.getOldRegion().getName() + " - " + e.getNewRegion().getEmoji(), true)
                         .setTimestamp(Instant.now()).queue();
                 } else if (event instanceof GuildUpdateBoostCountEvent) {
                     GuildUpdateBoostCountEvent e = (GuildUpdateBoostCountEvent) event;

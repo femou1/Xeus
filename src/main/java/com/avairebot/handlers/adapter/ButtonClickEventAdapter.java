@@ -189,7 +189,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                         avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
                                                             return p.getMember() != null && p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel());
                                                         }, run -> {
-                                                            v.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
+                                                            v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
                                                                 .setAuthor("Report created for: " + username, null, getImageByName(tc.getGuild(), username))
                                                                 .setDescription(
                                                                     "**Violator**: " + username + "\n" +
@@ -234,7 +234,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
                                                         return p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel());
                                                     }, run -> {
-                                                        v.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 0, 0))
+                                                        v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 0, 0))
                                                             .setAuthor("Report created for: " + username, null, getImageByName(tc.getGuild(), username))
                                                             .setDescription(
                                                                 "**Violator**: " + username + "\n" +
@@ -334,7 +334,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                         avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
                                                             return p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel()) && NumberUtil.isNumeric(p.getMessage().getContentRaw());
                                                         }, run -> {
-                                                            v.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
+                                                            v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
                                                                 .setAuthor("Remittance created for: " + username, null, getImageByName(tc.getGuild(), username))
                                                                 .setDescription(
                                                                     "**Username**: " + username + "\n" +
@@ -386,7 +386,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                         avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
                                                             return p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel());
                                                         }, run -> {
-                                                            v.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
+                                                            v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
                                                                 .setAuthor("Remittance created for: " + username, null, getImageByName(tc.getGuild(), username))
                                                                 .setDescription(
                                                                     "**Username**: " + username + "\n" +
@@ -431,7 +431,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
                                                         return p.getMember() != null && p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel());
                                                     }, run -> {
-                                                        v.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 0, 0))
+                                                        v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 0, 0))
                                                             .setAuthor("Report created for: " + username, null, getImageByName(tc.getGuild(), username))
                                                             .setDescription(
                                                                 "**Username**: " + username + "\n" +
@@ -536,7 +536,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     deferReply.setEphemeral(true).sendMessage("Sorry, but you have to be a **Manager** or above to reject an report.").queue();
                                                     return;
                                                 }
-                                                msg.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(255, 0, 0))
+                                                msg.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(255, 0, 0))
                                                     .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Denied by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
                                                     .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                     .setDescription(msg.getEmbeds().get(0).getDescription())
@@ -562,7 +562,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                             .buildEmbed()).setActionRows(Collections.emptyList()).queue();
                                                         msg.delete().queue();
                                                     } else {
-                                                        msg.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
+                                                        msg.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
                                                             .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Approved by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
                                                             .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                             .setDescription(msg.getEmbeds().get(0).getDescription())
@@ -572,7 +572,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
 
                                                     }
                                                 } else {
-                                                    msg.editmessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
+                                                    msg.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
                                                         .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Approved by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
                                                         .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                         .setDescription(msg.getEmbeds().get(0).getDescription())
@@ -627,7 +627,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     if (e.getGuild().getMembersByEffectiveName(msg.getEmbeds().get(0).getFooter().getText(), true).size() > 0) {
                                                         for (Member u : e.getGuild().getMembersByEffectiveName(msg.getEmbeds().get(0).getFooter().getText(), true)) {
                                                             u.getUser().openPrivateChannel().complete()
-                                                                .sendMessage(new EmbedBuilder()
+                                                                .sendMessageEmbeds(new EmbedBuilder()
                                                                     .setDescription("Hello there ``" + u.getEffectiveName() + "``.\n" +
                                                                         "It seems like you have gotten a comment on one of your suggestions!\n" +
                                                                         "If you want to check the feedback, [click here](" + msg.getJumpUrl() + ")\n" +
