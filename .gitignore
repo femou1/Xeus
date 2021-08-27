@@ -9,6 +9,8 @@ database\.sqlite
 /commandMap\.json
 *.class
 .DS_Store
+config.yml
+constants.yml
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
@@ -28,15 +30,20 @@ hs_err_pid*
 /*.iws
 /*.ipr
 /*.iml
-/*.iml
 
 # Compile location
 .gradle/*
 target/
 build/
 out/
+bin/
 AvaIre.jar
 
 # Image Generator Branch
 test-output\.png
 testing/
+
+# Specific hidden files
+src/main/java/com/avairebot/scheduler/jobs/generic/RunEveryFiveMinuteJob.java
+src/main/java/com/avairebot/scheduler/tasks/CheckUserOnlineStatus.java
+

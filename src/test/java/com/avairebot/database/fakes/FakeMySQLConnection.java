@@ -1,36 +1,36 @@
 /*
  * Copyright (c) 2018.
  *
- * This file is part of AvaIre.
+ * This file is part of Xeus.
  *
- * AvaIre is free software: you can redistribute it and/or modify
+ * Xeus is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * AvaIre is distributed in the hope that it will be useful,
+ * Xeus is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with AvaIre.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Xeus.  If not, see <https://www.gnu.org/licenses/>.
  *
  *
  */
 
 package com.avairebot.database.fakes;
 
-import com.avairebot.contracts.database.StatementInterface;
-import com.avairebot.contracts.database.connections.FilenameDatabase;
-import com.avairebot.database.DatabaseManager;
-import com.avairebot.database.grammar.mysql.Create;
-import com.avairebot.database.grammar.mysql.Delete;
-import com.avairebot.database.grammar.mysql.Insert;
-import com.avairebot.database.grammar.mysql.Update;
-import com.avairebot.database.grammar.sqlite.Select;
-import com.avairebot.database.query.QueryBuilder;
-import com.avairebot.database.schema.Blueprint;
+import com.pinewoodbuilders.contracts.database.StatementInterface;
+import com.pinewoodbuilders.contracts.database.connections.FilenameDatabase;
+import com.pinewoodbuilders.database.DatabaseManager;
+import com.pinewoodbuilders.database.grammar.mysql.Create;
+import com.pinewoodbuilders.database.grammar.mysql.Delete;
+import com.pinewoodbuilders.database.grammar.mysql.Insert;
+import com.pinewoodbuilders.database.grammar.mysql.Update;
+import com.pinewoodbuilders.database.grammar.sqlite.Select;
+import com.pinewoodbuilders.database.query.QueryBuilder;
+import com.pinewoodbuilders.database.schema.Blueprint;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

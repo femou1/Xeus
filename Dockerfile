@@ -8,7 +8,7 @@ RUN gradle build --no-daemon
 
 # Run container
 
-FROM openjdk:11-jre-slim AS runtime
+FROM openjdk:16-ea-23-jdk-oraclelinux8 AS runtime
 
 WORKDIR /opt/avaire/
 

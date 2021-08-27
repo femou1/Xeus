@@ -292,7 +292,7 @@
         },
         {
             "url": "heroku/php"
-        },	
+        },
         {
             "url": "https://github.com/luo83651896/heroku-buildpack-run"
         },
