@@ -39,7 +39,6 @@ import java.util.*;
 
 public class LockChannelsCommand extends Command {
 
-    private static final Logger log = LoggerFactory.getLogger(LockChannelsCommand.class);
 
     public LockChannelsCommand(Xeus avaire) {
         super(avaire, false);

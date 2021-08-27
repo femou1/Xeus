@@ -55,10 +55,8 @@ import java.util.concurrent.TimeUnit;
 
 public class AdministrateExperienceCommand extends Command {
 
-    public static final Cache<String, String> cache = CacheBuilder.newBuilder()
-        .recordStats()
-        .expireAfterWrite(60, TimeUnit.SECONDS)
-        .build();
+    public static final Cache<String, String> cache = CacheBuilder.newBuilder().recordStats()
+            .expireAfterWrite(60, TimeUnit.SECONDS).build();
 
     private static final Logger log = LoggerFactory.getLogger(AdministrateExperienceCommand.class);
 
@@ -78,37 +76,24 @@ public class AdministrateExperienceCommand extends Command {
 
     @Override
     public List<String> getUsageInstructions() {
-        return Arrays.asList(
-            "`:command reset <user>` - Resets the users XP.",
-            "`:command sync <user> ` - Syncs the users XP with the global leaderboard.",
-            "`:command add <user> <amount>` - Adds the given amount of XP to the user.",
-            "`:command take <user> <amount>` - Takes the given amount of XP from the user.",
-            "`:command server-sync` - Syncs everyone on the server to the global leaderboard.",
-            "`:command server-reset` - Resets the XP for everyone on the entire server in one go."
-        );
+        return Arrays.asList("`:command reset <user>` - Resets the users XP.",
+                "`:command sync <user> ` - Syncs the users XP with the global leaderboard.",
+                "`:command add <user> <amount>` - Adds the given amount of XP to the user.",
+                "`:command take <user> <amount>` - Takes the given amount of XP from the user.",
+                "`:command server-sync` - Syncs everyone on the server to the global leaderboard.",
+                "`:command server-reset` - Resets the XP for everyone on the entire server in one go.");
     }
 
     @Override
     public List<String> getExampleUsage() {
-        return Arrays.asList(
-            "`:command reset @Senither`",
-            "`:command sync @Senither`",
-            "`:command add @Senither 9999`",
-            "`:command take @Senither 1337`",
-            "`:command server-sync`",
-            "`:command server-reset`"
-        );
+        return Arrays.asList("`:command reset @Senither`", "`:command sync @Senither`", "`:command add @Senither 9999`",
+                "`:command take @Senither 1337`", "`:command server-sync`", "`:command server-reset`");
     }
 
     @Override
     public List<Class<? extends Command>> getRelations() {
-        return Arrays.asList(
-            LevelCommand.class,
-            RankCommand.class,
-            AddLevelRoleCommand.class,
-            ListLevelRolesCommand.class,
-            RemoveLevelRoleCommand.class
-        );
+        return Arrays.asList(LevelCommand.class, RankCommand.class, AddLevelRoleCommand.class,
+                ListLevelRolesCommand.class, RemoveLevelRoleCommand.class);
     }
 
     @Override
@@ -118,18 +103,13 @@ public class AdministrateExperienceCommand extends Command {
 
     @Override
     public List<String> getMiddleware() {
-        return Arrays.asList(
-            "require:user,general.manage_server",
-            "throttle:guild,1,5"
-        );
+        return Arrays.asList("require:user,general.manage_server", "throttle:guild,1,5");
     }
 
     @Nonnull
     @Override
     public List<CommandGroup> getGroups() {
-        return Collections.singletonList(
-            CommandGroups.LEVEL_AND_EXPERIENCE
-        );
+        return Collections.singletonList(CommandGroups.LEVEL_AND_EXPERIENCE);
     }
 
     @Override
@@ -137,10 +117,8 @@ public class AdministrateExperienceCommand extends Command {
     public boolean onCommand(CommandMessage context, String[] args) {
         GuildTransformer guildTransformer = context.getGuildTransformer();
         if (guildTransformer == null || !guildTransformer.isLevels()) {
-            return sendErrorMessage(context, "errors.requireLevelFeatureToBeEnabled",
-                CommandHandler.getCommand(LevelCommand.class)
-                    .getCommand().generateCommandTrigger(context.getMessage())
-            );
+            return sendErrorMessage(context, "errors.requireLevelFeatureToBeEnabled", CommandHandler
+                    .getCommand(LevelCommand.class).getCommand().generateCommandTrigger(context.getMessage()));
         }
 
         if (args.length == 0) {
@@ -194,8 +172,7 @@ public class AdministrateExperienceCommand extends Command {
 
             if (amount < 1) {
                 return sendErrorMessage(context, context.i18n("invalidAmountGiven"),
-                    NumberUtil.formatNicely(LevelManager.getHardCap())
-                );
+                        NumberUtil.formatNicely(LevelManager.getHardCap()));
             }
         }
 
@@ -216,9 +193,10 @@ public class AdministrateExperienceCommand extends Command {
 
             case SYNC:
                 return handleSync(context, player, user);
-        }
+            default:
+                return sendErrorMessage(context, "If you're seeing this message, something went horribly wrong.");
 
-        return sendErrorMessage(context, "If you're seeing this message, something went horribly wrong.");
+        }
     }
 
     private boolean handleAdd(CommandMessage context, PlayerTransformer player, User user, long amount) {
@@ -234,11 +212,9 @@ public class AdministrateExperienceCommand extends Command {
             return sendErrorMessage(context, context.i18n("failedToSaveChanges"));
         }
 
-        context.makeSuccess(context.i18n("success.add"))
-            .set("amount", NumberUtil.formatNicely(amount))
-            .set("newAmount", NumberUtil.formatNicely(player.getExperience() - 100))
-            .set("target", user.getAsMention())
-            .queue();
+        context.makeSuccess(context.i18n("success.add")).set("amount", NumberUtil.formatNicely(amount))
+                .set("newAmount", NumberUtil.formatNicely(player.getExperience() - 100))
+                .set("target", user.getAsMention()).queue();
 
         return true;
     }
@@ -256,11 +232,9 @@ public class AdministrateExperienceCommand extends Command {
             return sendErrorMessage(context, context.i18n("failedToSaveChanges"));
         }
 
-        context.makeSuccess(context.i18n("success.take"))
-            .set("amount", NumberUtil.formatNicely(amount))
-            .set("newAmount", NumberUtil.formatNicely(player.getExperience() - 100))
-            .set("target", user.getAsMention())
-            .queue();
+        context.makeSuccess(context.i18n("success.take")).set("amount", NumberUtil.formatNicely(amount))
+                .set("newAmount", NumberUtil.formatNicely(player.getExperience() - 100))
+                .set("target", user.getAsMention()).queue();
 
         return true;
     }
@@ -275,9 +249,7 @@ public class AdministrateExperienceCommand extends Command {
             return sendErrorMessage(context, context.i18n("failedToSaveChanges"));
         }
 
-        context.makeSuccess(context.i18n("success.reset"))
-            .set("target", user.getAsMention())
-            .queue();
+        context.makeSuccess(context.i18n("success.reset")).set("target", user.getAsMention()).queue();
 
         return true;
     }
@@ -285,10 +257,8 @@ public class AdministrateExperienceCommand extends Command {
     private boolean handleSync(CommandMessage context, PlayerTransformer player, User user) {
         try {
             Collection collection = avaire.getDatabase().newQueryBuilder(Constants.PLAYER_EXPERIENCE_TABLE_NAME)
-                .select("global_experience")
-                .where("user_id", user.getId())
-                .where("guild_id", context.getGuild().getId())
-                .get();
+                    .select("global_experience").where("user_id", user.getId())
+                    .where("guild_id", context.getGuild().getId()).get();
 
             if (collection.isEmpty()) {
                 return sendErrorMessage(context, context.i18n("failedToSaveChanges"));
@@ -303,10 +273,8 @@ public class AdministrateExperienceCommand extends Command {
                 return sendErrorMessage(context, context.i18n("failedToSaveChanges"));
             }
 
-            context.makeSuccess(context.i18n("success.sync"))
-                .set("newAmount", player.getExperience() - 100)
-                .set("target", user.getAsMention())
-                .queue();
+            context.makeSuccess(context.i18n("success.sync")).set("newAmount", player.getExperience() - 100)
+                    .set("target", user.getAsMention()).queue();
 
             return true;
         } catch (SQLException e) {
@@ -325,11 +293,8 @@ public class AdministrateExperienceCommand extends Command {
         if (token == null) {
             token = RandomUtil.generateString(RandomUtil.getInteger(3) + 4);
 
-            context.makeWarning(context.i18n("aboutToSyncEverything"))
-                .setTitle(context.i18n("warning"))
-                .set("command", generateCommandTrigger(context.getMessage()))
-                .set("token", token)
-                .queue();
+            context.makeWarning(context.i18n("aboutToSyncEverything")).setTitle(context.i18n("warning"))
+                    .set("command", generateCommandTrigger(context.getMessage())).set("token", token).queue();
 
             cache.put(cacheKey, token);
 
@@ -342,15 +307,13 @@ public class AdministrateExperienceCommand extends Command {
 
         try {
             avaire.getDatabase().newQueryBuilder(Constants.PLAYER_EXPERIENCE_TABLE_NAME)
-                .where("guild_id", context.getGuild().getId())
-                .update(statement -> {
-                    statement.setRaw("experience", "`global_experience`");
-                });
+                    .where("guild_id", context.getGuild().getId()).update(statement -> {
+                        statement.setRaw("experience", "`global_experience`");
+                    });
 
             PlayerController.forgetCacheForGuild(context.getGuild().getIdLong());
 
-            context.makeSuccess(context.i18n("success.syncEveryone"))
-                .queue();
+            context.makeSuccess(context.i18n("success.syncEveryone")).queue();
         } catch (SQLException e) {
             log.error("Failed to reset server XP for {}, error: {}", context.getGuild().getId(), e.getMessage(), e);
 
@@ -371,11 +334,8 @@ public class AdministrateExperienceCommand extends Command {
         if (token == null) {
             token = RandomUtil.generateString(RandomUtil.getInteger(3) + 4);
 
-            context.makeWarning(context.i18n("aboutToResetEverything"))
-                .setTitle(context.i18n("warning"))
-                .set("command", generateCommandTrigger(context.getMessage()))
-                .set("token", token)
-                .queue();
+            context.makeWarning(context.i18n("aboutToResetEverything")).setTitle(context.i18n("warning"))
+                    .set("command", generateCommandTrigger(context.getMessage())).set("token", token).queue();
 
             cache.put(cacheKey, token);
 
@@ -388,16 +348,14 @@ public class AdministrateExperienceCommand extends Command {
 
         try {
             avaire.getDatabase().newQueryBuilder(Constants.PLAYER_EXPERIENCE_TABLE_NAME)
-                .where("guild_id", context.getGuild().getId())
-                .update(statement -> {
-                    statement.set("experience", 100);
-                    statement.set("active", 0);
-                });
+                    .where("guild_id", context.getGuild().getId()).update(statement -> {
+                        statement.set("experience", 100);
+                        statement.set("active", 0);
+                    });
 
             PlayerController.forgetCacheForGuild(context.getGuild().getIdLong());
 
-            context.makeSuccess(context.i18n("success.everything"))
-                .queue();
+            context.makeSuccess(context.i18n("success.everything")).queue();
         } catch (SQLException e) {
             log.error("Failed to reset server XP for {}, error: {}", context.getGuild().getId(), e.getMessage(), e);
 
@@ -410,13 +368,11 @@ public class AdministrateExperienceCommand extends Command {
     private boolean updatePlayerRecord(PlayerTransformer player) {
         try {
             avaire.getDatabase().newQueryBuilder(Constants.PLAYER_EXPERIENCE_TABLE_NAME)
-                .where("user_id", player.getUserId())
-                .where("guild_id", player.getGuildId())
-                .update(statement -> statement.set("experience", player.getExperience()));
+                    .where("user_id", player.getUserId()).where("guild_id", player.getGuildId())
+                    .update(statement -> statement.set("experience", player.getExperience()));
         } catch (SQLException e) {
-            log.error("Failed to update player transformer for {} in {} server, error: {}",
-                player.getUserId(), player.getGuildId(), e.getMessage(), e
-            );
+            log.error("Failed to update player transformer for {} in {} server, error: {}", player.getUserId(),
+                    player.getGuildId(), e.getMessage(), e);
             return false;
         }
 
@@ -425,12 +381,8 @@ public class AdministrateExperienceCommand extends Command {
 
     enum Action {
 
-        ADD("add", "give"),
-        TAKE("take", "remove"),
-        RESET(false, "reset"),
-        SYNC(false, "sync"),
-        SERVER_SYNC(false, "server-sync"),
-        SERVER_RESET(false, "server-reset");
+        ADD("add", "give"), TAKE("take", "remove"), RESET(false, "reset"), SYNC(false, "sync"),
+        SERVER_SYNC(false, "server-sync"), SERVER_RESET(false, "server-reset");
 
         private boolean amount;
         private List<String> triggers;

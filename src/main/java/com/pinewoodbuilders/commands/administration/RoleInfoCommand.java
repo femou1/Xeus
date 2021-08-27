@@ -48,8 +48,6 @@ public class RoleInfoCommand extends Command {
     private final static String ROLE_EMOJI = "\uD83C\uDFAD"; // 🎭
 
 
-    private static final Logger log = LoggerFactory.getLogger(RoleInfoCommand.class);
-
     public RoleInfoCommand(Xeus avaire) {
         super(avaire, false);
     }

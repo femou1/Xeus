@@ -29,13 +29,18 @@ import com.pinewoodbuilders.commands.*;
 import com.pinewoodbuilders.commands.utility.SourceCommand;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
+import com.pinewoodbuilders.database.transformers.ChannelTransformer;
+import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
+import com.pinewoodbuilders.language.I18n;
+import com.pinewoodbuilders.utilities.StringReplacementUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class HelpCommand extends Command {
 
@@ -83,12 +88,33 @@ public class HelpCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
+        if (args.length == 0) {
+            return showCategories(context);
+        }
+
         CommandContainer command = getCommand(context, args[0]);
         if (command == null) {
             return showCategoryCommands(context, CategoryHandler.fromLazyName(args[0], false), args[0]);
         }
 
         return showCommand(context, command, args[0]);
+    }
+
+    private boolean showCategories(CommandMessage context) {
+        Category category = CategoryHandler.random(false);
+
+        String note = StringReplacementUtil.replaceAll(
+            context.i18n("categoriesNote",
+                category.getName().toLowerCase(),
+                category.getName().toLowerCase().substring(0, 3)
+            ), ":help", generateCommandTrigger(context.getMessage())
+        );
+
+        context.makeInfo(getCategories(context) + note)
+            .setTitle(context.i18n("categoriesTitle"))
+            .queue();
+
+        return true;
     }
 
     private boolean showCategoryCommands(CommandMessage context, Category category, String categoryString) {
@@ -215,7 +241,7 @@ public class HelpCommand extends Command {
             );
         }
 
-        context.getMessageChannel().sendMessageEmbeds(embed.setDescription(
+        context.getMessageChannel().sendMessage(embed.setDescription(
             command.getCommand().generateDescription(
                 new CommandMessage(command, context.getDatabaseEventHolder(), context.getMessage())
                     .setI18n(context.getI18n())
@@ -230,6 +256,59 @@ public class HelpCommand extends Command {
             return command;
         }
         return CommandHandler.getLazyCommand(commandString);
+    }
+
+    private String getCategories(CommandMessage context) {
+        AdminUser adminUser = avaire.getBotAdmins().getUserById(context.getAuthor().getIdLong());
+
+        List<Category> categories = CategoryHandler.getValues().stream()
+            .filter(category -> !category.isGlobal())
+            .filter(Category::hasCommands)
+            .collect(Collectors.toList());
+
+        if (context.getGuild() == null) {
+            return formatCategoriesStream(categories.stream(), adminUser);
+        }
+
+        GuildTransformer transformer = context.getGuildTransformer();
+        if (transformer == null) {
+            return formatCategoriesStream(categories.stream(), adminUser);
+        }
+
+        ChannelTransformer channel = transformer.getChannel(context.getChannel().getId());
+        if (channel == null) {
+            return formatCategoriesStream(categories.stream(), adminUser);
+        }
+
+        long before = categories.size();
+        List<Category> filteredCategories = categories.stream()
+            .filter(category -> !channel.isCategoryDisabled(category))
+            .collect(Collectors.toList());
+
+        long disabled = before - filteredCategories.size();
+
+        return formatCategoriesStream(
+            filteredCategories.stream().filter(category -> !channel.isCategoryDisabled(category)),
+            adminUser,
+            disabled != 0 ? I18n.format(
+                "\n\n" + (disabled == 1 ?
+                    context.i18n("singularHiddenCategories") :
+                    context.i18n("multipleHiddenCategories")
+                ) + "\n",
+                disabled
+            ) : "\n\n");
+    }
+
+    private String formatCategoriesStream(Stream<Category> stream, AdminUser adminUser) {
+        return formatCategoriesStream(stream, adminUser, "\n\n");
+    }
+
+    private String formatCategoriesStream(Stream<Category> stream, AdminUser adminUser, String suffix) {
+        return stream
+            .map(Category::getName)
+            .sorted()
+            .filter(category -> adminUser.isAdmin() || !isSystemCategory(category))
+            .collect(Collectors.joining("\n• ", "• ", suffix));
     }
 
     private boolean filterCommandContainer(CommandContainer container, Category category, AdminUser adminUser) {

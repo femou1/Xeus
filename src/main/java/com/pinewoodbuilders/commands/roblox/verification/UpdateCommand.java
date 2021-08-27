@@ -93,7 +93,6 @@ public class UpdateCommand extends Command {
             return false;
         }
 
-
         switch (args[0].toLowerCase()) {
             case "everyone":
                 return updateEveryone(context);
@@ -192,51 +191,50 @@ public class UpdateCommand extends Command {
 
             if (trellobans != null) {
                 if (avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().containsKey(verificationEntity.getRobloxId())) {
-                    List<TrellobanLabels> banLabels = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().get(verificationEntity.getRobloxId());
+                    List <TrellobanLabels> banLabels = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().get(verificationEntity.getRobloxId());
 
                     if (banLabels.size() > 0) {
-
-                        String canAppealRoleId = "834326360628658187";
-                        String trellobanRoleId = "875251061638701086";
-                        boolean canAppeal = true;
-                        boolean isPermenant = false;
-                        for (TrellobanLabels banLabel : banLabels) {
-                            if (banLabel.isPermban()) {
-                                isPermenant = true;
+                        if (context.getMessage().getContentDisplay().contains("--pbac-trelloban-message")) {
+                            String canAppealRoleId = "834326360628658187";
+                            String trellobanRoleId = "875251061638701086";
+                            boolean canAppeal = true;
+                            boolean isPermenant = false;
+                            for (TrellobanLabels banLabel : banLabels) {
+                                if (banLabel.isPermban()) {
+                                    isPermenant = true;
+                                }
+                                if (!banLabel.isAppealable()) {
+                                    canAppeal = false;
+                                }
                             }
-                            if (!banLabel.isAppealable()) {
-                                canAppeal = false;
-                            }
-                        }
+                            if (!context.getGuild().getId().equals("750471488095780966")) {
+                                if (canAppeal && isPermenant) {
+                                    member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message...")).flatMap(m -> m.editMessage(member.getAsMention())
+                                        .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned forever within Pinewood, however you are still allowed to appeal within the PBAC.\n\n" +
+                                            "Your trello-ban has the following labels, I'd suggest sharing these with your ticket handler:)" + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining())).buildEmbed())).queue();
+                                }
 
-                        if (!context.getGuild().getId().equals("750471488095780966")) {
-                            if (canAppeal && isPermenant) {
-                                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message...")).flatMap(m -> m.editMessage(member.getAsMention())
-                                    .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned forever within Pinewood, however you are still allowed to appeal within the PBAC.\n\n" +
-                                        "Your trello-ban has the following labels, I'd suggest sharing these with your ticket handler:)" + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining())).buildEmbed())).queue();
-                            }
+                                if (canAppeal && !isPermenant) {
+                                    member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message...")).flatMap(m -> m.editMessage(member.getAsMention())
+                                        .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned within Pinewood, however you are still allowed to appeal within the PBAC.\n\n" +
+                                            "Your trello-ban has the following labels, I'd suggest sharing these with your ticket handler:" + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining())).buildEmbed())).queue();
 
-                            if (canAppeal && !isPermenant) {
-                                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message...")).flatMap(m -> m.editMessage(member.getAsMention())
-                                    .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned within Pinewood, however you are still allowed to appeal within the PBAC.\n\n" +
-                                        "Your trello-ban has the following labels, I'd suggest sharing these with your ticket handler:" + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining())).buildEmbed())).queue();
+                                }
 
-                            }
+                                if (!canAppeal && isPermenant) {
+                                    member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Loading ban message...")).flatMap(m -> m.editMessage(member.getAsMention())
+                                        .setEmbeds(MessageFactory.makeSuccess(m, "[You have been trello-banned forever within Pinewood, this ban is permenant, so you're not allowed to appeal it. We wish you a very good day sir, and goodbye.](https://www.youtube.com/watch?v=BXUhfoUJjuQ)").buildEmbed())).queue();
+                                    avaire.getShardManager().getTextChannelById("778853992704507945").sendMessage("Loading...").flatMap(message -> message.editMessage("Shut the fuck up.").setEmbeds(MessageFactory.makeInfo(message, member.getAsMention() + " tried to verify in `" + context.guild.getName() + "`. However, this person has a permenant trelloban to his name. He has been sent the STFU video (If his DM's are on) and have been global-banned.").buildEmbed())).queue();
+                                }
+                                TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
+                                if (tc != null) {
+                                    tc.sendMessageEmbeds(context.makeInfo("[``:global-unbanned-id`` has tried to verify in " + context.getGuild().getName() + " but was trello banned, and has been global-banned. His labels are:](:link):\n" +
+                                        "```:reason```").set("global-unbanned-id", verificationEntity.getRobloxId()).set("reason", banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining())).set("user", "XEUS AUTO BAN").set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+                                }
+                                ignoredMembers.put(member, "__*`User is TRELLO BANNED AND GLOBAL BANNED`*__");
+                                GlobalBanMember(context, String.valueOf(verificationEntity.getDiscordId()), "User has been global-banned by PIA. This is automatic ban.", guilde);
 
-                            if (!canAppeal && isPermenant) {
-                                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Loading ban message...")).flatMap(m -> m.editMessage(member.getAsMention())
-                                    .setEmbeds(MessageFactory.makeSuccess(m, "[You have been trello-banned forever within Pinewood, this ban is permenant, so you're not allowed to appeal it. We wish you a very good day sir, and goodbye.](https://www.youtube.com/watch?v=BXUhfoUJjuQ)").buildEmbed())).queue();
-                                avaire.getShardManager().getTextChannelById("778853992704507945").sendMessage("Loading...").flatMap(message -> message.editMessage("Shut the fuck up.").setEmbeds(MessageFactory.makeInfo(message, member.getAsMention() + " tried to verify in `"+context.guild.getName()+"`. However, this person has a permenant trelloban to his name. He has been sent the STFU video (If his DM's are on) and have been global-banned.").buildEmbed())).queue();
-                            }
-                            TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
-                            if (tc != null) {
-                                tc.sendMessageEmbeds(context.makeInfo("[``:global-unbanned-id`` has tried to verify in "+context.getGuild().getName()+" but was trello banned, and has been global-banned. His labels are:](:link):\n" +
-                                    "```:reason```").set("global-unbanned-id", verificationEntity.getRobloxId()).set("reason", banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining())).set("user", "XEUS AUTO BAN").set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
-                            }
-                            GlobalBanMember(context, String.valueOf(verificationEntity.getDiscordId()), "User has been global-banned by PIA. This is automatic ban.", guilde);
-
-                        } else {
-                            if (canAppeal) {
+                            } else if (canAppeal) {
                                 context.guild.modifyMemberRoles(member, context.guild.getRoleById(canAppealRoleId)).queue();
                                 member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message...")).flatMap(m -> m.editMessage(member.getAsMention())
                                     .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned within Pinewood, [however you are still allowed to appeal within the PBAC]().\n\n" +
@@ -249,9 +247,11 @@ public class UpdateCommand extends Command {
                                     .setEmbeds(MessageFactory.makeSuccess(m, "[You have been trello-banned forever within Pinewood, this ban is permenant, so you're not allowed to appeal it. We wish you a very good day sir, and goodbye.](https://www.youtube.com/watch?v=BXUhfoUJjuQ)").buildEmbed())).queue();
                                 avaire.getShardManager().getTextChannelById("778853992704507945").sendMessage("Loading...").flatMap(message -> message.editMessage("Shut the fuck up.").setEmbeds(MessageFactory.makeInfo(message, member.getAsMention() + " has a permanent trelloban. They have been sent the STFU video (if their DMs are on).").buildEmbed())).queue();
                             }
+
+                        } else {
+                            ignoredMembers.put(member, "__*`User is TRELLO BANNED`*__");
+                            continue;
                         }
-                        ignoredMembers.put(member, "__*`User is TRELLO BANNED`*__");
-                        continue;
                     }
                 }
             }
@@ -421,7 +421,7 @@ public class UpdateCommand extends Command {
     }};
 
 
-    private void GlobalBanMember(CommandMessage context, String arg, String reason, List<Guild> guilde) {
+    private void GlobalBanMember(CommandMessage context, String arg, String reason, List <Guild> guilde) {
         StringBuilder sb = new StringBuilder();
         for (Guild g : guilde) {
             g.ban(arg, 0, "Banned by: " + context.member.getEffectiveName() + "\n" +
@@ -430,6 +430,7 @@ public class UpdateCommand extends Command {
             sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
         }
     }
+
     private boolean isTrelloBanned(VerificationEntity verificationEntity) {
         return avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().containsKey(verificationEntity.getRobloxId());
     }
@@ -597,8 +598,10 @@ public class UpdateCommand extends Command {
 
                     //Modify the roles of the member
                     g.modifyMemberRoles(member, rolesToAdd, rolesToRemove)
-                        .queue(l -> {guildCount.getAndIncrement();
-                            count.getAndIncrement();}, null);
+                        .queue(l -> {
+                            guildCount.getAndIncrement();
+                            count.getAndIncrement();
+                        }, null);
 
                     String rolesToAddAsString = "\nRoles to add:\n" + (rolesToAdd.size() > 0
                         ? (rolesToAdd.stream().map(role -> "- `" + role.getName() + "`")

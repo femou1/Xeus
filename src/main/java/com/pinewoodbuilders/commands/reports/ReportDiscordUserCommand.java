@@ -73,7 +73,7 @@ public class ReportDiscordUserCommand extends Command {
     }
 
     EnumSet <Permission> allow = EnumSet.of(Permission.MESSAGE_READ, Permission.MESSAGE_WRITE);
-    EnumSet <Permission> allow_bot = EnumSet.of(Permission.MESSAGE_READ, Permission.MESSAGE_WRITE, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL);
+    EnumSet <Permission> allow_bot = EnumSet.of(Permission.MESSAGE_READ, Permission.MESSAGE_WRITE, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES, Permission.VIEW_CHANNEL);
 
     EnumSet <Permission> deny = EnumSet.of(Permission.MESSAGE_READ);
 
@@ -109,7 +109,9 @@ public class ReportDiscordUserCommand extends Command {
             return true;
         }
         if (!hasCategory(context.getGuildTransformer(), context)) {
-            context.getGuild().createCategory("Reports").addMemberPermissionOverride(context.getJDA().getSelfUser().getIdLong(), allow_bot, null).addRolePermissionOverride(context.getGuild().getPublicRole().getIdLong(), null, deny).queue(l -> {
+            context.getGuild().createCategory("Reports")
+                .addMemberPermissionOverride(context.getJDA().getSelfUser().getIdLong(), allow_bot, null)
+                .addRolePermissionOverride(context.getGuild().getPublicRole().getIdLong(), null, deny).queue(l -> {
                 insertIntoDatabase(context, l);
                 setGuildHRPermissions(l, context);
                 createReportChannel(l, context);
@@ -146,14 +148,17 @@ public class ReportDiscordUserCommand extends Command {
     }
 
     private void createReportChannel(Category l, CommandMessage context) {
-        l.createTextChannel("report-" + context.member.getEffectiveName()).addMemberPermissionOverride(context.member.getIdLong(), allow, null).queue(o -> {
+        l.createTextChannel("report-" + context.member.getEffectiveName())
+            .addMemberPermissionOverride(context.member.getIdLong(), allow, null)
+            .queue(o -> {
             setGuildHRPermissions(o, context);
             o.getManager().setTopic(context.member.getId() + " | Closable | DMember").queue();
             o.sendMessage(context.member.getAsMention()).embed(context.makeSuccess("Greetings ``" + context.getMember().getEffectiveName() + "`` to your report \"ticket\", in here special defense members and trainers can ask you questions about the user you'd like to report. Please start with telling us who you'd like to report (It has to be a user on THIS discord)").buildEmbed()).queue(message ->
             {/*message.pin().queue();
                 message.addReaction("❌").queue();
                 message.addReaction("⭕").queue();
-                message.addReaction("\uD83D\uDD3C").queue();*/});
+                message.addReaction("\uD83D\uDD3C").queue();*/
+            });
             context.makeSuccess("Your special report channel has been created in " + o.getAsMention()).queue();
         });
     }
@@ -234,15 +239,15 @@ public class ReportDiscordUserCommand extends Command {
         }
 
         for (String i : roles) {
-            if (context.getGuild().getRoleById(i) != null) {
-                if (c.getPermissionOverride(context.getGuild().getRoleById(i)) != null) {
+            Role r = context.getGuild().getRoleById(i);
+            if (r != null) {
+                if (c.getPermissionOverride(r) != null) {
                     continue;
                 }
 
-                c.createPermissionOverride(context.getGuild().getRoleById(i)).setAllow(Permission.MESSAGE_READ, Permission.MESSAGE_WRITE).queue();
+                c.createPermissionOverride(r).setAllow(Permission.MESSAGE_READ, Permission.MESSAGE_WRITE).queue();
             } else {
                 context.getGuildTransformer().getReportPermissionRoles().remove(i);
-
                 try {
                     avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
                         .where("id", context.getGuild().getId())

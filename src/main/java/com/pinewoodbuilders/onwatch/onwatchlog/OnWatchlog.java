@@ -211,7 +211,7 @@ public class OnWatchlog {
                 message.setFooter("Case ID #" + caseId, null);
             }
 
-            channel.sendMessage(message.build()).queue(null, RestActionUtil.ignore);
+            channel.sendMessageEmbeds(message.build()).queue(null, RestActionUtil.ignore);
         }, RestActionUtil.ignore);
     }
 

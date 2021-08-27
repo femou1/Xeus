@@ -57,7 +57,7 @@ public class ListServersPBCommand extends SystemCommand {
 
     @Override
     public List<String> getTriggers() {
-        return Collections.singletonList("removeallnonpbserversfromthebotyesiamcompletlysureaboutthischangeandiknowwhatthiswilldoandiamalsoawarethisCANNOTberevertedbecausethebothastobereinvited");
+        return Collections.singletonList("remove-from-unautherised");
     }
 
     @Override

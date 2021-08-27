@@ -9,6 +9,8 @@ database\.sqlite
 /commandMap\.json
 *.class
 .DS_Store
+config.yml
+constants.yml
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
@@ -34,6 +36,7 @@ hs_err_pid*
 target/
 build/
 out/
+bin/
 AvaIre.jar
 
 # Image Generator Branch
