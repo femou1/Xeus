@@ -90,8 +90,8 @@ public class WatchlogHistoryCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
-            "isModOrHigher",
+            "isPinewoodGuild",
+            "isGuildHROrHigher",
             "throttle:channel,1,5"
         );
     }
@@ -138,7 +138,7 @@ public class WatchlogHistoryCommand extends Command {
                     : I18n.format("[{0}](https://discordapp.com/channels/{1}/{2}/{3})",
                     row.getString("modlogCase"),
                     context.getGuild().getIdLong(),
-                    context.getGuildTransformer().getOnWatchLog(),
+                    context.getGuildSettingsTransformer().getOnWatchChannel(),
                     row.getString("message_id")
                 );
 

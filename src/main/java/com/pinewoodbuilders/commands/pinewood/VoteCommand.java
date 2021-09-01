@@ -10,8 +10,9 @@ import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.controllers.GuildController;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.query.QueryBuilder;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
@@ -70,7 +71,7 @@ public class VoteCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
+            "isPinewoodGuild",
             "throttle:user,1,25"
         );
     }
@@ -87,7 +88,7 @@ public class VoteCommand extends Command {
             return runDMArguments(context, args);
         }
 
-        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getLevel()) {
+        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             return sendErrorMessage(context, "You don't have the required permission to run the settings of these commands.\n" +
                 "If you're trying to vote on a current vote, then please send the vote message in the DMs of the bot.");
         }
@@ -123,13 +124,15 @@ public class VoteCommand extends Command {
                 return false;
             }
 
+            
+
             String[] strings = args[1].split(",");
             String question = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
 
             String vote_id = new RandomString(5, new Random()).nextString();
 
             try {
-                avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTES_TABLE_NAME).useAsync(true).insert(statement -> {
+                avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME).useAsync(true).insert(statement -> {
                     statement.set("question", question);
                     statement.set("total_votes", 0);
                     statement.set("vote_id", vote_id);
@@ -137,7 +140,7 @@ public class VoteCommand extends Command {
                 });
 
                 for (String awnser : strings) {
-                    avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTABLE_TABLE_NAME).useAsync(true).insert(statement -> {
+                    avaire.getDatabase().newQueryBuilder(Constants.VOTABLE_TABLE_NAME).useAsync(true).insert(statement -> {
                         statement.set("vote_id", vote_id);
                         statement.set("item", awnser);
                         statement.set("added_by", context.getMember().getEffectiveName());
@@ -159,9 +162,9 @@ public class VoteCommand extends Command {
             }
             if (args.length == 2) {
                 try {
-                    QueryBuilder cvotes = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTES_TABLE_NAME).where("vote_id", args[1]);
-                    QueryBuilder canswers = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTABLE_TABLE_NAME).where("vote_id", args[1]);
-                    QueryBuilder cvote = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTE_TABLE_NAME).where("vote_id", args[1]);
+                    QueryBuilder cvotes = avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME).where("vote_id", args[1]);
+                    QueryBuilder canswers = avaire.getDatabase().newQueryBuilder(Constants.VOTABLE_TABLE_NAME).where("vote_id", args[1]);
+                    QueryBuilder cvote = avaire.getDatabase().newQueryBuilder(Constants.VOTE_TABLE_NAME).where("vote_id", args[1]);
 
                     Collection votes = cvotes.get();
                     Collection answers = canswers.get();
@@ -208,8 +211,8 @@ public class VoteCommand extends Command {
                 return false;
             }
             try {
-                Collection votes = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTES_TABLE_NAME).where("vote_id", args[1]).get();
-                Collection answers = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTABLE_TABLE_NAME).where("vote_id", args[1]).get();
+                Collection votes = avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME).where("vote_id", args[1]).get();
+                Collection answers = avaire.getDatabase().newQueryBuilder(Constants.VOTABLE_TABLE_NAME).where("vote_id", args[1]).get();
 
                 StringBuilder sb = new StringBuilder();
                 sb.setLength(0);
@@ -230,7 +233,7 @@ public class VoteCommand extends Command {
                         sb.append("\n - ``").append(s).append("``").append(" - **").append(getCountFromVoteAndItem(args[1], s, context)).append("**");
                     });
 
-                    //Collection responses = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTE_TABLE_NAME).where("vote_id", args[1]).where("accepted", true).get();
+                    //Collection responses = avaire.getDatabase().newQueryBuilder(Constants.VOTE_TABLE_NAME).where("vote_id", args[1]).where("accepted", true).get();
 
 
                     context.makeEmbeddedMessage(new Color(0, 158, 224))
@@ -251,8 +254,8 @@ public class VoteCommand extends Command {
 
 
             try {
-                Collection votes = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTES_TABLE_NAME).where("vote_id", args[1]).get();
-                Collection answers = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTABLE_TABLE_NAME).where("vote_id", args[1]).get();
+                Collection votes = avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME).where("vote_id", args[1]).get();
+                Collection answers = avaire.getDatabase().newQueryBuilder(Constants.VOTABLE_TABLE_NAME).where("vote_id", args[1]).get();
                 StringBuilder sb = new StringBuilder();
                 sb.setLength(0);
 
@@ -293,7 +296,7 @@ public class VoteCommand extends Command {
 
 
             try {
-                Collection votes = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTES_TABLE_NAME).get();
+                Collection votes = avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME).get();
                 StringBuilder sb = new StringBuilder();
                 sb.setLength(0);
 
@@ -328,9 +331,9 @@ public class VoteCommand extends Command {
             }
 
             try {
-                Collection votes = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTES_TABLE_NAME).where("vote_id", args[1]).get();
+                Collection votes = avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME).where("vote_id", args[1]).get();
                 if (votes.size() == 1) {
-                    avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTES_TABLE_NAME).where("vote_id", args[1])
+                    avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME).where("vote_id", args[1])
                         .useAsync(true).update(statement -> {
                         statement.set("active", false);
                     });
@@ -348,9 +351,9 @@ public class VoteCommand extends Command {
             }
 
             try {
-                Collection votes = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTES_TABLE_NAME).where("vote_id", args[1]).get();
+                Collection votes = avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME).where("vote_id", args[1]).get();
                 if (votes.size() == 1) {
-                    avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTES_TABLE_NAME).where("vote_id", args[1])
+                    avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME).where("vote_id", args[1])
                         .useAsync(true).update(statement -> {
                         statement.set("active", true);
                     });
@@ -367,10 +370,10 @@ public class VoteCommand extends Command {
     private int getCountFromVoteAndItem(String arg, String item, CommandMessage context) {
         try {
             Collection responses;
-            if (context.getGuildTransformer().getVoteValidationChannel() != null) {
-                responses = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTE_TABLE_NAME).where("vote_id", arg).andWhere("voted_for", item).andWhere("accepted", 1).get();
+            if (context.getGuildSettingsTransformer().getVoteValidationChannelId() != 0) {
+                responses = avaire.getDatabase().newQueryBuilder(Constants.VOTE_TABLE_NAME).where("vote_id", arg).andWhere("voted_for", item).andWhere("accepted", 1).get();
             } else {
-                responses = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTE_TABLE_NAME).where("vote_id", arg).where("voted_for", item).get();
+                responses = avaire.getDatabase().newQueryBuilder(Constants.VOTE_TABLE_NAME).where("vote_id", arg).where("voted_for", item).get();
             }
 
             return responses.size();
@@ -386,9 +389,9 @@ public class VoteCommand extends Command {
             return false;
         }
         try {
-            Collection votes = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTES_TABLE_NAME).where("vote_id", args[0]).get();
-            Collection answers = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTABLE_TABLE_NAME).where("vote_id", args[0]).get();
-            QueryBuilder vote = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTE_TABLE_NAME).where("voter_user_id", context.getAuthor().getId());
+            Collection votes = avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME).where("vote_id", args[0]).get();
+            Collection answers = avaire.getDatabase().newQueryBuilder(Constants.VOTABLE_TABLE_NAME).where("vote_id", args[0]).get();
+            QueryBuilder vote = avaire.getDatabase().newQueryBuilder(Constants.VOTE_TABLE_NAME).where("voter_user_id", context.getAuthor().getId());
 
             if (votes.size() < 1) {
                 context.makeError(":warning: It seems like this vote does not exist, please check if you have the correct **vote** ID.").queue();
@@ -427,9 +430,9 @@ public class VoteCommand extends Command {
                         context.makeError("This is not a votable option!").queue();
                         return false;
                     }
-                    GuildTransformer gt = GuildController.fetchGuild(avaire, gc);
-                    if (gt.getVoteValidationChannel() == null) {
-                        QueryBuilder ivote = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTE_TABLE_NAME);
+                    GuildSettingsTransformer gt = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, gc);
+                    if (gt.getVoteValidationChannelId() == 0) {
+                        QueryBuilder ivote = avaire.getDatabase().newQueryBuilder(Constants.VOTE_TABLE_NAME);
 
                         if (vote.andWhere("vote_id", args[0]).get().size() > 0) {
                             context.makeInfo(":warning: You've already voted for ``" + vote.andWhere("vote_id", args[0]).get().get(0).get("voted_for") + "``. Your vote will be overridden!").queue();
@@ -462,15 +465,15 @@ public class VoteCommand extends Command {
 
 
                         String description = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
-                        avaire.getShardManager().getTextChannelById(gt.getVoteValidationChannel())
+                        avaire.getShardManager().getTextChannelById(gt.getVoteValidationChannelId())
                             .sendMessageEmbeds(context.makeEmbeddedMessage(new Color(54, 57, 63)).setAuthor(context.getAuthor().getName() + "#" + context.getAuthor().getDiscriminator() + " - " + args[1], null, context.getAuthor().getEffectiveAvatarUrl())
                                 .setDescription(description).setFooter(args[0]).setTimestamp(Instant.now()).buildEmbed()).queue(message -> {
                             try {
-                                QueryBuilder ivote = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTE_TABLE_NAME);
+                                QueryBuilder ivote = avaire.getDatabase().newQueryBuilder(Constants.VOTE_TABLE_NAME);
 
                                 if (vote.andWhere("vote_id", args[0]).get().size() > 0) {
                                     context.makeInfo(":warning: You've already voted for ``" + vote.get().get(0).getString("voted_for") + "``. Your vote will be overridden!").queue();
-                                    avaire.getShardManager().getTextChannelById(gt.getVoteValidationChannel()).retrieveMessageById(vote.get().get(0).getString("vote_message_id"))
+                                    avaire.getShardManager().getTextChannelById(gt.getVoteValidationChannelId()).retrieveMessageById(vote.get().get(0).getString("vote_message_id"))
                                         .queue(m -> {
                                             m.delete().queue(t -> {
                                                 context.makeInfo("Deleted old vote!").queue();
@@ -523,9 +526,9 @@ public class VoteCommand extends Command {
 
 
 
-    private boolean disableVoteValidation(CommandMessage context, GuildTransformer transformer) {
+    private boolean disableVoteValidation(CommandMessage context, GuildSettingsTransformer transformer) {
         try {
-            updateVoteValidation(transformer, context, null);
+            updateVoteValidation(transformer, context, 0);
 
             context.makeSuccess("The vote validation channel has been disabled on this guild.")
                 .queue();
@@ -536,15 +539,15 @@ public class VoteCommand extends Command {
         return true;
     }
 
-    private PlaceholderMessage sendVoteValidationChannel(CommandMessage context, GuildTransformer transformer) {
-        if (transformer.getVoteValidationChannel() == null) {
+    private PlaceholderMessage sendVoteValidationChannel(CommandMessage context, GuildSettingsTransformer transformer) {
+        if (transformer.getVoteValidationChannelId() == 0) {
             return context.makeWarning("The vote validation channel is disabled on this guild.");
         }
 
-        TextChannel modlogChannel = context.getGuild().getTextChannelById(transformer.getVoteValidationChannel());
+        TextChannel modlogChannel = context.getGuild().getTextChannelById(transformer.getVoteValidationChannelId());
         if (modlogChannel == null) {
             try {
-                updateVoteValidation(transformer, context, null);
+                updateVoteValidation(transformer, context, 0);
             } catch (SQLException ex) {
                 Xeus.getLogger().error(ex.getMessage(), ex);
             }
@@ -555,9 +558,9 @@ public class VoteCommand extends Command {
             .set("channel", modlogChannel.getAsMention());
     }
     private Boolean runVoteUpdateChannelChannelCommand(CommandMessage context, String[] args) {
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
-            return sendErrorMessage(context, "The guildtransformer can't be found :(");
+            return sendErrorMessage(context, "The GuildSettingsTransformer can't be found :(");
         }
 
         if (args.length == 1) {
@@ -579,7 +582,7 @@ public class VoteCommand extends Command {
         }
 
         try {
-            updateVoteValidation(transformer, context, channel.getId());
+            updateVoteValidation(transformer, context, channel.getIdLong());
 
             context.makeSuccess("The vote validation channel is set to :channel this guild.")
                 .set("channel", ((TextChannel) channel).getAsMention())
@@ -589,10 +592,10 @@ public class VoteCommand extends Command {
         }
         return true;
     }
-    private void updateVoteValidation(GuildTransformer transformer, CommandMessage context, String value) throws
+    private void updateVoteValidation(GuildSettingsTransformer transformer, CommandMessage context, long value) throws
         SQLException {
-        transformer.setVoteValidationChannel(value);
-        avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+        transformer.setVoteValidationChannelId(value);
+        avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
             .where("id", context.getGuild().getId())
             .update(statement -> statement.set("vote_validation_channel", value));
     }

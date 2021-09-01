@@ -90,7 +90,7 @@ public class VoteOptCommand extends Command {
         }
 
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME)
+            avaire.getDatabase().newQueryBuilder(Constants.BOT_VOTES_TABLE_NAME)
                 .useAsync(true)
                 .where("user_id", context.getAuthor().getIdLong())
                 .update(statement -> statement.set("opt_in", opt));

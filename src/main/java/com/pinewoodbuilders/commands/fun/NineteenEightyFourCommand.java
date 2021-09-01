@@ -4,6 +4,7 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.CommandPriority;
 import com.pinewoodbuilders.contracts.commands.Command;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.modlog.Modlog;
@@ -168,16 +169,16 @@ public class NineteenEightyFourCommand extends Command {
     }
 
     private boolean rankUserOnWatch(CommandMessage context) {
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             return sendErrorMessage(context, "Guild settings couldn't be pulled");
         }
 
-        if (transformer.getOnWatchLog() == null) {
+        if (transformer.getOnWatchChannel() == 0) {
             return sendErrorMessage(context, "On Watch log has not been set, ask an admin to fix this.");
         }
 
-        if (transformer.getOnWatchRole() == null) {
+        if (transformer.getOnWatchRole() == 0) {
             return sendErrorMessage(context, "On Watch role has doesn't exist anymore, ask an admin to fix this.");
         }
 

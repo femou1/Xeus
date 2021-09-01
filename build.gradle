@@ -1,7 +1,7 @@
 plugins {
     id 'application'
     id 'com.github.johnrengelman.shadow' version '6.1.0'
-    id 'com.gorylenko.gradle-git-properties' version '2.3.1'
+    id "com.gorylenko.gradle-git-properties" version "2.3.1"
     id "com.github.ben-manes.versions" version "0.39.0"
 }
 
@@ -34,7 +34,7 @@ shadowJar {
 tasks.withType(JavaCompile) {
     dependsOn 'clean'
     options.encoding = 'UTF-8'
-    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    //options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
 }
 
 task fatJar(type: Jar) {

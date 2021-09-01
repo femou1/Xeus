@@ -81,7 +81,6 @@ public class ToggleCategoryCommand extends Command {
         return Arrays.asList(CategoriesCommand.class, ChangePrefixCommand.class);
     }
 
-
     @Override
     public List<String> getTriggers() {
         return Arrays.asList("togglecategory", "tcategory", "tcat");
@@ -126,7 +125,6 @@ public class ToggleCategoryCommand extends Command {
         }
 
         String channelId = context.getMessage().getMentionedChannels().get(0).getId();
-
         GuildTransformer transformer = context.getGuildTransformer();
         if (transformer == null) {
             return sendErrorMessage(context, "errors.errorOccurredWhileLoading", "server settings");

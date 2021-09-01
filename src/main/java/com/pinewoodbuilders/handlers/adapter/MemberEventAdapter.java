@@ -26,7 +26,9 @@ import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.contracts.handlers.EventAdapter;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.controllers.GuildController;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.ChannelTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.permissions.Permissions;
@@ -113,17 +115,6 @@ public class MemberEventAdapter extends EventAdapter {
             }
         }
 
-        // Re-WATCHES the user if a valid WATCH role have been setup for the guild
-        // and the user is still registered as WATCHED for the server.
-        if (transformer.getOnWatchRole() != null) {
-            Role watch = event.getGuild().getRoleById(transformer.getOnWatchRole());
-            if (canGiveRole(event, watch) && avaire.getOnWatchManger().isOnWatchd(event.getGuild().getIdLong(), event.getUser().getIdLong())) {
-                event.getGuild().addRoleToMember(
-                    event.getMember(), watch
-                ).queue();
-            }
-        }
-
         if (transformer.getAutorole() != null) {
             Role role = event.getGuild().getRoleById(transformer.getAutorole());
             if (canGiveRole(event, role)) {
@@ -150,6 +141,24 @@ public class MemberEventAdapter extends EventAdapter {
             return;
         }
 
+
+        GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild());
+        if (settings == null) {
+            log.warn("Failed to get a valid guild transformer during member join! User:{}, Guild:{}",
+                event.getMember().getUser().getId(), event.getGuild().getId()
+            );
+            return;
+        }
+        // Re-WATCHES the user if a valid WATCH role have been setup for the guild
+        // and the user is still registered as WATCHED for the server.
+        if (settings.getOnWatchRole() != 0) {
+            Role watch = event.getGuild().getRoleById(settings.getOnWatchRole());
+            if (canGiveRole(event, watch) && avaire.getOnWatchManger().isOnWatchd(event.getGuild().getIdLong(), event.getUser().getIdLong())) {
+                event.getGuild().addRoleToMember(
+                    event.getMember(), watch
+                ).queue();
+            }
+        }
 
     }
 

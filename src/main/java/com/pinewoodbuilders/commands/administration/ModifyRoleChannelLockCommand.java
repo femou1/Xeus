@@ -90,8 +90,8 @@ public class ModifyRoleChannelLockCommand extends Command {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
-            "isManagerOrHigher",
+            "isPinewoodGuild",
+            "isGuildLeadership",
             "throttle:user,1,5"
         );
     }

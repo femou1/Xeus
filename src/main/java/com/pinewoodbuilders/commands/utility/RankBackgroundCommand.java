@@ -278,7 +278,7 @@ public class RankBackgroundCommand extends Command {
         VoteCacheEntity voteEntity = avaire.getVoteManager().getVoteEntity(context.getAuthor());
         int votePoints = voteEntity == null ? 0 : voteEntity.getVotePoints();
 
-        if (background.getCost() > votePoints && !(permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.MOD.getLevel())) {
+        if (background.getCost() > votePoints && !(permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel())) {
             return sendErrorMessage(context, context.i18n("doesntHaveEnoughPoints",
                 NumberUtil.formatNicely(background.getCost()), NumberUtil.formatNicely(votePoints)
             ));
@@ -291,7 +291,7 @@ public class RankBackgroundCommand extends Command {
                     statement.set("type_id", background.getId());
                 });
 
-            avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME)
+            avaire.getDatabase().newQueryBuilder(Constants.BOT_VOTES_TABLE_NAME)
                 .where("user_id", context.getAuthor().getIdLong())
                 .update(statement -> {
                     statement.setRaw("points", "`points` - " + background.getCost());
@@ -337,7 +337,7 @@ public class RankBackgroundCommand extends Command {
         }
 
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME)
+            avaire.getDatabase().newQueryBuilder(Constants.BOT_VOTES_TABLE_NAME)
                 .where("user_id", context.getAuthor().getIdLong())
                 .update(statement -> statement.set("selected_bg", background.getId()));
 
@@ -363,7 +363,7 @@ public class RankBackgroundCommand extends Command {
 
         try {
             if (player.getPurchases().getSelectedPurchasesForType(RankBackgroundHandler.getPurchaseType()) != null) {
-                avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME)
+                avaire.getDatabase().newQueryBuilder(Constants.BOT_VOTES_TABLE_NAME)
                     .where("user_id", context.getAuthor().getIdLong())
                     .update(statement -> statement.set("selected_bg", null));
 

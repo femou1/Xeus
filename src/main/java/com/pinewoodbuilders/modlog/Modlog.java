@@ -208,7 +208,7 @@ public class Modlog {
             guild.getJDA(), action, transformer.getModlogCase()
         ));
 
-        channel.sendMessage(builder.build()).queue(success -> {
+        channel.sendMessageEmbeds(builder.build()).queue(success -> {
             try {
                 avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
                     .where("id", guild.getId())

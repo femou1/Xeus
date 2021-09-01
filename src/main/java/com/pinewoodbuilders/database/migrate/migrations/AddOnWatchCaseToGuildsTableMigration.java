@@ -28,7 +28,7 @@ import com.pinewoodbuilders.database.schema.Schema;
 
 import java.sql.SQLException;
 
-public class AddOnWatchToGuildsTableMigration implements Migration {
+public class AddOnWatchCaseToGuildsTableMigration implements Migration {
 
     @Override
     public String created_at() {
@@ -37,21 +37,16 @@ public class AddOnWatchToGuildsTableMigration implements Migration {
 
     @Override
     public boolean up(Schema schema) throws SQLException {
-        if (schema.hasColumn(Constants.GUILD_TABLE_NAME, "on_watch") && schema.hasColumn(Constants.GUILD_TABLE_NAME, "on_watch_case")) {
+        if (schema.hasColumn(Constants.GUILD_TABLE_NAME, "on_watch_case")) {
             return true;
         }
 
         if (schema.getDbm().getConnection() instanceof MySQL) {
             schema.getDbm().queryUpdate(String.format(
-                "ALTER TABLE `%s` ADD `on_watch` VARCHAR(32) NULL DEFAULT NULL AFTER `autorole`, ADD `on_watch_case` INT NOT NULL DEFAULT '0' AFTER `on_watch`;",
+                "ADD `on_watch_case` INT NOT NULL DEFAULT '0' AFTER `on_watch`;",
                 Constants.GUILD_TABLE_NAME
             ));
         } else {
-            schema.getDbm().queryUpdate(String.format(
-                "ALTER TABLE `%s` ADD `on_watch` VARCHAR(32) NULL DEFAULT NULL;",
-                Constants.GUILD_TABLE_NAME
-            ));
-
             schema.getDbm().queryUpdate(String.format(
                 "ALTER TABLE `%s` ADD `on_watch_case` INT NOT NULL DEFAULT '0';",
                 Constants.GUILD_TABLE_NAME
@@ -63,12 +58,12 @@ public class AddOnWatchToGuildsTableMigration implements Migration {
 
     @Override
     public boolean down(Schema schema) throws SQLException {
-        if (!schema.hasColumn(Constants.GUILD_TABLE_NAME, "on_watch") && !schema.hasColumn(Constants.GUILD_TABLE_NAME, "on_watch_case")) {
+        if (!schema.hasColumn(Constants.GUILD_TABLE_NAME, "on_watch_case")) {
             return true;
         }
 
         schema.getDbm().queryUpdate(String.format(
-            "ALTER TABLE `%s` DROP `on_watch`, DROP `on_watch_case`;",
+            "ALTER TABLE `%s` DROP `on_watch_case`;",
             Constants.GUILD_TABLE_NAME
         ));
 

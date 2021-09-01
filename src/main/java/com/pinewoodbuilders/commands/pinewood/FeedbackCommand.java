@@ -9,7 +9,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.query.QueryBuilder;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.EventWaiter;
 import com.pinewoodbuilders.utilities.MentionableUtil;
@@ -76,7 +76,7 @@ public class FeedbackCommand extends Command {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
+            "isPinewoodGuild",
             "throttle:user,1,120"
         );
     }
@@ -88,7 +88,7 @@ public class FeedbackCommand extends Command {
         }
 
         int permissionLevel = CheckPermissionUtil.getPermissionLevel(context).getLevel();
-        if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getLevel()) {
+        if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             if (args.length > 0) {
                 switch (args[0]) {
                     case "ss":
@@ -114,7 +114,7 @@ public class FeedbackCommand extends Command {
 
         context.makeInfo("<a:loading:742658561414266890> Loading suggestions... <a:loading:742658561414266890>").queue(l -> {
 
-            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).orderBy("suggestion_channel");
+            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("suggestion_channel");
             try {
                 StringBuilder sb = new StringBuilder();
                 qb.get().forEach(dataRow -> {
@@ -232,7 +232,7 @@ public class FeedbackCommand extends Command {
     }
 
     private boolean runClearAllChannelsFromDatabase(CommandMessage context) {
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("suggestion_channel", null);
@@ -254,13 +254,13 @@ public class FeedbackCommand extends Command {
         if (args.length < 2) {
             return sendErrorMessage(context, "Incorrect arguments");
         }
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             context.makeError("I can't pull the guilds information, please try again later.").queue();
             return false;
         }
 
-        if (transformer.getSuggestionChannel() == null) {
+        if (transformer.getSuggestionChannelId() == 0) {
             context.makeError("You want to set a approved suggestion channel, without the suggestions channel being set. Please set a \"Suggestion Channel\" with ``:command set-suggestions <channel> <emote>``").set("command", generateCommandTrigger(context.message)).queue();
             return false;
         }
@@ -274,10 +274,10 @@ public class FeedbackCommand extends Command {
         return updateApprovedSuggestionChannelInDatabase(transformer, context, (TextChannel) channel);
     }
 
-    private boolean updateApprovedSuggestionChannelInDatabase(GuildTransformer transformer, CommandMessage context, TextChannel channel) {
-        transformer.setSuggestionApprovedChannelId(channel.getId());
+    private boolean updateApprovedSuggestionChannelInDatabase(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel) {
+        transformer.setSuggestionApprovedChannelId(channel.getIdLong());
 
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("approved_suggestion_channel", transformer.getSuggestionApprovedChannelId());
@@ -295,13 +295,13 @@ public class FeedbackCommand extends Command {
         if (args.length < 2) {
             return sendErrorMessage(context, "Incorrect arguments");
         }
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             context.makeError("I can't pull the guilds information, please try again later.").queue();
             return false;
         }
 
-        if (transformer.getSuggestionChannel() == null) {
+        if (transformer.getSuggestionChannelId() == 0) {
             context.makeError("You want to set a community approved suggestion channel, without the suggestions channel being set. Please set a \"Suggestion Channel\" with ``:command set-suggestions <channel> <emote>``").set("command", generateCommandTrigger(context.message)).queue();
             return false;
         }
@@ -315,13 +315,13 @@ public class FeedbackCommand extends Command {
         return updateCommunityChannelInDatabase(transformer, context, (TextChannel) channel);
     }
 
-    private boolean updateCommunityChannelInDatabase(GuildTransformer transformer, CommandMessage context, TextChannel channel) {
-        transformer.setSuggestionCommunityChannel(channel.getId());
+    private boolean updateCommunityChannelInDatabase(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel) {
+        transformer.setSuggestionCommunityChannelId(channel.getIdLong());
 
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
-                q.set("suggestion_community_channel", transformer.getSuggestionCommunityChannel());
+                q.set("suggestion_community_channel", transformer.getSuggestionCommunityChannelId());
             });
             context.makeSuccess("Set the community channel to " + channel.getAsMention()).queue();
             return true;
@@ -333,52 +333,35 @@ public class FeedbackCommand extends Command {
     }
 
     private boolean runSetSuggestionChannel(CommandMessage context, String[] args) {
-        if (args.length < 3) {
+        if (args.length < 2) {
             return sendErrorMessage(context, "Incorrect arguments");
         }
-        Emote e;
         GuildChannel c = MentionableUtil.getChannel(context.message, args, 1);
         if (c == null) {
             return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Channel)");
         }
 
-        if (NumberUtil.isNumeric(args[1])) {
-            e = avaire.getShardManager().getEmoteById(args[1]);
-            if (e == null) {
-                return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - ID)");
-            }
-        } else if (context.message.getEmotes().size() == 1) {
-            e = context.message.getEmotes().get(0);
-            if (e == null) {
-                return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - Mention)");
-            }
-        } else {
-            return sendErrorMessage(context, "Something went wrong (To many emotes).");
-        }
-
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             context.makeError("I can't pull the guilds information, please try again later.").queue();
             return false;
         }
 
-        transformer.setSuggestionChannel(c.getId());
-        transformer.setSuggestionEmoteId(e.getId());
+        transformer.setSuggestionChannelId(c.getIdLong());
 
-        return updateChannelAndEmote(context, transformer.getSuggestionEmoteId(), transformer.getSuggestionChannel());
+        return updateChannelAndEmote(context, transformer.getSuggestionChannelId());
     }
 
 
 
-    private boolean updateChannelAndEmote(CommandMessage context, String emoteId, String suggestionChannel) {
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+    private boolean updateChannelAndEmote(CommandMessage context, long suggestionChannel) {
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.FEATURE_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("suggestion_channel", suggestionChannel);
-                q.set("suggestion_emote_id", emoteId);
             });
 
-            context.makeSuccess("Suggestions have been enabled for <#:channelId> with the emote <:F::emoteId>").set("channelId", suggestionChannel).set("emoteId", emoteId).queue();
+            context.makeSuccess("Suggestions have been enabled for <#:channelId> with the emote <:F::emoteId>").set("channelId", suggestionChannel).set("emoteId", context.getGuildSettingsTransformer().getEmojiId());
             return true;
         } catch (SQLException throwables) {
             context.makeError("Something went wrong in the database, please check with the developer. (Stefano#7366)").queue();

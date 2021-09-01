@@ -60,8 +60,8 @@ public class WhitelistCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
-            "isModOrHigher"
+            "isPinewoodGuild",
+            "isGuildHROrHigher"
         );
     }
 

@@ -104,7 +104,7 @@ public class MuteRoleCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isManagerOrHigher",
+            "isGuildLeadership",
             "throttle:guild,1,5"
         );
     }

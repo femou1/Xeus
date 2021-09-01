@@ -95,7 +95,7 @@ public class ModlogPardonCommand extends Command {
     public List<String> getMiddleware() {
         return Arrays.asList(
             "throttle:user,1,4",
-            "isModOrHigher"
+            "isGuildHROrHigher"
             //"requireOne:user,text.manage_messages,general.kick_members,general.ban_members"
         );
     }
@@ -181,6 +181,6 @@ public class ModlogPardonCommand extends Command {
 
     private boolean canEditModlogCase(CommandMessage context, DataRow collection, int permissionLevel) {
         return context.getMember().hasPermission(Permission.ADMINISTRATOR)
-            || collection.getString("user_id", "").equals(context.getAuthor().getId()) || permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.PIA.getLevel();
+            || collection.getString("user_id", "").equals(context.getAuthor().getId()) || permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel();
     }
 }

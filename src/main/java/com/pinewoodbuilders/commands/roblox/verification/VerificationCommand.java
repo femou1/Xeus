@@ -74,7 +74,7 @@ public class VerificationCommand extends VerificationCommandContract {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isManagerOrHigher"
+            "isGuildLeadership"
         );
     }
 
@@ -140,12 +140,12 @@ public class VerificationCommand extends VerificationCommandContract {
     }
 
     private boolean kickUnranked(CommandMessage context, RobloxAPIManager manager) {
-        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.ADMIN.getLevel()) {
+        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             context.makeError("You're required to be an server admin or above to run this command").queue();
             return false;
         }
 
-        if (context.getGuildTransformer().getMainDiscordRole() == null) {
+        if (context.getGuildSettingsTransformer().getMainDiscordRole() == 0) {
             context.makeError("Main discord role has not been set, please add the main discord role (;rmanage set-main-role").queue();
             return false;
         }
@@ -157,11 +157,11 @@ public class VerificationCommand extends VerificationCommandContract {
                 continue;
             }
 
-            if (m.getRoles().stream().anyMatch(r -> r.getId().equalsIgnoreCase(context.getGuildTransformer().getMainDiscordRole()))) {
+            if (m.getRoles().stream().anyMatch(r -> r.getIdLong() == context.getGuildSettingsTransformer().getMainDiscordRole())) {
                 continue;
             }
 
-            if (m.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("bot") || r.getName().equalsIgnoreCase("RoVer Bypass") || r.getName().equalsIgnoreCase("Xeus Bypass"))) {
+            if (m.getRoles().stream().anyMatch(r -> r.isManaged() || r.getName().equalsIgnoreCase("RoVer Bypass") || r.getName().equalsIgnoreCase("Xeus Bypass"))) {
                 continue;
             }
             count++;
@@ -198,7 +198,7 @@ public class VerificationCommand extends VerificationCommandContract {
     }
 
     private boolean getUserIds(CommandMessage context, RobloxAPIManager manager) {
-        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.FACILITATOR.getLevel()) {
+        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
             context.makeError("You're required to be an facilitator, bot admin or above to run this command").queue();
             return false;
         }
@@ -215,7 +215,7 @@ public class VerificationCommand extends VerificationCommandContract {
     }
 
     private boolean massUnbindUsers(CommandMessage context, RobloxAPIManager manager) {
-        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.FACILITATOR.getLevel()) {
+        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
             context.makeError("You're required to be an facilitator, bot admin or above to run this command").queue();
             return false;
         }
@@ -310,8 +310,8 @@ public class VerificationCommand extends VerificationCommandContract {
                 return generateRobloxRanks(context, ranks);
             }
         }
-        if (context.getGuildTransformer().getRobloxGroupId() != 0) {
-            GroupRanksService ranks = manager.getGroupAPI().fetchGroupRanks(context.getGuildTransformer().getRobloxGroupId(), false);
+        if (context.getGuildSettingsTransformer().getRobloxGroupId() != 0) {
+            GroupRanksService ranks = manager.getGroupAPI().fetchGroupRanks(context.getGuildSettingsTransformer().getRobloxGroupId(), false);
             context.makeInfo("Ranks have not been setup yet, loading ranks from Roblox API and binding them to the guild based on the main group ID.").queue();
             return generateRobloxRanks(context, ranks);
         }
@@ -376,7 +376,7 @@ public class VerificationCommand extends VerificationCommandContract {
 
         binds.setGroupRankBindings(binds.getGroupRankBindings());
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_TABLE_NAME)
+            avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_SETTINGS_TABLE_NAME)
                 .where("id", context.getGuild().getId()).update(r -> r.set("ranks", Xeus.gson.toJson(binds)));
             VerificationController.forgetCache(context.getGuild().getIdLong());
         } catch (SQLException throwables) {
@@ -512,7 +512,7 @@ public class VerificationCommand extends VerificationCommandContract {
 
         binds.setGroupRankBindings(groupRankBindings);
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_TABLE_NAME)
+            avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_SETTINGS_TABLE_NAME)
                 .where("id", context.getGuild().getId()).update(r -> r.set("ranks", Xeus.gson.toJson(binds)));
             VerificationController.forgetCache(context.getGuild().getIdLong());
         } catch (SQLException throwables) {
@@ -584,7 +584,7 @@ public class VerificationCommand extends VerificationCommandContract {
 
     private boolean changeSettingTo(CommandMessage context, Object tc, String setting) {
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_TABLE_NAME).where("id", context.getGuild().getId())
+            avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_SETTINGS_TABLE_NAME).where("id", context.getGuild().getId())
                 .update(m -> {
                     m.set(setting, tc);
                     context.makeSuccess("Updated `:setting` to `:value` in the VerificationTransformer")
@@ -602,7 +602,7 @@ public class VerificationCommand extends VerificationCommandContract {
     private boolean generateRobloxRanks(CommandMessage context, GroupRanksService ranks) {
         context.makeInfo("```json\n" + buildPayload(context, ranks) + "\n```").queue();
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_TABLE_NAME).where("id", context.getGuild().getId()).update(m -> {
+            avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_SETTINGS_TABLE_NAME).where("id", context.getGuild().getId()).update(m -> {
                 m.set("ranks", buildPayload(context, ranks), true);
             });
             VerificationController.forgetCache(context.getGuild().getIdLong());

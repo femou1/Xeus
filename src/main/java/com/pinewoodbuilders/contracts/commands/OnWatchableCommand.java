@@ -22,6 +22,7 @@
 package com.pinewoodbuilders.contracts.commands;
 
 import com.pinewoodbuilders.Xeus;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import net.dv8tion.jda.api.entities.Role;
 
@@ -60,9 +61,9 @@ public abstract class OnWatchableCommand extends Command {
      */
     @Nonnull
     protected String getOnWatchRoleFromContext(@Nullable CommandContext context) {
-        if (context != null && context.getGuildTransformer() != null) {
-            GuildTransformer transformer = context.getGuildTransformer();
-            if (transformer.getOnWatchRole() != null) {
+        if (context != null && context.getGuildSettingsTransformer() != null) {
+            GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
+            if (transformer.getOnWatchRole() != 0) {
                 Role muteRole = context.getGuild().getRoleById(transformer.getOnWatchRole());
                 if (muteRole != null) {
                     return muteRole.getAsMention();

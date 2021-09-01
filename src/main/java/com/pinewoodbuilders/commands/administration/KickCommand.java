@@ -82,7 +82,7 @@ public class KickCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isModOrHigher",
+            "isGuildHROrHigher",
             "require:bot,general.kick_members",
             "throttle:user,1,5"
         );

@@ -10,6 +10,8 @@ import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Guild.MFALevel;
+import net.dv8tion.jda.api.entities.Guild.VerificationLevel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -58,9 +60,9 @@ public class ToggleAutoModCommand extends Command {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
+            "isPinewoodGuild",
             "throttle:user,2,5",
-            "isManagerOrHigher"
+            "isGuildLeadership"
         );
     }
 
@@ -87,10 +89,10 @@ public class ToggleAutoModCommand extends Command {
                 context.makeError("You need to mention a channel to add it as a filter log channel.").queue();
                 return false;
             }
-            context.getGuildTransformer().setFilterLog(context.getMentionedChannels().get(0).getId());
+            context.getGuildSettingsTransformer().setLocalFilterLog(context.getMentionedChannels().get(0).getIdLong());
             try {
-                avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId()).update(statement -> {
-                    statement.set("filter_log", context.getGuildTransformer().getFilterLog());
+                avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId()).update(statement -> {
+                    statement.set("local_filter_log", context.getGuildSettingsTransformer().getLocalFilterLog());
                 });
             } catch (SQLException throwables) {
                 context.makeError("Something went wrong when setting the log channel.").queue();
@@ -115,11 +117,11 @@ public class ToggleAutoModCommand extends Command {
 
     private void setStatus(boolean b, CommandMessage context) {
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+            avaire.getDatabase().newQueryBuilder(Constants.FEATURE_SETTINGS_TABLE)
                 .useAsync(true)
                 .where("id", context.getGuild().getId())
                 .update(statement -> statement.set("filter", b));
-            context.getGuildTransformer().setFilter(b);
+            context.getGuildSettingsTransformer().setLocalFilter(b);
             context.makeSuccess("Filter has been set to: **``" + b + "``**").queue();
         } catch (SQLException e) {
             Xeus.getLogger().error("ERROR: ", e);

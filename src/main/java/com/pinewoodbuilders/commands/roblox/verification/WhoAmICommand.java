@@ -69,7 +69,7 @@ public class WhoAmICommand extends Command {
         }
 
         try {
-            Collection qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).orderBy("roblox_group_id").get();
+            Collection qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("roblox_group_id").get();
             StringBuilder sb = new StringBuilder();
 
             for (DataRow data : qb) {

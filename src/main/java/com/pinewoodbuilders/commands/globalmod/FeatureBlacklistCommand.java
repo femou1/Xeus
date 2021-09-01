@@ -66,7 +66,7 @@ public class FeatureBlacklistCommand extends Command {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-                "isOfficialPinewoodGuild",
+                "isPinewoodGuild",
                 "isAdminOrHigher"
         );
     }
@@ -179,8 +179,8 @@ public class FeatureBlacklistCommand extends Command {
         if (s.getId() != 0) {
             guildId = context.guild.getIdLong();
         } else {
-            if (!(CheckPermissionUtil.getPermissionLevel(context).getLevel() > CheckPermissionUtil.GuildPermissionCheckType.PIA.getLevel())) {
-                return sendErrorMessage(context, "You're required to be level " + CheckPermissionUtil.GuildPermissionCheckType.PIA.getLevel() + " (``"+CheckPermissionUtil.GuildPermissionCheckType.PIA.getRankName()+"``) or higher to *globally* blacklist someone on all guilds!");
+            if (!(CheckPermissionUtil.getPermissionLevel(context).getLevel() > CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel())) {
+                return sendErrorMessage(context, "You're required to be level " + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel() + " (``"+CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getRankName()+"``) or higher to *globally* blacklist someone on all guilds!");
             }
             guildId = 1L;
         }
@@ -229,8 +229,8 @@ public class FeatureBlacklistCommand extends Command {
 
         long guildId;
         if (featureScope.getId() == 0) {
-            if (!(CheckPermissionUtil.getPermissionLevel(context).getLevel() > CheckPermissionUtil.GuildPermissionCheckType.PIA.getLevel())) {
-                return sendErrorMessage(context, "You're required to be level " + CheckPermissionUtil.GuildPermissionCheckType.PIA.getLevel() + " (``"+CheckPermissionUtil.GuildPermissionCheckType.PIA.getRankName()+"``) or higher to *globally* blacklist someone on all guilds!");
+            if (!(CheckPermissionUtil.getPermissionLevel(context).getLevel() > CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel())) {
+                return sendErrorMessage(context, "You're required to be level " + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel() + " (``"+CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getRankName()+"``) or higher to *globally* blacklist someone on all guilds!");
             }
             guildId = 1L;
         } else {

@@ -24,6 +24,7 @@ package com.pinewoodbuilders.utilities;
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.commands.CommandContext;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -37,7 +38,8 @@ public class CheckPermissionUtil {
      * Checks if the bot can send embed messages in the given message channel.
      *
      * @param channel The message channel that should be checked.
-     * @return <code>True</code> if the bot can send a message in it, <code>False</code> otherwise.
+     * @return <code>True</code> if the bot can send a message in it,
+     *         <code>False</code> otherwise.
      */
     public static PermissionCheckType canSendMessages(@Nullable MessageChannel channel) {
         if (!(channel instanceof TextChannel)) {
@@ -59,21 +61,16 @@ public class CheckPermissionUtil {
             return PermissionCheckType.MESSAGE;
         }
 
-        if (checkForRawEmbedPermission(PermissionUtil.getExplicitPermission(
-            textChannel, member
-        ))) {
+        if (checkForRawEmbedPermission(PermissionUtil.getExplicitPermission(textChannel, member))) {
             return PermissionCheckType.EMBED;
         }
 
-        if (checkForRawEmbedPermission(PermissionUtil.getExplicitPermission(
-            textChannel, textChannel.getGuild().getPublicRole()
-        ))) {
+        if (checkForRawEmbedPermission(
+                PermissionUtil.getExplicitPermission(textChannel, textChannel.getGuild().getPublicRole()))) {
             return PermissionCheckType.EMBED;
         }
 
-        if (checkForRawEmbedPermission(PermissionUtil.getExplicitPermission(
-            textChannel, member.getRoles().get(0)
-        ))) {
+        if (checkForRawEmbedPermission(PermissionUtil.getExplicitPermission(textChannel, member.getRoles().get(0)))) {
             return PermissionCheckType.EMBED;
         }
 
@@ -84,8 +81,8 @@ public class CheckPermissionUtil {
      * Checks if the given permission value includes the raw embed permission value.
      *
      * @param permissions The permission value that should be checked.
-     * @return <code>True</code> if the given raw permission value includes
-     * the embed permissions, <code>False</code> otherwise.
+     * @return <code>True</code> if the given raw permission value includes the
+     *         embed permissions, <code>False</code> otherwise.
      */
     private static boolean checkForRawEmbedPermission(long permissions) {
         for (Permission permission : Permission.getPermissions(permissions)) {
@@ -96,23 +93,20 @@ public class CheckPermissionUtil {
         return false;
     }
 
-
-
     /**
-     * The permission check type, the permission type are used to describe
-     * what type of permissions the bot has for the current channel.
+     * The permission check type, the permission type are used to describe what type
+     * of permissions the bot has for the current channel.
      */
     public enum PermissionCheckType {
 
         /**
-         * Represents the bot having access to both
-         * send, and embed send permissions.
+         * Represents the bot having access to both send, and embed send permissions.
          */
         EMBED(true, true),
 
         /**
-         * Represents the bot having access to send messages,
-         * but not to send embed message permissions.
+         * Represents the bot having access to send messages, but not to send embed
+         * message permissions.
          */
         MESSAGE(true, false),
 
@@ -132,8 +126,8 @@ public class CheckPermissionUtil {
         /**
          * Checks if the current type allows sending normal messages.
          *
-         * @return <code>True</code> if the type allows sending normal
-         * messages, <code>False</code> otherwise.
+         * @return <code>True</code> if the type allows sending normal messages,
+         *         <code>False</code> otherwise.
          */
         public boolean canSendMessage() {
             return canSendMessage;
@@ -142,22 +136,21 @@ public class CheckPermissionUtil {
         /**
          * Checks if the current type allows sending embed messages.
          *
-         * @return <code>True</code> if the type allows sending embed
-         * messages, <code>False</code> otherwise.
+         * @return <code>True</code> if the type allows sending embed messages,
+         *         <code>False</code> otherwise.
          */
         public boolean canSendEmbed() {
             return canSendEmbed;
         }
     }
 
-
     public enum GuildPermissionCheckType {
-        FACILITATOR(100, "Facilitator / Bot Admin / Global Admin"),
-        PIA(90, "PIA / Global Moderator"),
-        ADMIN(80, "Admin / Division Leader / Local Admin"),
-        MANAGER(65, "Manager / Local Managment Mod"),
-        MOD(50, "Mod / HR / Local Mod"),
-        GROUP_SHOUT(10, "Group Shout Permission"),
+        BOT_ADMIN(100, "Bot Developer (Global)"), 
+        MAIN_GLOBAL_LEADERSHIP(90, "Main Group Leadership (Within :groupId)"),
+        MAIN_GLOBAL_MODERATOR(90, "Main Group Moderators (Within :groupId)"),
+        LOCAL_GROUP_LEADERSHIP(80, "Admin / Division Leader / Local Admin (Within :localGroupId)"), 
+        LOCAL_GROUP_HR(65, "Manager (Within :localGroupId)"),
+        GROUP_SHOUT(10, "Group Shout Permission"), 
         USER(0, "Regular User");
 
         private final int permissionLevel;
@@ -167,7 +160,7 @@ public class CheckPermissionUtil {
             this.permissionLevel = pL;
             this.rankName = rankName;
         }
-
+// 
         public int getLevel() {
             return permissionLevel;
         }
@@ -177,13 +170,13 @@ public class CheckPermissionUtil {
         }
     }
 
-    public static GuildPermissionCheckType getPermissionLevel(GuildTransformer guildTransformer, Guild guild, Member member) {
+    public static GuildPermissionCheckType getPermissionLevel(GuildSettingsTransformer guildTransformer, Guild guild, Member member) {
         if (Xeus.getInstance().getBotAdmins().getUserById(member.getUser().getIdLong(), true).isGlobalAdmin()) {
-            return GuildPermissionCheckType.FACILITATOR;
+            return GuildPermissionCheckType.BOT_ADMIN;
         }
 
         if (Constants.piaMembers.contains(member.getUser().getId())) {
-            return GuildPermissionCheckType.PIA;
+            return GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR;
         }
 
         if (guild == null) {
@@ -191,48 +184,52 @@ public class CheckPermissionUtil {
         }
 
         if (guildTransformer != null) {
-            for (Long roleId : guildTransformer.getAdministratorRoles()) {
-                Role r = guild.getRoleById(roleId);
-                if (r != null) {
-                    if (member.getRoles().contains(r)) {
-                        return GuildPermissionCheckType.ADMIN;
+            if (guildTransformer.getAdminRoles() != null) {
+                for (Long roleId : guildTransformer.getAdminRoles()) {
+                    Role r = guild.getRoleById(roleId);
+                    if (r != null) {
+                        if (member.getRoles().contains(r)) {
+                            return GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP;
+                        }
+                    }
+                }
+            }
+            if (guildTransformer.getAdminRoles() != null) {
+                for (Long roleId : guildTransformer.getManagerRoles()) {
+                    Role r = guild.getRoleById(roleId);
+                    if (r != null) {
+                        if (member.getRoles().contains(r)) {
+                            return GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP;
+                        }
+                    }
+                }
+            }
+            if (guildTransformer.getAdminRoles() != null) {
+                for (Long roleId : guildTransformer.getModeratorRoles()) {
+                    Role r = guild.getRoleById(roleId);
+                    if (r != null) {
+                        if (member.getRoles().contains(r)) {
+                            return GuildPermissionCheckType.LOCAL_GROUP_HR;
+                        }
                     }
                 }
             }
 
-            for (Long roleId : guildTransformer.getManagerRoles()) {
-                Role r = guild.getRoleById(roleId);
-                if (r != null) {
-                    if (member.getRoles().contains(r)) {
-                        return GuildPermissionCheckType.MANAGER;
+            if (guildTransformer.getGroupShoutRoles() != null) {
+                for (Long roleId : guildTransformer.getGroupShoutRoles()) {
+                    Role r = guild.getRoleById(roleId);
+                    if (r != null) {
+                        if (member.getRoles().contains(r)) {
+                            return GuildPermissionCheckType.GROUP_SHOUT;
+                        }
                     }
                 }
             }
-            for (Long roleId : guildTransformer.getModeratorRoles()) {
-                Role r = guild.getRoleById(roleId);
-                if (r != null) {
-                    if (member.getRoles().contains(r)) {
-                        return GuildPermissionCheckType.MOD;
-                    }
-                }
-            }
-
-            for (Long roleId : guildTransformer.getGroupShoutRoles()) {
-                Role r = guild.getRoleById(roleId);
-                if (r != null) {
-                    if (member.getRoles().contains(r)) {
-                        return GuildPermissionCheckType.GROUP_SHOUT;
-                    }
-                }
-            }
-
-            return GuildPermissionCheckType.USER;
         }
         return GuildPermissionCheckType.USER;
     }
 
     public static GuildPermissionCheckType getPermissionLevel(CommandContext context) {
-        return getPermissionLevel(context.getGuildTransformer(), context.getGuild(), context.getMember());
+        return getPermissionLevel(context.getGuildSettingsTransformer(), context.getGuild(), context.getMember());
     }
 }
-

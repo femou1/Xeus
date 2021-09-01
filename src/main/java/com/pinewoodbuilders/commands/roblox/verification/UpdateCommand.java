@@ -77,7 +77,7 @@ public class UpdateCommand extends Command {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isModOrHigher"
+            "isGuildHROrHigher"
         );
     }
 
@@ -131,7 +131,7 @@ public class UpdateCommand extends Command {
 
     private boolean updateEveryone(CommandMessage context) {
         int level = CheckPermissionUtil.getPermissionLevel(context).getLevel();
-        if (level < CheckPermissionUtil.GuildPermissionCheckType.PIA.getLevel()) {
+        if (level < CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
             context.makeError("You got to be PIA or above to run this command.").queue();
             return false;
         }

@@ -27,6 +27,7 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
@@ -77,8 +78,8 @@ public class WatchRoleCommand extends Command {
         return Arrays.asList(
             "`:command set @Talk Too Much` - Sets the muted role to the \"Talk Too Much\" role.",
             "`:command set 601361125220810765` - Sets the muted role to the given ID.",
-            /*"`:command setup-permissions` - Sets up the permissions for the current mute role.",
-            "`:command create-role` - Creates and sets up a new muted role.",*/
+            /*"`:command setup-permissions` - Sets up the permissions for the current on watch role.",
+            "`:command create-role` - Creates and sets up a new on watch role.",*/
             "`:command reset` - Resets the mute role."
         );
     }
@@ -99,8 +100,8 @@ public class WatchRoleCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
-            "isManagerOrHigher",
+            "isPinewoodGuild",
+            "isGuildLeadership",
             "throttle:guild,1,5"
         );
     }
@@ -113,7 +114,7 @@ public class WatchRoleCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        GuildTransformer guildTransformer = context.getGuildTransformer();
+        GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
         if (guildTransformer == null) {
             return sendErrorMessage(context, "errors.errorOccurredWhileLoading", "server settings");
         }
@@ -141,8 +142,8 @@ public class WatchRoleCommand extends Command {
         return sendErrorMessage(context, "errors.missingArgument", "option");
     }
 
-    private boolean sendMutedRole(CommandMessage context, GuildTransformer guildTransformer) {
-        if (guildTransformer.getOnWatchLog() == null) {
+    private boolean sendMutedRole(CommandMessage context, GuildSettingsTransformer guildTransformer) {
+        if (guildTransformer.getOnWatchRole() == 0) {
             context.makeInfo(context.i18n("noMuteRoleSet"))
                 .set("command", generateCommandTrigger(context.getMessage()))
                 .queue();
@@ -166,7 +167,7 @@ public class WatchRoleCommand extends Command {
         return true;
     }
 
-    private boolean setMutedRole(CommandMessage context, GuildTransformer guildTransformer, String[] args) {
+    private boolean setMutedRole(CommandMessage context, GuildSettingsTransformer guildTransformer, String[] args) {
         Role role = MentionableUtil.getRole(context.getMessage(), args);
         if (role == null) {
             return sendErrorMessage(context, context.i18n("roleDoesntExists", String.join(" ", args)));
@@ -339,7 +340,7 @@ public class WatchRoleCommand extends Command {
         return true;
     }*/
 
-    private boolean resetRole(CommandMessage context, GuildTransformer guildTransformer) {
+    private boolean resetRole(CommandMessage context, GuildSettingsTransformer guildTransformer) {
         try {
             updateMutedRole(context, guildTransformer, null);
 
@@ -364,11 +365,11 @@ public class WatchRoleCommand extends Command {
         return false;
     }
 
-    private void updateMutedRole(CommandMessage context, GuildTransformer guildTransformer, String value) throws SQLException {
-        avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+    private void updateMutedRole(CommandMessage context, GuildSettingsTransformer guildTransformer, String value) throws SQLException {
+        avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
             .where("id", context.getGuild().getId())
             .update(statement -> statement.set("on_watch_role", value));
 
-        guildTransformer.setOnWatchRole(value);
+        guildTransformer.setOnWatchRole(Long.valueOf(value));
     }
 }

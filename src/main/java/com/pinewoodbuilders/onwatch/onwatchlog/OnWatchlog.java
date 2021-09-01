@@ -28,6 +28,8 @@ import com.pinewoodbuilders.commands.CommandHandler;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.onwatch.OnWatchCommand;
 import com.pinewoodbuilders.database.controllers.GuildController;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.language.I18n;
@@ -86,7 +88,7 @@ public class OnWatchlog {
     public static String log(Xeus avaire, Guild guild, OnWatchAction action) {
         GuildTransformer transformer = GuildController.fetchGuild(avaire, guild);
         if (transformer != null) {
-            return log(avaire, guild, transformer, action);
+            return log(avaire, guild, transformer, action, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild));
         }
         return null;
     }
@@ -99,16 +101,17 @@ public class OnWatchlog {
      * @param guild       The guild the modlog action should be logged in.
      * @param transformer The guild transformer containing all the guild settings used in the modlog action.
      * @param action      The action that should be logged to the modlog.
+     * @param GuildSettingsTransformer
      * @return Possibly-null, the case ID if the modlog was logged successfully,
      *         otherwise <code>null</code> will be returned.
      */
     @Nullable
-    public static String log(Xeus avaire, Guild guild, GuildTransformer transformer, OnWatchAction action) {
-        if (transformer.getOnWatchLog() == null) {
+    public static String log(Xeus avaire, Guild guild, GuildTransformer transformer, OnWatchAction action, GuildSettingsTransformer GuildSettingsTransformer) {
+        if (GuildSettingsTransformer.getOnWatchChannel() == 0) {
             return null;
         }
 
-        TextChannel channel = guild.getTextChannelById(transformer.getOnWatchLog());
+        TextChannel channel = guild.getTextChannelById(GuildSettingsTransformer.getOnWatchChannel());
         if (channel == null) {
             return null;
         }
@@ -160,7 +163,7 @@ public class OnWatchlog {
             guild.getJDA(), action, transformer.getOnWatchCase()
         ));
 
-        channel.sendMessage(builder.build()).queue(success -> {
+        channel.sendMessageEmbeds(builder.build()).queue(success -> {
             try {
                 avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
                     .where("id", guild.getId())

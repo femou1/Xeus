@@ -85,7 +85,7 @@ public class PurgeCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isModOrHigher",
+            "isGuildHROrHigher",
             "require:bot,text.manage_messages,text.read_message_history",
             "throttle:channel,1,5"
         );

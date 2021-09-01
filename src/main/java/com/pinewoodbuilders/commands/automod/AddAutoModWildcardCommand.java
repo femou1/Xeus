@@ -6,7 +6,7 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 
@@ -62,9 +62,9 @@ public class AddAutoModWildcardCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
+            "isPinewoodGuild",
             "throttle:user,2,5",
-            "isManagerOrHigher"
+            "isGuildLeadership"
         );
     }
 
@@ -80,12 +80,12 @@ public class AddAutoModWildcardCommand extends Command {
             return sendErrorMessage(context, "You didn't give any arguments.");
         }
 
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             return sendErrorMessage(context, "Unable to load the server settings.");
         }
 
-        if(!transformer.isFilter()) {
+        if(!transformer.getLocalFilter()) {
             return sendErrorMessage(context, "The filter is disabled, enable the filter with `!toggleautomod`");
         }
 
@@ -121,7 +121,7 @@ public class AddAutoModWildcardCommand extends Command {
         }
     }
 
-    private boolean removeAutoModExact(CommandMessage context, GuildTransformer transformer, String args) {
+    private boolean removeAutoModExact(CommandMessage context, GuildSettingsTransformer transformer, String args) {
         if (!transformer.getBadWordsWildcard().contains(args)) {
             return sendErrorMessage(context, "This word does not exist in the wildcard list");
         }
@@ -139,12 +139,12 @@ public class AddAutoModWildcardCommand extends Command {
             return false;
         }
     }
-    private boolean getAutoModExactList(CommandMessage context, GuildTransformer transformer) {
+    private boolean getAutoModExactList(CommandMessage context, GuildSettingsTransformer transformer) {
         context.makeSuccess("This the list of the current filtered wildcard words: \n```" + transformer.getBadWordsWildcard() + "```").queue();
         return false;
     }
-    private void updateGuildAutoModExact(CommandMessage message, GuildTransformer transformer) throws SQLException {
-        avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+    private void updateGuildAutoModExact(CommandMessage message, GuildSettingsTransformer transformer) throws SQLException {
+        avaire.getDatabase().newQueryBuilder(Constants.FEATURE_SETTINGS_TABLE)
             .where("id", message.getGuild().getId())
             .update(statement -> statement.set("filter_wildcard", Xeus.gson.toJson(transformer.getBadWordsWildcard()), true));
     }

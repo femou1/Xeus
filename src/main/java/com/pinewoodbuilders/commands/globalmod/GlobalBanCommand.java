@@ -79,8 +79,8 @@ public class GlobalBanCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-                "isOfficialPinewoodGuild",
-                "isValidPIAMember"
+                "isPinewoodGuild",
+                "isValidMGMMember"
         );
     }
 

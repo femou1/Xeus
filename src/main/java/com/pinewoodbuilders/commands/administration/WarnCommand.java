@@ -86,7 +86,7 @@ public class WarnCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isModOrHigher",
+            "isGuildHROrHigher",
             "throttle:channel,1,5"
         );
     }

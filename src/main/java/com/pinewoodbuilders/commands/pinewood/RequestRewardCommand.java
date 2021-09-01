@@ -9,7 +9,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.query.QueryBuilder;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.Request;
 import com.pinewoodbuilders.requests.Response;
@@ -89,24 +89,24 @@ public class RequestRewardCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
+            "isPinewoodGuild",
             "throttle:guild,1,30"
         );
     }
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             context.makeError("Something went wrong loading the guild settings. Please try again later.").queue();
             return false;
         }
         if (args.length > 0) {
-            if (CheckPermissionUtil.getPermissionLevel(context).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getLevel()) {
+            if (CheckPermissionUtil.getPermissionLevel(context).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
                 switch (args[0]) {
                     case "sc":
                     case "set-channel": {
-//                        return runSetRemittanceChannel(context, args);
+                        return runSetRemittanceChannel(context, args);
                     }
                     case "clear":
                     case "reset": {
@@ -129,7 +129,7 @@ public class RequestRewardCommand extends Command {
         }
 
         context.makeInfo("<a:loading:742658561414266890> Loading servers that are using recorded remittance...").queue(l -> {
-            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).orderBy("patrol_remittance_channel");
+            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("patrol_remittance_channel");
             try {
 
                 StringBuilder sb = new StringBuilder();
@@ -250,7 +250,7 @@ public class RequestRewardCommand extends Command {
             if (hasNotExpired) {
                 context.makeError("You've already submitted a remittance request for `:guildName`, please wait 24 hours after the last time you've submitted a remittance request.")
                     .set("guildName", c.getGuild().getName()).queue();
-                message.editMessage("ERROR. PLEASE CHECK BELOW").embed(null).queue();
+                message.editMessage("ERROR. PLEASE CHECK BELOW").queue();
                 removeAllUserMessages(messagesToRemove);
                 return;
             }
@@ -401,11 +401,10 @@ public class RequestRewardCommand extends Command {
     }
 
     private boolean runClearAllChannelsFromDatabase(CommandMessage context) {
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("patrol_remittance_channel", null);
-                q.set("patrol_remittance_emote_id", null);
             });
 
             context.makeSuccess("Any information about the remittance channels has been removed from the database.").queue();
@@ -417,67 +416,36 @@ public class RequestRewardCommand extends Command {
 
     }
 
-    private boolean runSetRewardsChannel(CommandMessage context, String[] args) {
+    private boolean runSetRemittanceChannel(CommandMessage context, String[] args) {
         if (args.length < 3) {
             return sendErrorMessage(context, "Incorrect arguments");
         }
-        Emote e;
         GuildChannel c = MentionableUtil.getChannel(context.message, args, 1);
         if (c == null) {
             return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Channel)");
         }
 
-        if (NumberUtil.isNumeric(args[1])) {
-            e = avaire.getShardManager().getEmoteById(args[1]);
-            if (e == null) {
-                return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - ID)");
-            }
-        } else if (context.message.getEmotes().size() == 1) {
-            e = context.message.getEmotes().get(0);
-            if (e == null) {
-                return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - Mention)");
-            }
-        } else {
-            return sendErrorMessage(context, "Something went wrong (To many emotes).");
-        }
-
-        if (NumberUtil.isNumeric(args[1])) {
-            e = avaire.getShardManager().getEmoteById(args[1]);
-            if (e == null) {
-                return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - ID)");
-            }
-        } else if (context.message.getEmotes().size() == 1) {
-            e = context.message.getEmotes().get(0);
-            if (e == null) {
-                return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - Mention)");
-            }
-        } else {
-            return sendErrorMessage(context, "Something went wrong (To many emotes).");
-        }
-
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             context.makeError("I can't pull the guilds information, please try again later.").queue();
             return false;
         }
-        return updateChannelAndEmote(transformer, context, (TextChannel) c, e);
+        return updateChannelAndEmote(transformer, context, (TextChannel) c);
     }
 
 
 
 
-    private boolean updateChannelAndEmote(GuildTransformer transformer, CommandMessage context, TextChannel channel, Emote emote) {
-        transformer.setPatrolRemittanceChannel(channel.getId());
-        transformer.setPatrolRemittanceEmoteId(emote.getId());
+    private boolean updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel) {
+        transformer.setPatrolRemittanceChannel(channel.getIdLong());
 
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("patrol_remittance_channel", transformer.getPatrolRemittanceChannel());
-                q.set("patrol_remittance_emote_id", transformer.getPatrolRemittanceEmoteId());
             });
 
-            context.makeSuccess("Remittance have been enabled for :channel with the emote :emote").set("channel", channel.getAsMention()).set("emote", emote.getAsMention()).queue();
+            context.makeSuccess("Remittance have been enabled for :channel").set("channel", channel.getAsMention()).queue();
             return true;
         } catch (SQLException throwables) {
             context.makeError("Something went wrong in the database, please check with the developer. (Stefano#7366)").queue();

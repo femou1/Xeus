@@ -3,6 +3,8 @@ package com.pinewoodbuilders.servlet.routes.v1.get;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.metrics.SparkRoute;
 import com.pinewoodbuilders.database.controllers.GuildController;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import net.dv8tion.jda.api.entities.Guild;
 import org.json.JSONObject;
@@ -35,7 +37,7 @@ public class GetEvaluationQuestions extends SparkRoute {
             return root;
         }
 
-        GuildTransformer transformer = GuildController.fetchGuild(Xeus.getInstance(), guild);
+        GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(Xeus.getInstance(), guild);
         if (transformer == null) {
             response.status(500);
             root.put("error", "XEUS_GUILD_MISSING_TRANSFORMER");

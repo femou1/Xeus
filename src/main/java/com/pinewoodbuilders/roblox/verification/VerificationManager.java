@@ -1,25 +1,24 @@
 package com.pinewoodbuilders.roblox.verification;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
 import com.pinewoodbuilders.AppInfo;
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.kronos.TrellobanLabels;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.VerificationTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.requests.service.group.GuildRobloxRanksService;
-import com.pinewoodbuilders.requests.service.user.inventory.RobloxGamePassService;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
 import com.pinewoodbuilders.roblox.verification.methods.VerificationMethodsManager;
 import com.pinewoodbuilders.utilities.CacheUtil;
 import com.pinewoodbuilders.utilities.RoleUtil;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -34,10 +33,8 @@ import java.awt.*;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -209,10 +206,10 @@ public class VerificationManager {
                             "```:reason```").set("global-unbanned-id", verificationEntity.getRobloxId()).set("reason", accounts.get(0).getString("reason")).set("user", "XEUS AUTO BAN").set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
                     }
 
-                    if (context.getGuildTransformer() != null) {
-                        GuildTransformer transformer = context.getGuildTransformer();
-                        if (transformer.getMemberToYoungChannelId() != null && context.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()) != null) {
-                            MessageFactory.makeEmbeddedMessage(context.getGuild().getTextChannelById(transformer.getMemberToYoungChannelId()), new Color(255, 0, 0))
+                    if (context.getGuildSettingsTransformer() != null) {
+                        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
+                        if (transformer.getUserAlertsChannelId() != 0 && context.getGuild().getTextChannelById(transformer.getUserAlertsChannelId()) != null) {
+                            MessageFactory.makeEmbeddedMessage(context.getGuild().getTextChannelById(transformer.getUserAlertsChannelId()), new Color(255, 0, 0))
                                 .setThumbnail(context.getAuthor().getEffectiveAvatarUrl())
                                 .setDescription("A global-banned user just tried to verify within this guild, user has been banned from all guilds and has been sent a message in DM's.").requestedBy(member).queue();
                         }
@@ -325,22 +322,20 @@ public class VerificationManager {
             });
 
             bindingRoleMap.forEach((groupRankBinding, role) -> {
-                List <String> gamepassBinds = groupRankBinding.getGroups().stream().map(data -> data.getId() + ":" + data.getRanks().get(0))
-                    .collect(Collectors.toList());
-
-                for (String groupRank : gamepassBinds) {
-                    // Loop through all the gamepass-bindings
-                    String[] rank = groupRank.split(":");
-                    String rankId = rank[1];
-                    gamepassBinds.stream().filter(group -> group.split(":")[0].equals("GamePass") && group.split(":")[1].equals(rankId)).forEach(gamepass -> {
-                        List <RobloxGamePassService.Datum> rgs = manager.getUserAPI().getUserGamePass(verificationEntity.getRobloxId(), Long.valueOf(rankId));
-                        if (rgs != null) {
-                            bindingRoleAddMap.put(groupRankBinding, role);
-                        }
-                    });
-
-                }
-            });
+                groupRankBinding.getGroups()
+                  .stream()
+                  .filter(data -> data.getId().equals("GamePass"))
+                  .map(pass -> avaire.getRobloxAPIManager()
+                      .getUserAPI()
+                      .getUserGamePass(
+                        verificationEntity.getRobloxId(), 
+                        Long.parseLong(pass.getRanks().get(0).toString())
+                      )
+                  )
+                  .filter(Objects::nonNull)
+                  .forEach(pass -> bindingRoleAddMap.put(groupRankBinding, role));
+              }
+            );
 
             //Collect the toAdd and toRemove roles from the previous maps
             java.util.Collection <Role> rolesToAdd = bindingRoleAddMap.values().stream().filter(role -> RoleUtil.canBotInteractWithRole(context.getMessage(), role)).collect(Collectors.toList()),
@@ -358,7 +353,7 @@ public class VerificationManager {
             //Modify the roles of the member
             guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove)
                 .queue(unused -> {
-                    stringBuilder.append("\n\n**Succesfully changed roles!**");
+                    stringBuilder.append("\n\n**Succesfully changed roles!**\n");
                 }, throwable -> context.makeError(throwable.getMessage()));
 
             String rolesToAddAsString = "__**`" + member.getEffectiveName() + "`**__\nRoles to add:\n" + (rolesToAdd.size() > 0

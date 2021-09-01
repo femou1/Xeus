@@ -6,7 +6,7 @@ import com.pinewoodbuilders.database.schema.Schema;
 
 import java.sql.SQLException;
 
-public class CreatePBVotableTableMigration implements Migration {
+public class CreateVotableTableMigration implements Migration {
 
     @Override
     public String created_at() {
@@ -15,7 +15,7 @@ public class CreatePBVotableTableMigration implements Migration {
 
     @Override
     public boolean up(Schema schema) throws SQLException {
-        return schema.createIfNotExists(Constants.MOTS_VOTABLE_TABLE_NAME, table -> {
+        return schema.createIfNotExists(Constants.VOTABLE_TABLE_NAME, table -> {
             table.Increments("id");
             table.String("vote_id");
             table.String("item");
@@ -25,6 +25,6 @@ public class CreatePBVotableTableMigration implements Migration {
 
     @Override
     public boolean down(Schema schema) throws SQLException {
-        return schema.dropIfExists(Constants.MOTS_VOTABLE_TABLE_NAME);
+        return schema.dropIfExists(Constants.VOTABLE_TABLE_NAME);
     }
 }

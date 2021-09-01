@@ -68,12 +68,12 @@ public class JDAStateEventAdapter extends EventAdapter {
     }
 
     private void loadSlashCommands(ShardManager shardManager) {
-        /*Guild g = shardManager.getGuildById("438134543837560832");
+        Guild g = shardManager.getGuildById("438134543837560832");
         if (g != null) {
             CommandListUpdateAction commands = g.updateCommands();
             commands.addCommands()
                 .queue();
-        }*/
+        }
 
         for (JDA shard : shardManager.getShards()) {
             CommandListUpdateAction commands = shard.updateCommands();
@@ -82,8 +82,10 @@ public class JDAStateEventAdapter extends EventAdapter {
                 new CommandData("update", "Update a user on the guild you run this command on.")
                     .addOption(OptionType.USER, "member", "This will update the specified member to the ranks he has.", true),
                 new CommandData("whois", "Check the information on a user.")
-                    .addOption(OptionType.USER, "member", "This will use the user to get info about their ranks + roblox profile.")
-            ).queue();
+                    .addOption(OptionType.USER, "member", "This will use the user to get info about their ranks + roblox profile.", true),
+                new CommandData("roleinfo", "See the information about a Discord role.")
+                    .addOption(OptionType.ROLE, "role", "The role you would like to see information about.", true)
+                    ).queue();
         }
     }
 

@@ -7,6 +7,8 @@ import com.pinewoodbuilders.contracts.metrics.SparkRoute;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.controllers.GuildController;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
 import net.dv8tion.jda.api.entities.Guild;
@@ -95,7 +97,7 @@ public class GetEvaluationStatus extends SparkRoute {
         Guild guild = Xeus.getInstance().getShardManager().getGuildById(id);
         if (guild != null) {
             if (guild.getId().equals("438134543837560832")) {
-                GuildTransformer transformer = GuildController.fetchGuild(Xeus.getInstance(), guild);
+                GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(Xeus.getInstance(), guild);
                 if (transformer != null) {
                     if (transformer.getRobloxGroupId() != 0) {
                         List <RobloxUserGroupRankService.Data> ranks = Xeus.getInstance().getRobloxAPIManager()

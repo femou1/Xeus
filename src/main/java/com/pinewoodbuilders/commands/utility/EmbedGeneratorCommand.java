@@ -48,7 +48,7 @@ public class EmbedGeneratorCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isModOrHigher",
+            "isGuildHROrHigher",
             "throttle:guild,1,5"
         );
     }

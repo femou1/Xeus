@@ -37,7 +37,7 @@ public class CreateVotesTableMigration implements Migration {
 
     @Override
     public boolean up(Schema schema) throws SQLException {
-        return schema.createIfNotExists(Constants.VOTES_TABLE_NAME, table -> {
+        return schema.createIfNotExists(Constants.BOT_VOTES_TABLE_NAME, table -> {
             table.Long("user_id").unsigned();
             table.String("expires_in", 128);
 
@@ -47,6 +47,6 @@ public class CreateVotesTableMigration implements Migration {
 
     @Override
     public boolean down(Schema schema) throws SQLException {
-        return schema.dropIfExists(Constants.VOTES_TABLE_NAME);
+        return schema.dropIfExists(Constants.BOT_VOTES_TABLE_NAME);
     }
 }

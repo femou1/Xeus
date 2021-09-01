@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 public class GroupAPIRoutes {
 
-    private final Cache<Integer, GroupRanksService> cache = CacheBuilder.newBuilder()
+    private final Cache<Long, GroupRanksService> cache = CacheBuilder.newBuilder()
             .recordStats()
             .expireAfterWrite(300, TimeUnit.SECONDS)
             .build();
@@ -33,14 +33,14 @@ public class GroupAPIRoutes {
 
     @Nullable
     @CheckReturnValue
-    public GroupRanksService fetchGroupRanks(Integer groupId, boolean fromCache) {
+    public GroupRanksService fetchGroupRanks(long groupId, boolean fromCache) {
         if (!fromCache) {
             return forgetAndCache(groupId);
         }
         return (GroupRanksService) CacheUtil.getUncheckedUnwrapped(cache, groupId, () -> callGroupRanksFromRobloxAPI(groupId));
     }
 
-    private GroupRanksService forgetAndCache(Integer groupId) {
+    private GroupRanksService forgetAndCache(long groupId) {
         if (cache.getIfPresent(groupId) != null) {
             cache.invalidate(groupId);
             return callGroupRanksFromRobloxAPI(groupId);
@@ -48,7 +48,7 @@ public class GroupAPIRoutes {
         return callGroupRanksFromRobloxAPI(groupId);
     }
 
-    private GroupRanksService callGroupRanksFromRobloxAPI(Integer groupId) {
+    private GroupRanksService callGroupRanksFromRobloxAPI(long groupId) {
         Request.Builder request = new Request.Builder()
                 .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
                 .url("https://groups.roblox.com/v1/groups/{groupId}/roles".replace("{groupId}", String.valueOf(groupId)));

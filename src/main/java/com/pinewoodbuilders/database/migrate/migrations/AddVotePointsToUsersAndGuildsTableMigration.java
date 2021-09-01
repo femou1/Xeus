@@ -37,7 +37,7 @@ public class AddVotePointsToUsersAndGuildsTableMigration implements Migration {
 
     @Override
     public boolean up(Schema schema) throws SQLException {
-        if (!hasColumns(schema, Constants.VOTES_TABLE_NAME, "points", "points_total")) {
+        if (!hasColumns(schema, Constants.BOT_VOTES_TABLE_NAME, "points", "points_total")) {
             addVoteTableColumns(schema);
         }
 
@@ -57,17 +57,17 @@ public class AddVotePointsToUsersAndGuildsTableMigration implements Migration {
         if (schema.getDbm().getConnection() instanceof MySQL) {
             schema.getDbm().queryUpdate(String.format(
                 "ALTER TABLE `%s` ADD `points` INT UNSIGNED NOT NULL DEFAULT '0' AFTER `user_id`, ADD `points_total` INT UNSIGNED NOT NULL DEFAULT '0' AFTER `points`;",
-                Constants.VOTES_TABLE_NAME
+                Constants.BOT_VOTES_TABLE_NAME
             ));
         } else {
             schema.getDbm().queryUpdate(String.format(
                 "ALTER TABLE `%s` ADD `points` INT NOT NULL DEFAULT '0';",
-                Constants.VOTES_TABLE_NAME
+                Constants.BOT_VOTES_TABLE_NAME
             ));
 
             schema.getDbm().queryUpdate(String.format(
                 "ALTER TABLE `%s` ADD `points_total` INT NOT NULL DEFAULT '0';",
-                Constants.VOTES_TABLE_NAME
+                Constants.BOT_VOTES_TABLE_NAME
             ));
         }
     }

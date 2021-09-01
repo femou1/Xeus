@@ -50,11 +50,11 @@ public class VerificationController {
     private static final Logger log = LoggerFactory.getLogger(VerificationController.class);
 
     private static final String[] requiredVerificationColumns = new String[]{
-            "verification.id", "verification.name", "verification.nickname_group",
-            "verification.nickname_format", "verification.welcome_message",
-            "verification.join_dm", "verification.nickname_users",
-            "verification.unverified_role", "verification.verified_role", "verification.announce_channel",
-            "verification.ranks"
+            "verification_settings.id", "verification_settings.name",
+            "verification_settings.nickname_format", "verification_settings.welcome_message",
+            "verification_settings.join_dm", "verification_settings.nickname_users",
+            "verification_settings.unverified_role", "verification_settings.verified_role", "verification_settings.announce_channel",
+            "verification_settings.ranks", "verification_settings.bypass_role"
     };
 
     /**
@@ -119,9 +119,9 @@ public class VerificationController {
         }
         try {
             VerificationTransformer transformer = new VerificationTransformer(guild, avaire.getDatabase()
-                    .newQueryBuilder(Constants.VERIFICATION_TABLE_NAME)
+                    .newQueryBuilder(Constants.VERIFICATION_SETTINGS_TABLE_NAME)
                     .select(requiredVerificationColumns)
-                    .where("verification.id", guild.getId())
+                    .where("verification_settings.id", guild.getId())
                     .get().first());
 
             if (!transformer.hasData()) {
@@ -143,7 +143,7 @@ public class VerificationController {
 
     private static void updateVerificationEntry(Xeus avaire, Guild guild) {
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_TABLE_NAME)
+            avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_SETTINGS_TABLE_NAME)
                     .insert(statement -> {
                         statement
                                 .set("id", guild.getId())

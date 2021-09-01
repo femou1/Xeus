@@ -9,7 +9,8 @@ import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.query.QueryBuilder;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.Request;
 import com.pinewoodbuilders.requests.Response;
@@ -84,7 +85,7 @@ public class ReportUserCommand extends Command {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
+            "isPinewoodGuild",
             "throttle:guild,1,30"
         );
     }
@@ -93,7 +94,7 @@ public class ReportUserCommand extends Command {
     public boolean onCommand(CommandMessage context, String[] args) {
 
         int permissionLevel = CheckPermissionUtil.getPermissionLevel(context).getLevel();
-        if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getLevel()) {
+        if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             if (args.length > 0) {
                 switch (args[0]) {
                     case "sr":
@@ -114,8 +115,8 @@ public class ReportUserCommand extends Command {
             }
         }
 
-        /*if (!(permissionLevel == CheckPermissionUtil.GuildPermissionCheckType.ADMIN.getLevel())) {
-            context.makeError("This command is still disabled for normal users, only Permission Level ``" + CheckPermissionUtil.GuildPermissionCheckType.ADMIN.getLevel() + "`` can use this.").queue();
+        /*if (!(permissionLevel == CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel())) {
+            context.makeError("This command is still disabled for normal users, only Permission Level ``" + CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel() + "`` can use this.").queue();
             return true;
         }*/
 
@@ -125,7 +126,7 @@ public class ReportUserCommand extends Command {
         }
 
         context.makeInfo("<a:loading:742658561414266890> Loading reports...").queue(l -> {
-            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).orderBy("handbook_report_channel");
+            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("handbook_report_channel");
             try {
 
                 StringBuilder sb = new StringBuilder();
@@ -200,7 +201,7 @@ public class ReportUserCommand extends Command {
             }
         });
 
-        //context.makeInfo(context.getGuildTransformer().getHandbookReportInfoMessage()).set("user", context.getMember().getEffectiveName()).set("guild", ).queue();
+        //context.makeInfo(context.getGuildSettingsTransformer().getHandbookReportInfoMessage()).set("user", context.getMember().getEffectiveName()).set("guild", ).queue();
 
         return false;
     }
@@ -460,7 +461,7 @@ public class ReportUserCommand extends Command {
     private boolean runSetReportMessage(CommandMessage context) {
         context.makeInfo("Please tell me, what would you like as the guild report message?").queue(message -> {
             avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, m -> m.getMember().equals(context.member) && message.getChannel().equals(m.getChannel()), reportMessage -> {
-                QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+                QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
                 try {
                     qb.update(q -> {
                         q.set("report_info_message", reportMessage.getMessage().getContentRaw(), true);
@@ -523,7 +524,7 @@ public class ReportUserCommand extends Command {
     }
 
     private boolean runClearAllChannelsFromDatabase(CommandMessage context) {
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("handbook_report_channel", null);
@@ -578,7 +579,7 @@ public class ReportUserCommand extends Command {
             return sendErrorMessage(context, "Something went wrong (To many emotes).");
         }
 
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             context.makeError("I can't pull the guilds information, please try again later.").queue();
             return false;
@@ -592,12 +593,12 @@ public class ReportUserCommand extends Command {
         }
 
         if (NumberUtil.isNumeric(args[1])) {
-            GuildTransformer transformer = context.getGuildTransformer();
+            GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
             if (transformer == null) {
                 context.makeError("I can't pull the guilds information, please try again later.").queue();
                 return false;
             }
-            transformer.setRobloxGroupId(Integer.parseInt(args[1]));
+            transformer.setMainGroupId(Integer.parseInt(args[1]));
             return updateGroupId(transformer, context);
         } else {
             return sendErrorMessage(context, "Something went wrong, please check if you ran the command correctly.");
@@ -606,10 +607,10 @@ public class ReportUserCommand extends Command {
 
     }
 
-    private boolean updateGroupId(GuildTransformer transformer, CommandMessage context) {
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+    private boolean updateGroupId(GuildSettingsTransformer transformer, CommandMessage context) {
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
-            qb.update(q -> {
+            qb.update(q -> {   
                 q.set("roblox_group_id", transformer.getRobloxGroupId());
             });
 
@@ -622,18 +623,16 @@ public class ReportUserCommand extends Command {
     }
 
 
-    private boolean updateChannelAndEmote(GuildTransformer transformer, CommandMessage context, TextChannel channel, Emote emote) {
-        transformer.setHandbookReportChannel(channel.getId());
-        transformer.setHandbookReportEmoteId(emote.getId());
-
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+    private boolean updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel, Emote emote) {
+        transformer.setHandbookReportChannel(channel.getIdLong());
+        
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("handbook_report_channel", transformer.getHandbookReportChannel());
-                q.set("report_emote_id", transformer.getHandbookReportEmoteId());
             });
 
-            context.makeSuccess("Suggestions have been enabled for :channel with the emote :emote").set("channel", channel.getAsMention()).set("emote", emote.getAsMention()).queue();
+            context.makeSuccess("Suggestions have been enabled for :channel").set("channel", channel.getAsMention()).queue();
             return true;
         } catch (SQLException throwables) {
             context.makeError("Something went wrong in the database, please check with the developer. (Stefano#7366)").queue();

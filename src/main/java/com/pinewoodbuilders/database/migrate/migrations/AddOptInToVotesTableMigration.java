@@ -36,13 +36,13 @@ public class AddOptInToVotesTableMigration implements Migration {
 
     @Override
     public boolean up(Schema schema) throws SQLException {
-        if (schema.hasColumn(Constants.VOTES_TABLE_NAME, "opt_in")) {
+        if (schema.hasColumn(Constants.BOT_VOTES_TABLE_NAME, "opt_in")) {
             return true;
         }
 
         schema.getDbm().queryUpdate(String.format(
             "ALTER TABLE `%s` ADD `opt_in` TINYINT(1) NOT NULL DEFAULT '1';",
-            Constants.VOTES_TABLE_NAME
+            Constants.BOT_VOTES_TABLE_NAME
         ));
 
         return true;
@@ -50,13 +50,13 @@ public class AddOptInToVotesTableMigration implements Migration {
 
     @Override
     public boolean down(Schema schema) throws SQLException {
-        if (!schema.hasColumn(Constants.VOTES_TABLE_NAME, "opt_in")) {
+        if (!schema.hasColumn(Constants.BOT_VOTES_TABLE_NAME, "opt_in")) {
             return true;
         }
 
         schema.getDbm().queryUpdate(String.format(
             "ALTER TABLE `%s` DROP `opt_in`;",
-            Constants.VOTES_TABLE_NAME
+            Constants.BOT_VOTES_TABLE_NAME
         ));
 
         return true;
