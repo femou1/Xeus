@@ -408,15 +408,6 @@ public class MainEventHandler extends EventHandler {
         }
     }
 
-    @Override
-    public void onGuildMemberRoleAdd(GuildMemberRoleAddEvent event) {
-        guildEventAdapter.onRoleAddEvent(event);
-    }
-
-    @Override
-    public void onGuildMemberRoleRemove(GuildMemberRoleRemoveEvent event) {
-        guildEventAdapter.onRoleRemovalEvent(event);
-    }
 
     public final ArrayList <String> guilds = new ArrayList <String>() {{
         add("495673170565791754"); // Aerospace
