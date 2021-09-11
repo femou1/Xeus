@@ -147,7 +147,7 @@ public class GlobalModCommand extends Command {
     private boolean updateLocalRecordInDatabase(CommandMessage context, String member_to_young_channel_id,
             long memberToYoungChannelId) {
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.FEATURE_SETTINGS_TABLE)
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                     .where("id", context.getGuild().getId()).update(p -> {
                         p.set(member_to_young_channel_id, memberToYoungChannelId);
                     });

@@ -47,8 +47,6 @@ public class CreateVerificationTableMigration implements Migration {
             table.Boolean("join_dm").defaultValue(true).nullable();
             table.Boolean("nickname_users").nullable().defaultValue(true).nullable();
 
-            table.Long("bypass_role").nullable();
-
             table.Long("unverified_role").nullable();
             table.Long("verified_role").nullable();
             table.Long("announce_channel").nullable();

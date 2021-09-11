@@ -43,30 +43,27 @@ public class GuildSettingsController {
 
     private static final Logger log = LoggerFactory.getLogger(GuildSettingsController.class);
 
-    private static final String[] requiredVerificationColumns = new String[] { 
-        "guild_settings.id",
-        "guild_settings.roblox_group_id", "guild_settings.group_name", "guild_settings.main_group_id",
-        "guild_settings.main_discord_role", "guild_settings.minimum_hr_rank", "guild_settings.minimum_lead_rank",
-        "guild_settings.global_ban", "guild_settings.global_kick", "guild_settings.global_verify",
-        "guild_settings.global_anti_unban", "guild_settings.global_filter", "guild_settings.global_filter_exact",
-        "guild_settings.global_filter_wildcard", "guild_settings.global_filter_log_channel",
-        "guild_settings.global_automod", "guild_settings.automod_mass_mention", "guild_settings.automod_emoji_spam",
-        "guild_settings.automod_link_spam", "guild_settings.automod_message_spam",
-        "guild_settings.automod_image_spam", "guild_settings.automod_character_spam", "guild_settings.admin_roles",
-        "guild_settings.manager_roles", "guild_settings.moderator_roles", "guild_settings.group_shout_roles",
-        "guild_settings.pb_verification_trelloban", "guild_settings.pb_verification_blacklist_link",
-        "guild_settings.verification_anti_main_global_mod_impersonate", "guild_settings.permission_bypass",
-        "guild_settings.emoji_id", "guild_settings.on_watch_channel",
-        "guild_settings.on_watch_role", "guild_settings.local_filter",
-        "guild_settings.local_filter_log", "guild_settings.filter_exact",
-        "guild_settings.filter_wildcard", "guild_settings.patrol_remittance_channel",
-        "guild_settings.patrol_remittance_message", "guild_settings.handbook_report_channel",
-        "guild_settings.suggestion_channel_id", "guild_settings.suggestion_community_channel_id",
-        "guild_settings.suggestion_approved_channel_id", "guild_settings.join_logs",
-        "guild_settings.audit_logs_channel_id", "guild_settings.vote_validation_channel_id",
-        "guild_settings.user_alerts_channel_id", "guild_settings.evaluation_answer_channel",
-        "guild_settings.eval_questions"
-    };
+    private static final String[] requiredSettingsColumns = new String[] { "guild_settings.id",
+            "guild_settings.roblox_group_id", "guild_settings.group_name", "guild_settings.main_group_id",
+            "guild_settings.main_discord_role", "guild_settings.minimum_hr_rank", "guild_settings.minimum_lead_rank",
+            "guild_settings.global_ban", "guild_settings.global_kick", "guild_settings.global_verify",
+            "guild_settings.global_anti_unban", "guild_settings.global_filter", "guild_settings.global_filter_exact",
+            "guild_settings.global_filter_wildcard", "guild_settings.global_filter_log_channel",
+            "guild_settings.global_automod", "guild_settings.automod_mass_mention", "guild_settings.automod_emoji_spam",
+            "guild_settings.automod_link_spam", "guild_settings.automod_message_spam",
+            "guild_settings.automod_image_spam", "guild_settings.automod_character_spam", "guild_settings.admin_roles",
+            "guild_settings.manager_roles", "guild_settings.moderator_roles", "guild_settings.group_shout_roles",
+            "guild_settings.pb_verification_trelloban", "guild_settings.pb_verification_blacklist_link",
+            "guild_settings.verification_anti_main_global_mod_impersonate", "guild_settings.permission_bypass",
+            "guild_settings.emoji_id", "guild_settings.on_watch_channel", "guild_settings.on_watch_role",
+            "guild_settings.local_filter", "guild_settings.local_filter_log", "guild_settings.filter_exact",
+            "guild_settings.filter_wildcard", "guild_settings.patrol_remittance_channel",
+            "guild_settings.patrol_remittance_message", "guild_settings.handbook_report_channel",
+            "guild_settings.suggestion_channel_id", "guild_settings.suggestion_community_channel_id",
+            "guild_settings.suggestion_approved_channel_id", "guild_settings.join_logs",
+            "guild_settings.audit_logs_channel_id", "guild_settings.vote_validation_channel_id",
+            "guild_settings.user_alerts_channel_id", "guild_settings.evaluation_answer_channel",
+            "guild_settings.eval_questions", "guild_settings.handbook_report_info_message" };
 
     /**
      * Fetches the guild transformer from the cache, if it doesn't exist in the
@@ -110,9 +107,20 @@ public class GuildSettingsController {
         }
         try {
             GuildSettingsTransformer transformer = new GuildSettingsTransformer(guild,
-                    avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
-                            .select(requiredVerificationColumns).where("guild_settings.id", guild.getId()).get()
-                            .first());
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
+                    .select(requiredSettingsColumns).where("guild_settings.id", guild.getId()).get()
+                    .first());
+
+            if (!transformer.hasData()) {
+                avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).insert(statement -> {
+                    statement.set("id", guild.getId());
+                });
+
+                
+                return new GuildSettingsTransformer(guild, avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
+                        .select(requiredSettingsColumns).where("guild_settings.id", guild.getId()).get()
+                        .first());
+            }
 
             return transformer;
         } catch (Exception ex) {

@@ -144,7 +144,7 @@ public class AddAutoModWildcardCommand extends Command {
         return false;
     }
     private void updateGuildAutoModExact(CommandMessage message, GuildSettingsTransformer transformer) throws SQLException {
-        avaire.getDatabase().newQueryBuilder(Constants.FEATURE_SETTINGS_TABLE)
+        avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
             .where("id", message.getGuild().getId())
             .update(statement -> statement.set("filter_wildcard", Xeus.gson.toJson(transformer.getBadWordsWildcard()), true));
     }

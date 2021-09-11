@@ -118,7 +118,7 @@ public class GlobalKickCommand extends Command {
         if (u != null) {
             String finalReason = reason;
             u.openPrivateChannel().queue(p -> {
-                p.sendMessageEmbeds(context.makeInfo("*You have been **global-kicked** from all the Pinewood Builders discords by an PIA Moderator*. For the reason: *```" + finalReason + "```\n\n" +
+                p.sendMessageEmbeds(context.makeInfo("*You have been **global-kicked** from all the Pinewood Builders discords by an MGM Moderator*. For the reason: *```" + finalReason + "```\n\n" +
                     "You may rejoin the guilds you where kicked from, unless you where banned in one.").setColor(Color.BLACK).buildEmbed()).queue();
             });
         }
@@ -135,7 +135,7 @@ public class GlobalKickCommand extends Command {
             Member m = g.getMemberById(args[0]);
             if (m != null) {
                 g.kick(m, "Kicked by: " + context.member.getEffectiveName() + "\n" +
-                    "For: " + reason + "\n*THIS IS A PIA GLOBAL KICK*").reason("Global Kick, executed by " + context.member.getEffectiveName() + ". For: \n" + reason).queue();
+                    "For: " + reason + "\n*THIS IS A MGM GLOBAL KICK*").reason("Global Kick, executed by " + context.member.getEffectiveName() + ". For: \n" + reason).queue();
             }
             sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
         }

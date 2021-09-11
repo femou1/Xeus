@@ -177,9 +177,9 @@ public class AuditLogChannelCommand extends Command {
 
     private void updateVoteValidation(GuildSettingsTransformer transformer, CommandMessage context, long value) throws SQLException {
         transformer.setAuditLogsChannelId(value);
-        avaire.getDatabase().newQueryBuilder(Constants.FEATURE_SETTINGS_TABLE)
+        avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
             .where("id", context.getGuild().getId())
-            .update(statement -> statement.set("audit_log", value));
+            .update(statement -> statement.set("audit_logs_channel_id", value));
     }
 
     private boolean runJoinLogsUpdateChannelChannelCommand(CommandMessage context, String[] args, GuildSettingsTransformer transformer) {
@@ -251,7 +251,7 @@ public class AuditLogChannelCommand extends Command {
 
     private void updateJoinLogs(GuildSettingsTransformer transformer, CommandMessage context, long value) throws SQLException {
         transformer.setJoinLogs(value);
-        avaire.getDatabase().newQueryBuilder(Constants.FEATURE_SETTINGS_TABLE)
+        avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
             .where("id", context.getGuild().getId())
             .update(statement -> statement.set("join_logs", value));
     }

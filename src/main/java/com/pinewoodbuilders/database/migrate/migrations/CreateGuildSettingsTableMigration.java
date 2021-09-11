@@ -16,13 +16,13 @@ public class CreateGuildSettingsTableMigration implements Migration {
     @Override
     public boolean up(Schema schema) throws SQLException {
         return schema.createIfNotExists(Constants.GUILD_SETTINGS_TABLE, table -> {
-            table.Increments("id");
-            table.Long("roblox_group_id");
-            table.String("group_name");
-            table.Long("main_group_id");
-            table.Long("main_discord_role");
-            table.Integer("minimum_hr_rank");
-            table.Integer("minimum_lead_rank");
+            table.Long("id");
+            table.Long("roblox_group_id").nullable();
+            table.String("group_name").nullable();
+            table.Long("main_group_id").nullable();
+            table.Long("main_discord_role").nullable();
+            table.Integer("minimum_hr_rank").defaultValue(255);
+            table.Integer("minimum_lead_rank").defaultValue(255);
             table.Boolean("global_ban").defaultValue(false);
             table.Boolean("global_kick").defaultValue(false);
             table.Boolean("global_verify").defaultValue(false);
@@ -49,22 +49,31 @@ public class CreateGuildSettingsTableMigration implements Migration {
             table.Boolean("permission_bypass").defaultValue(false);
         
             table.Long("emoji_id").nullable();
+             
             table.Long("on_watch_channel").nullable();
             table.Long("on_watch_role").nullable();
+            
             table.Boolean("local_filter").defaultValue(false);
             table.Long("local_filter_log").nullable();
             table.LongText("filter_exact").nullable();
             table.LongText("filter_wildcard").nullable();
+            
             table.Long("patrol_remittance_channel").nullable();
             table.LongText("patrol_remittance_message").nullable();
+            
             table.Long("handbook_report_channel").nullable();
+            table.String("handbook_report_info_message").nullable();
+            
             table.Long("suggestion_channel_id").nullable();
             table.Long("suggestion_community_channel_id").nullable();
             table.Long("suggestion_approved_channel_id").nullable();
+            
             table.Long("join_logs").nullable();
             table.Long("audit_logs_channel_id").nullable();
-            table.Long("vote_validation_channel_id").nullable();
             table.Long("user_alerts_channel_id").nullable();
+            
+            table.Long("vote_validation_channel_id").nullable();
+            
             table.Long("evaluation_answer_channel").nullable();
             table.LongText("eval_questions").nullable();
         });

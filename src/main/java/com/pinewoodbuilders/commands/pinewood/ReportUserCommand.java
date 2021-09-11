@@ -121,7 +121,7 @@ public class ReportUserCommand extends Command {
         }*/
 
         if (checkAccountAge(context)) {
-            context.makeError("Sorry, but only discord accounts that are older then 3 days are allowed to make actual reports.\nIf this is an important violation, please contact a trainer.").queue();
+            context.makeError("Sorry, but only discord accounts that are older then 3 days are allowed to make actual reports.\nIf this is an important violation, please contact a Lead of the division where you are trying to report.").queue();
             return false;
         }
 
@@ -133,7 +133,7 @@ public class ReportUserCommand extends Command {
                 qb.get().forEach(dataRow -> {
                     if (dataRow.getString("handbook_report_channel") != null) {
                         Guild g = avaire.getShardManager().getGuildById(dataRow.getString("id"));
-                        Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("report_emote_id"));
+                        Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("emoji_id"));
 
                         if (g != null && e != null) {
                             sb.append("``").append(g.getName()).append("`` - ").append(e.getAsMention()).append("\n");
@@ -157,7 +157,7 @@ public class ReportUserCommand extends Command {
                                     message.clearReactions().queue();
                                     return;
                                 }
-                                DataRow d = qb.where("report_emote_id", react.getReactionEmote().getId()).get().get(0);
+                                DataRow d = qb.where("emoji_id", react.getReactionEmote().getId()).get().get(0);
 
                                 TextChannel c = avaire.getShardManager().getTextChannelById(d.getString("handbook_report_channel"));
                                 if (c != null) {
@@ -165,7 +165,7 @@ public class ReportUserCommand extends Command {
                                         message.editMessageEmbeds(context.makeError("You have been blacklisted from creating reports for this guild. Please ask a **Level 4** (Or higher) member to remove you from the ``"+c.getGuild().getName()+"`` reports blacklist.").buildEmbed()).queue();
                                         return;
                                     }
-                                    message.editMessageEmbeds(context.makeInfo(d.getString("report_info_message", "A report message for ``:guild`` could not be found. Ask the HR's of ``:guild`` to set one.\n" +
+                                    message.editMessageEmbeds(context.makeInfo(d.getString("handbook_report_info_message", "A report message for ``:guild`` could not be found. Ask the HR's of ``:guild`` to set one.\n" +
                                         "If you'd like to report someone, say their name right now.")).set("guild", d.getString("name")).set(":user", context.member.getEffectiveName()).buildEmbed()).queue(
                                         nameMessage -> {
                                             avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, m -> {
@@ -464,7 +464,7 @@ public class ReportUserCommand extends Command {
                 QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
                 try {
                     qb.update(q -> {
-                        q.set("report_info_message", reportMessage.getMessage().getContentRaw(), true);
+                        q.set("handbook_report_info_message", reportMessage.getMessage().getContentRaw(), true);
                     });
                     context.makeSuccess("**Your guild's message has been set to**: \n" + reportMessage.getMessage().getContentRaw()).queue();
                     return;
@@ -528,8 +528,8 @@ public class ReportUserCommand extends Command {
         try {
             qb.update(q -> {
                 q.set("handbook_report_channel", null);
-                q.set("report_emote_id", null);
-                q.set("report_info_message", null);
+                q.set("emoji_id", null);
+                q.set("handbook_report_info_message", null);
             });
 
             context.makeSuccess("Any information about the suggestion channel has been removed from the database.").queue();

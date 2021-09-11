@@ -99,7 +99,7 @@ public class GuildTransformer extends Transformer {
     public GuildTransformer(Guild guild, DataRow data) {
         super(data);
 
-        partner = guild.getRegion().isVip();
+        partner = getVipStatus(guild.getVoiceChannels());
 
         if (hasData()) {
             id = data.getString("id");
@@ -116,6 +116,7 @@ public class GuildTransformer extends Transformer {
             modlog = data.getString("modlog");
             muteRole = data.getString("mute_role");
             modlogCase = data.getInt("modlog_case");
+            onWatchCase = data.getInt("on_watch_case");
            
             // Sets the discord partner value if the guild isn't already a Discord partner.
             if (!partner) {

@@ -208,7 +208,7 @@ public class EvaluationCommand extends Command {
 
         transformer.getEvalQuestions().remove(question);
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.getGuild().getId())
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.getGuild().getId())
                 .update(statement -> statement.set("eval_questions", Xeus.gson.toJson(transformer.getEvalQuestions()), true));
             context.makeSuccess("Removed `:question` from the database!").set("question", question).queue();
         } catch (SQLException throwables) {
@@ -237,7 +237,7 @@ public class EvaluationCommand extends Command {
 
         try {
             context.getGuildSettingsTransformer().setEvaluationEvalChannel(Long.parseLong(args[1]));
-            avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.getGuild().getId()).update(statement -> {
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.getGuild().getId()).update(statement -> {
                 statement.set("evaluation_answer_channel", context.getGuildSettingsTransformer().getEvaluationEvalChannel());
             });
             context.makeSuccess("Eval answers channel has been set to :channelName.").set("channelName",

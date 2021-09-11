@@ -113,7 +113,7 @@ public class GuildEventAdapter extends EventAdapter {
                                     .buildEmbed()).queue();
                         }
                         e.getGuild().ban(e.getUser().getId(), 0,
-                                "User was unbanned, user has been re-banned due to permban system in Xeus. Original ban reason (Do not unban without PIA permission): "
+                                "User was unbanned, user has been re-banned due to permban system in Xeus. Original ban reason (Do not unban without MGM permission): "
                                         + unbanCollection.get(0).getString("reason"))
                                 .reason("PIA BAN: " + unbanCollection.get(0).getString("reason")).queue();
                     } else {
@@ -124,7 +124,7 @@ public class GuildEventAdapter extends EventAdapter {
                                 tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
                                         .setDescription("**" + e.getUser().getName() + e.getUser().getDiscriminator()
                                                 + "**" + " has been unbanned from **" + e.getGuild().getName()
-                                                + "**\nIssued by PIA Moderator: " + logs.get(0).getUser().getName()
+                                                + "**\nIssued by MGM Moderator: " + logs.get(0).getUser().getName()
                                                 + "#" + logs.get(0).getUser().getDiscriminator() + "\nWith reason: "
                                                 + (logs.get(0).getReason() != null ? logs.get(0).getReason()
                                                         : "No reason given"))
@@ -149,7 +149,7 @@ public class GuildEventAdapter extends EventAdapter {
                                     if (o.getUser().isBot())
                                         return;
                                     o.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription(
-                                            "Sorry, but this user **:bannedUser** was permbanned of PB though the Xeus blacklist feature and may **not** be unbanned. Please ask a PIA Moderator to handle an unban if deemed necessary.")
+                                            "Sorry, but this user **:bannedUser** was permbanned of PB though the Xeus blacklist feature and may **not** be unbanned. Please ask a MGM Moderator to handle an unban if deemed necessary.")
                                             .set("bannedUser", e.getUser().getAsTag() + " / " + e.getUser().getName())
                                             .buildEmbed()).queue();
                                 });
@@ -157,10 +157,10 @@ public class GuildEventAdapter extends EventAdapter {
                                 String agent = avaire.getShardManager().getUserById(
                                         unbanCollection.get(0).getLong("punishedId")) != null ? avaire.getShardManager()
                                                 .getUserById(unbanCollection.get(0).getLong("punishedId")).getName()
-                                                : "No PIA Moderator found";
+                                                : "No MGM Moderator found";
                                 e.getGuild().ban(e.getUser().getId(), 0, "Banned by: " + agent + "\n" + "For: "
                                         + unbanCollection.get(0).getString("reason")
-                                        + "\n*THIS IS A PIA GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE PIA MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT PIA APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
+                                        + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
                                         .reason("Global Ban, executed by " + agent + ". For: \n"
                                                 + unbanCollection.get(0).getString("reason"))
                                         .queue();

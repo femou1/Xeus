@@ -136,7 +136,7 @@ public class RequestRewardCommand extends Command {
                 qb.get().forEach(dataRow -> {
                     if (dataRow.getString("patrol_remittance_channel") != null) {
                         Guild g = avaire.getShardManager().getGuildById(dataRow.getString("id"));
-                        Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("patrol_remittance_emote_id"));
+                        Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("emoji_id"));
 
                         if (g != null && e != null) {
                             sb.append("``").append(g.getName()).append("`` - ").append(e.getAsMention()).append("\n");
@@ -159,7 +159,7 @@ public class RequestRewardCommand extends Command {
                                         message.clearReactions().queue();
                                         return;
                                     }
-                                    DataRow d = qb.where("patrol_remittance_emote_id", react.getReactionEmote().getId()).get().get(0);
+                                    DataRow d = qb.where("emoji_id", react.getReactionEmote().getId()).get().get(0);
 
                                     TextChannel c = avaire.getShardManager().getTextChannelById(d.getString("patrol_remittance_channel"));
                                     if (c != null) {

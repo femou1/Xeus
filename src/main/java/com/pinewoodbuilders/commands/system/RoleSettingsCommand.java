@@ -30,7 +30,6 @@ import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.contracts.commands.SystemCommand;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
@@ -140,7 +139,7 @@ public class RoleSettingsCommand extends SystemCommand {
     private boolean kickNonMods(CommandMessage context) {
         int level = CheckPermissionUtil.getPermissionLevel(context).getLevel();
         if (level < CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
-            context.makeError("You got to be PIA or above to run this command.").queue();
+            context.makeError("You got to be MGM or above to run this command.").queue();
             return false;
         }
         List <Member> members = new ArrayList <>();
@@ -367,9 +366,9 @@ public class RoleSettingsCommand extends SystemCommand {
     }
 
     private boolean handleFirstSetupRoles(CommandMessage context, GuildSettingsTransformer transformer) {
-        Set <Long> admins = transformer.getAdminRoles();
-        Set <Long> mods = transformer.getModeratorRoles();
-        Set <Long> managers = transformer.getManagerRoles();
+        Set <Long> admins = transformer.getLeadRoles();
+        Set <Long> mods = transformer.getHRRoles();
+        Set <Long> managers = transformer.getLeadRoles();
 
         admins.clear();
         mods.clear();
@@ -489,14 +488,14 @@ public class RoleSettingsCommand extends SystemCommand {
     }
 
     private boolean sendEnabledRoles(CommandMessage context, GuildSettingsTransformer transformer) {
-        if (transformer.getAdminRoles().isEmpty() && transformer.getModeratorRoles().isEmpty() && transformer.getManagerRoles().isEmpty() && transformer.getNoLinksRoles().isEmpty()
+        if (transformer.getLeadRoles().isEmpty() && transformer.getHRRoles().isEmpty() && transformer.getLeadRoles().isEmpty() && transformer.getNoLinksRoles().isEmpty()
             && transformer.getMainDiscordRole() == 0 && transformer.getRobloxGroupId() == 0) {
             return sendErrorMessage(context, "Sorry, but there are no manager, admin, mod, main role id, roblox group id or no-links roles on the discord configured.");
         }
 
-        Set <Long> mod = transformer.getModeratorRoles();
-        Set <Long> manager = transformer.getManagerRoles();
-        Set <Long> admins = transformer.getAdminRoles();
+        Set <Long> mod = transformer.getHRRoles();
+        Set <Long> manager = transformer.getLeadRoles();
+        Set <Long> admins = transformer.getLeadRoles();
         Set <Long> noLinks = transformer.getNoLinksRoles();
         Set <Long> groupShouts = transformer.getGroupShoutRoles();
         Long groupId = transformer.getRobloxGroupId();
@@ -514,7 +513,7 @@ public class RoleSettingsCommand extends SystemCommand {
         context.makeInfo(context.i18n("listRoles"))
             .set("roles", sb.toString())
             .setTitle(context.i18n("listRolesTitle",
-                transformer.getModeratorRoles().size() + transformer.getManagerRoles().size() + transformer.getAdminRoles().size() + transformer.getNoLinksRoles().size()
+                transformer.getHRRoles().size() + transformer.getLeadRoles().size() + transformer.getLeadRoles().size() + transformer.getNoLinksRoles().size()
             ))
             .queue();
 
@@ -545,13 +544,13 @@ public class RoleSettingsCommand extends SystemCommand {
         switch (value) {
             case FALSE:
                 if (rank.equals("admin")) {
-                    guildTransformer.getAdminRoles().remove(role.getIdLong());
+                    guildTransformer.getLeadRoles().remove(role.getIdLong());
                 }
                 if (rank.equals("manager")) {
-                    guildTransformer.getManagerRoles().remove(role.getIdLong());
+                    guildTransformer.getLeadRoles().remove(role.getIdLong());
                 }
                 if (rank.equals("mod")) {
-                    guildTransformer.getModeratorRoles().remove(role.getIdLong());
+                    guildTransformer.getHRRoles().remove(role.getIdLong());
                 }
                 if (rank.equals("no-links")) {
                     guildTransformer.getNoLinksRoles().remove(role.getIdLong());
@@ -563,13 +562,13 @@ public class RoleSettingsCommand extends SystemCommand {
 
             case TRUE:
                 if (rank.equals("admin")) {
-                    guildTransformer.getAdminRoles().add(role.getIdLong());
+                    guildTransformer.getLeadRoles().add(role.getIdLong());
                 }
                 if (rank.equals("manager")) {
-                    guildTransformer.getManagerRoles().add(role.getIdLong());
+                    guildTransformer.getLeadRoles().add(role.getIdLong());
                 }
                 if (rank.equals("mod")) {
-                    guildTransformer.getModeratorRoles().add(role.getIdLong());
+                    guildTransformer.getHRRoles().add(role.getIdLong());
                 }
                 if (rank.equals("no-links")) {
                     guildTransformer.getNoLinksRoles().add(role.getIdLong());
@@ -582,27 +581,27 @@ public class RoleSettingsCommand extends SystemCommand {
 
             case UNKNOWN:
                 if (rank.equals("admin")) {
-                    if (guildTransformer.getAdminRoles().contains(role.getIdLong())) {
-                        guildTransformer.getAdminRoles().remove(role.getIdLong());
+                    if (guildTransformer.getLeadRoles().contains(role.getIdLong())) {
+                        guildTransformer.getLeadRoles().remove(role.getIdLong());
                     } else {
-                        guildTransformer.getAdminRoles().add(role.getIdLong());
+                        guildTransformer.getLeadRoles().add(role.getIdLong());
                     }
                     break;
                 }
 
                 if (rank.equals("manager")) {
-                    if (guildTransformer.getManagerRoles().contains(role.getIdLong())) {
-                        guildTransformer.getManagerRoles().remove(role.getIdLong());
+                    if (guildTransformer.getLeadRoles().contains(role.getIdLong())) {
+                        guildTransformer.getLeadRoles().remove(role.getIdLong());
                     } else {
-                        guildTransformer.getManagerRoles().add(role.getIdLong());
+                        guildTransformer.getLeadRoles().add(role.getIdLong());
                     }
                     break;
                 }
                 if (rank.equals("mod")) {
-                    if (guildTransformer.getModeratorRoles().contains(role.getIdLong())) {
-                        guildTransformer.getModeratorRoles().remove(role.getIdLong());
+                    if (guildTransformer.getHRRoles().contains(role.getIdLong())) {
+                        guildTransformer.getHRRoles().remove(role.getIdLong());
                     } else {
-                        guildTransformer.getModeratorRoles().add(role.getIdLong());
+                        guildTransformer.getHRRoles().add(role.getIdLong());
                     }
                     break;
                 }
@@ -624,9 +623,9 @@ public class RoleSettingsCommand extends SystemCommand {
                 }
         }
 
-        boolean isEnabled = guildTransformer.getModeratorRoles().contains(role.getIdLong()) ||
-            guildTransformer.getAdminRoles().contains(role.getIdLong()) ||
-            guildTransformer.getManagerRoles().contains(role.getIdLong()) ||
+        boolean isEnabled = guildTransformer.getHRRoles().contains(role.getIdLong()) ||
+            guildTransformer.getLeadRoles().contains(role.getIdLong()) ||
+            guildTransformer.getLeadRoles().contains(role.getIdLong()) ||
             guildTransformer.getNoLinksRoles().contains(role.getIdLong()) ||
             guildTransformer.getGroupShoutRoles().contains(role.getIdLong());
 
@@ -636,7 +635,7 @@ public class RoleSettingsCommand extends SystemCommand {
                     .where("id", context.getGuild().getId())
                     .update(statement -> {
                         statement.set("admin_roles", Xeus.gson.toJson(
-                            guildTransformer.getAdminRoles()
+                            guildTransformer.getLeadRoles()
                         ), true);
                     });
             }
@@ -645,7 +644,7 @@ public class RoleSettingsCommand extends SystemCommand {
                     .where("id", context.getGuild().getId())
                     .update(statement -> {
                         statement.set("manager_roles", Xeus.gson.toJson(
-                            guildTransformer.getManagerRoles()
+                            guildTransformer.getLeadRoles()
                         ), true);
                     });
             }
@@ -654,7 +653,7 @@ public class RoleSettingsCommand extends SystemCommand {
                     .where("id", context.getGuild().getId())
                     .update(statement -> {
                         statement.set("moderator_roles", Xeus.gson.toJson(
-                            guildTransformer.getModeratorRoles()
+                            guildTransformer.getHRRoles()
                         ), true);
                     });
             }

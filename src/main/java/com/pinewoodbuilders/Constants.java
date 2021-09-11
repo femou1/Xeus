@@ -37,7 +37,6 @@ public class Constants {
     public static final String PLAYER_EXPERIENCE_TABLE_NAME = "experiences";
     public static final String BOT_VOTES_TABLE_NAME = "votes";
     public static final String FEEDBACK_TABLE_NAME = "feedback";
-    public static final String MUSIC_PLAYLIST_TABLE_NAME = "playlists";
     public static final String SHARDS_TABLE_NAME = "shards";
     public static final String LOG_TABLE_NAME = "logs";
     public static final String LOG_TYPES_TABLE_NAME = "log_types";
@@ -48,9 +47,8 @@ public class Constants {
     public static final String INSTALLED_PLUGINS_TABLE_NAME = "installed_plugins";
 
     // Global Update Specific Tables
-    public static final String MAIN_GROUP_MODERATORS = "main_group_mods";
+    public static final String GROUP_MODERATORS_TABLE = "group_moderators";
     public static final String GUILD_SETTINGS_TABLE = "guild_settings";
-    public static final String FEATURE_SETTINGS_TABLE = "guild_feature_settings";
     public static final String VERIFICATION_SETTINGS_TABLE_NAME = "verification_settings";
     public static final String VERIFICATION_DATABASE_TABLE_NAME = "verification_database";
     public static final String ROLE_PERSISTENCE_TABLE_NAME = "role_persistence";
@@ -139,7 +137,7 @@ public class Constants {
         add("446775463441072130"); // Oak
         add("622861054489395250"); // neonweld
         add("283720560272211970"); // Phantom_FR
-        //add("257193596074065921"); // Omni - Not PIA Anymore.
+        //add("257193596074065921"); // Omni - Not MGM Anymore.
         //add("329668217515540482"); // TenX - Has left
     }};
 

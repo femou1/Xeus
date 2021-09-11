@@ -22,6 +22,7 @@
 package com.pinewoodbuilders.database.transformers;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -48,8 +49,8 @@ public class GuildSettingsTransformer extends Transformer {
     private boolean globalVerify;
     private boolean globalAntiUnban;
     private boolean globalFilter;
-    private List<String> globalFilterExact;
-    private List<String> globalFilterWildcard;
+    private List<String> globalFilterExact = new ArrayList<>();
+    private List<String> globalFilterWildcard = new ArrayList<>();
     private long globalFilterLogChannel;
     private boolean globalAutomod;
     private int automodMassMention;
@@ -58,11 +59,10 @@ public class GuildSettingsTransformer extends Transformer {
     private int automodMessageSpam;
     private int automodImageSpam;
     private int automodCharacterSpam;
-    private Set<Long> administratorRoles;
-    private Set<Long> managerRoles;
-    private Set<Long> modRoles;
-    private Set<Long> noLinksRoles;
-    private Set<Long> groupShoutRoles;
+    private Set<Long> localLeadRoles = new HashSet<>();
+    private Set<Long> localHRRoles = new HashSet<>();
+    private Set<Long> noLinksRoles = new HashSet<>();
+    private Set<Long> groupShoutRoles = new HashSet<>();
     private boolean pbVerificationTrelloban;
     private String pbVerificationBlacklistLink;
     private boolean verificationAntiMainGlobalModImpersonation;
@@ -144,24 +144,7 @@ public class GuildSettingsTransformer extends Transformer {
 
                 for (String roleId : moderatorRoles) {
                     try {
-                        modRoles.add(
-                            Long.parseLong(roleId)
-                        );
-                    } catch (NumberFormatException ignored) {
-                        //
-                    }
-                }
-            }
-
-            if (data.getString("manager_roles", null) != null) {
-                List <String> manRoles = Xeus.gson.fromJson(
-                    data.getString("manager_roles"),
-                    new TypeToken <List <String>>() {
-                    }.getType());
-
-                for (String roleId : manRoles) {
-                    try {
-                        managerRoles.add(
+                        localHRRoles.add(
                             Long.parseLong(roleId)
                         );
                     } catch (NumberFormatException ignored) {
@@ -178,7 +161,7 @@ public class GuildSettingsTransformer extends Transformer {
 
                 for (String roleId : adminRoles) {
                     try {
-                        administratorRoles.add(
+                        localLeadRoles.add(
                             Long.parseLong(roleId)
                         );
                     } catch (NumberFormatException ignored) {
@@ -469,16 +452,12 @@ public class GuildSettingsTransformer extends Transformer {
         this.automodCharacterSpam = automodCharacterSpam;
     }
 
-    public Set<Long> getAdminRoles() {
-        return this.administratorRoles;
+    public Set<Long> getLeadRoles() {
+        return this.localLeadRoles;
     }
 
-    public Set<Long> getManagerRoles() {
-        return this.managerRoles;
-    }
-
-    public Set<Long> getModeratorRoles() {
-        return this.modRoles;
+    public Set<Long> getHRRoles() {
+        return this.localHRRoles;
     }
 
     public Set<Long> getGroupShoutRoles() {

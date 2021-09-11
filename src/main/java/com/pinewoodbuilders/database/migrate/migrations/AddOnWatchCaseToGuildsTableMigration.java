@@ -43,7 +43,7 @@ public class AddOnWatchCaseToGuildsTableMigration implements Migration {
 
         if (schema.getDbm().getConnection() instanceof MySQL) {
             schema.getDbm().queryUpdate(String.format(
-                "ADD `on_watch_case` INT NOT NULL DEFAULT '0' AFTER `on_watch`;",
+                "ALTER TABLE `%s` ADD `on_watch_case` INT NOT NULL DEFAULT '0' AFTER `autorole`;",
                 Constants.GUILD_TABLE_NAME
             ));
         } else {

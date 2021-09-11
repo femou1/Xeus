@@ -112,7 +112,7 @@ public class LockChannelsCommand extends Command {
         if (args.length > 0 && context.getMentionedChannels().size() < 1) {
             if (args[0].equals("all")) {
                 if (!(CheckPermissionUtil.getPermissionLevel(context).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel())) {
-                    context.makeError("Sorry, but you have to be a PIA member, or a Admin+ to use this command!").queue();
+                    context.makeError("Sorry, but you have to be a MGM member, or a Admin+ to use this command!").queue();
                     return false;
                 }
                 List <TextChannel> c = new ArrayList <>();

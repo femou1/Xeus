@@ -119,10 +119,10 @@ public class VerificationController {
         }
         try {
             VerificationTransformer transformer = new VerificationTransformer(guild, avaire.getDatabase()
-                    .newQueryBuilder(Constants.VERIFICATION_SETTINGS_TABLE_NAME)
-                    .select(requiredVerificationColumns)
-                    .where("verification_settings.id", guild.getId())
-                    .get().first());
+            .newQueryBuilder(Constants.VERIFICATION_SETTINGS_TABLE_NAME)
+            .select(requiredVerificationColumns)
+            .where("verification_settings.id", guild.getId())
+            .get().first());
 
             if (!transformer.hasData()) {
                 guild.retrieveOwner().queue(
@@ -130,7 +130,11 @@ public class VerificationController {
                         throwable -> updateVerificationEntry(avaire, guild)
                 );
 
-                return new VerificationTransformer(guild);
+                return new VerificationTransformer(guild, avaire.getDatabase()
+                .newQueryBuilder(Constants.VERIFICATION_SETTINGS_TABLE_NAME)
+                .select(requiredVerificationColumns)
+                .where("verification_settings.id", guild.getId())
+                .get().first());
             }
 
             return transformer;

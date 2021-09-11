@@ -132,7 +132,7 @@ public class UpdateCommand extends Command {
     private boolean updateEveryone(CommandMessage context) {
         int level = CheckPermissionUtil.getPermissionLevel(context).getLevel();
         if (level < CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
-            context.makeError("You got to be PIA or above to run this command.").queue();
+            context.makeError("You got to be MGM or above to run this command.").queue();
             return false;
         }
 
@@ -260,7 +260,7 @@ public class UpdateCommand extends Command {
             try {
                 Collection accounts = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", verificationEntity.getRobloxId()).orWhere("roblox_username", verificationEntity.getRobloxUsername()).get();
                 if (accounts.size() > 0) {
-                    ignoredMembers.put(member, "`User is banned in the PIA Anti-Unban database.`");
+                    ignoredMembers.put(member, "`User is banned in the MGM Anti-Unban database.`");
                     continue;
                 }
             } catch (SQLException throwables) {
@@ -425,7 +425,7 @@ public class UpdateCommand extends Command {
         StringBuilder sb = new StringBuilder();
         for (Guild g : guilde) {
             g.ban(arg, 0, "Banned by: " + context.member.getEffectiveName() + "\n" +
-                "For: " + reason + "\n*THIS IS A PIA GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE PIA MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT PIA APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason).queue();
+                "For: " + reason + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason).queue();
 
             sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
         }
@@ -494,7 +494,7 @@ public class UpdateCommand extends Command {
                     try {
                         Collection accounts = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", verificationEntity.getRobloxId()).orWhere("roblox_username", verificationEntity.getRobloxUsername()).get();
                         if (accounts.size() > 0) {
-                            ignoredMembers.put(member, "User is banned in the PIA Anti-Unban database.");
+                            ignoredMembers.put(member, "User is banned in the MGM Anti-Unban database.");
                             continue;
                         }
                     } catch (SQLException throwables) {

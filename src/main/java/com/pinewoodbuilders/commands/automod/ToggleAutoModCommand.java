@@ -117,10 +117,10 @@ public class ToggleAutoModCommand extends Command {
 
     private void setStatus(boolean b, CommandMessage context) {
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.FEATURE_SETTINGS_TABLE)
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                 .useAsync(true)
                 .where("id", context.getGuild().getId())
-                .update(statement -> statement.set("filter", b));
+                .update(statement -> statement.set("local_filter", b));
             context.getGuildSettingsTransformer().setLocalFilter(b);
             context.makeSuccess("Filter has been set to: **``" + b + "``**").queue();
         } catch (SQLException e) {

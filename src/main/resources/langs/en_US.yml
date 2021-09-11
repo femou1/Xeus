@@ -672,8 +672,8 @@ interaction:
     StareCommand: '**{0}** stares at **{1}**'
     CongratsCommand: '**{1}** is being congratulated by **{0}** for becoming an SD!'
 
-system:
-    RoleSettingsCommand:
+settings:
+    GuildAndGlobalSettingsCommand:
         invalidRole: "Invalid role given, I found no role on the server called `{0}`"
         listRoles: "All the roles mentioned below currently have their been setup, any role not on this list is unaffected.\n:roles"
         listRolesTitle: "Roles that are used: ({0})"

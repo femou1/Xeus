@@ -161,9 +161,9 @@ public class AddPIAModWildcardCommand extends Command {
 
     private void updateGuildAutoModExact(CommandMessage message, GuildSettingsTransformer transformer) throws SQLException {
         for (String id : Constants.guilds) {
-            avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                 .where("id", id)
-                .update(statement -> statement.set("piaf_wildcard", Xeus.gson.toJson(transformer.getGlobalFilterWildcard()), true));
+                .update(statement -> statement.set("global_filter_wildcard", Xeus.gson.toJson(transformer.getGlobalFilterWildcard()), true));
         }
 
     }

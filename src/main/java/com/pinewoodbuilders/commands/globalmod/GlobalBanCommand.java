@@ -171,7 +171,7 @@ public class GlobalBanCommand extends Command {
             boolean finalPbacBan = pbacBan;
             avaire.getShardManager().getUserById(args[0]).openPrivateChannel().queue(p -> {
                 p.sendMessageEmbeds(context.makeInfo(
-                        "*You have been **global-banned** from all the Pinewood Builders discords by an PIA Moderator. " +
+                        "*You have been **global-banned** from all the Pinewood Builders discords by an MGM Moderator. " +
                                 "For the reason: *```" + finalReason + "```\n\n" +
                                 (finalPbacBan ? "This ban has also banned you from the [PBAC (Pinewood Builders Appeal Center)](https://discord.gg/mWnQm25). " +
                                         "If you feel like this was still unjustified, contact ``Stefano#7366``" : "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; " +
@@ -204,7 +204,7 @@ public class GlobalBanCommand extends Command {
         StringBuilder sb = new StringBuilder();
         for (Guild g : guild) {
             g.ban(arg, time, "Banned by: " + context.member.getEffectiveName() + "\n" +
-                "For: " + reason + "\n*THIS IS A PIA GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE PIA MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT PIA APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason)
+                "For: " + reason + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*").reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason)
                 .queue( );
 
             sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
@@ -371,7 +371,7 @@ public class GlobalBanCommand extends Command {
             Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).get();
             context.makeInfo("Syncing **``" + c.size() + "``** global bans to this guild...").queue();
             for (DataRow dr : c) {
-                context.guild.ban(dr.getString("userId"), 0, "THIS BAN MAY ONLY BE REVERTED BY A PIA MODERATOR. ORIGINAL BAN REASON: " + dr.getString("reason")).reason("Ban sync").queue();
+                context.guild.ban(dr.getString("userId"), 0, "THIS BAN MAY ONLY BE REVERTED BY A MGM MODERATOR. ORIGINAL BAN REASON: " + dr.getString("reason")).reason("Ban sync").queue();
             }
             context.makeSuccess("**``" + c.size() + "``** global bans where synced to this guild...").queue();
 

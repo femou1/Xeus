@@ -150,9 +150,9 @@ public class AddPIAModExactCommand extends Command {
 
     private void updateGuildAutoModExact(CommandMessage message, GuildSettingsTransformer transformer) throws SQLException {
         for (String id : Constants.guilds) {
-            avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                 .where("id", id)
-                .update(statement -> statement.set("piaf_exact", Xeus.gson.toJson(transformer.getGlobalFilterExact()), true));
+                .update(statement -> statement.set("global_filter_exact", Xeus.gson.toJson(transformer.getGlobalFilterExact()), true));
         }
     }
 }

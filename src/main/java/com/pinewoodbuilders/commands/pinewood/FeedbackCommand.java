@@ -114,13 +114,13 @@ public class FeedbackCommand extends Command {
 
         context.makeInfo("<a:loading:742658561414266890> Loading suggestions... <a:loading:742658561414266890>").queue(l -> {
 
-            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("suggestion_channel");
+            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("suggestion_channel_id");
             try {
                 StringBuilder sb = new StringBuilder();
                 qb.get().forEach(dataRow -> {
-                    if (dataRow.getString("suggestion_channel") != null) {
+                    if (dataRow.getString("suggestion_channel_id") != null) {
                         Guild g = avaire.getShardManager().getGuildById(dataRow.getString("id"));
-                        Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("suggestion_emote_id"));
+                        Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("emoji_id"));
 
                         if (g != null && e != null) {
                             sb.append("``").append(g.getName()).append("`` - ").append(e.getAsMention()).append("\n");
@@ -151,9 +151,9 @@ public class FeedbackCommand extends Command {
     private void startEmojiWaiter(CommandMessage context, Message message, EventWaiter waiter, QueryBuilder qb) {
         waiter.waitForEvent(GuildMessageReactionAddEvent.class, l -> l.getMember().equals(context.member) && message.getId().equals(l.getMessageId()), emote -> {
             try {
-                DataRow d = qb.where("suggestion_emote_id", emote.getReactionEmote().getId()).get().get(0);
+                DataRow d = qb.where("emoji_id", emote.getReactionEmote().getId()).get().get(0);
 
-                TextChannel c = avaire.getShardManager().getTextChannelById(d.getString("suggestion_channel"));
+                TextChannel c = avaire.getShardManager().getTextChannelById(d.getString("suggestion_channel_id"));
                 if (c != null) {
 
                     if (avaire.getFeatureBlacklist().isBlacklisted(context.getAuthor(), c.getGuild().getIdLong(), FeatureScope.SUGGESTIONS)) {
@@ -161,7 +161,7 @@ public class FeedbackCommand extends Command {
                         return;
                     }
 
-                    message.editMessageEmbeds(context.makeInfo("You've selected a suggestion for: ``:guild``\nPlease tell me, what is your suggestion?").set("guild", d.getString("name")).buildEmbed()).queue();
+                    message.editMessageEmbeds(context.makeInfo("You've selected a suggestion for: ``:guild``\nPlease tell me, what is your suggestion?").set("guild", emote.getGuild().getName()).buildEmbed()).queue();
                     message.clearReactions().queue();
 
 
@@ -182,7 +182,7 @@ public class FeedbackCommand extends Command {
                         Button b5 = Button.secondary("community-move:" + message.getId(), "Move to CAS").withEmoji(Emoji.fromUnicode("\uD83D\uDC51"));
 
                         ActionRow actionRow;
-                        if (d.getString("suggestion_community_channel") != null) {
+                        if (d.getString("suggestion_community_channel_id") != null) {
                             actionRow = ActionRow.of(b1.asEnabled(), b2.asEnabled(), b3.asEnabled(), b4.asEnabled(), b5.asEnabled());
                         } else {
                             actionRow = ActionRow.of(b1.asEnabled(), b2.asEnabled(), b3.asEnabled(), b4.asEnabled(), b5.asDisabled());
@@ -194,7 +194,7 @@ public class FeedbackCommand extends Command {
                             .setTimestamp(Instant.now())
                             .buildEmbed()).setActionRows(actionRow).queue(v -> {
                             context.makeSuccess("[Your suggestion has been posted in the correct suggestion channel.](:link)").set("link", v.getJumpUrl()).queue();
-                            createReactions(v, d.getString("suggestion_community_channel"));
+                            createReactions(v, d.getString("suggestion_community_channel_id"));
 
                             try {
                                 avaire.getDatabase().newQueryBuilder(Constants.PB_SUGGESTIONS_TABLE_NAME).insert(data -> {
@@ -235,10 +235,10 @@ public class FeedbackCommand extends Command {
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
-                q.set("suggestion_channel", null);
-                q.set("suggestion_emote_id", null);
-                q.set("suggestion_community_channel", null);
-                q.set("approved_suggestion_channel", null);
+                q.set("suggestion_channel_id", null);
+                q.set("emoji_id", null);
+                q.set("suggestion_community_channel_id", null);
+                q.set("suggestion_approved_channel_id", null);
             });
 
             context.makeSuccess("Any information about the suggestion channel has been removed from the database.").queue();
@@ -280,7 +280,7 @@ public class FeedbackCommand extends Command {
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
-                q.set("approved_suggestion_channel", transformer.getSuggestionApprovedChannelId());
+                q.set("suggestion_approved_channel_id", transformer.getSuggestionApprovedChannelId());
             });
             context.makeSuccess("Set the approved suggestion channel to " + channel.getAsMention()).queue();
             return true;
@@ -321,7 +321,7 @@ public class FeedbackCommand extends Command {
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
-                q.set("suggestion_community_channel", transformer.getSuggestionCommunityChannelId());
+                q.set("suggestion_community_channel_id", transformer.getSuggestionCommunityChannelId());
             });
             context.makeSuccess("Set the community channel to " + channel.getAsMention()).queue();
             return true;
@@ -355,10 +355,10 @@ public class FeedbackCommand extends Command {
 
 
     private boolean updateChannelAndEmote(CommandMessage context, long suggestionChannel) {
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.FEATURE_SETTINGS_TABLE).where("id", context.guild.getId());
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
-                q.set("suggestion_channel", suggestionChannel);
+                q.set("suggestion_channel_id", suggestionChannel);
             });
 
             context.makeSuccess("Suggestions have been enabled for <#:channelId> with the emote <:F::emoteId>").set("channelId", suggestionChannel).set("emoteId", context.getGuildSettingsTransformer().getEmojiId());

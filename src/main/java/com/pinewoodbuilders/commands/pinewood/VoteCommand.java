@@ -597,7 +597,7 @@ public class VoteCommand extends Command {
         transformer.setVoteValidationChannelId(value);
         avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
             .where("id", context.getGuild().getId())
-            .update(statement -> statement.set("vote_validation_channel", value));
+            .update(statement -> statement.set("vote_validation_channel_id", value));
     }
 
 }

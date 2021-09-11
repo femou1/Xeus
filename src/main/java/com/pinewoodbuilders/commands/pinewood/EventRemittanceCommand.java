@@ -138,7 +138,7 @@ public class EventRemittanceCommand extends Command {
                 qb.get().forEach(dataRow -> {
                     if (dataRow.getString("patrol_remittance_channel") != null) {
                         Guild g = avaire.getShardManager().getGuildById(dataRow.getString("id"));
-                        Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("patrol_remittance_emote_id"));
+                        Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("emoji_id"));
 
                         if (g != null && e != null) {
                             sb.append("``").append(g.getName()).append("`` - ").append(e.getAsMention()).append("\n");
@@ -161,7 +161,7 @@ public class EventRemittanceCommand extends Command {
                                         message.clearReactions().queue();
                                         return;
                                     }
-                                    DataRow d = qb.where("patrol_remittance_emote_id", react.getReactionEmote().getId()).get().get(0);
+                                    DataRow d = qb.where("emoji_id", react.getReactionEmote().getId()).get().get(0);
 
                                     TextChannel c = avaire.getShardManager().getTextChannelById(d.getString("patrol_remittance_channel"));
                                     if (c != null) {
@@ -415,7 +415,6 @@ public class EventRemittanceCommand extends Command {
         try {
             qb.update(q -> {
                 q.set("patrol_remittance_channel", null);
-                q.set("patrol_remittance_emote_id", null);
             });
 
             context.makeSuccess("Any information about the remittance channels has been removed from the database.").queue();

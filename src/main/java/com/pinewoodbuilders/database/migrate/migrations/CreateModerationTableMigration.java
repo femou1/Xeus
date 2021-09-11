@@ -15,17 +15,17 @@ public class CreateModerationTableMigration implements Migration {
 
     @Override
     public boolean up(Schema schema) throws SQLException {
-        return schema.createIfNotExists(Constants.MAIN_GROUP_MODERATORS, table -> {
-            table.Increments("discord_id");
+        return schema.createIfNotExists(Constants.GROUP_MODERATORS_TABLE, table -> {
+            table.Long("discord_id");
             table.Long("roblox_id"); // If either the Discord ID or Roblox ID doesn't match. You do not get Moderator permissions for said group
             table.Long("main_group_id").nullable();
-            table.Boolean("is_local_lead").defaultValue(false);
+            table.Boolean("is_global_lead").defaultValue(false);
             table.Boolean("is_global_admin").defaultValue(false);
         });
     }    
 
-    @Override
+    @Override   
     public boolean down(Schema schema) throws SQLException {
-        return schema.dropIfExists(Constants.MAIN_GROUP_MODERATORS);
+        return schema.dropIfExists(Constants.GROUP_MODERATORS_TABLE);
     }  
 }
