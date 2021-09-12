@@ -326,6 +326,7 @@ public class CheckPermissionUtil {
     public static boolean isFullGlobalAdmin(Long discordId, long robloxId) {
         QueryBuilder builder = Xeus.getInstance().getDatabase()
         .newQueryBuilder(Constants.GROUP_MODERATORS_TABLE)
+        .andWhere("main_group_id", 0)
         .andWhere("discord_id", discordId)
         .andWhere("roblox_id", robloxId)
         .andWhere("is_global_admin", 1);

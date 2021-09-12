@@ -188,7 +188,7 @@ public class RoleSettingsCommand extends SystemCommand {
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
-                q.set("minimum_lead_rank", transformer.getMinimumHrRank());
+                q.set("minimum_lead_rank", transformer.getMinimumLeadRank());
             });
 
             context.makeSuccess("Set the minimal lead rank for `:guild`'s configured group (`:groupId`) to ``:id``")

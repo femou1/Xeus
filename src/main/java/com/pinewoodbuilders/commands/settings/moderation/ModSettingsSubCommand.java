@@ -265,8 +265,7 @@ public class ModSettingsSubCommand extends SettingsSubCommand {
                     }
     
                     try {
-                        addUserToModerationTable(isGlobal ? null : transformer.getMainGroupId(), Long.valueOf(args[0]),
-                                Long.valueOf(args[1]), isLead, isGlobal);
+                        addUserToModerationTable(isGlobal ? 0 : transformer.getMainGroupId(), Long.valueOf(args[0]), Long.valueOf(args[1]), isLead, isGlobal);
                         context.makeSuccess("Added <@" + args[0] + ">").queue();
                         return true;
                     } catch (SQLException e) {

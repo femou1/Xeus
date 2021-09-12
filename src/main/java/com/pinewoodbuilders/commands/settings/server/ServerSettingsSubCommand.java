@@ -219,7 +219,8 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
 
             context.makeSuccess("Set the minimal hr rank for `:guild`'s configured group (`:groupId`) to ``:id``")
                     .set("groupId", transformer.getRobloxGroupId() != 0 ? transformer.getRobloxGroupId() : "ID NOT SET")
-                    .set("guild", context.getGuild().getName()).set("id", transformer.getMinimumHrRank());
+                    .set("guild", context.getGuild().getName()).set("id", transformer.getMinimumHrRank())
+                    .queue();
             return true;
         } catch (SQLException throwables) {
             context.makeError("Something went wrong in the database, please check with the developer. (Stefano#7366)")
@@ -227,6 +228,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             return false;
         }
     }
+
     private boolean updateGroupId(GuildSettingsTransformer transformer, CommandMessage context) {
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id",
                 context.guild.getId());
