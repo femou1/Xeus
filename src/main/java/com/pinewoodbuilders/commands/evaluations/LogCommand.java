@@ -68,8 +68,8 @@ public class LogCommand extends Command {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
-            "isModOrHigher",
+            "isPinewoodGuild",
+            "isGuildHROrHigher",
             "throttle:user,1,1"
         );
     }

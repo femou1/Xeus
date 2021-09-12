@@ -8,6 +8,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.menu.Paginator;
@@ -87,8 +88,8 @@ public class EvaluationCommand extends Command {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
-            "isModOrHigher",
+            "isPinewoodGuild",
+            "isGuildHROrHigher",
             "throttle:user,1,3"
         );
     }
@@ -136,9 +137,9 @@ public class EvaluationCommand extends Command {
     }
 
     private boolean listQuestions(CommandMessage context, String[] args) {
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
-            context.makeError("The guildtransformer is null, please try again later.").queue();
+            context.makeError("The GuildSettingsTransformer is null, please try again later.").queue();
             return false;
         }
 
@@ -162,9 +163,9 @@ public class EvaluationCommand extends Command {
             context.makeInfo("Run the command again, and make sure you add the question you want to add.").queue();
             return false;
         }
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
-            context.makeError("The guildtransformer is null, please try again later.").queue();
+            context.makeError("The GuildSettingsTransformer is null, please try again later.").queue();
             return false;
         }
 
@@ -176,7 +177,7 @@ public class EvaluationCommand extends Command {
 
         transformer.getEvalQuestions().add(question);
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.getGuild().getId())
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.getGuild().getId())
                 .update(statement -> statement.set("eval_questions", Xeus.gson.toJson(transformer.getEvalQuestions()), true));
             context.makeSuccess("Added `:question` to the database!").set("question", question).queue();
         } catch (SQLException throwables) {
@@ -193,9 +194,9 @@ public class EvaluationCommand extends Command {
             context.makeInfo("Run the command again, and make sure you add the question you want to remove.").queue();
             return false;
         }
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
-            context.makeError("The guildtransformer is null, please try again later.").queue();
+            context.makeError("The GuildSettingsTransformer is null, please try again later.").queue();
             return false;
         }
 
@@ -207,7 +208,7 @@ public class EvaluationCommand extends Command {
 
         transformer.getEvalQuestions().remove(question);
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.getGuild().getId())
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.getGuild().getId())
                 .update(statement -> statement.set("eval_questions", Xeus.gson.toJson(transformer.getEvalQuestions()), true));
             context.makeSuccess("Removed `:question` from the database!").set("question", question).queue();
         } catch (SQLException throwables) {
@@ -235,9 +236,9 @@ public class EvaluationCommand extends Command {
         }
 
         try {
-            context.getGuildTransformer().setEvalAnswerChannel(Long.parseLong(args[1]));
-            avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.getGuild().getId()).update(statement -> {
-                statement.set("evaluation_answer_channel", context.getGuildTransformer().getEvalAnswerChannel());
+            context.getGuildSettingsTransformer().setEvaluationEvalChannel(Long.parseLong(args[1]));
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.getGuild().getId()).update(statement -> {
+                statement.set("evaluation_answer_channel", context.getGuildSettingsTransformer().getEvaluationEvalChannel());
             });
             context.makeSuccess("Eval answers channel has been set to :channelName.").set("channelName",
                 tc.getAsMention()).queue();
@@ -496,8 +497,6 @@ public class EvaluationCommand extends Command {
             } else {
                 context.guild.addRoleToMember(m, r).queue(p -> {
                     GuildTransformer transformer = context.getGuildTransformer();
-
-
                     if (transformer == null) {
                         context.makeError("The guild informormation coudn't be pulled. Please check with Stefano#7366" +
                             ".").queue();

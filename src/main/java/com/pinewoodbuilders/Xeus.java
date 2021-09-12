@@ -21,9 +21,18 @@
 
 package com.pinewoodbuilders;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.filter.ThresholdFilter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.concurrent.ScheduledFuture;
+
+import javax.annotation.Nullable;
+import javax.security.auth.login.LoginException;
+
 import com.avairebot.shared.DiscordConstants;
 import com.avairebot.shared.ExitCodes;
 import com.avairebot.shared.SentryConstants;
@@ -37,11 +46,15 @@ import com.pinewoodbuilders.blacklist.kronos.BlacklistManager;
 import com.pinewoodbuilders.cache.CacheManager;
 import com.pinewoodbuilders.cache.CacheType;
 import com.pinewoodbuilders.chat.ConsoleColor;
-import com.pinewoodbuilders.commands.Category;
 import com.pinewoodbuilders.commands.CategoryDataContext;
 import com.pinewoodbuilders.commands.CategoryHandler;
+import com.pinewoodbuilders.commands.Category;
 import com.pinewoodbuilders.commands.CommandHandler;
-import com.pinewoodbuilders.config.*;
+import com.pinewoodbuilders.config.Configuration;
+import com.pinewoodbuilders.config.ConstantsConfiguration;
+import com.pinewoodbuilders.config.EnvironmentMacros;
+import com.pinewoodbuilders.config.EnvironmentOverride;
+import com.pinewoodbuilders.config.FeatureToggleContextHandler;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.database.migrations.Migration;
 import com.pinewoodbuilders.contracts.database.seeder.Seeder;
@@ -60,7 +73,21 @@ import com.pinewoodbuilders.imagegen.RankBackgroundHandler;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.level.LevelManager;
 import com.pinewoodbuilders.metrics.Metrics;
-import com.pinewoodbuilders.middleware.*;
+import com.pinewoodbuilders.middleware.HasAnyRoleMiddleware;
+import com.pinewoodbuilders.middleware.HasRoleMiddleware;
+import com.pinewoodbuilders.middleware.HasVotedTodayMiddleware;
+import com.pinewoodbuilders.middleware.IsAdminOrHigherMiddleware;
+import com.pinewoodbuilders.middleware.IsBotAdminMiddleware;
+import com.pinewoodbuilders.middleware.IsDMMessageMiddleware;
+import com.pinewoodbuilders.middleware.IsGroupShoutOrHigherMiddleware;
+import com.pinewoodbuilders.middleware.IsManagerOrHigherMiddleware;
+import com.pinewoodbuilders.middleware.IsModOrHigherMiddleware;
+import com.pinewoodbuilders.middleware.IsOfficialPinewoodGuildMiddleware;
+import com.pinewoodbuilders.middleware.IsValidPIAMemberMiddleware;
+import com.pinewoodbuilders.middleware.MiddlewareHandler;
+import com.pinewoodbuilders.middleware.RequireOnePermissionMiddleware;
+import com.pinewoodbuilders.middleware.RequirePermissionMiddleware;
+import com.pinewoodbuilders.middleware.ThrottleMiddleware;
 import com.pinewoodbuilders.middleware.global.IsCategoryEnabled;
 import com.pinewoodbuilders.mute.MuteManager;
 import com.pinewoodbuilders.onwatch.OnWatchManager;
@@ -71,7 +98,17 @@ import com.pinewoodbuilders.roblox.RobloxAPIManager;
 import com.pinewoodbuilders.scheduler.ScheduleHandler;
 import com.pinewoodbuilders.servlet.WebServlet;
 import com.pinewoodbuilders.servlet.routes.v1.delete.DeleteAccountVerificationLink;
-import com.pinewoodbuilders.servlet.routes.v1.get.*;
+import com.pinewoodbuilders.servlet.routes.v1.get.GetAccountVerificationLink;
+import com.pinewoodbuilders.servlet.routes.v1.get.GetDiscordIdsByRobloxId;
+import com.pinewoodbuilders.servlet.routes.v1.get.GetEvaluationQuestions;
+import com.pinewoodbuilders.servlet.routes.v1.get.GetEvaluationStatus;
+import com.pinewoodbuilders.servlet.routes.v1.get.GetGuildCleanup;
+import com.pinewoodbuilders.servlet.routes.v1.get.GetGuilds;
+import com.pinewoodbuilders.servlet.routes.v1.get.GetGuildsExists;
+import com.pinewoodbuilders.servlet.routes.v1.get.GetLeaderboardPlayers;
+import com.pinewoodbuilders.servlet.routes.v1.get.GetPlayerCleanup;
+import com.pinewoodbuilders.servlet.routes.v1.get.GetRobloxUserByDiscordId;
+import com.pinewoodbuilders.servlet.routes.v1.get.GetStats;
 import com.pinewoodbuilders.servlet.routes.v1.post.PostAccountVerificationLink;
 import com.pinewoodbuilders.servlet.routes.v1.post.PostEvalAnswers;
 import com.pinewoodbuilders.servlet.routes.v1.post.PostGuildCleanup;
@@ -80,6 +117,15 @@ import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.AutoloaderUtil;
 import com.pinewoodbuilders.utilities.EventWaiter;
 import com.pinewoodbuilders.vote.VoteManager;
+
+import org.gitlab4j.api.GitLabApi;
+import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.filter.ThresholdFilter;
 import io.sentry.Sentry;
 import io.sentry.logback.SentryAppender;
 import net.dv8tion.jda.api.JDA;
@@ -94,21 +140,6 @@ import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.SessionControllerAdapter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import org.gitlab4j.api.GitLabApi;
-import org.reflections.Reflections;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
-import javax.security.auth.login.LoginException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.concurrent.ScheduledFuture;
 
 public class Xeus {
 
@@ -147,7 +178,6 @@ public class Xeus {
     private final RobloxAPIManager robloxApiManager;
     private final BlacklistManager blacklistManager;
     private final VoiceWhitelistManager voiceWhitelistManager;
-    private GitLabApi gitLabApi;
     private Carbon shutdownTime = null;
     private int shutdownCode = ExitCodes.EXIT_CODE_RESTART;
     private ShardManager shardManager = null;
@@ -240,11 +270,11 @@ public class Xeus {
         MiddlewareHandler.register("throttle", new ThrottleMiddleware(this));
         MiddlewareHandler.register("isDMMessage", new IsDMMessageMiddleware(this));
 
-        MiddlewareHandler.register("isOfficialPinewoodGuild", new IsOfficialPinewoodGuildMiddleware(this));
-        MiddlewareHandler.register("isValidPIAMember", new IsValidPIAMemberMiddleware(this));
+        MiddlewareHandler.register("isPinewoodGuild", new IsOfficialPinewoodGuildMiddleware(this));
+        MiddlewareHandler.register("isValidMGMMember", new IsValidPIAMemberMiddleware(this));
         MiddlewareHandler.register("isAdminOrHigher", new IsAdminOrHigherMiddleware(this));
-        MiddlewareHandler.register("isManagerOrHigher", new IsManagerOrHigherMiddleware(this));
-        MiddlewareHandler.register("isModOrHigher", new IsModOrHigherMiddleware(this));
+        MiddlewareHandler.register("isGuildLeadership", new IsManagerOrHigherMiddleware(this));
+        MiddlewareHandler.register("isGuildHROrHigher", new IsModOrHigherMiddleware(this));
         MiddlewareHandler.register("isGroupShoutOrHigher", new IsGroupShoutOrHigherMiddleware(this));
 
         String defaultPrefix = getConfig().getString("default-prefix", DiscordConstants.DEFAULT_COMMAND_PREFIX);
@@ -268,6 +298,7 @@ public class Xeus {
         CategoryHandler.addCategory(this, "Reports", defaultPrefix);
         CategoryHandler.addCategory(this, "Roblox", defaultPrefix);
         CategoryHandler.addCategory(this, "Verification", defaultPrefix);
+        CategoryHandler.addCategory(this, "Settings", defaultPrefix);
         CategoryHandler.addCategory(this, "System", getConfig().getString(
             "system-prefix", DiscordConstants.DEFAULT_SYSTEM_PREFIX
         ));
@@ -342,7 +373,6 @@ public class Xeus {
 
             try (FileWriter file = new FileWriter("commandMap.json")) {
                 file.write(Xeus.gson.toJson(map));
-
                 log.info("The `commandMap.json` file has been generated successfully!");
             } catch (IOException e) {
                 log.error("Something went wrong while trying to save the command map: {}", e.getMessage(), e);
@@ -438,10 +468,7 @@ public class Xeus {
         } else {
             getSentryLogbackAppender().stop();
         }
-        if (config.getString("apiKeys.gitlabKey").length() > 0) {
-            log.info("GitLab API Key found, initializing Gitlab API");
-            gitLabApi = new GitLabApi("https://gitlab.com", config.getString("apiKeys.gitlabKey", ""));
-        }
+
         log.info("Preparing vote manager");
         voteManager = new VoteManager(this);
 

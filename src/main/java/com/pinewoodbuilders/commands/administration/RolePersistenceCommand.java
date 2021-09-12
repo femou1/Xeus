@@ -79,8 +79,8 @@ public class RolePersistenceCommand extends Command {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
-            "isManagerOrHigher"
+            "isPinewoodGuild",
+            "isGuildLeadership"
         );
     }
 

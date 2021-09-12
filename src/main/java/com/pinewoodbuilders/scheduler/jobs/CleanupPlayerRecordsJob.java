@@ -41,7 +41,6 @@ import java.util.concurrent.TimeUnit;
  * record as inactive if the user is no longer on the server,
  * or the bot have been kicked from the server.
  */
-@SuppressWarnings("unused")
 public class CleanupPlayerRecordsJob extends Job {
 
     private static final Logger log = LoggerFactory.getLogger(CleanupPlayerRecordsJob.class);

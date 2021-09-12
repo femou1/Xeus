@@ -16,17 +16,17 @@ public class IsValidPIAMemberMiddleware extends Middleware {
     public IsValidPIAMemberMiddleware(Xeus avaire) {
         super(avaire);
     }
-    String rankName = CheckPermissionUtil.GuildPermissionCheckType.PIA.getRankName();
+    String rankName = CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getRankName();
 
     @Override
     public String buildHelpDescription(@Nonnull CommandMessage context, @Nonnull String[] arguments) {
-        return "**This command can only be executed by an official PIA Moderator!**";
+        return "**This command can only be executed by an official MGM Moderator!**";
     }
 
     @Override
     public boolean handle(@Nonnull Message message, @Nonnull MiddlewareStack stack, String... args) {
-        int permissionLevel = CheckPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuild(), message.getGuild(), message.getMember()).getLevel();
-        if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.PIA.getLevel()) {
+        int permissionLevel = CheckPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuildSettings(), message.getGuild(), message.getMember()).getLevel();
+        if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
             return stack.next();
         }
 

@@ -17,7 +17,7 @@ public class IsManagerOrHigherMiddleware extends Middleware {
         super(avaire);
     }
 
-    String rankName = CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getRankName();
+    String rankName = CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getRankName();
 
     @Override
     public String buildHelpDescription(@Nonnull CommandMessage context, @Nonnull String[] arguments) {
@@ -34,8 +34,8 @@ public class IsManagerOrHigherMiddleware extends Middleware {
             return stack.next();
         }
 
-        int permissionLevel = CheckPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuild(), message.getGuild(), message.getMember()).getLevel();
-        if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getLevel()) {
+        int permissionLevel = CheckPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuildSettings(), message.getGuild(), message.getMember()).getLevel();
+        if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             return stack.next();
         }
 

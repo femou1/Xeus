@@ -63,7 +63,7 @@ public class EvalStatusCommand extends Command {
     public List <String> getMiddleware() {
         return Arrays.asList(
             "throttle:user,1,3",
-            "isOfficialPinewoodGuild"
+            "isPinewoodGuild"
         );
     }
 

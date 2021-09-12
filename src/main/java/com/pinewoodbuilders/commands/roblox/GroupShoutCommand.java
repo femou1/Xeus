@@ -88,20 +88,20 @@ public class GroupShoutCommand extends Command {
             return false;
         }
 
-        if (context.getGuildTransformer().getRobloxGroupId() == 0) {
+        if (context.getGuildSettingsTransformer().getRobloxGroupId() == 0) {
             context.makeError("The roblox ID of this group has not been set, please request a Facilitator or above to set this for you with `;rmanage`.").queue();
             return false;
         }
-        if (context.getGuildTransformer().getRobloxGroupId() == 0) {
+        if (context.getGuildSettingsTransformer().getRobloxGroupId() == 0) {
             context.makeError("No group ID has been set for this guild!").queue();
             return false;
         }
 
-        if (context.getGuildTransformer().getGroupShoutRoles().size() == 0) {
+        if (context.getGuildSettingsTransformer().getGroupShoutRoles().size() == 0) {
             context.makeError("No group shout roles have been set for this server, command has been disabled.").queue();
             return false;
         }
-        context.makeWarning("PLEASE BE WARNED, THIS WILL SEND A GROUP SHOUT AS **PB_XBot** (If PB_XBot has permission to shout on ``"+context.getGuildTransformer().getRobloxGroupId()+"``, the group connected to the guild)").queue();
+        context.makeWarning("PLEASE BE WARNED, THIS WILL SEND A GROUP SHOUT AS **PB_XBot** (If PB_XBot has permission to shout on ``"+context.getGuildSettingsTransformer().getRobloxGroupId()+"``, the group connected to the guild)").queue();
 
 
 
@@ -135,20 +135,20 @@ public class GroupShoutCommand extends Command {
         Request.Builder request = new Request.Builder()
             .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
             .url(avaire.getConfig().getString("URL.noblox").replace("%location%", "GroupShout"))
-            .post(RequestBody.create(json, buildPayload(message, context.getGuildTransformer().getRobloxGroupId())));
+            .post(RequestBody.create(json, buildPayload(message, context.getGuildSettingsTransformer().getRobloxGroupId())));
 
         try (Response response = client.newCall(request.build()).execute()) {
             if (response.code() == 500) {
-                context.makeError("[PB_Xbot doesn't have permissions to group shout to the group.](https://www.roblox.com/groups/:RobloxID). See response body here: \n```:message```").set("RobloxID", context.getGuildTransformer().getRobloxGroupId())
+                context.makeError("[PB_Xbot doesn't have permissions to group shout to the group.](https://www.roblox.com/groups/:RobloxID). See response body here: \n```:message```").set("RobloxID", context.getGuildSettingsTransformer().getRobloxGroupId())
                     .set("message", response.body() != null ? response.body().string() : "[RESPONSE NOT FOUND/RECEIVED]").queue();
                 return;
             }
-            context.makeSuccess("Message sent to the [group wall](https://www.roblox.com/groups/:RobloxID): \n```" + response.body().string() + "```").set("RobloxID", context.getGuildTransformer().getRobloxGroupId()).queue();
+            context.makeSuccess("Message sent to the [group wall](https://www.roblox.com/groups/:RobloxID): \n```" + response.body().string() + "```").set("RobloxID", context.getGuildSettingsTransformer().getRobloxGroupId()).queue();
 
-            TextChannel tc = context.getGuild().getTextChannelById(context.getGuildTransformer().getAuditLogChannel());
+            TextChannel tc = context.getGuild().getTextChannelById(context.getGuildSettingsTransformer().getAuditLogsChannelId());
             if (tc != null) {
                 tc.sendMessageEmbeds(context.makeWarning("The following was sent to the [group](https://www.roblox.com/groups/:RobloxID) shout by **:memberAsMention**:\n```:message```")
-                    .set("RobloxID", context.getGuildTransformer().getRobloxGroupId())
+                    .set("RobloxID", context.getGuildSettingsTransformer().getRobloxGroupId())
                     .set("message", message)
                     .set("memberAsMention", context.getMember().getAsMention()).buildEmbed()).queue();
             }
@@ -157,7 +157,7 @@ public class GroupShoutCommand extends Command {
         }
     }
 
-    private String buildPayload(String contentRaw, int robloxId) {
+    private String buildPayload(String contentRaw, long robloxId) {
         JSONObject main = new JSONObject();
 
         main.put("auth_key", avaire.getConfig().getString("apiKeys.nobloxServerAPIKey"));

@@ -35,9 +35,8 @@ public class Constants {
     public static final String STATISTICS_TABLE_NAME = "statistics";
     public static final String BLACKLIST_TABLE_NAME = "blacklists";
     public static final String PLAYER_EXPERIENCE_TABLE_NAME = "experiences";
-    public static final String VOTES_TABLE_NAME = "votes";
+    public static final String BOT_VOTES_TABLE_NAME = "votes";
     public static final String FEEDBACK_TABLE_NAME = "feedback";
-    public static final String MUSIC_PLAYLIST_TABLE_NAME = "playlists";
     public static final String SHARDS_TABLE_NAME = "shards";
     public static final String LOG_TABLE_NAME = "logs";
     public static final String LOG_TYPES_TABLE_NAME = "log_types";
@@ -47,30 +46,35 @@ public class Constants {
 
     public static final String INSTALLED_PLUGINS_TABLE_NAME = "installed_plugins";
 
+    // Global Update Specific Tables
+    public static final String GROUP_MODERATORS_TABLE = "group_moderators";
+    public static final String GUILD_SETTINGS_TABLE = "guild_settings";
+    public static final String VERIFICATION_SETTINGS_TABLE_NAME = "verification_settings";
+    public static final String VERIFICATION_DATABASE_TABLE_NAME = "verification_database";
+    public static final String ROLE_PERSISTENCE_TABLE_NAME = "role_persistence";
+
     // Pinewood Specific Tables
-    public static final String VERIFICATION_TABLE_NAME = "verification";
-    public static final String VERIFICATION_DATABASE_TABLE_NAME = "pb_verifications";
-    public static final String MOTS_VOTE_TABLE_NAME = "xeus_vote";
-    public static final String MOTS_VOTES_TABLE_NAME = "xeus_votes";
-    public static final String MOTS_VOTABLE_TABLE_NAME = "xeus_votable";
+    public static final String EVALS_DATABASE_TABLE_NAME = "pinewood_evaluations";
+    public static final String EVALS_LOG_DATABASE_TABLE_NAME = "pinewood_evaluations_log";
+    public static final String PENDING_QUIZ_TABLE_NAME = "pinewood_pending_quiz";
 
-    public static final String PB_SUGGESTIONS_TABLE_NAME = "pinewood_suggestions";
-    public static final String REPORTS_DATABASE_TABLE_NAME = "pinewood_reports";
-    public static final String REMITTANCE_DATABASE_TABLE_NAME = "pinewood_patrol_remittance";
-    public static final String EVENT_SCHEDULE_REQUESTS_TABLE_NAME = "pinewood_event_requests";
+    public static final String VOTE_TABLE_NAME = "xeus_vote";
+    public static final String VOTES_TABLE_NAME = "xeus_votes";
+    public static final String VOTABLE_TABLE_NAME = "xeus_votable";
 
+    public static final String PB_SUGGESTIONS_TABLE_NAME = "suggestions";
+    public static final String REPORTS_DATABASE_TABLE_NAME = "handbook_reports";
+    public static final String REMITTANCE_DATABASE_TABLE_NAME = "patrol_remittance";
+    
     public static final String ON_WATCH_TABLE_NAME = "on_watch";
     public static final String ON_WATCH_LOG_TABLE_NAME = "on_watch_logs";
     public static final String ON_WATCH_TYPES_TABLE_NAME = "on_watch_types";
 
-    public static final String ROLE_PERSISTENCE_TABLE_NAME = "role_persistence";
 
     public static final String ANTI_UNBAN_TABLE_NAME = "pia_antiban";
     public static final String FEATURE_BLACKLIST_TABLE_NAME = "feature_blacklist";
 
-    public static final String EVALS_DATABASE_TABLE_NAME = "pinewood_evaluations";
-    public static final String EVALS_LOG_DATABASE_TABLE_NAME = "pinewood_evaluations_log";
-    public static final String PENDING_QUIZ_TABLE_NAME = "pinewood_pending_quiz";
+
 
     // Package Specific Information
     public static final String PACKAGE_MIGRATION_PATH = "com.pinewoodbuilders.database.migrate";
@@ -133,8 +137,9 @@ public class Constants {
         add("446775463441072130"); // Oak
         add("622861054489395250"); // neonweld
         add("283720560272211970"); // Phantom_FR
-        //add("257193596074065921"); // Omni - Not PIA Anymore.
+        //add("257193596074065921"); // Omni - Not MGM Anymore.
         //add("329668217515540482"); // TenX - Has left
     }};
+
 
 }

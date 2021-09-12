@@ -32,8 +32,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -114,9 +112,9 @@ public class RoleInfoCommand extends Command {
         } else
             role = rolesByMention.get(0);
 
-        final String title = (ROLE_EMOJI + " Roleinfo: " + escapeMentions(role.getName()) + ":");
-        Color color = role.getColor();
-
+            final String title = (ROLE_EMOJI + " Roleinfo: " + escapeMentions(role.getName()) + ":");
+            Color color = role.getColor();
+    
         StringBuilder description = new StringBuilder(""
             + LINESTART + "ID: **" + role.getId() + "**\n"
             + LINESTART + "Creation: **" + role.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME) + "**\n"

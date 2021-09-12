@@ -25,6 +25,8 @@ import com.pinewoodbuilders.chat.MessageType;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.config.YamlConfiguration;
 import com.pinewoodbuilders.contracts.commands.CommandContext;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.database.transformers.PlayerTransformer;
 import com.pinewoodbuilders.database.transformers.VerificationTransformer;
@@ -196,6 +198,11 @@ public class CommandMessage implements CommandContext {
     @Override
     public PlayerTransformer getPlayerTransformer() {
         return databaseEventHolder == null ? null : databaseEventHolder.getPlayer();
+    }
+
+    @Override
+    public GuildSettingsTransformer getGuildSettingsTransformer() {
+        return databaseEventHolder == null ? null : databaseEventHolder.getGuildSettings();
     }
 
     @Override

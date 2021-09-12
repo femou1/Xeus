@@ -155,7 +155,7 @@ public class PineCoinsCommand extends SystemCommand {
     }
 
     private void createRecord(long userId, int amount) throws SQLException {
-        avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME)
+        avaire.getDatabase().newQueryBuilder(Constants.BOT_VOTES_TABLE_NAME)
             .insert(statement -> {
                 statement.set("user_id", userId);
                 statement.set("expires_in", Carbon.now().toDayDateTimeString());
@@ -170,7 +170,7 @@ public class PineCoinsCommand extends SystemCommand {
         }
 
         int finalAmount = amount;
-        avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME)
+        avaire.getDatabase().newQueryBuilder(Constants.BOT_VOTES_TABLE_NAME)
             .where("user_id", entity.getUserId())
             .update(statement -> {
                 statement.setRaw("points", I18n.format("`points` {0} {1}",

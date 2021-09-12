@@ -21,6 +21,8 @@
 
 package com.pinewoodbuilders.handlers;
 
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.database.transformers.PlayerTransformer;
 import com.pinewoodbuilders.database.transformers.VerificationTransformer;
@@ -32,39 +34,44 @@ public class DatabaseEventHolder {
     private final GuildTransformer guild;
     private final PlayerTransformer player;
     private final VerificationTransformer verification;
+    private final GuildSettingsTransformer guildSettings;
 
     /**
-     * Creates a new database holder instance using
-     * the given guild and player transformer.
+     * Creates a new database holder instance using the given guild and player
+     * transformer.
      *
-     * @param guild  The guild transformer that should be stored in the event holder.
-     * @param player The player transformer that should be stored in the event holder.
+     * @param guild  The guild transformer that should be stored in the event
+     *               holder.
+     * @param player The player transformer that should be stored in the event
+     *               holder.
      */
-    public DatabaseEventHolder(GuildTransformer guild, PlayerTransformer player, VerificationTransformer verification) {
+    public DatabaseEventHolder(GuildTransformer guild, PlayerTransformer player, VerificationTransformer verification, GuildSettingsTransformer guildSettings) {
         this.guild = guild;
         this.player = player;
         this.verification = verification;
+        this.guildSettings = guildSettings;
     }
 
     /**
-     * Gets the guild database transformer for the current JDA event,
-     * the guild transformer can be used to pull specific bot server
-     * settings and information about the current guild.
+     * Gets the guild database transformer for the current JDA event, the guild
+     * transformer can be used to pull specific bot server settings and information
+     * about the current guild.
      *
-     * @return The guild database transformer for the current JDA event,
-     * or {@code NULL} if the event was not invoked for a guild.
+     * @return The guild database transformer for the current JDA event, or
+     *         {@code NULL} if the event was not invoked for a guild.
      */
     public GuildTransformer getGuild() {
         return guild;
     }
 
     /**
-     * Gets the player database transformer for the current JDA event,
-     * the player transformer can be used to pull player experience
-     * information about the user who invoked the JDA event.
+     * Gets the player database transformer for the current JDA event, the player
+     * transformer can be used to pull player experience information about the user
+     * who invoked the JDA event.
      *
-     * @return The player database transformer for the user who invoked the JDA event,
-     * or {@code NULL} if the leveling feature is disabled in the guild.
+     * @return The player database transformer for the user who invoked the JDA
+     *         event, or {@code NULL} if the leveling feature is disabled in the
+     *         guild.
      */
     @Nullable
     public PlayerTransformer getPlayer() {
@@ -72,5 +79,12 @@ public class DatabaseEventHolder {
     }
 
     @Nullable
-    public VerificationTransformer getVerification() {return verification;}
+    public VerificationTransformer getVerification() {
+        return verification;
+    }
+
+    @Nullable
+    public GuildSettingsTransformer getGuildSettings() {
+        return guildSettings;
+    }
 }

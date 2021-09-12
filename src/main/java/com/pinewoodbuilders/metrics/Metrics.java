@@ -226,7 +226,6 @@ public class Metrics {
         cacheMetrics.addCache("guilds", GuildController.cache);
         cacheMetrics.addCache("players", PlayerController.cache);
         cacheMetrics.addCache("purchases", PurchaseController.cache);
-        cacheMetrics.addCache("playlists", PlaylistController.cache);
         cacheMetrics.addCache("categoryPrefixes", Category.cache);
         cacheMetrics.addCache("reaction-roles", ReactionController.cache);
         cacheMetrics.addCache("throttleCommands", ThrottleMiddleware.cache);

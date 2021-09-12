@@ -25,6 +25,8 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandContainer;
 import com.pinewoodbuilders.config.YamlConfiguration;
 import com.pinewoodbuilders.database.controllers.PlayerController;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.database.transformers.PlayerTransformer;
 import com.pinewoodbuilders.database.transformers.VerificationTransformer;
@@ -114,6 +116,9 @@ public interface CommandContext {
 
     @Nullable
     VerificationTransformer getVerificationTransformer();
+
+    @Nullable
+    GuildSettingsTransformer getGuildSettingsTransformer();
 
     /**
      * Returns the {@link PlayerTransformer player transformer} instance linked to the current message, if

@@ -4,6 +4,8 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.metrics.SparkRoute;
 import com.pinewoodbuilders.contracts.roblox.evaluations.PassedEvals;
 import com.pinewoodbuilders.database.controllers.GuildController;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -44,7 +46,8 @@ public class PostEvalAnswers extends SparkRoute {
             return root;
         }
 
-        GuildTransformer transformer = GuildController.fetchGuild(Xeus.getInstance(), guild);
+        GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(Xeus.getInstance(), guild);
+                
         if (transformer == null) {
             response.status(500);
             root.put("error", "XEUS_GUILD_MISSING_TRANSFORMER");
@@ -133,7 +136,7 @@ public class PostEvalAnswers extends SparkRoute {
                 return root;
             }
 
-            if (transformer.getEvalAnswerChannel() == 0 || guild.getTextChannelById(transformer.getEvalAnswerChannel()) == null) {
+            if (transformer.getEvaluationEvalChannel() == 0 || guild.getTextChannelById(transformer.getEvaluationEvalChannel()) == null) {
                 response.status(500);
                 root.put("error", "XEUS_MISSING_GUILD_EVAL_CHANNEL");
                 root.put("message", "Eval answer channel has not been set, or does not exist. Please contact the guild admins.");
@@ -146,7 +149,7 @@ public class PostEvalAnswers extends SparkRoute {
         }
 
 
-        TextChannel tc = guild.getTextChannelById(transformer.getEvalAnswerChannel());
+        TextChannel tc = guild.getTextChannelById(transformer.getEvaluationEvalChannel());
         tc.sendMessageEmbeds(messageList).setActionRow(Button.success("approve", Emoji.fromUnicode("\uD83D\uDC4D")), Button.danger("reject", Emoji.fromUnicode("⛔"))).queue(
             message -> manager.getEvaluationManager().addQuizToDatabase(userId, guild.getIdLong(), message.getIdLong()));
 

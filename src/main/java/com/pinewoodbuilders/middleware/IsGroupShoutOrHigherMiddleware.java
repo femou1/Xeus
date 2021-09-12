@@ -34,7 +34,7 @@ public class IsGroupShoutOrHigherMiddleware extends Middleware {
             return stack.next();
         }
 
-        int permissionLevel = CheckPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuild(), message.getGuild(), message.getMember()).getLevel();
+        int permissionLevel = CheckPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuildSettings(), message.getGuild(), message.getMember()).getLevel();
         if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.GROUP_SHOUT.getLevel()) {
             return stack.next();
         }

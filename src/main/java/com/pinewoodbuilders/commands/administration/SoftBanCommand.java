@@ -77,7 +77,7 @@ public class SoftBanCommand extends BanableCommand {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isModOrHigher",
+            "isGuildHROrHigher",
             "require:bot,general.ban_members",
             "throttle:user,1,4"
         );

@@ -76,7 +76,7 @@ public class PurchaseController {
                 }
 
                 String selectQuery = Xeus.getInstance().getDatabase()
-                    .newQueryBuilder(Constants.VOTES_TABLE_NAME)
+                    .newQueryBuilder(Constants.BOT_VOTES_TABLE_NAME)
                     .select("selected_bg")
                     .where("user_id", userId)
                     .toSQL();

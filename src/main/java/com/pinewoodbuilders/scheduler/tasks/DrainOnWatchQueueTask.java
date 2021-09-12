@@ -25,6 +25,8 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.contracts.scheduler.Task;
 import com.pinewoodbuilders.database.controllers.GuildController;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.onwatch.OnWatchContainer;
@@ -130,13 +132,16 @@ public class DrainOnWatchQueueTask implements Task {
                 return;
             }
 
+
+            GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
+    
             GuildTransformer transformer = GuildController.fetchGuild(avaire, guild);
-            if (transformer == null || transformer.getOnWatchRole() == null) {
+            if (transformer == null || settings == null || settings.getOnWatchRole() == 0) {
                 return;
             }
 
 
-            Role muteRole = guild.getRoleById(transformer.getOnWatchRole());
+            Role muteRole = guild.getRoleById(settings.getOnWatchRole());
             if (muteRole == null) {
                 return;
             }
@@ -153,7 +158,8 @@ public class DrainOnWatchQueueTask implements Task {
                     I18n.getString(guild, "onwatch.UnWatchCommand.userAutoUnmutedReason")
                 );
 
-                String caseId = OnWatchlog.log(avaire, guild, transformer, onWatchAction);
+                String caseId = OnWatchlog.log(avaire, guild, transformer, onWatchAction, settings);
+
                 OnWatchlog.notifyUser(member.getUser(), guild, onWatchAction, caseId);
 
 

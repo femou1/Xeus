@@ -28,6 +28,8 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
@@ -76,7 +78,7 @@ public class AuditLogChannelCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isManagerOrHigher",
+            "isGuildLeadership",
             "throttle:user,1,5"
         );
     }
@@ -89,7 +91,7 @@ public class AuditLogChannelCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        GuildTransformer guildTransformer = context.getGuildTransformer();
+        GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
         if (args.length < 1) {
             context.makeError("Please choose your argument...\n- ``set-channel``\n- ``- ``set-join-logs``").queue();
             return false;
@@ -106,7 +108,7 @@ public class AuditLogChannelCommand extends Command {
         }
     }
 
-    private boolean runVoteUpdateChannelChannelCommand(CommandMessage context, String[] args, GuildTransformer transformer) {
+    private boolean runVoteUpdateChannelChannelCommand(CommandMessage context, String[] args, GuildSettingsTransformer transformer) {
         if (transformer == null) {
             return sendErrorMessage(context, "The guildtransformer can't be found :(");
         }
@@ -141,7 +143,7 @@ public class AuditLogChannelCommand extends Command {
         return true;
     }
 
-    private boolean disableVoteValidation(CommandMessage context, GuildTransformer transformer) {
+    private boolean disableVoteValidation(CommandMessage context, GuildSettingsTransformer transformer) {
         try {
             updateVoteValidation(transformer, context, 0);
 
@@ -154,12 +156,12 @@ public class AuditLogChannelCommand extends Command {
         return true;
     }
 
-    private PlaceholderMessage sendVoteValidationChannel(CommandMessage context, GuildTransformer transformer) {
-        if (transformer.getAuditLogChannel() == 0) {
+    private PlaceholderMessage sendVoteValidationChannel(CommandMessage context, GuildSettingsTransformer transformer) {
+        if (transformer.getAuditLogsChannelId() == 0) {
             return context.makeWarning("The audit log channel is disabled on this guild.");
         }
 
-        TextChannel modlogChannel = context.getGuild().getTextChannelById(transformer.getAuditLogChannel());
+        TextChannel modlogChannel = context.getGuild().getTextChannelById(transformer.getAuditLogsChannelId());
         if (modlogChannel == null) {
             try {
                 updateVoteValidation(transformer, context, 0);
@@ -173,14 +175,14 @@ public class AuditLogChannelCommand extends Command {
             .set("channel", modlogChannel.getAsMention());
     }
 
-    private void updateVoteValidation(GuildTransformer transformer, CommandMessage context, long value) throws SQLException {
-        transformer.setAuditLogChannel(value);
-        avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+    private void updateVoteValidation(GuildSettingsTransformer transformer, CommandMessage context, long value) throws SQLException {
+        transformer.setAuditLogsChannelId(value);
+        avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
             .where("id", context.getGuild().getId())
-            .update(statement -> statement.set("audit_log", value));
+            .update(statement -> statement.set("audit_logs_channel_id", value));
     }
 
-    private boolean runJoinLogsUpdateChannelChannelCommand(CommandMessage context, String[] args, GuildTransformer transformer) {
+    private boolean runJoinLogsUpdateChannelChannelCommand(CommandMessage context, String[] args, GuildSettingsTransformer transformer) {
         if (transformer == null) {
             return sendErrorMessage(context, "The guildtransformer can't be found :(");
         }
@@ -215,7 +217,7 @@ public class AuditLogChannelCommand extends Command {
         return true;
     }
 
-    private boolean disableJoinLogs(CommandMessage context, GuildTransformer transformer) {
+    private boolean disableJoinLogs(CommandMessage context, GuildSettingsTransformer transformer) {
         try {
             updateJoinLogs(transformer, context, 0);
 
@@ -228,12 +230,12 @@ public class AuditLogChannelCommand extends Command {
         return true;
     }
 
-    private PlaceholderMessage sendJoinLogsChannel(CommandMessage context, GuildTransformer transformer) {
-        if (transformer.getJoinLogsChannel() == 0) {
+    private PlaceholderMessage sendJoinLogsChannel(CommandMessage context, GuildSettingsTransformer transformer) {
+        if (transformer.getJoinLogs() == 0) {
             return context.makeWarning("The join log channel is disabled on this guild.");
         }
 
-        TextChannel modlogChannel = context.getGuild().getTextChannelById(transformer.getJoinLogsChannel());
+        TextChannel modlogChannel = context.getGuild().getTextChannelById(transformer.getJoinLogs());
         if (modlogChannel == null) {
             try {
                 updateJoinLogs(transformer, context, 0);
@@ -247,9 +249,9 @@ public class AuditLogChannelCommand extends Command {
             .set("channel", modlogChannel.getAsMention());
     }
 
-    private void updateJoinLogs(GuildTransformer transformer, CommandMessage context, long value) throws SQLException {
+    private void updateJoinLogs(GuildSettingsTransformer transformer, CommandMessage context, long value) throws SQLException {
         transformer.setJoinLogs(value);
-        avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+        avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
             .where("id", context.getGuild().getId())
             .update(statement -> statement.set("join_logs", value));
     }

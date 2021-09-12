@@ -254,12 +254,12 @@ public class VoteManager {
         }
 
         try {
-            Collection collection = avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME)
+            Collection collection = avaire.getDatabase().newQueryBuilder(Constants.BOT_VOTES_TABLE_NAME)
                 .where("user_id", userId).take(1).get();
 
             int finalPoints = points;
             if (collection.isEmpty()) {
-                avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME)
+                avaire.getDatabase().newQueryBuilder(Constants.BOT_VOTES_TABLE_NAME)
                     .insert(statement -> {
                         statement.set("user_id", userId);
                         statement.set("expires_in", voteLog.get(userId).getCarbon().toDayDateTimeString());
@@ -272,7 +272,7 @@ public class VoteManager {
                 return;
             }
 
-            avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME)
+            avaire.getDatabase().newQueryBuilder(Constants.BOT_VOTES_TABLE_NAME)
                 .useAsync(true)
                 .where("user_id", userId)
                 .update(statement -> {
@@ -302,7 +302,7 @@ public class VoteManager {
         }
 
         try {
-            Collection collection = avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME)
+            Collection collection = avaire.getDatabase().newQueryBuilder(Constants.BOT_VOTES_TABLE_NAME)
                 .where("user_id", userId).take(1).get();
 
             if (collection.isEmpty()) {
@@ -373,7 +373,7 @@ public class VoteManager {
     private void syncWithDatabase() {
         log.info("Syncing votes with the database...");
         try {
-            Collection collection = avaire.getDatabase().newQueryBuilder(Constants.VOTES_TABLE_NAME).get();
+            Collection collection = avaire.getDatabase().newQueryBuilder(Constants.BOT_VOTES_TABLE_NAME).get();
 
             if (collection.isEmpty()) {
                 return;
