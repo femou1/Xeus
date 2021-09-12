@@ -77,7 +77,7 @@ public class NSFWCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isManagerOrHigher",
+            "isGuildLeadership",
             "throttle:channel,1,5"
         );
     }

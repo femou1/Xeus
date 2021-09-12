@@ -1,0 +1,12 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "eep",
+            "database": "${workspaceFolder:Xeus-Music}/database.sqlite"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

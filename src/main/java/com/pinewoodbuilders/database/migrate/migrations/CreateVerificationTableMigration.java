@@ -37,7 +37,7 @@ public class CreateVerificationTableMigration implements Migration {
 
     @Override
     public boolean up(Schema schema) throws SQLException {
-        return schema.createIfNotExists(Constants.VERIFICATION_TABLE_NAME, table -> {
+        return schema.createIfNotExists(Constants.VERIFICATION_SETTINGS_TABLE_NAME, table -> {
             table.Long("id").unsigned();
             table.Text("name");
 
@@ -51,7 +51,7 @@ public class CreateVerificationTableMigration implements Migration {
             table.Long("verified_role").nullable();
             table.Long("announce_channel").nullable();
             table.Long("verify_channel").nullable();
-            table.LongText("ranks").nullable();
+            table.LongText("ranks").defaultValue("base64:eyJncm91cFJhbmtCaW5kaW5ncyI6W119").nullable();
 
             table.setEngine(DatabaseEngine.InnoDB);
         });
@@ -59,6 +59,6 @@ public class CreateVerificationTableMigration implements Migration {
 
     @Override
     public boolean down(Schema schema) throws SQLException {
-        return schema.dropIfExists(Constants.VERIFICATION_TABLE_NAME);
+        return schema.dropIfExists(Constants.VERIFICATION_SETTINGS_TABLE_NAME);
     }
 }

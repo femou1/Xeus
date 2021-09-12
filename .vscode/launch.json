@@ -15,7 +15,8 @@
             "name": "Launch Main",
             "request": "launch",
             "mainClass": "com.pinewoodbuilders.Main",
-            "projectName": "AvaIre"
+            "projectName": "AvaIre" 
+            //"args": ["-gsf"]
         }
     ]
 }

@@ -22,7 +22,7 @@ public class IsOfficialPinewoodGuildMiddleware extends Middleware {
 
     @Override
     public String buildHelpDescription(@Nonnull CommandMessage context, @Nonnull String[] arguments) {
-        return "**This command can only be executed in official Pinewood servers! (Bypass for Facili+)**";
+        return "**This command can only be executed in PB servers! (Bypass for global admins)**";
     }
 
     @Override
@@ -31,8 +31,8 @@ public class IsOfficialPinewoodGuildMiddleware extends Middleware {
             return stack.next();
         }
 
-        int permissionLevel = CheckPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuild(), message.getGuild(), message.getMember()).getLevel();
-        if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.FACILITATOR.getLevel()) {
+        int permissionLevel = CheckPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuildSettings(), message.getGuild(), message.getMember()).getLevel();
+        if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
             return stack.next();
         }
 
@@ -57,9 +57,8 @@ public class IsOfficialPinewoodGuildMiddleware extends Middleware {
 
     private boolean sendMustBePinewoodDiscordMessage(@Nonnull Message message) {
         return runMessageCheck(message, () -> {
-            MessageFactory.makeError(message, "<a:alerta:729735220319748117> This command is only usable in official PB discord's, due to the fact it can modify something important!")
+            MessageFactory.makeError(message, "<a:alerta:729735220319748117> This command is only usable in official PB discord's, due to the fact it can modify something specific to Pinewood. If you want access to this command for your group, please inform Stefano#7366!")
                 .queue(newMessage -> newMessage.delete().queueAfter(45, TimeUnit.SECONDS), RestActionUtil.ignore);
-
             return false;
         });
     }

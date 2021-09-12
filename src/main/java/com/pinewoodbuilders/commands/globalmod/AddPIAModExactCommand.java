@@ -6,7 +6,8 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 
@@ -61,8 +62,8 @@ public class AddPIAModExactCommand extends Command {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
-            "isValidPIAMember"
+            "isPinewoodGuild",
+            "isValidMGMMember"
         );
     }
 
@@ -78,7 +79,7 @@ public class AddPIAModExactCommand extends Command {
             return sendErrorMessage(context, "You didn't give any arguments.");
         }
 
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             return sendErrorMessage(context, "Unable to load the global server settings.");
         }
@@ -100,7 +101,7 @@ public class AddPIAModExactCommand extends Command {
             if (args.length == 1) {
                 return sendErrorMessage(context, "You didn't give any words to add to the global filter.");
             }
-            transformer.getPIAWordsExact().add(words);
+            transformer.getGlobalFilterExact().add(words);
             try {
                 updateGuildAutoModExact(context, transformer);
 
@@ -123,17 +124,17 @@ public class AddPIAModExactCommand extends Command {
         }
     }
 
-    private boolean getAutoModExactList(CommandMessage context, GuildTransformer transformer) {
-        context.makeSuccess("This the list of the current filtered EXACT words: \n```" + transformer.getPIAWordsExact() + "```").queue();
+    private boolean getAutoModExactList(CommandMessage context, GuildSettingsTransformer transformer) {
+        context.makeSuccess("This the list of the current filtered EXACT words: \n```" + transformer.getGlobalFilterExact() + "```").queue();
         return false;
     }
 
-    private boolean removeAutoModExact(CommandMessage context, GuildTransformer transformer, String args) {
-        if (!transformer.getPIAWordsExact().contains(args)) {
+    private boolean removeAutoModExact(CommandMessage context, GuildSettingsTransformer transformer, String args) {
+        if (!transformer.getGlobalFilterExact().contains(args)) {
             return sendErrorMessage(context, "This word does not exist in the list");
         }
 
-        transformer.getPIAWordsExact().remove(args);
+        transformer.getGlobalFilterExact().remove(args);
 
         try {
             updateGuildAutoModExact(context, transformer);
@@ -147,11 +148,11 @@ public class AddPIAModExactCommand extends Command {
         }
     }
 
-    private void updateGuildAutoModExact(CommandMessage message, GuildTransformer transformer) throws SQLException {
+    private void updateGuildAutoModExact(CommandMessage message, GuildSettingsTransformer transformer) throws SQLException {
         for (String id : Constants.guilds) {
-            avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                 .where("id", id)
-                .update(statement -> statement.set("piaf_exact", Xeus.gson.toJson(transformer.getPIAWordsExact()), true));
+                .update(statement -> statement.set("global_filter_exact", Xeus.gson.toJson(transformer.getGlobalFilterExact()), true));
         }
     }
 }

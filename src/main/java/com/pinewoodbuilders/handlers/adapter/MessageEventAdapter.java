@@ -32,12 +32,15 @@ import com.pinewoodbuilders.contracts.handlers.EventAdapter;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.controllers.GuildController;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.controllers.PlayerController;
 import com.pinewoodbuilders.database.controllers.ReactionController;
 import com.pinewoodbuilders.database.controllers.VerificationController;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.ChannelTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.handlers.DatabaseEventHolder;
 import com.pinewoodbuilders.language.I18n;
@@ -171,7 +174,7 @@ public class MessageEventAdapter extends EventAdapter {
 
     }
 
-    private boolean checkWildcardFilter(String contentStripped, GuildTransformer guild, Message messageId) {
+    private boolean checkWildcardFilter(String contentStripped, GuildSettingsTransformer guild, Message messageId) {
         String words = contentStripped.toLowerCase();
         List <String> badWordsList = replace(guild.getBadWordsWildcard());
         // system.out.println("UFWords: " + words);
@@ -186,7 +189,7 @@ public class MessageEventAdapter extends EventAdapter {
         return false;
     }
 
-    private boolean checkExactFilter(String contentRaw, GuildTransformer databaseEventHolder, Message messageId) {
+    private boolean checkExactFilter(String contentRaw, GuildSettingsTransformer databaseEventHolder, Message messageId) {
         // system.out.println("FILTER ENABLED");
         List <String> words = replace(Arrays.asList(contentRaw.split(" ")));
         List <String> badWordsList = replace(databaseEventHolder.getBadWordsExact());
@@ -201,9 +204,9 @@ public class MessageEventAdapter extends EventAdapter {
         return b;
     }
 
-    private boolean checkGlobalWildcardFilter(String contentStripped, GuildTransformer guild, Message messageId) {
+    private boolean checkGlobalWildcardFilter(String contentStripped, GuildSettingsTransformer guild, Message messageId) {
         String words = contentStripped.toLowerCase();
-        List <String> badWordsList = replace(guild.getPIAWordsWildcard());
+        List <String> badWordsList = replace(guild.getGlobalFilterWildcard());
         //System.out.println("UFWords: " + words);
         //System.out.println("FWords: " + badWordsList);
 
@@ -216,10 +219,10 @@ public class MessageEventAdapter extends EventAdapter {
         return false;
     }
 
-    private boolean checkGlobalExactFilter(String contentRaw, GuildTransformer databaseEventHolder, Message messageId) {
+    private boolean checkGlobalExactFilter(String contentRaw, GuildSettingsTransformer databaseEventHolder, Message messageId) {
         // system.out.println("FILTER ENABLED");
         List <String> words = replace(Arrays.asList(contentRaw.split(" ")));
-        List <String> badWordsList = replace(databaseEventHolder.getPIAWordsExact());
+        List <String> badWordsList = replace(databaseEventHolder.getGlobalFilterExact());
 
         // system.out.println("UWords: " + words);
         // system.out.println("FWords: " + badWordsList);
@@ -239,8 +242,8 @@ public class MessageEventAdapter extends EventAdapter {
     public void onGuildMessageUpdate(MessageUpdateEvent event) {
         loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder -> {
             if (checkFilter(event.getMessage().getContentRaw())) {
-                if (databaseEventHolder.getGuild().getOnWatchRole() != null) {
-                    Role watchRole = event.getGuild().getRoleById(databaseEventHolder.getGuild().getOnWatchRole());
+                if (databaseEventHolder.getGuildSettings().getOnWatchRole() != 0) {
+                    Role watchRole = event.getGuild().getRoleById(databaseEventHolder.getGuildSettings().getOnWatchRole());
                     if (event.getMember().getRoles().contains(watchRole)) {
                         event.getMessage().delete().queue();
                     }
@@ -291,21 +294,20 @@ public class MessageEventAdapter extends EventAdapter {
             return;
         }
 
-        if (!guilds.contains(event.getGuild().getId())) {
+        if (!databaseEventHolder.getGuildSettings().getGlobalFilter()) {
             return;
         }
 
-
-        GuildTransformer guild = databaseEventHolder.getGuild();
+        GuildSettingsTransformer guild = databaseEventHolder.getGuildSettings();
         if (guild != null) {
 
-            if (!event.getContentRaw().startsWith("debug:") && CheckPermissionUtil.getPermissionLevel(guild, genericMessageEvent.getGuild(), event.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.MOD.getLevel()) {
+            if (!event.getContentRaw().startsWith("debug:") && CheckPermissionUtil.getPermissionLevel(guild, genericMessageEvent.getGuild(), event.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
                 return;
             }
 
             if (checkFilter(event.getContentRaw())) {
-                if (databaseEventHolder.getGuild().getOnWatchRole() != null) {
-                    Role watchRole = event.getGuild().getRoleById(databaseEventHolder.getGuild().getOnWatchRole());
+                if (guild.getOnWatchRole() != 0) {
+                    Role watchRole = event.getGuild().getRoleById(guild.getOnWatchRole());
                     if (event.getMember().getRoles().contains(watchRole)) {
                         event.delete().queue();
                     }
@@ -378,10 +380,10 @@ public class MessageEventAdapter extends EventAdapter {
         return fetchRedirect(con.getHeaderField("Location"), redirects);
     }
 
-    private boolean checkAutomodFilters(GuildTransformer transformer, Message message) {
+    private boolean checkAutomodFilters(GuildSettingsTransformer transformer, Message message) {
 
-        if (transformer.getMassMentionSpam() > 0) {
-            if (message.getMentionedMembers().size() >= transformer.getMassMentionSpam()) {
+        if (transformer.getMassMention() > 0) {
+            if (message.getMentionedMembers().size() >= transformer.getMassMention()) {
                 warnUserColor(message, transformer, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Mass Mention``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
                 message.getChannel().sendMessage("Please do not mass mention multiple people. " + message.getMember().getAsMention()).queue();
                 return false;
@@ -475,16 +477,15 @@ public class MessageEventAdapter extends EventAdapter {
             return;
         }
 
-        GuildTransformer guild = databaseEventHolder.getGuild();
+        GuildSettingsTransformer guild = databaseEventHolder.getGuildSettings();
         if (guild != null) {
 
-            if (!guild.isFilter()) {
-                // system.out.println("Filter disabled");
+            if (!guild.getLocalFilter()) {
                 return;
             }
 
-            int permissionLevel = CheckPermissionUtil.getPermissionLevel(databaseEventHolder.getGuild(), event.getGuild(), messageId.getMember()).getLevel();
-            if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.MOD.getLevel()) {
+            int permissionLevel = CheckPermissionUtil.getPermissionLevel(databaseEventHolder.getGuildSettings(), event.getGuild(), messageId.getMember()).getLevel();
+            if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
                 return;
             }
 
@@ -512,7 +513,7 @@ public class MessageEventAdapter extends EventAdapter {
             Invite.resolve(message.getJDA(), i).queue(v -> {
                 if (!Constants.guilds.contains(v.getGuild().getId())) {
                     message.delete().queue();
-                    warnUserColor(message, databaseEventHolder.getGuild(), "**AUTOMOD**: Filter was activated!\n**Type**: " + "``INVITE``\n" +
+                    warnUserColor(message, databaseEventHolder.getGuildSettings(), "**AUTOMOD**: Filter was activated!\n**Type**: " + "``INVITE``\n" +
                         "**Guild**: " + v.getGuild().getName() + "\n" +
                         "**Invite**: [Click here!](" + v.getUrl() + ")\n" +
                         "**Inviter**:" + v.getInviter(), new Color(0, 0, 0), message.getTextChannel());
@@ -520,7 +521,7 @@ public class MessageEventAdapter extends EventAdapter {
                 }
             }, f -> {
                 message.delete().queue();
-                warnUserColor(message, databaseEventHolder.getGuild(), "**AUTOMOD**: Filter was activated!\n**Type**: " + "``INVITE``\n" +
+                warnUserColor(message, databaseEventHolder.getGuildSettings(), "**AUTOMOD**: Filter was activated!\n**Type**: " + "``INVITE``\n" +
                     "**Guild**: " + "INVALID (Xeus is banned from the guild)" + "\n" +
                     "**Violator**:" + message.getMember().getEffectiveName(), new Color(0, 0, 0), message.getTextChannel());
                 MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, message.getAuthor().getIdLong(), message);
@@ -532,7 +533,7 @@ public class MessageEventAdapter extends EventAdapter {
         return !author.isBot() || author.getIdLong() == DiscordConstants.SENITHER_BOT_ID;
     }
 
-    private void warnUser(Message m, GuildTransformer databaseEventHolder, String reason) {
+    private void warnUser(Message m, GuildSettingsTransformer databaseEventHolder, String reason) {
         /*if (databaseEventHolder.getFilterLog() == null) {
             return;
         }
@@ -548,7 +549,7 @@ public class MessageEventAdapter extends EventAdapter {
         Modlog.notifyUser(m.getAuthor(), m.getGuild(), modlogAction, "FILTER");
     }
 
-    private boolean warnUserColor(Message m, GuildTransformer databaseEventHolder, String reason, Color color, TextChannel c) {
+    private boolean warnUserColor(Message m, GuildSettingsTransformer databaseEventHolder, String reason, Color color, TextChannel c) {
         /*if (databaseEventHolder.getFilterLog() == null) {
             return;
         }*/
@@ -576,10 +577,10 @@ public class MessageEventAdapter extends EventAdapter {
             .addField("Reason", reason, false)
             .addField("Note on the side", "Filter violations do NOT count against your warning total. These are not logged. **However**, we still recieve notifications about filter violations.", false);
 
-        if (databaseEventHolder.getFilterLog() != null) {
-            TextChannel tc = m.getGuild().getTextChannelById(databaseEventHolder.getFilterLog());
+        if (databaseEventHolder.getLocalFilterLog() != 0) {
+            TextChannel tc = m.getGuild().getTextChannelById(databaseEventHolder.getLocalFilterLog());
             if (tc != null) {
-                tc.sendMessage(builder.build()).queue();
+                tc.sendMessageEmbeds(builder.build()).queue();
                 return true;
             }
             return true;
@@ -702,45 +703,45 @@ public class MessageEventAdapter extends EventAdapter {
     private CompletableFuture <DatabaseEventHolder> loadDatabasePropertiesIntoMemory(final MessageReceivedEvent event) {
         return CompletableFuture.supplyAsync(() -> {
             if (!event.getChannelType().isGuild()) {
-                return new DatabaseEventHolder(null, null, null);
+                return new DatabaseEventHolder(null, null, null, null);
             }
 
             GuildTransformer guild = GuildController.fetchGuild(avaire, event.getMessage());
 
             if (guild == null || !guild.isLevels() || event.getAuthor().isBot()) {
-                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()));
+                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
             }
-            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()));
+            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
         });
     }
 
     private CompletableFuture <DatabaseEventHolder> loadDatabasePropertiesIntoMemory(final SlashCommandEvent event) {
         return CompletableFuture.supplyAsync(() -> {
             if (!event.getChannelType().isGuild()) {
-                return new DatabaseEventHolder(null, null, null);
+                return new DatabaseEventHolder(null, null, null, null);
             }
 
             GuildTransformer guild = GuildController.fetchGuild(avaire, event.getGuild());
 
             if (guild == null || !guild.isLevels() || event.getUser().isBot()) {
-                return new DatabaseEventHolder(guild, null, VerificationController.fetchVerificationFromGuild(avaire, event.getGuild()));
+                return new DatabaseEventHolder(guild, null, VerificationController.fetchVerificationFromGuild(avaire, event.getGuild()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
             }
-            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, null), VerificationController.fetchVerificationFromGuild(avaire, event.getGuild()));
+            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, null), VerificationController.fetchVerificationFromGuild(avaire, event.getGuild()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
         });
     }
 
     private CompletableFuture <DatabaseEventHolder> loadDatabasePropertiesIntoMemory(final MessageUpdateEvent event) {
         return CompletableFuture.supplyAsync(() -> {
             if (!event.getChannelType().isGuild()) {
-                return new DatabaseEventHolder(null, null, null);
+                return new DatabaseEventHolder(null, null, null, null);
             }
 
             GuildTransformer guild = GuildController.fetchGuild(avaire, event.getMessage());
 
             if (guild == null || !guild.isLevels() || event.getAuthor().isBot()) {
-                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()));
+                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
             }
-            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()));
+            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
         });
     }
 
@@ -821,13 +822,13 @@ public class MessageEventAdapter extends EventAdapter {
 
     public void onNoLinksFilterMessageReceived(MessageReceivedEvent event) {
         loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder -> {
-            if (databaseEventHolder.getGuild().getNoLinksRoles().size() < 1) {
+            if (databaseEventHolder.getGuildSettings().getNoLinksRoles().size() < 1) {
                 return;
             }
 
             ArrayList <Role> list = new ArrayList <>();
 
-            for (Long r : databaseEventHolder.getGuild().getNoLinksRoles()) {
+            for (Long r : databaseEventHolder.getGuildSettings().getNoLinksRoles()) {
                 if (event.getGuild().getRoleById(r) != null) {
                     list.add(event.getGuild().getRoleById(r));
                 }

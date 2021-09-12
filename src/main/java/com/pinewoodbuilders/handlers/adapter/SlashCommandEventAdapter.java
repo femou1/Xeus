@@ -6,18 +6,32 @@ import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.controllers.GuildController;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+
+import org.jetbrains.annotations.NotNull;
+
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 import java.awt.*;
 import java.sql.SQLException;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class SlashCommandEventAdapter {
     private final Xeus avaire;
+
+    private final static String LINESTART = " ▶ " + " ";
+    private final static String ROLE_EMOJI = "\uD83C\uDFAD"; // 🎭
+
 
     public SlashCommandEventAdapter(Xeus avaire) {
         this.avaire = avaire;
@@ -32,12 +46,64 @@ public class SlashCommandEventAdapter {
                 return runMemberUpdate(event);
             case "whois":
                 return returnWhoisCommand(event);
+            case "roleinfo":
+                return roleInfoCommand(event);
             default:
                 event.deferReply().queue(l -> {
                     l.setEphemeral(true).sendMessage("Slash command does not exist").queue();
                 });
                 return false;
         }
+    }
+
+    public static String escapeMentions(@NotNull String string) {
+        return string.replace("@everyone", "@\u0435veryone")
+            .replace("@here", "@h\u0435re")
+            .replace("discord.gg/", "dis\u0441ord.gg/");
+    }
+    private boolean roleInfoCommand(SlashCommandEvent event) {
+        event.deferReply().setEphemeral(true).queue(
+            l -> {
+                Role role = event.getOption("role").getAsRole();
+                final String title = (ROLE_EMOJI + " Role: " + escapeMentions(role.getName()));
+                Color color = role.getColor();
+
+                StringBuilder description = new StringBuilder(""
+                + LINESTART + "ID: **" + role.getId() + "**\n"
+                + LINESTART + "Creation: **" + role.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME) + "**\n"
+                + LINESTART + "Position: **" + role.getPosition() + "**\n"
+                + LINESTART + "Color: **#" + (color == null ? "000000" : Integer.toHexString(color.getRGB()).toUpperCase().substring(2)) + "**\n"
+                + LINESTART + "Mentionable: **" + (role.isMentionable() ? "✅" : "❌") + "**\n"
+                + LINESTART + "Hoisted: **" + (role.isHoisted()? "✅" : "❌") + "**\n"
+                + LINESTART + "Managed: **" + (role.isManaged() ? "✅" : "❌") + "**\n"
+                + LINESTART + "Public Role: **" + (role.isPublicRole() ) + "**\n"
+                + LINESTART + "Members: **" + getMembersWithRole(role, event.getGuild()) + "**\n"
+                + LINESTART + "Permissions: \n");
+            
+                if (role.getPermissions().isEmpty()) {
+                    description.append("No permissions set");
+                } else {
+                    description.append(role.getPermissions().stream().map(p -> "`, `" + p.getName()).reduce("", String::concat)
+                        .substring(3)).append("`");
+                }
+
+                l.sendMessageEmbeds(new EmbedBuilder().setDescription(description).setColor(color).setTitle(title).build()).queue();
+            }
+        );
+        return false;
+    }
+    private String getMembersWithRole(Role role, Guild guild) {
+        int membersWithRole = 0;
+        for (Member m : guild.getMembers()) {
+            if (m.getRoles().contains(role)) {
+                membersWithRole++;
+            }
+        }
+
+        if (membersWithRole > 0) {
+            return String.valueOf(membersWithRole);
+        }
+        return "No members found";
     }
 
     private boolean returnWhoisCommand(SlashCommandEvent event) {
@@ -55,7 +121,7 @@ public class SlashCommandEventAdapter {
             }
 
             try {
-                Collection qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).orderBy("roblox_group_id").get();
+                Collection qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("roblox_group_id").get();
                 StringBuilder sb = new StringBuilder();
 
                 for (DataRow data : qb) {
@@ -105,12 +171,12 @@ public class SlashCommandEventAdapter {
                 return;
             }
 
-            GuildTransformer guildTransformer = GuildController.fetchGuild(avaire, event.getGuild());
+            GuildSettingsTransformer guildTransformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild());
             if (guildTransformer == null) {
                 l.sendMessage("GuildTransformer is empty.").queue();
                 return;
             }
-            if (CheckPermissionUtil.getPermissionLevel(guildTransformer, event.getGuild(), event.getOption("member").getAsMember()).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.MOD.getLevel())
+            if (CheckPermissionUtil.getPermissionLevel(guildTransformer, event.getGuild(), event.getOption("member").getAsMember()).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel())
                 avaire.getRobloxAPIManager().getVerification().getVerificationMethodsManager().slashCommandVerify(event.getOption("member").getAsMember(), event.getGuild(), l);
         });
         return false;

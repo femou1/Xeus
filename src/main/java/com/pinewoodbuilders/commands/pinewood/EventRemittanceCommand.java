@@ -10,6 +10,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.query.QueryBuilder;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.Request;
@@ -91,20 +92,20 @@ public class EventRemittanceCommand extends Command {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
+            "isPinewoodGuild",
             "throttle:guild,1,30"
         );
     }
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             context.makeError("Something went wrong loading the guild settings. Please try again later.").queue();
             return false;
         }
         if (args.length > 0) {
-            if (CheckPermissionUtil.getPermissionLevel(context).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getLevel()) {
+            if (CheckPermissionUtil.getPermissionLevel(context).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
                 switch (args[0]) {
                     case "sc":
                     case "set-channel": {
@@ -131,13 +132,13 @@ public class EventRemittanceCommand extends Command {
         }
 
         context.makeInfo("<a:loading:742658561414266890> Loading servers that are using event remittance...").queue(l -> {
-            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).orderBy("patrol_remittance_channel");
+            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("patrol_remittance_channel");
             try {
                 StringBuilder sb = new StringBuilder();
                 qb.get().forEach(dataRow -> {
                     if (dataRow.getString("patrol_remittance_channel") != null) {
                         Guild g = avaire.getShardManager().getGuildById(dataRow.getString("id"));
-                        Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("patrol_remittance_emote_id"));
+                        Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("emoji_id"));
 
                         if (g != null && e != null) {
                             sb.append("``").append(g.getName()).append("`` - ").append(e.getAsMention()).append("\n");
@@ -160,7 +161,7 @@ public class EventRemittanceCommand extends Command {
                                         message.clearReactions().queue();
                                         return;
                                     }
-                                    DataRow d = qb.where("patrol_remittance_emote_id", react.getReactionEmote().getId()).get().get(0);
+                                    DataRow d = qb.where("emoji_id", react.getReactionEmote().getId()).get().get(0);
 
                                     TextChannel c = avaire.getShardManager().getTextChannelById(d.getString("patrol_remittance_channel"));
                                     if (c != null) {
@@ -410,11 +411,10 @@ public class EventRemittanceCommand extends Command {
     }
 
     private boolean runClearAllChannelsFromDatabase(CommandMessage context) {
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("patrol_remittance_channel", null);
-                q.set("patrol_remittance_emote_id", null);
             });
 
             context.makeSuccess("Any information about the remittance channels has been removed from the database.").queue();
@@ -464,7 +464,7 @@ public class EventRemittanceCommand extends Command {
             return sendErrorMessage(context, "Something went wrong (To many emotes).");
         }
 
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             context.makeError("I can't pull the guilds information, please try again later.").queue();
             return false;
@@ -473,15 +473,13 @@ public class EventRemittanceCommand extends Command {
     }
 
 
-    private boolean updateChannelAndEmote(GuildTransformer transformer, CommandMessage context, TextChannel channel, Emote emote) {
-        transformer.setPatrolRemittanceChannel(channel.getId());
-        transformer.setPatrolRemittanceEmoteId(emote.getId());
-
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+    private boolean updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel, Emote emote) {
+        transformer.setPatrolRemittance(channel.getId());
+    
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("patrol_remittance_channel", transformer.getPatrolRemittanceChannel());
-                q.set("patrol_remittance_emote_id", transformer.getPatrolRemittanceEmoteId());
             });
 
             context.makeSuccess("Remittance have been enabled for :channel with the emote :emote").set("channel", channel.getAsMention()).set("emote", emote.getAsMention()).queue();

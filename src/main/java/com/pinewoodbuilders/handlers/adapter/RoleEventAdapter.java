@@ -67,7 +67,7 @@ public class RoleEventAdapter extends EventAdapter {
         }
     }
 
-    // TODO:
+    
     public void onRoleDelete(RoleDeleteEvent event) {
         GuildTransformer transformer = GuildController.fetchGuild(avaire, event.getGuild());
         if (transformer == null) {

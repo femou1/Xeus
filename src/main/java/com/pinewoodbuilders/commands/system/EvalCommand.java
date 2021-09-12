@@ -26,6 +26,7 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.SystemCommand;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.ChannelType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +64,8 @@ public class EvalCommand extends SystemCommand {
                 "Packages.net.dv8tion.jda.api.managers," +
                 "Packages.net.dv8tion.jda.api.managers.impl," +
                 "Packages.net.dv8tion.jda.api.utils," +
+                "Packages.net.dv8tion.jda.api.interactions," +
+                "Packages.net.dv8tion.jda.api.interactions.components," +
                 "Packages.com.pinewoodbuilders.database.controllers," +
                 "Packages.com.pinewoodbuilders.permissions," +
                 "Packages.com.pinewoodbuilders.utilities," +

@@ -69,11 +69,11 @@ public class WhoAmICommand extends Command {
         }
 
         try {
-            Collection qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).orderBy("roblox_group_id").get();
+            Collection qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("roblox_group_id").get();
             StringBuilder sb = new StringBuilder();
 
             for (DataRow data : qb) {
-                if (data.getString("roblox_group_id") != null) {
+                if (data.getString("roblox_group_id") != null || sb.toString().contains(String.valueOf(data.getInt("minimum_hr_rank")))) {
                     List<RobloxUserGroupRankService.Data> ranks = avaire.getRobloxAPIManager().getUserAPI().getUserRanks(verifiedRobloxUser.getRobloxId());
                     for (RobloxUserGroupRankService.Data rank : ranks) {
                         if (rank.getGroup().getId() == data.getLong("roblox_group_id")) {

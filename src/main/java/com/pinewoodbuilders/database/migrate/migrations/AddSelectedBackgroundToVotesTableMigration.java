@@ -36,13 +36,13 @@ public class AddSelectedBackgroundToVotesTableMigration implements Migration {
 
     @Override
     public boolean up(Schema schema) throws SQLException {
-        if (schema.hasColumn(Constants.VOTES_TABLE_NAME, "selected_bg")) {
+        if (schema.hasColumn(Constants.BOT_VOTES_TABLE_NAME, "selected_bg")) {
             return true;
         }
 
         schema.getDbm().queryUpdate(String.format(
             "ALTER TABLE `%s` ADD `selected_bg` INT NULL DEFAULT NULL;",
-            Constants.VOTES_TABLE_NAME
+            Constants.BOT_VOTES_TABLE_NAME
         ));
 
         return true;
@@ -50,13 +50,13 @@ public class AddSelectedBackgroundToVotesTableMigration implements Migration {
 
     @Override
     public boolean down(Schema schema) throws SQLException {
-        if (!schema.hasColumn(Constants.VOTES_TABLE_NAME, "selected_bg")) {
+        if (!schema.hasColumn(Constants.BOT_VOTES_TABLE_NAME, "selected_bg")) {
             return true;
         }
 
         schema.getDbm().queryUpdate(String.format(
             "ALTER TABLE `%s` DROP `selected_bg`;",
-            Constants.GUILD_TABLE_NAME
+            Constants.BOT_VOTES_TABLE_NAME
         ));
 
         return true;

@@ -31,6 +31,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.query.QueryBuilder;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.avairebot.shared.DiscordConstants;
@@ -102,8 +103,8 @@ public class WatchlogReasonCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
-            "isModOrHigher",
+            "isPinewoodGuild",
+            "isGuildHROrHigher",
             "throttle:user,1,5"
         );
     }
@@ -116,12 +117,13 @@ public class WatchlogReasonCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        GuildTransformer transformer = context.getGuildTransformer();
-        if (transformer == null) {
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
+        GuildTransformer guildTransformer = context.getGuildTransformer();
+        if (transformer == null || guildTransformer == null) {
             return sendErrorMessage(context, "errors.errorOccurredWhileLoading", "server settings");
         }
 
-        if (transformer.getOnWatchLog() == null) {
+        if (transformer.getOnWatchChannel() == 0) {
             return sendErrorMessage(context, context.i18n("modlogNotEnabled"));
         }
 
@@ -134,8 +136,8 @@ public class WatchlogReasonCommand extends Command {
         }
 
         int caseId = NumberUtil.parseInt(args[0], -1);
-        if (caseId < 1 || caseId > transformer.getOnWatchCase()) {
-            return sendErrorMessage(context, context.i18n("invalidCaseId", transformer.getOnWatchCase()));
+        if (caseId < 1 || caseId > guildTransformer.getOnWatchCase()) {
+            return sendErrorMessage(context, context.i18n("invalidCaseId", guildTransformer.getOnWatchCase()));
         }
 
         final String reason = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
@@ -160,7 +162,7 @@ public class WatchlogReasonCommand extends Command {
                 return sendErrorMessage(context, context.i18n("modlogCaseWasPardoned", caseId));
             }
 
-            TextChannel channel = context.getGuild().getTextChannelById(transformer.getOnWatchLog());
+            TextChannel channel = context.getGuild().getTextChannelById(transformer.getOnWatchChannel());
             if (channel == null) {
                 return sendErrorMessage(context, context.i18n("couldntFindModlogChannel"));
             }

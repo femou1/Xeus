@@ -487,6 +487,19 @@ public abstract class Command extends Reflectionable {
             .addField("Usage", generateUsageInstructions(context.getMessage()), false)
             .addField("Example Usage", generateExampleUsage(context.getMessage()), false);
 
+        if (context.getDatabaseEventHolder().getGuildSettings() != null) {
+            Long mainGroupId = context.getDatabaseEventHolder().getGuildSettings().getMainGroupId();
+            Long groupId = context.getDatabaseEventHolder().getGuildSettings().getRobloxGroupId();
+            if (mainGroupId != 0) {
+                placeholderMessage.set("groupId", mainGroupId);
+            }
+
+            if (groupId != 0) {
+                placeholderMessage.set("localGroupId", groupId);
+            }
+
+        }
+
         Category category = CategoryHandler.fromCommand(this);
         if (category != null) {
             placeholderMessage.setFooter("Command category: " + category.getName());

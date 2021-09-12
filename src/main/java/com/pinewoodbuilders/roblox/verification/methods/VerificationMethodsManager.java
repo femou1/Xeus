@@ -71,7 +71,7 @@ public class VerificationMethodsManager {
         try {
             Collection accounts = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("roblox_user_id", verificationEntity.getRobloxId()).orWhere("roblox_username", verificationEntity.getRobloxUsername()).get();
             if (accounts.size() > 0) {
-                hook.sendMessage("`"+ member.getEffectiveName() +"` is banned though the PIA Ban-list.").queue();
+                hook.sendMessage("`"+ member.getEffectiveName() +"` is banned though the MGM Ban-list.").queue();
             }
         } catch (SQLException throwables){
         }

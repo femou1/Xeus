@@ -31,7 +31,9 @@ import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.controllers.GuildController;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.query.QueryBuilder;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.factories.RequestFactory;
@@ -83,10 +85,10 @@ public class ButtonClickEventAdapter extends EventAdapter {
 
     public void onReportsButtonClickEvent(ButtonClickEvent e) {
         loadDatabasePropertiesIntoMemory(e).thenAccept(databaseEventHolder -> {
-            if (databaseEventHolder.getGuild().getHandbookReportChannel() != null) {
-                TextChannel tc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuild().getHandbookReportChannel());
+            if (databaseEventHolder.getGuildSettings().getHandbookReportChannel() != 0) {
+                TextChannel tc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuildSettings().getHandbookReportChannel());
                 if (tc != null) {
-                    int permissionLevel = CheckPermissionUtil.getPermissionLevel(databaseEventHolder.getGuild(), e.getGuild(), e.getMember()).getLevel();
+                    int permissionLevel = CheckPermissionUtil.getPermissionLevel(databaseEventHolder.getGuildSettings(), e.getGuild(), e.getMember()).getLevel();
                     if (e.getChannel().equals(tc)) {
                         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.REPORTS_DATABASE_TABLE_NAME).where("pb_server_id", e.getGuild().getId()).andWhere("report_message_id", e.getMessageId());
                         try {
@@ -108,7 +110,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                 switch (e.getButton().getEmoji().getName()) {
                                     case "✅":
                                         if (permissionLevel >=
-                                            CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getLevel()) {
+                                            CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
                                             if (e.getGuild().getId().equals("438134543837560832")) {
                                                 RequestFactory.makeGET("https://www.pb-kronos.dev/api/v2/database/pbst")
                                                     .addParameter("userids", reportedRobloxId)
@@ -224,7 +226,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                         break;
                                     case "❌":
                                         if (permissionLevel >=
-                                            CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getLevel()) {
+                                            CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
 
                                             tc.retrieveMessageById(c.getLong("report_message_id")).queue(v -> {
                                                 if (v.getEmbeds().get(0).getColor().equals(new Color(255, 0, 0)))
@@ -267,7 +269,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                         break;
                                     case "🚫":
                                         if (permissionLevel >=
-                                            CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getLevel()) {
+                                            CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
 
 
                                             tc.retrieveMessageById(c.getLong("report_message_id")).queue(v -> {
@@ -297,12 +299,12 @@ public class ButtonClickEventAdapter extends EventAdapter {
 
     public void onPatrolRemittanceButtonClickEvent(ButtonClickEvent e) {
         loadDatabasePropertiesIntoMemory(e).thenAccept(databaseEventHolder -> {
-            if (databaseEventHolder.getGuild().getPatrolRemittanceChannel() != null) {
+            if (databaseEventHolder.getGuildSettings().getPatrolRemittanceChannel() != 0) {
 
-                TextChannel tc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuild().getPatrolRemittanceChannel());
+                TextChannel tc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuildSettings().getPatrolRemittanceChannel());
                 if (tc != null) {
 
-                    int permissionLevel = CheckPermissionUtil.getPermissionLevel(databaseEventHolder.getGuild(), e.getGuild(), e.getMember()).getLevel();
+                    int permissionLevel = CheckPermissionUtil.getPermissionLevel(databaseEventHolder.getGuildSettings(), e.getGuild(), e.getMember()).getLevel();
                     if (e.getChannel().equals(tc)) {
 
                         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.REMITTANCE_DATABASE_TABLE_NAME)
@@ -323,7 +325,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                 switch (e.getButton().getEmoji().getName()) {
                                     case "✅":
                                         if (permissionLevel >=
-                                            CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getLevel()) {
+                                            CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
 
                                             if (e.getGuild().getId().equals("438134543837560832")) {
                                                 tc.retrieveMessageById(c.getLong("request_message_id")).queue(v -> {
@@ -419,7 +421,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                         break;
                                     case "❌":
                                         if (permissionLevel >=
-                                            CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getLevel()) {
+                                            CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
                                             //e.getReaction().removeReaction(e.getUser()).queue();
 
 
@@ -461,7 +463,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                         break;
                                     case "🚫":
                                         if (permissionLevel >=
-                                            CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getLevel()) {
+                                            CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
 
 
                                             tc.retrieveMessageById(c.getLong("request_message_id")).queue(v -> {
@@ -496,15 +498,15 @@ public class ButtonClickEventAdapter extends EventAdapter {
             return;
         }
         loadDatabasePropertiesIntoMemory(e).thenAccept(databaseEventHolder -> {
-            if (databaseEventHolder.getGuild().getSuggestionChannel() != null || databaseEventHolder.getGuild().getSuggestionCommunityChannel() != null) {
+            if (databaseEventHolder.getGuildSettings().getSuggestionChannelId() != 0 || databaseEventHolder.getGuildSettings().getSuggestionCommunityChannelId() != 0) {
                 try {
                     QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.PB_SUGGESTIONS_TABLE_NAME).where("pb_server_id", e.getGuild().getId()).andWhere("suggestion_message_id", e.getMessageId());
 
-                    TextChannel tc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuild().getSuggestionChannel());
+                    TextChannel tc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuildSettings().getSuggestionChannelId());
                     TextChannel ctc = null;
-                    if (databaseEventHolder.getGuild().getSuggestionCommunityChannel() != null) {
-                        if (avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuild().getSuggestionCommunityChannel()) != null) {
-                            ctc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuild().getSuggestionCommunityChannel());
+                    if (databaseEventHolder.getGuildSettings().getSuggestionCommunityChannelId() != 0) {
+                        if (avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuildSettings().getSuggestionCommunityChannelId()) != null) {
+                            ctc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuildSettings().getSuggestionCommunityChannelId());
                         }
                     }
 
@@ -551,8 +553,8 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     return;
                                                 }
 
-                                                if (databaseEventHolder.getGuild().getSuggestionApprovedChannelId() != null) {
-                                                    TextChannel atc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuild().getSuggestionApprovedChannelId());
+                                                if (databaseEventHolder.getGuildSettings().getSuggestionApprovedChannelId() != 0) {
+                                                    TextChannel atc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuildSettings().getSuggestionApprovedChannelId());
                                                     if (atc != null) {
                                                         atc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
                                                             .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Approved by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
@@ -616,7 +618,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                             msg.getTextChannel().sendMessage(e.getMember().getAsMention() + "\nWhat is your comment?").queue(
                                                 v -> avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, c -> c.getChannel().equals(e.getChannel()) && c.getMember().equals(e.getMember()), c -> {
                                                     v.delete().queue();
-                                                    msg.editMessage(new EmbedBuilder()
+                                                    msg.editMessageEmbeds(new EmbedBuilder()
                                                         .setColor(msg.getEmbeds().get(0).getColor())
                                                         .setAuthor("Suggestion for: " + e.getGuild().getName(), null, e.getGuild().getIconUrl())
                                                         .setDescription(msg.getEmbeds().get(0).getDescription() + "\n\n" + getRole(c) + " - :speech_balloon: **``" + e.getMember().getEffectiveName() + "``:**\n" + c.getMessage().getContentRaw())
@@ -697,10 +699,10 @@ public class ButtonClickEventAdapter extends EventAdapter {
 
     public void onQuizButtonClickEvent(ButtonClickEvent event) {
         loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder -> {
-            if (databaseEventHolder.getGuild().getEvalAnswerChannel() == 0) {
+            if (databaseEventHolder.getGuildSettings().getEvaluationEvalChannel() == 0) {
                 return;
             }
-            if (event.getChannel().getIdLong() != databaseEventHolder.getGuild().getEvalAnswerChannel()) {
+            if (event.getChannel().getIdLong() != databaseEventHolder.getGuildSettings().getEvaluationEvalChannel()) {
                 return;
             }
 
@@ -819,15 +821,15 @@ public class ButtonClickEventAdapter extends EventAdapter {
     private CompletableFuture <DatabaseEventHolder> loadDatabasePropertiesIntoMemory(final ButtonClickEvent event) {
         return CompletableFuture.supplyAsync(() -> {
             if (!event.getChannel().getType().isGuild()) {
-                return new DatabaseEventHolder(null, null, null);
+                return new DatabaseEventHolder(null, null, null, null);
             }
 
             GuildTransformer guild = GuildController.fetchGuild(avaire, event.getGuild());
-
+           
             if (guild == null || !guild.isLevels() || event.getMember().getUser().isBot()) {
-                return new DatabaseEventHolder(guild, null, null);
+                return new DatabaseEventHolder(guild, null, null, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
             }
-            return new DatabaseEventHolder(guild, null, null);
+            return new DatabaseEventHolder(guild, null, null, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
         });
     }
 
@@ -864,15 +866,15 @@ public class ButtonClickEventAdapter extends EventAdapter {
     }
 
     private boolean isValidReportManager(ButtonClickEvent e, Integer i) {
-        GuildTransformer transformer = GuildController.fetchGuild(avaire, e.getGuild());
+        GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, e.getGuild());
         if (i == 1) {
-            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.MOD.getLevel();
+            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel();
         }
         if (i == 2) {
-            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getLevel();
+            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
         }
         if (i == 3) {
-            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.ADMIN.getLevel();
+            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
         }
         return false;
     }

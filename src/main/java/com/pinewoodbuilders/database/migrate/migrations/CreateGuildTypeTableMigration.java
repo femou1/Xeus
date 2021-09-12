@@ -29,8 +29,6 @@ import java.sql.SQLException;
 
 public class CreateGuildTypeTableMigration implements Migration {
 
-    private int id = 1;
-
     @Override
     public String created_at() {
         return "Wed, Sep 20, 2017 5:23 PM";

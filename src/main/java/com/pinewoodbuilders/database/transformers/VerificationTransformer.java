@@ -31,7 +31,6 @@ public class VerificationTransformer extends Transformer {
     private String id;
     private String name;
     private String nameRaw;
-    private String nicknameGroup;
     private String nicknameFormat;
     private String welcomeMessage;
 
@@ -41,6 +40,7 @@ public class VerificationTransformer extends Transformer {
     private long verifiedRole = 0;
     private long announceChannel = 0;
     private long verifyChannel = 0;
+    private long bypassRole = 0;
 
     private String grs;
 
@@ -60,7 +60,6 @@ public class VerificationTransformer extends Transformer {
             name = data.getString("name");
             nameRaw = data.get("name").toString();
 
-            nicknameGroup = data.getString("nickname_group");
             nicknameFormat = data.getString("nickname_format", ":username");
             welcomeMessage = data.getString("welcome_message", "Welcome to :server, :username!");
 
@@ -71,6 +70,8 @@ public class VerificationTransformer extends Transformer {
             verifiedRole = data.getLong("verified_role");
             announceChannel = data.getLong("announce_channel");
             verifyChannel = data.getLong("verify_channel");
+
+            bypassRole = data.getLong("bypass_role");
 
             if (data.getString("ranks", null) != null) {
                 grs = data.getString("ranks");
@@ -90,14 +91,6 @@ public class VerificationTransformer extends Transformer {
 
     public String getNameRaw() {
         return nameRaw;
-    }
-
-    public String getNicknameGroup() {
-        return nicknameGroup;
-    }
-
-    public void setNicknameGroup(String nicknameGroup) {
-        this.nicknameGroup = nicknameGroup;
     }
 
     public String getNicknameFormat() {
@@ -146,6 +139,14 @@ public class VerificationTransformer extends Transformer {
 
     public void setVerifyChannel(long verifyChannel) {
         this.verifyChannel = verifyChannel;
+    }
+
+    public long getBypassRoleId() {
+        return bypassRole;
+    }
+
+    public void setBypassRoleId(long bypassRole) {
+        this.bypassRole = bypassRole;
     }
 
     public long getAnnounceChannel() {

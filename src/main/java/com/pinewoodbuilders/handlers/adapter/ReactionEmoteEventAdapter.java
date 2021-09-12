@@ -28,8 +28,10 @@ import com.pinewoodbuilders.contracts.handlers.EventAdapter;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.controllers.GuildController;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.controllers.ReactionController;
 import com.pinewoodbuilders.database.query.QueryBuilder;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.database.transformers.ReactionTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
@@ -208,8 +210,8 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
     public void onGuildSuggestionValidation(GuildMessageReactionAddEvent e) {
         loadDatabasePropertiesIntoMemory(e).thenAccept(databaseEventHolder -> {
-            if (databaseEventHolder.getGuild().getVoteValidationChannel() != null) {
-                if (e.getChannel().getId().equals(databaseEventHolder.getGuild().getVoteValidationChannel())) {
+            if (databaseEventHolder.getGuildSettings().getVoteValidationChannelId() != 0) {
+                if (e.getChannel().getId().equals(databaseEventHolder.getGuildSettings().getVoteValidationChannelId())) {
                     e.getChannel().retrieveMessageById(e.getMessageId()).queue(
                         message -> {
                             if (message.getEmbeds().size() > 0) {
@@ -221,7 +223,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                             .setFooter(message.getEmbeds().get(0).getFooter().getText() + " | Accepted by: " + e.getMember().getEffectiveName())
                                             .setTimestamp(Instant.now()).buildEmbed()).queue();
 
-                                        Collection c = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTE_TABLE_NAME)
+                                        Collection c = avaire.getDatabase().newQueryBuilder(Constants.VOTE_TABLE_NAME)
                                             .where("vote_message_id", e.getMessageId()).get();
                                         if (c.size() > 0) {
                                             User u = avaire.getShardManager().getUserById(c.get(0).getLong("voter_user_id"));
@@ -230,7 +232,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                     .set("Us", c.get(0).getString("voted_for")).buildEmbed()).queue());
                                             }
 
-                                            avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTE_TABLE_NAME).useAsync(true).where("vote_message_id", message.getId())
+                                            avaire.getDatabase().newQueryBuilder(Constants.VOTE_TABLE_NAME).useAsync(true).where("vote_message_id", message.getId())
                                                 .update(statement -> {
                                                     statement.set("accepted", true);
                                                 });
@@ -242,7 +244,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                             .setFooter(message.getEmbeds().get(0).getFooter().getText() + " | Denied by: " + e.getMember().getEffectiveName())
                                             .setTimestamp(Instant.now()).buildEmbed()).queue();
 
-                                        Collection c = avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTE_TABLE_NAME)
+                                        Collection c = avaire.getDatabase().newQueryBuilder(Constants.VOTE_TABLE_NAME)
                                             .where("vote_message_id", e.getMessageId()).get();
                                         if (c.size() > 0) {
                                             User u = avaire.getShardManager().getUserById(c.get(0).getLong("voter_user_id"));
@@ -250,7 +252,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                 u.openPrivateChannel().queue(v -> v.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel()).setDescription("Sorry, but your vote for ``:Us`` has been rejected. Please vote again (Might have to be with a better reason) if you want to vote for this person.")
                                                     .set("Us", c.get(0).getString("voted_for")).buildEmbed()).queue());
                                             }
-                                            avaire.getDatabase().newQueryBuilder(Constants.MOTS_VOTE_TABLE_NAME).useAsync(true)
+                                            avaire.getDatabase().newQueryBuilder(Constants.VOTE_TABLE_NAME).useAsync(true)
                                                 .where("vote_message_id", e.getMessageId())
                                                 .delete();
                                         }
@@ -283,8 +285,8 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
     public void onReportsReactionAdd(GuildMessageReactionAddEvent e) {
         loadDatabasePropertiesIntoMemory(e).thenAccept(databaseEventHolder -> {
-            if (databaseEventHolder.getGuild().getHandbookReportChannel() != null) {
-                TextChannel tc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuild().getHandbookReportChannel());
+            if (databaseEventHolder.getGuildSettings().getHandbookReportChannel() != 0) {
+                TextChannel tc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuildSettings().getHandbookReportChannel());
                 if (tc != null) {
                     if (e.getChannel().equals(tc)) {
                         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.REPORTS_DATABASE_TABLE_NAME).where("pb_server_id", e.getGuild().getId()).andWhere("report_message_id", e.getMessageId());
@@ -341,15 +343,15 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
             return;
         }
         loadDatabasePropertiesIntoMemory(e).thenAccept(databaseEventHolder -> {
-            if (databaseEventHolder.getGuild().getSuggestionChannel() != null || databaseEventHolder.getGuild().getSuggestionCommunityChannel() != null) {
+            if (databaseEventHolder.getGuildSettings().getSuggestionChannelId() != 0 || databaseEventHolder.getGuildSettings().getSuggestionCommunityChannelId() != 0) {
                 try {
                     QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.PB_SUGGESTIONS_TABLE_NAME).where("pb_server_id", e.getGuild().getId()).andWhere("suggestion_message_id", e.getMessageId());
 
-                    TextChannel tc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuild().getSuggestionChannel());
+                    TextChannel tc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuildSettings().getSuggestionChannelId());
                     TextChannel ctc = null;
-                    if (databaseEventHolder.getGuild().getSuggestionCommunityChannel() != null) {
-                        if (avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuild().getSuggestionCommunityChannel()) != null) {
-                            ctc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuild().getSuggestionCommunityChannel());
+                    if (databaseEventHolder.getGuildSettings().getSuggestionCommunityChannelId() != 0) {
+                        if (avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuildSettings().getSuggestionCommunityChannelId()) != null) {
+                            ctc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuildSettings().getSuggestionCommunityChannelId());
                         }
                     }
 
@@ -487,8 +489,8 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                 return;
                                             }
 
-                                            if (databaseEventHolder.getGuild().getSuggestionApprovedChannelId() != null) {
-                                                TextChannel atc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuild().getSuggestionApprovedChannelId());
+                                            if (databaseEventHolder.getGuildSettings().getSuggestionApprovedChannelId() != 0) {
+                                                TextChannel atc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuildSettings().getSuggestionApprovedChannelId());
                                                 if (atc != null) {
                                                     atc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
                                                         .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Approved by: " + e.getMember().getEffectiveName(), null, e.getGuild().getIconUrl())
@@ -784,17 +786,18 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
             }
         });
     }
-
+    
     private boolean isValidReportManager(GuildMessageReactionAddEvent e, Integer i) {
-        GuildTransformer transformer = GuildController.fetchGuild(avaire, e.getGuild());
+        
+        GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire,e.getGuild());
         if (i == 1) {
-            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.MOD.getLevel();
+            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel();
         }
         if (i == 2) {
-            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.MANAGER.getLevel();
+            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
         }
         if (i == 3) {
-            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.ADMIN.getLevel();
+            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
         }
         return false;
     }
@@ -804,15 +807,15 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
         final GuildMessageReactionAddEvent event) {
         return CompletableFuture.supplyAsync(() -> {
             if (!event.getChannel().getType().isGuild()) {
-                return new DatabaseEventHolder(null, null, null);
+                return new DatabaseEventHolder(null, null, null, null);
             }
 
             GuildTransformer guild = GuildController.fetchGuild(avaire, event.getGuild());
 
             if (guild == null || !guild.isLevels() || event.getMember().getUser().isBot()) {
-                return new DatabaseEventHolder(guild, null, null);
+                return new DatabaseEventHolder(guild, null, null, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
             }
-            return new DatabaseEventHolder(guild, null, null);
+            return new DatabaseEventHolder(guild, null, null, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
         });
     }
 

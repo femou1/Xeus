@@ -31,7 +31,7 @@ public enum FeatureScope {
     /**
      * The user scope, used for blacklisting users.
      */
-    PIA_GLOBAL(0, "G", "Global Feature Blacklist (Global - PIA Only)"),
+    PIA_GLOBAL(0, "G", "Global Feature Blacklist (Global - MGM Only)"),
     GLOBAL(1, "A", "All Features Blacklist (Local)"),
     REPORTS(2, "R", "Reports"),
     REWARD_REQUESTS(3, "RR", "Reward Requests"),

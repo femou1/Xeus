@@ -118,8 +118,8 @@ public class IsCategoryEnabled extends Middleware {
     }
 
     private boolean isModOrHigher(MiddlewareStack stack, Message message) {
-        int permissionLevel = CheckPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuild(), message.getGuild(), message.getMember()).getLevel();
-        return permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.MOD.getLevel();
+        int permissionLevel = CheckPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuildSettings(), message.getGuild(), message.getMember()).getLevel();
+        return permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel();
     }
 
     private boolean isCategoryCommands(MiddlewareStack stack) {

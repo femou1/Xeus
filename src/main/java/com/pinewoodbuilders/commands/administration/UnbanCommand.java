@@ -87,7 +87,7 @@ public class UnbanCommand extends Command {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isModOrHigher",
+            "isGuildHROrHigher",
             "require:bot,general.ban_members",
             "throttle:user,1,4"
         );
@@ -112,7 +112,7 @@ public class UnbanCommand extends Command {
         try {
             Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("userId", args[0]).get();
             if (c.size() > 0) {
-                context.makeError("This user is globally banned by a PIA Moderator, meaning you're not allowed to unban them thought this command. Please use the global unban command as a PIA member to revert this ban!").set("userId", args[0]).queue();
+                context.makeError("This user is globally banned by a MGM Moderator, meaning you're not allowed to unban them thought this command. Please use the global unban command as a MGM member to revert this ban!").set("userId", args[0]).queue();
                 return false;
             }
         } catch (SQLException ignored) {

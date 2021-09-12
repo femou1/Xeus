@@ -24,7 +24,7 @@ package com.pinewoodbuilders.commands.onwatch;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.*;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.onwatch.onwatchlog.OnWatchAction;
 import com.pinewoodbuilders.onwatch.onwatchlog.OnWatchType;
 import com.pinewoodbuilders.onwatch.onwatchlog.OnWatchlog;
@@ -90,8 +90,8 @@ public class UnWatchCommand extends OnWatchableCommand {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
-            "isModOrHigher",
+            "isPinewoodGuild",
+            "isGuildHROrHigher",
             "require:bot,general.manage_roles",
             "throttle:guild,1,4"
         );
@@ -105,17 +105,17 @@ public class UnWatchCommand extends OnWatchableCommand {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             return sendErrorMessage(context, "errors.errorOccurredWhileLoading", "server settings");
         }
 
-        if (transformer.getOnWatchLog() == null) {
+        if (transformer.getOnWatchChannel() == 0) {
             String prefix = generateCommandPrefix(context.getMessage());
             return sendErrorMessage(context, context.i18n("requiresModlogToBeSet", prefix));
         }
 
-        if (transformer.getOnWatchRole() == null) {
+        if (transformer.getOnWatchRole() == 0) {
             String prefix = generateCommandPrefix(context.getMessage());
             return sendErrorMessage(context, context.i18n("requireMuteRoleToBeSet", prefix));
         }

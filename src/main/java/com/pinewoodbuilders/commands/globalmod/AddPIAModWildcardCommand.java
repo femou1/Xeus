@@ -6,7 +6,7 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 
@@ -61,8 +61,8 @@ public class AddPIAModWildcardCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
-            "isValidPIAMember"
+            "isPinewoodGuild",
+            "isValidMGMMember"
         );
     }
 
@@ -78,7 +78,7 @@ public class AddPIAModWildcardCommand extends Command {
             return sendErrorMessage(context, "You didn't give any arguments.");
         }
 
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             return sendErrorMessage(context, "Unable to load the global server settings.");
         }
@@ -98,7 +98,7 @@ public class AddPIAModWildcardCommand extends Command {
             if (args.length == 1) {
                 return sendErrorMessage(context, "You didn't give any words to add to the global filter.");
             }
-            transformer.getPIAWordsWildcard().add(words);
+            transformer.getGlobalFilterWildcard().add(words);
             try {
                 updateGuildAutoModExact(context, transformer);
 
@@ -120,7 +120,7 @@ public class AddPIAModWildcardCommand extends Command {
             if (args.length == 1) {
                 return sendErrorMessage(context, "You didn't give any words to add to the global filter.");
             }
-            transformer.getPIAWordsWildcard().add(words);
+            transformer.getGlobalFilterWildcard().add(words);
             try {
                 updateGuildAutoModExact(context, transformer);
 
@@ -136,12 +136,12 @@ public class AddPIAModWildcardCommand extends Command {
         }
     }
 
-    private boolean removeAutoModExact(CommandMessage context, GuildTransformer transformer, String args) {
-        if (!transformer.getPIAWordsWildcard().contains(args)) {
+    private boolean removeAutoModExact(CommandMessage context, GuildSettingsTransformer transformer, String args) {
+        if (!transformer.getGlobalFilterWildcard().contains(args)) {
             return sendErrorMessage(context, "This word does not exist in the wildcard list");
         }
 
-        transformer.getPIAWordsWildcard().remove(args);
+        transformer.getGlobalFilterWildcard().remove(args);
         try {
             updateGuildAutoModExact(context, transformer);
 
@@ -154,16 +154,16 @@ public class AddPIAModWildcardCommand extends Command {
         }
     }
 
-    private boolean getGlobalAutoModExactList(CommandMessage context, GuildTransformer transformer) {
-        context.makeSuccess("This the list of the current filtered wildcard words: \n```" + transformer.getPIAWordsWildcard() + "```").queue();
+    private boolean getGlobalAutoModExactList(CommandMessage context, GuildSettingsTransformer transformer) {
+        context.makeSuccess("This the list of the current filtered wildcard words: \n```" + transformer.getGlobalFilterWildcard() + "```").queue();
         return false;
     }
 
-    private void updateGuildAutoModExact(CommandMessage message, GuildTransformer transformer) throws SQLException {
+    private void updateGuildAutoModExact(CommandMessage message, GuildSettingsTransformer transformer) throws SQLException {
         for (String id : Constants.guilds) {
-            avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                 .where("id", id)
-                .update(statement -> statement.set("piaf_wildcard", Xeus.gson.toJson(transformer.getPIAWordsWildcard()), true));
+                .update(statement -> statement.set("global_filter_wildcard", Xeus.gson.toJson(transformer.getGlobalFilterWildcard()), true));
         }
 
     }

@@ -15,7 +15,7 @@ public class CreatePBVoteTableMigration implements Migration {
 
     @Override
     public boolean up(Schema schema) throws SQLException {
-        return schema.createIfNotExists(Constants.MOTS_VOTE_TABLE_NAME, table -> {
+        return schema.createIfNotExists(Constants.VOTE_TABLE_NAME, table -> {
             table.Increments("id");
             table.String("vote_id");
             table.String("voted_for");
@@ -30,6 +30,6 @@ public class CreatePBVoteTableMigration implements Migration {
 
     @Override
     public boolean down(Schema schema) throws SQLException {
-        return schema.dropIfExists(Constants.MOTS_VOTE_TABLE_NAME);
+        return schema.dropIfExists(Constants.VOTE_TABLE_NAME);
     }
 }

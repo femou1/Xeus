@@ -28,7 +28,7 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import net.dv8tion.jda.api.Permission;
@@ -91,8 +91,8 @@ public class WatchlogCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isOfficialPinewoodGuild",
-            "isManagerOrHigher",
+            "isPinewoodGuild",
+            "isGuildLeadership",
             "throttle:user,1,5"
         );
     }
@@ -105,7 +105,7 @@ public class WatchlogCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        GuildTransformer transformer = context.getGuildTransformer();
+        GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             return sendErrorMessage(context, "errors.errorOccurredWhileLoading", "server settings");
         }
@@ -129,7 +129,7 @@ public class WatchlogCommand extends Command {
         }
 
         try {
-            updateModlog(transformer, context, channel.getId());
+            updateModlog(transformer, context, channel.getIdLong());
 
             context.makeSuccess(context.i18n("enable"))
                 .set("on_watch", ((TextChannel) channel).getAsMention())
@@ -141,9 +141,9 @@ public class WatchlogCommand extends Command {
         return true;
     }
 
-    private boolean disableModlog(CommandMessage context, GuildTransformer transformer) {
+    private boolean disableModlog(CommandMessage context, GuildSettingsTransformer transformer) {
         try {
-            updateModlog(transformer, context, null);
+            updateModlog(transformer, context, 0);
 
             context.makeSuccess(context.i18n("disable"))
                 .queue();
@@ -154,15 +154,15 @@ public class WatchlogCommand extends Command {
         return true;
     }
 
-    private PlaceholderMessage sendModlogChannel(CommandMessage context, GuildTransformer transformer) {
-        if (transformer.getOnWatchLog() == null) {
+    private PlaceholderMessage sendModlogChannel(CommandMessage context, GuildSettingsTransformer transformer) {
+        if (transformer.getOnWatchChannel() == 0) {
             return context.makeWarning(context.i18n("disabled"));
         }
 
-        TextChannel modlogChannel = context.getGuild().getTextChannelById(transformer.getOnWatchLog());
+        TextChannel modlogChannel = context.getGuild().getTextChannelById(transformer.getOnWatchChannel());
         if (modlogChannel == null) {
             try {
-                updateModlog(transformer, context, null);
+                updateModlog(transformer, context, 0);
             } catch (SQLException ex) {
                 Xeus.getLogger().error(ex.getMessage(), ex);
             }
@@ -173,10 +173,10 @@ public class WatchlogCommand extends Command {
             .set("on_watch", modlogChannel.getAsMention());
     }
 
-    private void updateModlog(GuildTransformer transformer, CommandMessage context, String value) throws SQLException {
-        transformer.setOnWatch(value);
-        avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+    private void updateModlog(GuildSettingsTransformer transformer, CommandMessage context, long value) throws SQLException {
+        transformer.setOnWatchChannel(value);
+        avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
             .where("id", context.getGuild().getId())
-            .update(statement -> statement.set("on_watch", value));
+            .update(statement -> statement.set("on_watch_channel", value));
     }
 }

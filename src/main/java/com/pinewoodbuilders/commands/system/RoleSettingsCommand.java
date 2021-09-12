@@ -29,7 +29,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.contracts.commands.SystemCommand;
 import com.pinewoodbuilders.database.query.QueryBuilder;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
@@ -96,7 +96,7 @@ public class RoleSettingsCommand extends SystemCommand {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        GuildTransformer guildTransformer = context.getGuildTransformer();
+        GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
 
         if (guildTransformer == null) {
             context.makeError("Server settings could not be gathered").queue();
@@ -138,8 +138,8 @@ public class RoleSettingsCommand extends SystemCommand {
 
     private boolean kickNonMods(CommandMessage context) {
         int level = CheckPermissionUtil.getPermissionLevel(context).getLevel();
-        if (level < CheckPermissionUtil.GuildPermissionCheckType.PIA.getLevel()) {
-            context.makeError("You got to be PIA or above to run this command.").queue();
+        if (level < CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
+            context.makeError("You got to be MGM or above to run this command.").queue();
             return false;
         }
         List <Member> members = new ArrayList <>();
@@ -149,8 +149,8 @@ public class RoleSettingsCommand extends SystemCommand {
                 continue;
             }
 
-            int kickedLevel = CheckPermissionUtil.getPermissionLevel(context.getGuildTransformer(), context.guild, m).getLevel();
-            if (kickedLevel >= CheckPermissionUtil.GuildPermissionCheckType.ADMIN.getLevel()) {
+            int kickedLevel = CheckPermissionUtil.getPermissionLevel(context.getGuildSettingsTransformer(), context.guild, m).getLevel();
+            if (kickedLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
                 continue;
             }
 
@@ -184,15 +184,15 @@ public class RoleSettingsCommand extends SystemCommand {
         return true;
     }
 
-    private boolean updateMinimalLeadRank(GuildTransformer transformer, CommandMessage context) {
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+    private boolean updateMinimalLeadRank(GuildSettingsTransformer transformer, CommandMessage context) {
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("minimum_lead_rank", transformer.getMinimumLeadRank());
             });
 
             context.makeSuccess("Set the minimal lead rank for `:guild`'s configured group (`:groupId`) to ``:id``")
-                .set("groupId", context.getGuildTransformer().getRobloxGroupId() != 0 ? context.getGuildTransformer().getRobloxGroupId() : "ID NOT SET")
+                .set("groupId", transformer.getRobloxGroupId() != 0 ? transformer.getRobloxGroupId() : "ID NOT SET")
                 .set("guild", context.getGuild().getName())
                 .set("id", transformer.getMinimumLeadRank()).queue();
             return true;
@@ -201,17 +201,17 @@ public class RoleSettingsCommand extends SystemCommand {
             return false;
         }
     }
-    private boolean updateMinimalHrRank(GuildTransformer transformer, CommandMessage context) {
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+    private boolean updateMinimalHrRank(GuildSettingsTransformer transformer, CommandMessage context) {
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
-                q.set("minimum_hr_rank", transformer.getMinimalHrRank());
+                q.set("minimum_hr_rank", transformer.getMinimumHrRank());
             });
 
             context.makeSuccess("Set the minimal hr rank for `:guild`'s configured group (`:groupId`) to ``:id``")
-                .set("groupId", context.getGuildTransformer().getRobloxGroupId() != 0 ? context.getGuildTransformer().getRobloxGroupId() : "ID NOT SET")
+                .set("groupId", transformer.getRobloxGroupId() != 0 ? transformer.getRobloxGroupId() : "ID NOT SET")
                 .set("guild", context.getGuild().getName())
-                .set("id", transformer.getMinimalHrRank()).queue();
+                .set("id", transformer.getMinimumHrRank());
             return true;
         } catch (SQLException throwables) {
             context.makeError("Something went wrong in the database, please check with the developer. (Stefano#7366)").queue();
@@ -225,12 +225,12 @@ public class RoleSettingsCommand extends SystemCommand {
         }
 
         if (NumberUtil.isNumeric(args[1])) {
-            GuildTransformer transformer = context.getGuildTransformer();
+            GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
             if (transformer == null) {
                 context.makeError("I can't pull the guilds information, please try again later.").queue();
                 return false;
             }
-            transformer.setMinimumLeadRank(Integer.parseInt(args[1]));
+            transformer.setMinimalLeadRank(Integer.parseInt(args[1]));
             return updateMinimalLeadRank(transformer, context);
         } else {
             return sendErrorMessage(context, "Something went wrong, please check if you ran the command correctly.");
@@ -243,12 +243,12 @@ public class RoleSettingsCommand extends SystemCommand {
         }
 
         if (NumberUtil.isNumeric(args[1])) {
-            GuildTransformer transformer = context.getGuildTransformer();
+            GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
             if (transformer == null) {
                 context.makeError("I can't pull the guilds information, please try again later.").queue();
                 return false;
             }
-            transformer.setMinimalHrRank(Integer.parseInt(args[1]));
+            transformer.setMinimumHrRank(Integer.parseInt(args[1]));
             return updateMinimalHrRank(transformer, context);
         } else {
             return sendErrorMessage(context, "Something went wrong, please check if you ran the command correctly.");
@@ -261,12 +261,12 @@ public class RoleSettingsCommand extends SystemCommand {
         }
 
         if (NumberUtil.isNumeric(args[1])) {
-            GuildTransformer transformer = context.getGuildTransformer();
+            GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
             if (transformer == null) {
                 context.makeError("I can't pull the guilds information, please try again later.").queue();
                 return false;
             }
-            transformer.setRobloxGroupId(Integer.parseInt(args[1]));
+            transformer.setMainGroupId(Integer.parseInt(args[1]));
             return updateGroupId(transformer, context);
         } else {
             return sendErrorMessage(context, "Something went wrong, please check if you ran the command correctly.");
@@ -279,12 +279,12 @@ public class RoleSettingsCommand extends SystemCommand {
         }
 
         if (NumberUtil.isNumeric(args[1])) {
-            GuildTransformer transformer = context.getGuildTransformer();
+            GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
             if (transformer == null) {
                 context.makeError("I can't pull the guilds information, please try again later.").queue();
                 return false;
             }
-            transformer.setMainDiscordRole(args[1]);
+            transformer.setMainDiscordRole(Long.parseLong(args[1]));
             return updateMainRole(transformer, context);
         } else {
             return sendErrorMessage(context, "Something went wrong, please check if you ran the command correctly.");
@@ -292,8 +292,8 @@ public class RoleSettingsCommand extends SystemCommand {
 
     }
 
-    private boolean updateMainRole(GuildTransformer transformer, CommandMessage context) {
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+    private boolean updateMainRole(GuildSettingsTransformer transformer, CommandMessage context) {
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("main_discord_role", transformer.getMainDiscordRole());
@@ -307,8 +307,8 @@ public class RoleSettingsCommand extends SystemCommand {
         }
     }
 
-    private boolean updateGroupId(GuildTransformer transformer, CommandMessage context) {
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME).where("id", context.guild.getId());
+    private boolean updateGroupId(GuildSettingsTransformer transformer, CommandMessage context) {
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("roblox_group_id", transformer.getRobloxGroupId());
@@ -350,7 +350,7 @@ public class RoleSettingsCommand extends SystemCommand {
         return handleToggleRole(context, role, "mod", ComparatorUtil.ComparatorType.UNKNOWN);
     }
 
-    private boolean getUserLevel(CommandMessage context, GuildTransformer guildTransformer) {
+    private boolean getUserLevel(CommandMessage context, GuildSettingsTransformer guildTransformer) {
         if (context.getMessage().getMentionedMembers().size() == 1) {
             Member m = context.getMessage().getMentionedMembers().get(0);
             context.makeInfo(m.getAsMention() + " has permission level ``"
@@ -365,10 +365,10 @@ public class RoleSettingsCommand extends SystemCommand {
         return true;
     }
 
-    private boolean handleFirstSetupRoles(CommandMessage context, GuildTransformer transformer) {
-        Set <Long> admins = transformer.getAdministratorRoles();
-        Set <Long> mods = transformer.getModeratorRoles();
-        Set <Long> managers = transformer.getManagerRoles();
+    private boolean handleFirstSetupRoles(CommandMessage context, GuildSettingsTransformer transformer) {
+        Set <Long> admins = transformer.getLeadRoles();
+        Set <Long> mods = transformer.getHRRoles();
+        Set <Long> managers = transformer.getLeadRoles();
 
         admins.clear();
         mods.clear();
@@ -389,7 +389,7 @@ public class RoleSettingsCommand extends SystemCommand {
             }
         }
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                 .where("id", context.getGuild().getId())
                 .update(statement -> {
                     statement.set("admin_roles", Xeus.gson.toJson(
@@ -487,19 +487,19 @@ public class RoleSettingsCommand extends SystemCommand {
         }
     }
 
-    private boolean sendEnabledRoles(CommandMessage context, GuildTransformer transformer) {
-        if (transformer.getAdministratorRoles().isEmpty() && transformer.getModeratorRoles().isEmpty() && transformer.getManagerRoles().isEmpty() && transformer.getNoLinksRoles().isEmpty()
-            && transformer.getMainDiscordRole() == null && transformer.getRobloxGroupId() == 0) {
+    private boolean sendEnabledRoles(CommandMessage context, GuildSettingsTransformer transformer) {
+        if (transformer.getLeadRoles().isEmpty() && transformer.getHRRoles().isEmpty() && transformer.getLeadRoles().isEmpty() && transformer.getNoLinksRoles().isEmpty()
+            && transformer.getMainDiscordRole() == 0 && transformer.getRobloxGroupId() == 0) {
             return sendErrorMessage(context, "Sorry, but there are no manager, admin, mod, main role id, roblox group id or no-links roles on the discord configured.");
         }
 
-        Set <Long> mod = transformer.getModeratorRoles();
-        Set <Long> manager = transformer.getManagerRoles();
-        Set <Long> admins = transformer.getAdministratorRoles();
+        Set <Long> mod = transformer.getHRRoles();
+        Set <Long> manager = transformer.getLeadRoles();
+        Set <Long> admins = transformer.getLeadRoles();
         Set <Long> noLinks = transformer.getNoLinksRoles();
         Set <Long> groupShouts = transformer.getGroupShoutRoles();
-        int groupId = transformer.getRobloxGroupId();
-        String mainRoleId = transformer.getMainDiscordRole();
+        Long groupId = transformer.getRobloxGroupId();
+        Long mainRoleId = transformer.getMainDiscordRole();
 
         StringBuilder sb = new StringBuilder();
         runAdminRolesCheck(context, admins.size() > 0, sb, admins);
@@ -513,7 +513,7 @@ public class RoleSettingsCommand extends SystemCommand {
         context.makeInfo(context.i18n("listRoles"))
             .set("roles", sb.toString())
             .setTitle(context.i18n("listRolesTitle",
-                transformer.getModeratorRoles().size() + transformer.getManagerRoles().size() + transformer.getAdministratorRoles().size() + transformer.getNoLinksRoles().size()
+                transformer.getHRRoles().size() + transformer.getLeadRoles().size() + transformer.getLeadRoles().size() + transformer.getNoLinksRoles().size()
             ))
             .queue();
 
@@ -521,7 +521,7 @@ public class RoleSettingsCommand extends SystemCommand {
         return true;
     }
 
-    private void runRobloxGroupIdCheck(CommandMessage context, StringBuilder sb, int groupId) {
+    private void runRobloxGroupIdCheck(CommandMessage context, StringBuilder sb, Long groupId) {
         if (groupId != 0) {
             sb.append("\n\n**Roblox Group ID**: ``").append(groupId).append("``");
         } else {
@@ -529,9 +529,9 @@ public class RoleSettingsCommand extends SystemCommand {
         }
     }
 
-    private void runMainRoleIdCheck(CommandMessage context, StringBuilder sb, String roleId) {
-        if (roleId != null) {
-            sb.append("\n\n**Main Role ID**: ``").append(roleId).append("``");
+    private void runMainRoleIdCheck(CommandMessage context, StringBuilder sb, Long mainRoleId) {
+        if (mainRoleId != null) {
+            sb.append("\n\n**Main Role ID**: ``").append(mainRoleId).append("``");
         } else {
             sb.append("\n\n**Main Role ID**\n``Main Role ID has not been set!``");
         }
@@ -539,18 +539,18 @@ public class RoleSettingsCommand extends SystemCommand {
 
     @SuppressWarnings("ConstantConditions")
     private boolean handleToggleRole(CommandMessage context, Role role, String rank, ComparatorUtil.ComparatorType value) {
-        GuildTransformer guildTransformer = context.getGuildTransformer();
+        GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
 
         switch (value) {
             case FALSE:
                 if (rank.equals("admin")) {
-                    guildTransformer.getAdministratorRoles().remove(role.getIdLong());
+                    guildTransformer.getLeadRoles().remove(role.getIdLong());
                 }
                 if (rank.equals("manager")) {
-                    guildTransformer.getManagerRoles().remove(role.getIdLong());
+                    guildTransformer.getLeadRoles().remove(role.getIdLong());
                 }
                 if (rank.equals("mod")) {
-                    guildTransformer.getModeratorRoles().remove(role.getIdLong());
+                    guildTransformer.getHRRoles().remove(role.getIdLong());
                 }
                 if (rank.equals("no-links")) {
                     guildTransformer.getNoLinksRoles().remove(role.getIdLong());
@@ -562,13 +562,13 @@ public class RoleSettingsCommand extends SystemCommand {
 
             case TRUE:
                 if (rank.equals("admin")) {
-                    guildTransformer.getAdministratorRoles().add(role.getIdLong());
+                    guildTransformer.getLeadRoles().add(role.getIdLong());
                 }
                 if (rank.equals("manager")) {
-                    guildTransformer.getManagerRoles().add(role.getIdLong());
+                    guildTransformer.getLeadRoles().add(role.getIdLong());
                 }
                 if (rank.equals("mod")) {
-                    guildTransformer.getModeratorRoles().add(role.getIdLong());
+                    guildTransformer.getHRRoles().add(role.getIdLong());
                 }
                 if (rank.equals("no-links")) {
                     guildTransformer.getNoLinksRoles().add(role.getIdLong());
@@ -581,27 +581,27 @@ public class RoleSettingsCommand extends SystemCommand {
 
             case UNKNOWN:
                 if (rank.equals("admin")) {
-                    if (guildTransformer.getAdministratorRoles().contains(role.getIdLong())) {
-                        guildTransformer.getAdministratorRoles().remove(role.getIdLong());
+                    if (guildTransformer.getLeadRoles().contains(role.getIdLong())) {
+                        guildTransformer.getLeadRoles().remove(role.getIdLong());
                     } else {
-                        guildTransformer.getAdministratorRoles().add(role.getIdLong());
+                        guildTransformer.getLeadRoles().add(role.getIdLong());
                     }
                     break;
                 }
 
                 if (rank.equals("manager")) {
-                    if (guildTransformer.getManagerRoles().contains(role.getIdLong())) {
-                        guildTransformer.getManagerRoles().remove(role.getIdLong());
+                    if (guildTransformer.getLeadRoles().contains(role.getIdLong())) {
+                        guildTransformer.getLeadRoles().remove(role.getIdLong());
                     } else {
-                        guildTransformer.getManagerRoles().add(role.getIdLong());
+                        guildTransformer.getLeadRoles().add(role.getIdLong());
                     }
                     break;
                 }
                 if (rank.equals("mod")) {
-                    if (guildTransformer.getModeratorRoles().contains(role.getIdLong())) {
-                        guildTransformer.getModeratorRoles().remove(role.getIdLong());
+                    if (guildTransformer.getHRRoles().contains(role.getIdLong())) {
+                        guildTransformer.getHRRoles().remove(role.getIdLong());
                     } else {
-                        guildTransformer.getModeratorRoles().add(role.getIdLong());
+                        guildTransformer.getHRRoles().add(role.getIdLong());
                     }
                     break;
                 }
@@ -623,42 +623,42 @@ public class RoleSettingsCommand extends SystemCommand {
                 }
         }
 
-        boolean isEnabled = guildTransformer.getModeratorRoles().contains(role.getIdLong()) ||
-            guildTransformer.getAdministratorRoles().contains(role.getIdLong()) ||
-            guildTransformer.getManagerRoles().contains(role.getIdLong()) ||
+        boolean isEnabled = guildTransformer.getHRRoles().contains(role.getIdLong()) ||
+            guildTransformer.getLeadRoles().contains(role.getIdLong()) ||
+            guildTransformer.getLeadRoles().contains(role.getIdLong()) ||
             guildTransformer.getNoLinksRoles().contains(role.getIdLong()) ||
             guildTransformer.getGroupShoutRoles().contains(role.getIdLong());
 
         try {
             if (rank.equals("admin")) {
-                avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+                avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                     .where("id", context.getGuild().getId())
                     .update(statement -> {
                         statement.set("admin_roles", Xeus.gson.toJson(
-                            guildTransformer.getAdministratorRoles()
+                            guildTransformer.getLeadRoles()
                         ), true);
                     });
             }
             if (rank.equals("manager")) {
-                avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+                avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                     .where("id", context.getGuild().getId())
                     .update(statement -> {
                         statement.set("manager_roles", Xeus.gson.toJson(
-                            guildTransformer.getManagerRoles()
+                            guildTransformer.getLeadRoles()
                         ), true);
                     });
             }
             if (rank.equals("mod")) {
-                avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+                avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                     .where("id", context.getGuild().getId())
                     .update(statement -> {
                         statement.set("moderator_roles", Xeus.gson.toJson(
-                            guildTransformer.getModeratorRoles()
+                            guildTransformer.getHRRoles()
                         ), true);
                     });
             }
             if (rank.equals("no-links")) {
-                avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+                avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                     .where("id", context.getGuild().getId())
                     .update(statement -> {
                         statement.set("no_links_roles", Xeus.gson.toJson(
@@ -667,7 +667,7 @@ public class RoleSettingsCommand extends SystemCommand {
                     });
             }
             if (rank.equals("group-shout")) {
-                avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+                avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                     .where("id", context.getGuild().getId())
                     .update(statement -> {
                         statement.set("group_shout_roles", Xeus.gson.toJson(

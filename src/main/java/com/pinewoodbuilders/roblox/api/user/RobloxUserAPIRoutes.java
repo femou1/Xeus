@@ -2,6 +2,7 @@ package com.pinewoodbuilders.roblox.api.user;
 
 import com.pinewoodbuilders.AppInfo;
 import com.pinewoodbuilders.Xeus;
+import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.requests.service.user.inventory.RobloxGamePassService;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
@@ -60,7 +61,12 @@ public class RobloxUserAPIRoutes {
         return null;
     }
 
-    public String getUsername(Long botAccount) {
+    public String getUsername(String botAccount) {
+        String username = cache.getIfPresent("username." + botAccount);
+        if (username != null) {
+            return username;
+        }
+
         Request.Builder request = new Request.Builder()
                 .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
                 .url("https://users.roblox.com/v1/users/{userId}".replace("{userId}", botAccount.toString()));
@@ -68,6 +74,7 @@ public class RobloxUserAPIRoutes {
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
                 JSONObject json = new JSONObject(response.body().string());
+                cache.put("username." + botAccount, json.getString("name"));
                 return json.getString("name");
             }
         } catch (IOException e) {
@@ -77,6 +84,11 @@ public class RobloxUserAPIRoutes {
     }
 
     public Long getIdFromUsername(String username) {
+        String userId = cache.getIfPresent("robloxId." + username);
+        if (userId != null) {
+            return Long.valueOf(userId);
+        }
+
         Request.Builder request = new Request.Builder()
                 .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
                 .url("https://api.roblox.com/users/get-by-username?username={userId}".replace("{userId}", username));
@@ -84,6 +96,7 @@ public class RobloxUserAPIRoutes {
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
                 JSONObject json = new JSONObject(response.body().string());
+                cache.put("robloxId." + username, String.valueOf(json.getLong("Id")));
                 return json.getLong("Id");
             }
         } catch (IOException e) {
@@ -111,6 +124,10 @@ public class RobloxUserAPIRoutes {
             Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
         }
         return null;
+    }
+
+    public String getUsername(Long userId) {
+        return getUsername(String.valueOf(userId));
     }
 
 }
