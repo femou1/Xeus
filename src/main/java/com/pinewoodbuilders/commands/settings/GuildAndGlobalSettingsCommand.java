@@ -9,6 +9,7 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.settings.global.GlobalSettingsSubCommand;
 import com.pinewoodbuilders.commands.settings.moderation.ModSettingsSubCommand;
 import com.pinewoodbuilders.commands.settings.server.ServerSettingsSubCommand;
+import com.pinewoodbuilders.commands.settings.other.OtherSettingsSubCommand;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
@@ -20,6 +21,7 @@ public class GuildAndGlobalSettingsCommand extends Command {
     private final ServerSettingsSubCommand server;
     private final ModSettingsSubCommand mod;
     private final GlobalSettingsSubCommand global;
+    private final OtherSettingsSubCommand other;
 
     public GuildAndGlobalSettingsCommand(Xeus avaire) {
         super(avaire);
@@ -27,6 +29,7 @@ public class GuildAndGlobalSettingsCommand extends Command {
         this.server = new ServerSettingsSubCommand(avaire, this);
         this.mod = new ModSettingsSubCommand(avaire, this);
         this.global = new GlobalSettingsSubCommand(avaire, this);
+        this.other = new OtherSettingsSubCommand(avaire, this);
     }
 
     @Override
@@ -61,12 +64,13 @@ public class GuildAndGlobalSettingsCommand extends Command {
             "- `server` - Modify settings specific to this server.\n" +
             "- `global` - Modify settings specific to the servers connected to the main group of this server " + (context.getGuildSettingsTransformer() != null ? "(:mainGroupId)\n" : "\n") + 
             "- `mod` - Modify the assigned global/local/main group mods within Xeus." + 
-            "- `get-level` - Get the permission level of a user within the bot."
+            "- `get-level` - Get the permission level of a user within the bot." + 
+            "- `other` - These are special commands that won't work out of the box, and require the knowladge of using the bot."
             ).set("mainGroupId", context.getGuildSettingsTransformer().getMainGroupId() != 0 ? "(`:mainGroupId`)" : "**Group ID has not been set**").queue();
             return false;
         }
 
-        switch (args[0]) {
+        switch (args[0].toLowerCase()) {
             case "server":
             case "s":
                 return server.onCommand(context, Arrays.copyOfRange(args, 1, args.length));
@@ -77,6 +81,9 @@ public class GuildAndGlobalSettingsCommand extends Command {
             case "global":
             case "g": 
                 return global.onCommand(context, Arrays.copyOfRange(args, 1, args.length));
+            case "o":
+            case "other":
+                return other.onCommand(context, Arrays.copyOfRange(args, 1, args.length));
             case "get-level":
                 return getUserLevel(context, context.getGuildSettingsTransformer());
         }

@@ -57,7 +57,7 @@ public class VerificationMethodsManager {
 
         VerificationEntity verificationEntity = avaire.getRobloxAPIManager().getVerification().fetchVerificationWithBackup(member.getId(), useCache);
         if (verificationEntity == null) {
-            hook.sendMessage("`"+ member.getEffectiveName() +"` is not verified").queue();
+            hook.sendMessage("`"+ member.getEffectiveName() +"` is not verified. Please run `!verify` as a normal command.").queue();
             return;
         }
 

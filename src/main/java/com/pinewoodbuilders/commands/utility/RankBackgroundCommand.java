@@ -181,7 +181,7 @@ public class RankBackgroundCommand extends Command {
 
         List<String> message = new ArrayList<>();
         message.add(context.i18n("canBeUnlocked"));
-        message.add("-------------------------------");
+        message.add("`-------------------------------`");
 
         String purchaseType = RankBackgroundHandler.getPurchaseType();
         paginator.forEach((index, name, cost) -> {
@@ -195,7 +195,7 @@ public class RankBackgroundCommand extends Command {
             ));
         });
 
-        message.add("-------------------------------");
+        message.add("`-------------------------------`");
         message.add(paginator.generateFooter(context.getGuild(), generateCommandTrigger(context.getMessage()) + " list"));
 
         context.makeInfo(String.join("\n", message))

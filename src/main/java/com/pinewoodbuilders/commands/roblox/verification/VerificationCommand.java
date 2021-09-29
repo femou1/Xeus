@@ -98,7 +98,7 @@ public class VerificationCommand extends VerificationCommandContract {
 
         RobloxAPIManager manager = avaire.getRobloxAPIManager();
         if (args.length > 0) {
-            switch (args[0]) {
+            switch (args[0].toLowerCase()) {
                 case "sac":
                 case "set-announce-channel":
                     return setAnnouncementChannel(context, args);

@@ -90,7 +90,7 @@ public class FeedbackCommand extends Command {
         int permissionLevel = CheckPermissionUtil.getPermissionLevel(context).getLevel();
         if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             if (args.length > 0) {
-                switch (args[0]) {
+                switch (args[0].toLowerCase()) {
                     case "ss":
                     case "set-suggestions":
                         return runSetSuggestionChannel(context, args);

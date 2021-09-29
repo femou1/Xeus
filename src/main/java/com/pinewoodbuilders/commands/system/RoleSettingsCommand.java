@@ -107,7 +107,7 @@ public class RoleSettingsCommand extends SystemCommand {
             return sendEnabledRoles(context, guildTransformer);
         }
 
-        switch (args[0]) {
+        switch (args[0].toLowerCase()) {
             case "get-level":
                 return getUserLevel(context, guildTransformer);
             case "setup-basic-roles":

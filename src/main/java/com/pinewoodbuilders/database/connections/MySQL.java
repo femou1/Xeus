@@ -137,6 +137,7 @@ public class MySQL extends HostnameDatabase {
             case PREPARE:
             case EXECUTE:
             case DEALLOCATE:
+            default:
                 exception = new SQLException("Please use the prepare() method to prepare a query.");
 
                 Xeus.getLogger().error("Please use the prepare() method to prepare a query.", exception);

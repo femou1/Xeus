@@ -125,16 +125,20 @@ public class SlashCommandEventAdapter {
                 StringBuilder sb = new StringBuilder();
 
                 for (DataRow data : qb) {
+                    Guild g = event.getJDA().getGuildById(data.getString("id"));
+                    if (g == null) continue;
+                    if (sb.toString().contains(String.valueOf(data.getInt("roblox_group_id")))) continue;
+                    
                     if (data.getString("roblox_group_id") != null) {
-                        List <RobloxUserGroupRankService.Data> ranks = avaire.getRobloxAPIManager().getUserAPI().getUserRanks(verifiedRobloxUser.getRobloxId());
+                        List<RobloxUserGroupRankService.Data> ranks = avaire.getRobloxAPIManager().getUserAPI().getUserRanks(verifiedRobloxUser.getRobloxId());
                         for (RobloxUserGroupRankService.Data rank : ranks) {
                             if (rank.getGroup().getId() == data.getLong("roblox_group_id")) {
                                 if (rank.getRole().getRank() >= data.getInt("minimum_hr_rank")) {
-                                    sb.append("\n**").append(data.getString("name")).append("** - `").append(rank.getRole().getName()).append("` (`").append(rank.getRole().getRank()).append("`)");
+                                    sb.append("\n**").append(g.getName()).append("** - `").append(rank.getRole().getName()).append("` (`").append(rank.getRole().getRank()).append("`)");
                                 } else {
-                                    sb.append("\n").append(data.getString("name")).append(" - `").append(rank.getRole().getName()).append("` (`").append(rank.getRole().getRank()).append("`)");
+                                    sb.append("\n").append(g.getName()).append(" - `").append(rank.getRole().getName()).append("` (`").append(rank.getRole().getRank()).append("`)");
                                 }
-
+    
                             }
                         }
                     }

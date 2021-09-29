@@ -106,7 +106,7 @@ public class EventRemittanceCommand extends Command {
         }
         if (args.length > 0) {
             if (CheckPermissionUtil.getPermissionLevel(context).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
-                switch (args[0]) {
+                switch (args[0].toLowerCase()) {
                     case "sc":
                     case "set-channel": {
                         return runSetRemittanceChannel(context, args);

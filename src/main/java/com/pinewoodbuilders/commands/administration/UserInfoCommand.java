@@ -21,15 +21,22 @@
 
 package com.pinewoodbuilders.commands.administration;
 
+import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
+import com.pinewoodbuilders.contracts.verification.VerificationEntity;
+import com.pinewoodbuilders.database.collection.Collection;
+import com.pinewoodbuilders.database.collection.DataRow;
+import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
+
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
@@ -37,6 +44,7 @@ import net.dv8tion.jda.api.entities.User;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -102,6 +110,8 @@ public class UserInfoCommand extends Command {
         Carbon joinedDate = Carbon.createFromOffsetDateTime(member.getTimeJoined());
         Carbon createdDate = Carbon.createFromOffsetDateTime(member.getUser().getTimeCreated());
 
+        VerificationEntity entity = avaire.getRobloxAPIManager().getVerification().fetchVerificationWithBackup(member.getId(), true);
+
         PlaceholderMessage placeholderMessage = context.makeEmbeddedMessage(getRoleColor(member.getRoles()),
             new MessageEmbed.Field(
                 context.i18n("fields.username"),
@@ -142,10 +152,71 @@ public class UserInfoCommand extends Command {
                 avaire.getShardManager().getMutualGuilds(member.getUser()).size()
             )), true));
 
-        placeholderMessage.requestedBy(context.getMember()).queue();
+        placeholderMessage.requestedBy(context.getMember());
+        context.getMessageChannel().sendMessageEmbeds(placeholderMessage.buildEmbed(), buildVerificationEmbed(context, member)).queue();
         return true;
     }
 
+    private MessageEmbed buildVerificationEmbed(CommandMessage context, Member member) {
+        VerificationEntity verifiedRobloxUser;
+        if (member != null) {
+            Member u = member;
+            verifiedRobloxUser = avaire.getRobloxAPIManager().getVerification().fetchVerification(u.getId(), true);
+        } else {
+            verifiedRobloxUser = avaire.getRobloxAPIManager().getVerification().fetchVerification(context.getMember().getId(), true);
+        }
+
+        if (verifiedRobloxUser == null) {
+            context.makeError("No account found on any API. Please verify yourself by running `!verify`").requestedBy(context).queue();
+            return null;
+        }
+
+        try {
+            Collection qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("roblox_group_id").get();
+            StringBuilder sb = new StringBuilder();
+
+            for (DataRow data : qb) {
+                Guild g = context.getJDA().getGuildById(data.getString("id"));
+                if (g == null) continue;
+                if (sb.toString().contains(String.valueOf(data.getInt("roblox_group_id")))) continue;
+                
+                if (data.getString("roblox_group_id") != null) {
+                    List<RobloxUserGroupRankService.Data> ranks = avaire.getRobloxAPIManager().getUserAPI().getUserRanks(verifiedRobloxUser.getRobloxId());
+                    for (RobloxUserGroupRankService.Data rank : ranks) {
+                        if (rank.getGroup().getId() == data.getLong("roblox_group_id")) {
+                            if (rank.getRole().getRank() >= data.getInt("minimum_hr_rank")) {
+                                sb.append("\n**").append(g.getName()).append("** - `").append(rank.getRole().getName()).append("` (`").append(rank.getRole().getRank()).append("`)");
+                            } else {
+                                sb.append("\n").append(g.getName()).append(" - `").append(rank.getRole().getName()).append("` (`").append(rank.getRole().getRank()).append("`)");
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            return context.makeInfo(
+                "**Roblox Username**: :rusername\n" +
+                    "**Roblox ID**: :userId\n" +
+                    "**Ranks**:\n" +
+                    ":userRanks")
+                .set("rusername", verifiedRobloxUser.getRobloxUsername())
+                .set("userId", verifiedRobloxUser.getRobloxId())
+                .set("userRanks", sb.toString())
+                .setThumbnail(getImageFromVerificationEntity(verifiedRobloxUser))
+                .requestedBy(context).buildEmbed();
+        } catch (SQLException throwables) {
+            return context.makeError(
+                "Something went wrong in the database pulling the group ID's, please notify the developer")
+                .requestedBy(context).buildEmbed();
+        }
+    }
+    private String getImageFromVerificationEntity(VerificationEntity ve) {
+        if (ve == null) {
+            return null;
+        }
+        return "https://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&userid=" + ve.getRobloxId();
+    }
     private String shortenDiffForHumans(Carbon carbon) {
         String diff = carbon.diffForHumans();
         if (!diff.contains("and")) {

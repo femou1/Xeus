@@ -98,7 +98,7 @@ public class RolePersistenceCommand extends Command {
             return sendErrorMessage(context, "Please use the correct prefix to use this command, the possibilities will be shown below.");
         }
         try {
-            switch (args[0]) {
+            switch (args[0].toLowerCase()) {
                 case "l":
                 case "list":
                     return runListArgument(context, args);

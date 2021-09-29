@@ -44,7 +44,7 @@ public class ModSettingsSubCommand extends SettingsSubCommand {
         }
 
         String[] arguments = Arrays.copyOfRange(args, 1, args.length);
-        switch (args[0]) {
+        switch (args[0].toLowerCase()) {
             case "a":
             case "add":
                 return addModeratorToList(context, arguments);

@@ -1,6 +1,7 @@
 package com.pinewoodbuilders.commands.settings.global;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Set;
 
 import com.pinewoodbuilders.Constants;
@@ -9,12 +10,15 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.settings.GuildAndGlobalSettingsCommand;
 import com.pinewoodbuilders.contracts.commands.settings.SettingsSubCommand;
 import com.pinewoodbuilders.database.query.QueryBuilder;
+import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 public class GlobalSettingsSubCommand extends SettingsSubCommand {
     
@@ -25,6 +29,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
         GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
+        if (!(context.getMember().hasPermission(Permission.ADMINISTRATOR) || context.getMember().hasPermission(Permission.MANAGE_SERVER)))
 
         if (guildTransformer == null) {
             context.makeError("Server settings could not be gathered").queue();
@@ -35,7 +40,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
             return sendEnabledRoles(context, guildTransformer);
         }
 
-        switch (args[0]) {
+        switch (args[0].toLowerCase()) {
             case "main-group-id":
             case "smgi":
             case "set-main-group-id":
@@ -43,10 +48,164 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
             case "smr":
             case "set-main-role":
                 return runSetMainRole(context, args);
+            case "permissions":
+            case "modify-permissions":
+                return handleRoleSetupArguments(context, Arrays.copyOfRange(args, 1, args.length));
+            case "audit-logs":
+                return runAuditLogsCommand(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
             default:
-                return handleRoleSetupArguments(context, args);
+                context.makeInfo("God damn, please get this command right.\n\n- `smgi` - Set the Main Group Id of this guild").queue();
+                return false;
         }
 
+    }
+
+
+   
+
+    private boolean runAuditLogsCommand(CommandMessage context, String[] args, GuildSettingsTransformer settingsTransformer) {
+        GlobalSettingsTransformer transformer = context.getGlobalSettingsTransformer();
+        
+        if (settingsTransformer.getMainGroupId() == 0 || transformer == null) {
+            context.makeError("The global settings connected to this guild could not be loaded, please try again later. If this issue still persists, please contact the developer. In most cases, this guild does not have a main group ID, ask a global mod to set this!").queue();
+            return false;
+        }
+    
+        if (args.length == 0) {
+            context.makeInfo("Please select what setting you'd like to modify (0 = Disabled)\n"
+                    + " - ``mass-mention`` - "
+                    + (transformer.getMassMention() != 0 ? transformer.getMassMention() : "**Empty/Disabled**") + ")"
+                    + "\n" + " - ``emoji-spam`` - "
+                    + (transformer.getEmojiSpam() != 0 ? transformer.getEmojiSpam() : "**Empty/Disabled**") + ")" + "\n"
+                    + " - ``link-spam`` - "
+                    + (transformer.getLinkSpam() != 0 ? transformer.getLinkSpam() : "**Empty/Disabled**") + ")" + "\n"
+                    + " - ``message-spam`` - "
+                    + (transformer.getMessageSpam() != 0 ? transformer.getMessageSpam() : "**Empty/Disabled**") + ")"
+                    + "\n" + " - ``image-spam`` - "
+                    + (transformer.getImageSpam() != 0 ? transformer.getImageSpam() : "**Empty/Disabled**") + ")" + "\n"
+                    + " - ``character-spam`` - "
+                    + (transformer.getCharacterSpam() != 0 ? transformer.getCharacterSpam() : "**Empty/Disabled**")
+                    + ")").queue();
+            return false;
+        }
+    
+        switch (args[0].toLowerCase()) {
+            case "mass-mention":
+                return runMentionUpdateCommand(context, args, transformer);
+            case "emoji-spam":
+                return runEmojiSpamUpdateCommand(context, args, transformer);
+            case "link-spam":
+                return runLinkSpamUpdateCommand(context, args, transformer);
+            case "message-spam":
+                return runMessageSpamUpdateCommand(context, args, transformer);
+            case "image-spam":
+                return runImageSpamUpdateCommand(context, args, transformer);
+            case "character-spam":
+                return runCharacterSpamUpdateCommand(context, args, transformer);
+        }
+    
+        return true;
+    }
+
+    private boolean runCharacterSpamUpdateCommand(CommandMessage context, String[] args,
+            GlobalSettingsTransformer transformer) {
+        if (NumberUtil.isNumeric(args[1])) {
+            context.makeInfo("Update character spam to " + args[1]).queue();
+            transformer.setCharacterSpam(Integer.parseInt(args[1]));
+            return updateRecordInDatabase(context, "automod_character_spam", transformer.getCharacterSpam());
+        } else {
+            context.makeError("Please enter a number.").queue();
+            return false;
+        }
+
+    }
+
+    private boolean runImageSpamUpdateCommand(CommandMessage context, String[] args,
+            GlobalSettingsTransformer transformer) {
+        context.makeInfo("Update image spam to " + args[1]).queue();
+        if (NumberUtil.isNumeric(args[1])) {
+            context.makeInfo("Update link spam to " + args[1]).queue();
+            transformer.setImageSpam(Integer.parseInt(args[1]));
+            return updateRecordInDatabase(context, "automod_image_spam", transformer.getImageSpam());
+        } else {
+            context.makeError("Please enter a number.").queue();
+            return false;
+        }
+    }
+
+    private boolean runMessageSpamUpdateCommand(CommandMessage context, String[] args,
+            GlobalSettingsTransformer transformer) {
+        if (NumberUtil.isNumeric(args[1])) {
+            context.makeInfo("Update message spam to " + args[1]).queue();
+            transformer.setMessageSpam(Integer.parseInt(args[1]));
+            return updateRecordInDatabase(context, "automod_message_spam", transformer.getMessageSpam());
+        } else {
+            context.makeError("Please enter a number.").queue();
+            return false;
+        }
+    }
+
+    private boolean runLinkSpamUpdateCommand(CommandMessage context, String[] args,
+            GlobalSettingsTransformer transformer) {
+        if (NumberUtil.isNumeric(args[1])) {
+            context.makeInfo("Update link spam to " + args[1]).queue();
+            transformer.setLinkSpam(Integer.parseInt(args[1]));
+            return updateRecordInDatabase(context, "automod_link_spam", transformer.getLinkSpam());
+        } else {
+            context.makeError("Please enter a number.").queue();
+            return false;
+        }
+    }
+
+    private boolean runEmojiSpamUpdateCommand(CommandMessage context, String[] args,
+            GlobalSettingsTransformer transformer) {
+        if (NumberUtil.isNumeric(args[1])) {
+            context.makeInfo("Update emoji spam to " + args[1]).queue();
+            transformer.setEmojiSpam(Integer.parseInt(args[1]));
+            return updateRecordInDatabase(context, "automod_emoji_spam", transformer.getEmojiSpam());
+        } else {
+            context.makeError("Please enter a number.").queue();
+            return false;
+        }
+    }
+
+    private boolean runMentionUpdateCommand(CommandMessage context, String[] args,
+            GlobalSettingsTransformer transformer) {
+        if (NumberUtil.isNumeric(args[1])) {
+            context.makeInfo("Update mention spam to " + args[1]).queue();
+            transformer.setMassMention(Integer.parseInt(args[1]));
+            return updateRecordInDatabase(context, "automod_mass_mention", transformer.getMassMention());
+        } else {
+            context.makeError("Please enter a number.").queue();
+            return false;
+        }
+    }
+
+    private boolean updateRecordInDatabase(CommandMessage context, String table, int setTo) {
+        try {
+
+            avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE)
+                    .where("main_group_id", context.getGlobalSettingsTransformer().getMainGroupId())
+                    .update(statement -> statement.set(table, setTo));
+
+            context.makeSuccess("Updated!").queue();
+
+            TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
+            if (tc != null) {
+                tc.sendMessageEmbeds(
+                        context.makeInfo("[``:tableSetting`` was changed to ``:value`` by :mention](:link)")
+                                .set("tableSetting", table).set("value", setTo)
+                                .set("mention", context.getMember().getAsMention())
+                                .set("link", context.getMessage().getJumpUrl()).buildEmbed())
+                        .queue();
+            }
+
+            return true;
+        } catch (SQLException throwables) {
+            Xeus.getLogger().error("ERROR: ", throwables);
+            context.makeError("Database error!").queue();
+            return false;
+        }
     }
 
     private boolean handleRoleSetupArguments(CommandMessage context, String[] args) {

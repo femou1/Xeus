@@ -44,21 +44,6 @@ public class GuildSettingsTransformer extends Transformer {
     private long mainDiscordRole = 0;
     private int minimumHrRank = 255;
     private int minimumLeadRank = 255;
-    private boolean globalBan;
-    private boolean globalKick;
-    private boolean globalVerify;
-    private boolean globalAntiUnban;
-    private boolean globalFilter;
-    private List<String> globalFilterExact = new ArrayList<>();
-    private List<String> globalFilterWildcard = new ArrayList<>();
-    private long globalFilterLogChannel;
-    private boolean globalAutomod;
-    private int automodMassMention;
-    private int automodEmojiSpam;
-    private int automodLinkSpam;
-    private int automodMessageSpam;
-    private int automodImageSpam;
-    private int automodCharacterSpam;
     private Set<Long> localLeadRoles = new HashSet<>();
     private Set<Long> localHRRoles = new HashSet<>();
     private Set<Long> noLinksRoles = new HashSet<>();
@@ -67,6 +52,7 @@ public class GuildSettingsTransformer extends Transformer {
     private String pbVerificationBlacklistLink;
     private boolean verificationAntiMainGlobalModImpersonation;
     private boolean permissionBypass;
+    private boolean isOfficialSubGroup;
 
     // Guild Settings
     private final List<String> badWordsExact = new ArrayList<>();
@@ -101,19 +87,7 @@ public class GuildSettingsTransformer extends Transformer {
             mainDiscordRole = data.getLong("main_discord_role");
             minimumHrRank = data.getInt("minimum_hr_rank");
             minimumLeadRank = data.getInt("minimum_lead_rank");   
-            globalBan = data.getBoolean("global_ban");
-            globalKick = data.getBoolean("global_kick");
-            globalVerify = data.getBoolean("global_verify");
-            globalAntiUnban = data.getBoolean("global_anti_unban");
-            globalFilter = data.getBoolean("global_filter");
-            globalFilterLogChannel = data.getLong("global_filter_log_channel");
-            globalAutomod = data.getBoolean("global_automod");
-            automodMassMention = data.getInt("automod_mass_mention");
-            automodEmojiSpam = data.getInt("automod_emoji_spam");
-            automodLinkSpam = data.getInt("automod_link_spam");
-            automodMessageSpam = data.getInt("automod_message_spam");
-            automodImageSpam = data.getInt("automod_image_spam");
-            automodCharacterSpam = data.getInt("automod_character_spam");
+
             pbVerificationTrelloban = data.getBoolean("pb_verification_trelloban");
             pbVerificationBlacklistLink = data.getString("pb_verification_blacklist_link");
             verificationAntiMainGlobalModImpersonation = data.getBoolean("verification_anti_main_global_mod_impersonate");
@@ -135,6 +109,7 @@ public class GuildSettingsTransformer extends Transformer {
             voteValidationChannelId = data.getLong("vote_validation_channel_id");
             userAlertsChannelId = data.getLong("user_alerts_channel_id");
             evaluationEvalChannel = data.getLong("evaluation_answer_channel");
+            isOfficialSubGroup = data.getBoolean("official_sub_group");
 
             if (data.getString("moderator_roles", null) != null) {
                 List <String> moderatorRoles = Xeus.gson.fromJson(
@@ -202,23 +177,6 @@ public class GuildSettingsTransformer extends Transformer {
                         //
                     }
                 }
-            }
-             
-            if (data.getString("global_filter_exact", null) != null) {
-                List <String> dbFilter = Xeus.gson.fromJson(
-                    data.getString("global_filter_exact"),
-                    new TypeToken <List <String>>() {
-                    }.getType());
-    
-                    globalFilterExact.addAll(dbFilter);
-            }
-            if (data.getString("global_filter_wildcard", null) != null) {
-                List <String> dbFilter = Xeus.gson.fromJson(
-                    data.getString("global_filter_wildcard"),
-                    new TypeToken <List <String>>() {
-                    }.getType());
-    
-                globalFilterWildcard.addAll(dbFilter);
             }
             
             if (data.getString("filter_exact", null) != null) {
@@ -316,142 +274,7 @@ public class GuildSettingsTransformer extends Transformer {
         this.minimumLeadRank = minimumLeadRank;
     }
 
-    public boolean isGlobalBan() {
-        return this.globalBan;
-    }
-
-    public boolean getGlobalBan() {
-        return this.globalBan;
-    }
-
-    public void setGlobalBan(boolean globalBan) {
-        this.globalBan = globalBan;
-    }
-
-    public boolean isGlobalKick() {
-        return this.globalKick;
-    }
-
-    public boolean getGlobalKick() {
-        return this.globalKick;
-    }
-
-    public void setGlobalKick(boolean globalKick) {
-        this.globalKick = globalKick;
-    }
-
-    public boolean isGlobalVerify() {
-        return this.globalVerify;
-    }
-
-    public boolean getGlobalVerify() {
-        return this.globalVerify;
-    }
-
-    public void setGlobalVerify(boolean globalVerify) {
-        this.globalVerify = globalVerify;
-    }
-
-    public boolean isGlobalAntiUnban() {
-        return this.globalAntiUnban;
-    }
-
-    public boolean getGlobalAntiUnban() {
-        return this.globalAntiUnban;
-    }
-
-    public void setGlobalAntiUnban(boolean globalAntiUnban) {
-        this.globalAntiUnban = globalAntiUnban;
-    }
-
-    public boolean isGlobalFilter() {
-        return this.globalFilter;
-    }
-
-    public boolean getGlobalFilter() {
-        return this.globalFilter;
-    }
-
-    public void setGlobalFilter(boolean globalFilter) {
-        this.globalFilter = globalFilter;
-    }
-
-    public List<String> getGlobalFilterExact() {
-        return this.globalFilterExact;
-    }
-
-    public List<String> getGlobalFilterWildcard() {
-        return this.globalFilterWildcard;
-    }
-
-    public long getGlobalFilterLogChannel() {
-        return this.globalFilterLogChannel;
-    }
-
-    public void setGlobalFilterLogChannel(long globalFilterLogChannel) {
-        this.globalFilterLogChannel = globalFilterLogChannel;
-    }
-
-    public boolean isGlobalAutomod() {
-        return this.globalAutomod;
-    }
-
-    public boolean getGlobalAutomod() {
-        return this.globalAutomod;
-    }
-
-    public void setGlobalAutomod(boolean globalAutomod) {
-        this.globalAutomod = globalAutomod;
-    }
-
-    public int getMassMention() {
-        return this.automodMassMention;
-    }
-
-    public void setMassMention(int automodMassMention) {
-        this.automodMassMention = automodMassMention;
-    }
-
-    public int getEmojiSpam() {
-        return this.automodEmojiSpam;
-    }
-
-    public void setEmojiSpam(int automodEmojiSpam) {
-        this.automodEmojiSpam = automodEmojiSpam;
-    }
-
-    public int getLinkSpam() {
-        return this.automodLinkSpam;
-    }
-
-    public void setLinkSpam(int automodLinkSpam) {
-        this.automodLinkSpam = automodLinkSpam;
-    }
-
-    public int getMessageSpam() {
-        return this.automodMessageSpam;
-    }
-
-    public void setMessageSpam(int automodMessageSpam) {
-        this.automodMessageSpam = automodMessageSpam;
-    }
-
-    public int getImageSpam() {
-        return this.automodImageSpam;
-    }
-
-    public void setImageSpam(int automodImageSpam) {
-        this.automodImageSpam = automodImageSpam;
-    }
-
-    public int getCharacterSpam() {
-        return this.automodCharacterSpam;
-    }
-
-    public void setCharacterSpam(int automodCharacterSpam) {
-        this.automodCharacterSpam = automodCharacterSpam;
-    }
-
+   
     public Set<Long> getLeadRoles() {
         return this.localLeadRoles;
     }
@@ -639,5 +462,10 @@ public class GuildSettingsTransformer extends Transformer {
     public void setEvaluationEvalChannel(long evaluationEvalChannel) {
         this.evaluationEvalChannel = evaluationEvalChannel;
     }
-
+    public boolean isOfficialSubGroup() {
+        return this.isOfficialSubGroup;
+    }
+    public void setIsOfficialSubGroup(boolean sOSG) {
+        this.isOfficialSubGroup = sOSG;
+    }
 }

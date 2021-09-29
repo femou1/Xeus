@@ -71,8 +71,8 @@ public class Blacklist {
      * @param id Checks if the given ID is blacklisted.
      * @return <code>True</code> if the ID is on the blacklist, <code>False</code> otherwise.
      */
-    public boolean isBlacklisted(long id) {
-        return blacklist.contains(id);
+    public boolean isBlacklisted(Long id) {
+        return blacklist.stream().anyMatch(l -> l.getId() == id);
     }
 
     /**
@@ -143,7 +143,7 @@ public class Blacklist {
      * @param id The ID to remove from teh blacklist.
      */
     public void remove(long id) {
-        if (!blacklist.contains(id)) {
+        if (!isBlacklisted(id)) {
             return;
         }
 

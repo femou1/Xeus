@@ -72,7 +72,7 @@ public class WhitelistCommand extends Command {
         }
 
         if (args.length > 0) {
-            switch (args[0]) {
+            switch (args[0].toLowerCase()) {
                 case "add":
                     return addToWhitelist(context);
                 case "remove":

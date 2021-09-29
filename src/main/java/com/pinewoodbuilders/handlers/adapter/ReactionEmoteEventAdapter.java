@@ -208,10 +208,11 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
      * Some custom stuff, related to Pinewood specifically.
      */
 
+
     public void onGuildSuggestionValidation(GuildMessageReactionAddEvent e) {
         loadDatabasePropertiesIntoMemory(e).thenAccept(databaseEventHolder -> {
             if (databaseEventHolder.getGuildSettings().getVoteValidationChannelId() != 0) {
-                if (e.getChannel().getId().equals(databaseEventHolder.getGuildSettings().getVoteValidationChannelId())) {
+                if (e.getChannel().getIdLong() == databaseEventHolder.getGuildSettings().getVoteValidationChannelId()) {
                     e.getChannel().retrieveMessageById(e.getMessageId()).queue(
                         message -> {
                             if (message.getEmbeds().size() > 0) {
@@ -807,15 +808,15 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
         final GuildMessageReactionAddEvent event) {
         return CompletableFuture.supplyAsync(() -> {
             if (!event.getChannel().getType().isGuild()) {
-                return new DatabaseEventHolder(null, null, null, null);
+                return new DatabaseEventHolder(null, null, null, null, null);
             }
 
             GuildTransformer guild = GuildController.fetchGuild(avaire, event.getGuild());
 
             if (guild == null || !guild.isLevels() || event.getMember().getUser().isBot()) {
-                return new DatabaseEventHolder(guild, null, null, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
+                return new DatabaseEventHolder(guild, null, null, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), null);
             }
-            return new DatabaseEventHolder(guild, null, null, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
+            return new DatabaseEventHolder(guild, null, null, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), null);
         });
     }
 

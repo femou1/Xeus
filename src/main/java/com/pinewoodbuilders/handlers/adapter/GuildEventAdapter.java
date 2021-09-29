@@ -176,8 +176,7 @@ public class GuildEventAdapter extends EventAdapter {
     }
 
     public void onGenericGuildEvent(GenericGuildEvent event) {
-        GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire,
-                event.getGuild());
+        GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild());
         if (transformer.getAuditLogsChannelId() != 0) {
             TextChannel tc = event.getGuild().getTextChannelById(transformer.getAuditLogsChannelId());
             if (tc != null) {

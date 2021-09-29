@@ -57,7 +57,7 @@ public class SelectAccountCommand extends Command {
                 return startAccountSelector(context, accounts);
             }
 
-            switch (args[0]) {
+            switch (args[0].toLowerCase()) {
                 case "view":
                 default:
                     return runAccountCheck(context, accounts);

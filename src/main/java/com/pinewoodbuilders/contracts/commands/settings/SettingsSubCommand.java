@@ -6,6 +6,8 @@ import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.settings.GuildAndGlobalSettingsCommand;
+import com.pinewoodbuilders.commands.settings.server.ServerSettingsSubCommand;
+import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.query.QueryBuilder;

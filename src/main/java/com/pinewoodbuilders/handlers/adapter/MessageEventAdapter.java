@@ -31,6 +31,7 @@ import com.pinewoodbuilders.contracts.cache.CachedMessage;
 import com.pinewoodbuilders.contracts.handlers.EventAdapter;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
+import com.pinewoodbuilders.database.controllers.GlobalSettingsController;
 import com.pinewoodbuilders.database.controllers.GuildController;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.controllers.PlayerController;
@@ -38,9 +39,9 @@ import com.pinewoodbuilders.database.controllers.ReactionController;
 import com.pinewoodbuilders.database.controllers.VerificationController;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.ChannelTransformer;
+import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
-import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.handlers.DatabaseEventHolder;
 import com.pinewoodbuilders.language.I18n;
@@ -204,7 +205,7 @@ public class MessageEventAdapter extends EventAdapter {
         return b;
     }
 
-    private boolean checkGlobalWildcardFilter(String contentStripped, GuildSettingsTransformer guild, Message messageId) {
+    private boolean checkGlobalWildcardFilter(String contentStripped, GlobalSettingsTransformer guild, Message messageId, GuildSettingsTransformer settings) {
         String words = contentStripped.toLowerCase();
         List <String> badWordsList = replace(guild.getGlobalFilterWildcard());
         //System.out.println("UFWords: " + words);
@@ -212,14 +213,14 @@ public class MessageEventAdapter extends EventAdapter {
 
         for (String word : badWordsList) {
             if (words.contains(word)) {
-                warnUserColor(messageId, guild, "**GLOBAL AUTOMOD**: Global Filter was activated!\n**Type**: " + "``WILDCARD``\n**Sentence Filtered**: " + contentStripped, new Color(0, 0, 0), messageId.getTextChannel());
+                warnUserColor(messageId, settings, "**GLOBAL AUTOMOD**: Global Filter was activated!\n**Type**: " + "``WILDCARD``\n**Sentence Filtered**: " + contentStripped, new Color(0, 0, 0), messageId.getTextChannel());
                 return true;
             }
         }
         return false;
     }
 
-    private boolean checkGlobalExactFilter(String contentRaw, GuildSettingsTransformer databaseEventHolder, Message messageId) {
+    private boolean checkGlobalExactFilter(String contentRaw, GlobalSettingsTransformer databaseEventHolder, Message messageId, GuildSettingsTransformer guild) {
         // system.out.println("FILTER ENABLED");
         List <String> words = replace(Arrays.asList(contentRaw.split(" ")));
         List <String> badWordsList = replace(databaseEventHolder.getGlobalFilterExact());
@@ -229,7 +230,7 @@ public class MessageEventAdapter extends EventAdapter {
 
         boolean b = words.stream().anyMatch(badWordsList::contains);
         if (b) {
-            return warnUserColor(messageId, databaseEventHolder, "**GLOBAL AUTOMOD**: Global Filter was activated!\n**Type**: " + "``EXACT``\n**Sentence Filtered**: \n" + contentRaw, new Color(0, 0, 0), messageId.getTextChannel());
+            return warnUserColor(messageId, guild, "**GLOBAL AUTOMOD**: Global Filter was activated!\n**Type**: " + "``EXACT``\n**Sentence Filtered**: \n" + contentRaw, new Color(0, 0, 0), messageId.getTextChannel());
         }
         return b;
     }
@@ -294,11 +295,13 @@ public class MessageEventAdapter extends EventAdapter {
             return;
         }
 
-        if (!databaseEventHolder.getGuildSettings().getGlobalFilter()) {
+        if (!databaseEventHolder.getGlobalSettings().getGlobalFilter()) {
             return;
         }
 
         GuildSettingsTransformer guild = databaseEventHolder.getGuildSettings();
+        GlobalSettingsTransformer settings = databaseEventHolder.getGlobalSettings();
+
         if (guild != null) {
 
             if (!event.getContentRaw().startsWith("debug:") && CheckPermissionUtil.getPermissionLevel(guild, genericMessageEvent.getGuild(), event.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
@@ -316,17 +319,17 @@ public class MessageEventAdapter extends EventAdapter {
 
             String message = event.getContentStripped().replaceAll("[!@#$%^&*()\\[\\]\\-=';/\\\\{}:\"><?|+_`~]", "");
 
-            if (checkGlobalExactFilter(message, guild, event)) {
+            if (checkGlobalExactFilter(message, settings, event, guild)) {
                 System.out.println("Exact Filter removed: " + message);
                 event.delete().queue();
                 MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, event.getAuthor().getIdLong(), event);
                 return;
-            } else if (checkGlobalWildcardFilter(message, guild, event)) {
+            } else if (checkGlobalWildcardFilter(message, settings, event, guild)) {
                 System.out.println("Wildcard Filter removed: " + message);
                 event.delete().queue();
                 MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, event.getAuthor().getIdLong(), event);
                 return;
-            } else if (checkAutomodFilters(guild, event)) {
+            } else if (checkAutomodFilters(settings, event, guild)) {
                 event.getTextChannel().retrieveMessageById(event.getId()).queue(l -> {
                     l.delete().reason("Auto-Mod Violation").queue();
                     System.out.println("AutoMod removed in " + event.getGuild().getName() + " (<#" + event.getTextChannel().getId() + ">): " + event.getContentRaw());
@@ -380,11 +383,11 @@ public class MessageEventAdapter extends EventAdapter {
         return fetchRedirect(con.getHeaderField("Location"), redirects);
     }
 
-    private boolean checkAutomodFilters(GuildSettingsTransformer transformer, Message message) {
+    private boolean checkAutomodFilters(GlobalSettingsTransformer transformer, Message message, GuildSettingsTransformer guild) {
 
         if (transformer.getMassMention() > 0) {
             if (message.getMentionedMembers().size() >= transformer.getMassMention()) {
-                warnUserColor(message, transformer, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Mass Mention``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
+                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Mass Mention``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
                 message.getChannel().sendMessage("Please do not mass mention multiple people. " + message.getMember().getAsMention()).queue();
                 return false;
             }
@@ -393,7 +396,7 @@ public class MessageEventAdapter extends EventAdapter {
             Pattern pattern = Pattern.compile("(.)\\1{" + (transformer.getCharacterSpam() - 1) + ",}", Pattern.CASE_INSENSITIVE);
             Matcher m = pattern.matcher(message.getContentRaw());
             if (m.find()) {
-                warnUserColor(message, transformer, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Character Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
+                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Character Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
                 return true;
             }
         }
@@ -407,7 +410,7 @@ public class MessageEventAdapter extends EventAdapter {
             }
 
             if (count >= transformer.getEmojiSpam()) {
-                warnUserColor(message, transformer, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Emoji Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
+                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Emoji Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
                 message.delete().queue();
                 return true;
             }
@@ -417,7 +420,7 @@ public class MessageEventAdapter extends EventAdapter {
             int spam = (int) history.stream().filter(m -> m.getAuthor().equals(message.getAuthor()) && !message.getAuthor().isBot()).filter(msg -> (message.getTimeCreated().toEpochSecond() - msg.getTimeCreated().toEpochSecond()) < 10).count();
 
             if (spam >= transformer.getMessageSpam() && !message.getGuild().getOwner().equals(message.getMember())) {
-                warnUserColor(message, transformer, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Message Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
+                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Message Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
                 for (Message m : history) {
                     message.getTextChannel().retrieveMessageById(m.getId()).queue(l -> {
                         l.delete().reason("Auto-Mod Violation").queue();
@@ -430,7 +433,7 @@ public class MessageEventAdapter extends EventAdapter {
             List <Message> history = message.getTextChannel().getIterableHistory().stream().limit(10).filter(msg -> !msg.equals(message)).collect(Collectors.toList());
             int spam = (int) history.stream().filter(m -> m.getAuthor().equals(message.getAuthor()) && !message.getAuthor().isBot()).filter(msg -> (message.getTimeCreated().toEpochSecond() - msg.getTimeCreated().toEpochSecond()) < 10 && (msg.getAttachments().size() > 0 && message.getAttachments().size() > 0)).count();
             if (spam >= transformer.getImageSpam() && !message.getGuild().getOwner().equals(message.getMember())) {
-                warnUserColor(message, transformer, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Image Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
+                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Image Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
                 for (Message m : history) {
                     message.getTextChannel().retrieveMessageById(m.getId()).queue(l -> {
                         l.delete().reason("Auto-Mod Violation").queue();
@@ -703,45 +706,45 @@ public class MessageEventAdapter extends EventAdapter {
     private CompletableFuture <DatabaseEventHolder> loadDatabasePropertiesIntoMemory(final MessageReceivedEvent event) {
         return CompletableFuture.supplyAsync(() -> {
             if (!event.getChannelType().isGuild()) {
-                return new DatabaseEventHolder(null, null, null, null);
+                return new DatabaseEventHolder(null, null, null, null, null);
             }
 
             GuildTransformer guild = GuildController.fetchGuild(avaire, event.getMessage());
 
             if (guild == null || !guild.isLevels() || event.getAuthor().isBot()) {
-                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
+                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromMGI(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()).getMainGroupId()));
             }
-            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
+            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromMGI(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()).getMainGroupId()));
         });
     }
 
     private CompletableFuture <DatabaseEventHolder> loadDatabasePropertiesIntoMemory(final SlashCommandEvent event) {
         return CompletableFuture.supplyAsync(() -> {
             if (!event.getChannelType().isGuild()) {
-                return new DatabaseEventHolder(null, null, null, null);
+                return new DatabaseEventHolder(null, null, null, null, null);
             }
 
             GuildTransformer guild = GuildController.fetchGuild(avaire, event.getGuild());
 
             if (guild == null || !guild.isLevels() || event.getUser().isBot()) {
-                return new DatabaseEventHolder(guild, null, VerificationController.fetchVerificationFromGuild(avaire, event.getGuild()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
+                return new DatabaseEventHolder(guild, null, VerificationController.fetchVerificationFromGuild(avaire, event.getGuild()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromMGI(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()).getMainGroupId()));
             }
-            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, null), VerificationController.fetchVerificationFromGuild(avaire, event.getGuild()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
+            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, null), VerificationController.fetchVerificationFromGuild(avaire, event.getGuild()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromMGI(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()).getMainGroupId()));
         });
     }
 
     private CompletableFuture <DatabaseEventHolder> loadDatabasePropertiesIntoMemory(final MessageUpdateEvent event) {
         return CompletableFuture.supplyAsync(() -> {
             if (!event.getChannelType().isGuild()) {
-                return new DatabaseEventHolder(null, null, null, null);
+                return new DatabaseEventHolder(null, null, null, null, null);
             }
 
             GuildTransformer guild = GuildController.fetchGuild(avaire, event.getMessage());
 
             if (guild == null || !guild.isLevels() || event.getAuthor().isBot()) {
-                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
+                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromMGI(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()).getMainGroupId()));
             }
-            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
+            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromMGI(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()).getMainGroupId()));
         });
     }
 

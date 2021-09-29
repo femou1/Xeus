@@ -23,33 +23,19 @@ public class CreateGuildSettingsTableMigration implements Migration {
             table.Long("main_discord_role").nullable();
             table.Integer("minimum_hr_rank").defaultValue(255);
             table.Integer("minimum_lead_rank").defaultValue(255);
-            table.Boolean("global_ban").defaultValue(false);
-            table.Boolean("global_kick").defaultValue(false);
-            table.Boolean("global_verify").defaultValue(false);
-            table.Boolean("global_anti_unban").defaultValue(false);
-            table.Boolean("global_filter").defaultValue(false);
-            table.LongText("global_filter_exact").nullable();
-            table.LongText("global_filter_wildcard").nullable();
-            table.Long("global_filter_log_channel").nullable();
-            table.Boolean("global_automod").nullable();
-            table.Integer("automod_mass_mention", 11).defaultValue(15);
-            table.Integer("automod_emoji_spam", 11).defaultValue(15);
-            table.Integer("automod_link_spam", 11).defaultValue(15);
-            table.Integer("automod_message_spam", 11).defaultValue(15);
-            table.Integer("automod_image_spam", 11).defaultValue(15);
-            table.Integer("automod_character_spam", 11).defaultValue(15);
+            
             table.LongText("admin_roles").nullable();
             table.LongText("manager_roles").nullable();
             table.LongText("moderator_roles").nullable();
             table.LongText("group_shout_roles").nullable();
             table.LongText("no_links_roles").nullable();
-            table.Boolean("pb_verification_trelloban").nullable();
+            table.Boolean("pb_verification_trelloban").defaultValue(false);
             table.String("pb_verification_blacklist_link").nullable();
             table.Boolean("verification_anti_main_global_mod_impersonate").nullable();
             table.Boolean("permission_bypass").defaultValue(false);
         
             table.Long("emoji_id").nullable();
-             
+            
             table.Long("on_watch_channel").nullable();
             table.Long("on_watch_role").nullable();
             

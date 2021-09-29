@@ -97,7 +97,7 @@ public class AuditLogChannelCommand extends Command {
             return false;
         }
 
-        switch (args[0]) {
+        switch (args[0].toLowerCase()){
             case "sc":
             case "set-channel":
                 return runVoteUpdateChannelChannelCommand(context, args, guildTransformer);

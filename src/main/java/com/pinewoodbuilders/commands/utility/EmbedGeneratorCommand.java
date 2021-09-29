@@ -83,7 +83,7 @@ public class EmbedGeneratorCommand extends Command {
                 embeds.put(context.getAuthor(), eb);
             }
 
-            switch (args[0]) {
+            switch (args[0].toLowerCase()) {
                 case "e":
                 case "edit":
                     return runEditArgument(context, args, eb);

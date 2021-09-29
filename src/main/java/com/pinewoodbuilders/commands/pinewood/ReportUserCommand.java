@@ -96,7 +96,7 @@ public class ReportUserCommand extends Command {
         int permissionLevel = CheckPermissionUtil.getPermissionLevel(context).getLevel();
         if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             if (args.length > 0) {
-                switch (args[0]) {
+                switch (args[0].toLowerCase()) {
                     case "sr":
                     case "set-reports":
                         return runSetReportChannel(context, args);

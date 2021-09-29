@@ -1,7 +1,9 @@
 package com.pinewoodbuilders.commands.settings.server;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
@@ -16,6 +18,7 @@ import com.pinewoodbuilders.utilities.NumberUtil;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 public class ServerSettingsSubCommand extends SettingsSubCommand {
 
@@ -36,7 +39,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             return sendEnabledRoles(context, guildTransformer);
         }
 
-        switch (args[0]) {
+        switch (args[0].toLowerCase()) {
             case "smhrr":
             case "s-mhr-r":
             case "set-mhr-rank":
@@ -51,9 +54,46 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             case "sgi":
             case "set-group-id":
                 return runSetGroupId(context, args);
-            default:
+            case "uac":
+            case "user-alerts-channel":
+            case "alerts-channel":
+                return runYoungWarningChannelUpdateCommand(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
+            case "permissions":
+            case "roles":
+            case "setup":
                 return handleRoleSetupArguments(context, args);
+            default:
+                return command.sendErrorMessage(context, "I'm unable to find the argument you're looking for, ya twat. Try again. Lemme remind you of the possible commands.", 5, TimeUnit.MINUTES);
+                
         }
+    }
+
+    private boolean runYoungWarningChannelUpdateCommand(CommandMessage context, String[] args, GuildSettingsTransformer transformer) {
+        TextChannel c = context.getGuild().getTextChannelById(args[0]);
+        if (NumberUtil.isNumeric(args[0]) && c != null) {
+            context.makeInfo("Updated young member warning channel to " + c.getName()).queue();
+            transformer.setUserAlertsChannelId(Long.parseLong(args[0]));
+            return updateLocalRecordInDatabase(context, "user_alerts_channel_id", transformer.getUserAlertsChannelId());
+        } else {
+            context.makeError("Please enter a valid channel ID.").queue();
+            return false;
+        }
+    }
+    private boolean updateLocalRecordInDatabase(CommandMessage context, String member_to_young_channel_id,
+            long memberToYoungChannelId) {
+        try {
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
+                    .where("id", context.getGuild().getId()).update(p -> {
+                        p.set(member_to_young_channel_id, memberToYoungChannelId);
+                    });
+            context.makeSuccess("Channel was set!").queue();
+        } catch (SQLException exception) {
+            Xeus.getLogger().error("ERROR: ", exception);
+            context.makeError("Something went wrong...");
+            return false;
+        }
+        context.makeSuccess("Done!").queue();
+        return true;
     }
 
     private boolean runSetMinimalLeadRank(CommandMessage context, String[] args) {

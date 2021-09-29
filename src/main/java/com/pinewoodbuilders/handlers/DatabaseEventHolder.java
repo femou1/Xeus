@@ -21,6 +21,7 @@
 
 package com.pinewoodbuilders.handlers;
 
+import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
@@ -35,6 +36,7 @@ public class DatabaseEventHolder {
     private final PlayerTransformer player;
     private final VerificationTransformer verification;
     private final GuildSettingsTransformer guildSettings;
+    private final GlobalSettingsTransformer globalSettings;
 
     /**
      * Creates a new database holder instance using the given guild and player
@@ -45,11 +47,12 @@ public class DatabaseEventHolder {
      * @param player The player transformer that should be stored in the event
      *               holder.
      */
-    public DatabaseEventHolder(GuildTransformer guild, PlayerTransformer player, VerificationTransformer verification, GuildSettingsTransformer guildSettings) {
+    public DatabaseEventHolder(GuildTransformer guild, PlayerTransformer player, VerificationTransformer verification, GuildSettingsTransformer guildSettings, GlobalSettingsTransformer globalSettings) {
         this.guild = guild;
         this.player = player;
         this.verification = verification;
         this.guildSettings = guildSettings;
+        this.globalSettings = globalSettings;
     }
 
     /**
@@ -86,5 +89,10 @@ public class DatabaseEventHolder {
     @Nullable
     public GuildSettingsTransformer getGuildSettings() {
         return guildSettings;
+    }
+
+    @Nullable
+    public GlobalSettingsTransformer getGlobalSettings() {
+        return globalSettings;
     }
 }

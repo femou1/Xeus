@@ -10,7 +10,10 @@ import com.pinewoodbuilders.requests.service.kronos.trelloban.trello.Datum;
 import com.pinewoodbuilders.requests.service.kronos.trelloban.trello.Label;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
 import com.pinewoodbuilders.utilities.NumberUtil;
+
+import okhttp3.MediaType;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -96,6 +99,39 @@ public class KronosManager {
             e.printStackTrace();
         }
         return false;
+    }
+    private static final MediaType json = MediaType.parse("application/json; charset=utf-8");
+
+    public JSONArray modifyEvalStatus(Long userId, String division, boolean status) {
+        Request.Builder request = new Request.Builder()
+            .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
+            .addHeader("Access-Key", apikey)
+            .url("https://pb-kronos.dev/api/v2/database/eval/"+division+"/" + userId);
+
+        if (status) {
+            request.post(RequestBody.create(json, "[]"));
+        } else {
+            request.delete(RequestBody.create(json, "[]"));
+        }
+
+        try (Response response = manager.getClient().newCall(request.build()).execute()) {
+            if (response.code() == 200 && response.body() != null) {
+                String body = response.body().string();
+                JSONArray array = new JSONArray(body);
+                return array;
+            } else if (response.code() == 404) {
+                return new JSONArray(response.body().string());
+            } else if (response.code() == 501) {
+                return new JSONArray("[{\"error\": \"Eval status could not be set.\"}]");
+            } else {
+                throw new Exception("Kronos API returned something else then 200, please retry.");
+            }
+        } catch (IOException e) {
+            Xeus.getLogger().error("Failed sending request to Kronos API: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 

@@ -24,6 +24,9 @@ package com.pinewoodbuilders;
 import java.io.File;
 import java.util.ArrayList;
 
+import net.dv8tion.jda.annotations.ForRemoval;
+import net.dv8tion.jda.annotations.ReplaceWith;
+
 @SuppressWarnings("WeakerAccess")
 public class Constants {
 
@@ -54,6 +57,7 @@ public class Constants {
     public static final String ROLE_PERSISTENCE_TABLE_NAME = "role_persistence";
 
     // Pinewood Specific Tables
+    public static final String GLOBAL_SETTINGS_TABLE = "global_settings";
     public static final String EVALS_DATABASE_TABLE_NAME = "pinewood_evaluations";
     public static final String EVALS_LOG_DATABASE_TABLE_NAME = "pinewood_evaluations_log";
     public static final String PENDING_QUIZ_TABLE_NAME = "pinewood_pending_quiz";
@@ -119,7 +123,10 @@ public class Constants {
         add("853888061476438017"); // MegaRaidOrg Server
     }};
 
-    // BYPASS USERS
+    // BYPASS USERS    
+    @Deprecated
+    @ForRemoval
+    @ReplaceWith("Globalmod Check")
     public static final ArrayList <String> piaMembers = new ArrayList<String>() {{
         add("251818929226383361"); // CombatSwift
         add("194517256389132288"); // Coasterteam
@@ -140,6 +147,5 @@ public class Constants {
         //add("257193596074065921"); // Omni - Not MGM Anymore.
         //add("329668217515540482"); // TenX - Has left
     }};
-
 
 }
