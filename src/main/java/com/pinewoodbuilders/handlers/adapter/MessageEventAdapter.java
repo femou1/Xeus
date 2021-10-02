@@ -47,10 +47,10 @@ import com.pinewoodbuilders.handlers.DatabaseEventHolder;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.middleware.MiddlewareStack;
 import com.pinewoodbuilders.middleware.ThrottleMiddleware;
+import com.pinewoodbuilders.moderation.mute.automute.MuteRatelimit;
 import com.pinewoodbuilders.modlog.Modlog;
 import com.pinewoodbuilders.modlog.ModlogAction;
 import com.pinewoodbuilders.modlog.ModlogType;
-import com.pinewoodbuilders.mute.automute.MuteRatelimit;
 import com.avairebot.shared.DiscordConstants;
 import com.pinewoodbuilders.utilities.ArrayUtil;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
@@ -710,11 +710,17 @@ public class MessageEventAdapter extends EventAdapter {
             }
 
             GuildTransformer guild = GuildController.fetchGuild(avaire, event.getMessage());
+            GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild());
 
-            if (guild == null || !guild.isLevels() || event.getAuthor().isBot()) {
-                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromMGI(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()).getMainGroupId()));
+            if ((guild == null || !guild.isLevels() || event.getAuthor().isBot()) && settings == null) {
+                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), settings, null);
             }
-            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromMGI(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()).getMainGroupId()));
+
+            if (settings == null || settings.getMainGroupId() == 0) {
+                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), settings, null);
+            }
+
+            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(avaire, settings));
         });
     }
 
@@ -727,9 +733,9 @@ public class MessageEventAdapter extends EventAdapter {
             GuildTransformer guild = GuildController.fetchGuild(avaire, event.getGuild());
 
             if (guild == null || !guild.isLevels() || event.getUser().isBot()) {
-                return new DatabaseEventHolder(guild, null, VerificationController.fetchVerificationFromGuild(avaire, event.getGuild()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromMGI(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()).getMainGroupId()));
+                return new DatabaseEventHolder(guild, null, VerificationController.fetchVerificationFromGuild(avaire, event.getGuild()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild())));
             }
-            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, null), VerificationController.fetchVerificationFromGuild(avaire, event.getGuild()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromMGI(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()).getMainGroupId()));
+            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, null), VerificationController.fetchVerificationFromGuild(avaire, event.getGuild()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild())));
         });
     }
 
@@ -740,12 +746,17 @@ public class MessageEventAdapter extends EventAdapter {
             }
 
             GuildTransformer guild = GuildController.fetchGuild(avaire, event.getMessage());
+            GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild());
 
-            if (guild == null || !guild.isLevels() || event.getAuthor().isBot()) {
-                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromMGI(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()).getMainGroupId()));
+            if ((guild == null || !guild.isLevels() || event.getAuthor().isBot()) && settings == null) {
+                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), settings, null);
             }
-            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromMGI(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()).getMainGroupId()));
-        });
+
+            if (settings == null || settings.getMainGroupId() == 0) {
+                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), settings, null);
+            }
+
+            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(avaire, settings));});
     }
 
     public void onMessageDelete(TextChannel channel, List <String> messageIds) {

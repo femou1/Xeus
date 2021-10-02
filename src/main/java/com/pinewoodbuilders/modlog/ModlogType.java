@@ -43,10 +43,10 @@ public enum ModlogType {
     VOICE_KICK(2, "\uD83D\uDC62", false, MessageType.WARNING.getColor()),
 
     /**
-     * Represents when a user is banned from a server without the
-     * message they sent over the last 7 days are left alone.
+     * Represents when a user is banned from a server and gets a unban after
+     * a certain amount of time. Specified in the ban.
      */
-    SOFT_BAN(3, "\uD83D\uDD28", true, MessageType.ERROR.getColor()),
+    TEMP_BAN(3, "\uD83D\uDD28", true, MessageType.ERROR.getColor()),
 
     /**
      * Represents when a user is banned from a server, including

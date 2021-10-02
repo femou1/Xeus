@@ -72,7 +72,7 @@ public class Blacklist {
      * @return <code>True</code> if the ID is on the blacklist, <code>False</code> otherwise.
      */
     public boolean isBlacklisted(Long id) {
-        return blacklist.stream().anyMatch(l -> l.getId() == id);
+        return blacklist.contains(id);
     }
 
     /**

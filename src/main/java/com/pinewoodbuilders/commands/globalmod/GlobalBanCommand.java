@@ -162,6 +162,11 @@ public class GlobalBanCommand extends Command {
             return false;
         }
 
+        if (context.getGlobalSettingsTransformer() == null) {
+            context.makeError("The global settings could not be loaded, please try again later. Otherwise if this issue still persists, contact the developer!").queue();
+            return true;
+        }
+
         StringBuilder sb = new StringBuilder();
         try {
             Collection guilds = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
@@ -186,32 +191,33 @@ public class GlobalBanCommand extends Command {
                 Guild guild = avaire.getShardManager().getGuildById(row.getString("id"));
                 if (guild == null) continue;
                 if (!guild.getSelfMember().hasPermission(Permission.BAN_MEMBERS)) continue;                
-                if (row.getBoolean("global_ban", false)) {
+                if (context.getGlobalSettingsTransformer().getGlobalBan()) {
                     if (row.getBoolean("official_sub_group", false)) {
-                    //     guild.ban(args[0], time, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: " + reason
-                    // + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
-                    // .reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason)
-                    // .queue();
+                         guild.ban(args[0], time, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: " + reason
+                     + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
+                     .reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason)
+                     .queue();
                     sb.append("``").append(guild.getName()).append("`` - :white_check_mark:\n");
                     } else {
-                    //    guild.ban(args[0], time, "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
-                    //.queue();
+                        guild.ban(args[0], time, "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
+                    .queue();
                     }
                     bannedGuilds++;
                 } else {
-                    sb.append("``").append(guild.getName()).append("`` - :x:\n");
-                }
+                    context.makeError("Global-banning has been disabled across your entire list of guilds, you are not able to use this feature because of this.").queue();
+                    return false;
+                                }
             }
 
             if (avaire.getShardManager().getUserById(args[0]) != null) {
                 String finalReason = reason;
                 avaire.getShardManager().getUserById(args[0]).openPrivateChannel().queue(p -> {
                     p.sendMessageEmbeds(context.makeInfo(
-                            "*You have been **global-banned** from all discord that are connected to [this group] by an MGM Moderator. "
+                            "*You have been **global-banned** from all discord that are connected to [this group](:groupLink) by an MGM Moderator. "
                                     + "For the reason: *```" + finalReason + "```\n\n"
                                     + "If you feel that your ban was unjustified please appeal at the group in question;"
                                     + "https://discord.gg/mWnQm25")
-                            .setColor(Color.BLACK).buildEmbed()).queue();
+                            .setColor(Color.BLACK).set("groupLink", "https://roblox.com/groups/" + context.getGlobalSettingsTransformer().getMainGroupId()).buildEmbed()).queue();
                 });
             }
 
@@ -219,7 +225,7 @@ public class GlobalBanCommand extends Command {
             TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
             if (tc != null) {
                 tc.sendMessageEmbeds(context.makeInfo(
-                        "[``:global-unbanned-id`` was global-banned from all discords that have global-ban enabled :user for](:link):\n"
+                        "[``:global-unbanned-id`` was global-banned from all discords that have global-ban enabled. Banned by: ***:user*** for](:link):\n"
                                 + "```:reason```")
                         .set("global-unbanned-id", args[0]).set("reason", reason)
                         .set("user", context.getMember().getAsMention())
@@ -229,12 +235,12 @@ public class GlobalBanCommand extends Command {
 
                 VerificationEntity ve = avaire.getRobloxAPIManager().getVerification()
                         .fetchInstantVerificationWithBackup(args[0]);
-                // try {
-                //     handleGlobalPermBan(context, args, reason, ve);
-                // } catch (SQLException exception) {
-                //     Xeus.getLogger().error("ERROR: ", exception);
-                //     context.makeError("Something went wrong adding this user to the global perm ban database.").queue();
-                // }
+                try {
+                    handleGlobalPermBan(context, args, reason, ve);
+                } catch (SQLException exception) {
+                    Xeus.getLogger().error("ERROR: ", exception);
+                    context.makeError("Something went wrong adding this user to the global perm ban database.").queue();
+                }
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -309,8 +315,7 @@ public class GlobalBanCommand extends Command {
         try {
             Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("punisherId", id)
                     .get();
-            int i = c.size();
-            if (i < 1) {
+            if (c.size() < 1) {
                 context.makeInfo("This person has not banned anyone.").queue();
                 return false;
             }

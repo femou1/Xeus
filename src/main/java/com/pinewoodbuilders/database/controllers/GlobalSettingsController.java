@@ -23,7 +23,9 @@ package com.pinewoodbuilders.database.controllers;
 
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.CacheUtil;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -41,7 +43,8 @@ public class GlobalSettingsController {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalSettingsController.class);
 
-    private static final String[] requiredSettingsColumns = new String[] { "global_settings.main_group_name",
+    private static final String[] requiredSettingsColumns = new String[] { 
+            "global_settings.main_group_name",
             "global_settings.main_group_id", "global_settings.global_ban", "global_settings.global_kick",
             "global_settings.global_verify", "global_settings.global_anti_unban", "global_settings.global_filter",
             "global_settings.global_filter_exact", "global_settings.global_filter_wildcard",
@@ -60,10 +63,12 @@ public class GlobalSettingsController {
      *         or null.
      */
     @CheckReturnValue
-    public static GlobalSettingsTransformer fetchGlobalSettingsFromMGI(Xeus avaire, Long groupId) {
-        if (groupId == 0L) {return null;}
-        return (GlobalSettingsTransformer) CacheUtil.getUncheckedUnwrapped(cache, groupId,
-                () -> loadGuildSettingsFromDatabase(avaire, groupId));
+    public static GlobalSettingsTransformer fetchGlobalSettingsFromGroupSettings(Xeus avaire, GuildSettingsTransformer transformer) {
+        if (transformer == null) {return null;}
+        if (transformer.getMainGroupId() == 0) {return null;}
+
+        return (GlobalSettingsTransformer) CacheUtil.getUncheckedUnwrapped(cache, transformer.getMainGroupId(),
+                () -> loadGuildSettingsFromDatabase(avaire, transformer.getMainGroupId()));
     }
 
     public static void forgetCache(long groupId) {
@@ -75,13 +80,14 @@ public class GlobalSettingsController {
             log.debug("Settings cache for " + groupId + " was refreshed");
         }
         try {
+            Collection query = avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE).select(requiredSettingsColumns)
+            .where("global_settings.main_group_id", groupId).get();
             GlobalSettingsTransformer transformer = new GlobalSettingsTransformer(groupId,
-                    avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).select(requiredSettingsColumns)
-                            .where("global_settings.main_group_id", groupId).get().first());
+            query.first());
 
-            if (!transformer.hasData()) {
+            if (query.size() == 0) {
                 return null;
-            }
+            } 
 
             return transformer;
         } catch (Exception ex) {

@@ -135,7 +135,21 @@ public class Modlog {
             case WARN:
             case KICK:
             case BAN:
-            case SOFT_BAN:
+            case TEMP_BAN:
+            //noinspection ConstantConditions
+            split = action.getMessage().split("\n");
+            builder
+                .addField("User", action.getStringifiedTarget(), true)
+                .addField("Moderator", action.getStringifiedModerator(), true);
+
+            if (split[0].length() > 0) {
+                builder.addField("Expires At", split[0], true);
+            }
+
+            builder.addField("Reason", formatReason(transformer, String.join("\n",
+                Arrays.copyOfRange(split, 1, split.length)
+            )), false);
+            break;
             case UNBAN:
             case UNMUTE:
                 builder
@@ -256,7 +270,21 @@ public class Modlog {
             case WARN:
             case KICK:
             case BAN:
-            case SOFT_BAN:
+            case TEMP_BAN:
+                        //noinspection ConstantConditions
+                        split = action.getMessage().split("\n");
+                        builder
+                            .addField("User", action.getStringifiedTarget(), true)
+                            .addField("Moderator", action.getStringifiedModerator(), true);
+            
+                        if (split[0].length() > 0) {
+                            builder.addField("Expires At", split[0], true);
+                        }
+            
+                        builder.addField("Reason", formatReason(transformer, String.join("\n",
+                            Arrays.copyOfRange(split, 1, split.length)
+                        )), false);
+                        break;
             case UNBAN:
             case UNMUTE:
                 builder
@@ -382,7 +410,7 @@ public class Modlog {
                 }
             }
 
-            channel.sendMessage(message.build()).queue(null, RestActionUtil.ignore);
+            channel.sendMessageEmbeds(message.build()).queue(null, RestActionUtil.ignore);
         }, RestActionUtil.ignore);
     }
 
@@ -465,7 +493,7 @@ public class Modlog {
                 message.setFooter("Case ID #" + caseId, null);
             }
 
-            channel.sendMessage(message.build()).queue(null, RestActionUtil.ignore);
+            channel.sendMessageEmbeds(message.build()).queue(null, RestActionUtil.ignore);
         }, RestActionUtil.ignore);
     }
 }

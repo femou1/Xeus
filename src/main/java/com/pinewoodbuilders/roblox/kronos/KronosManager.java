@@ -28,11 +28,13 @@ public class KronosManager {
     private final Xeus avaire;
     private final RobloxAPIManager manager;
     protected final String apikey;
+    private final String evalApiKey;
 
     public KronosManager(Xeus avaire, RobloxAPIManager robloxAPIManager) {
         this.avaire = avaire;
         this.manager = robloxAPIManager;
         this.apikey = avaire.getConfig().getString("apiKeys.kronosDatabaseApiKey");
+        this.evalApiKey = avaire.getConfig().getString("apiKeys.kronosDatabaseEvalsApiKey")
     }
 
     public Long getPoints(Long userId) {
@@ -105,7 +107,7 @@ public class KronosManager {
     public JSONArray modifyEvalStatus(Long userId, String division, boolean status) {
         Request.Builder request = new Request.Builder()
             .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
-            .addHeader("Access-Key", apikey)
+            .addHeader("Access-Key", evalApiKey)
             .url("https://pb-kronos.dev/api/v2/database/eval/"+division+"/" + userId);
 
         if (status) {

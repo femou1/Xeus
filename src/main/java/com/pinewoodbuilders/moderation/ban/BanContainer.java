@@ -19,7 +19,7 @@
  *
  */
 
-package com.pinewoodbuilders.mute;
+package com.pinewoodbuilders.moderation.ban;
 
 import com.pinewoodbuilders.time.Carbon;
 
@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 import java.util.concurrent.ScheduledFuture;
 
 @SuppressWarnings("WeakerAccess")
-public class MuteContainer {
+public class BanContainer {
 
     private final long guildId;
     private final long userId;
@@ -36,14 +36,14 @@ public class MuteContainer {
     private ScheduledFuture<?> schedule;
 
     /**
-     * Creates a mute container using the given guild ID, user ID, and expiration time.
+     * Creates a ban container using the given guild ID, user ID, and expiration time.
      *
-     * @param guildId   The ID of the guild the mute is registered to.
-     * @param userId    The ID of the user the mute is registered for.
-     * @param expiresAt The date and time the mute should expire,
-     *                  or {@code NULL} for permanent mutes.
+     * @param guildId   The ID of the guild the ban is registered to.
+     * @param userId    The ID of the user the ban is registered for.
+     * @param expiresAt The date and time the ban should expire,
+     *                  or {@code NULL} for permanent bans.
      */
-    public MuteContainer(long guildId, long userId, @Nullable Carbon expiresAt) {
+    public BanContainer(long guildId, long userId, @Nullable Carbon expiresAt) {
         this.guildId = guildId;
         this.userId = userId;
         this.expiresAt = expiresAt;
@@ -51,28 +51,28 @@ public class MuteContainer {
     }
 
     /**
-     * Gets the ID of the guild the mute is registered for.
+     * Gets the ID of the guild the ban is registered for.
      *
-     * @return The guild ID the mute is registered for.
+     * @return The guild ID the ban is registered for.
      */
     public long getGuildId() {
         return guildId;
     }
 
     /**
-     * Gets the ID of the user the mute is registered for.
+     * Gets the ID of the user the ban is registered for.
      *
-     * @return The user ID the mute is registered for.
+     * @return The user ID the ban is registered for.
      */
     public long getUserId() {
         return userId;
     }
 
     /**
-     * Gets the date and time the mute should automatically expire,
-     * or {@code NULL} if the mute is permanent.
+     * Gets the date and time the ban should automatically expire,
+     * or {@code NULL} if the ban is permanent.
      *
-     * @return The carbon instance for when the mute should end, or {@code NULL}.
+     * @return The carbon instance for when the ban should end, or {@code NULL}.
      */
     @Nullable
     public Carbon getExpiresAt() {
@@ -80,14 +80,14 @@ public class MuteContainer {
     }
 
     /**
-     * Gets the future scheduled task for the mute, this task is used
-     * to automatically unmute a user if there is 5 minutes or less
-     * left of their temporary mute.
+     * Gets the future scheduled task for the ban, this task is used
+     * to automatically unban a user if there is 5 minutes or less
+     * left of their temporary ban.
      * <p>
-     * If this value is {@code NULL} the automatic mute task haven't
-     * yet been started for the mute container.
+     * If this value is {@code NULL} the automatic ban task haven't
+     * yet been started for the ban container.
      *
-     * @return The future scheduled task used to auto unmute the container, or {@code NULL}.
+     * @return The future scheduled task used to auto unban the container, or {@code NULL}.
      */
     @Nullable
     public ScheduledFuture<?> getSchedule() {
@@ -95,9 +95,9 @@ public class MuteContainer {
     }
 
     /**
-     * Sets the future scheduled task that should automatically unmute the container.
+     * Sets the future scheduled task that should automatically unban the container.
      *
-     * @param schedule The future task used to unmute the container.
+     * @param schedule The future task used to unban the container.
      */
     public void setSchedule(@Nonnull ScheduledFuture<?> schedule) {
         this.schedule = schedule;
@@ -105,7 +105,7 @@ public class MuteContainer {
 
     /**
      * Cancels the future scheduled task used to automatically
-     * unmute the container if one has been started.
+     * unban the container if one has been started.
      */
     public void cancelSchedule() {
         if (schedule != null) {
@@ -115,9 +115,9 @@ public class MuteContainer {
     }
 
     /**
-     * Checks if the registered mute is permanent or temporary.
+     * Checks if the registered ban is permanent or temporary.
      *
-     * @return {@code True} if the mute is permanent, {@code False} otherwise.
+     * @return {@code True} if the ban is permanent, {@code False} otherwise.
      */
     public boolean isPermanent() {
         return getExpiresAt() == null;
@@ -130,7 +130,7 @@ public class MuteContainer {
      * @param container The container that should be compared.
      * @return {@code True} if the containers match, {@code False} otherwise.
      */
-    public boolean isSame(@Nonnull MuteContainer container) {
+    public boolean isSame(@Nonnull BanContainer container) {
         return isSame(container.getGuildId(), container.getUserId());
     }
 
@@ -150,12 +150,12 @@ public class MuteContainer {
 
     @Override
     public boolean equals(Object obj) {
-        return obj != null && obj instanceof MuteContainer && isSame((MuteContainer) obj);
+        return obj != null && obj instanceof BanContainer && isSame((BanContainer) obj);
     }
 
     @Override
     public String toString() {
-        return String.format("MuteContainer={guildId=%s, userId=%s, expiresAt=%s}",
+        return String.format("BanContainer={guildId=%s, userId=%s, expiresAt=%s}",
             getGuildId(), getUserId(), getExpiresAt()
         );
     }

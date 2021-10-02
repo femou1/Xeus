@@ -68,13 +68,6 @@ public class JDAStateEventAdapter extends EventAdapter {
     }
 
     private void loadSlashCommands(ShardManager shardManager) {
-        Guild g = shardManager.getGuildById("438134543837560832");
-        if (g != null) {
-            CommandListUpdateAction commands = g.updateCommands();
-            commands.addCommands()
-                .queue();
-        }
-
         for (JDA shard : shardManager.getShards()) {
             CommandListUpdateAction commands = shard.updateCommands();
             commands.addCommands(

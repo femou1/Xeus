@@ -62,6 +62,8 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             case "roles":
             case "setup":
                 return handleRoleSetupArguments(context, args);
+            case "young-warning-channel":
+                return runYoungWarningChannelUpdateCommand(context, args, context.getGuildSettingsTransformer());
             default:
                 return command.sendErrorMessage(context, "I'm unable to find the argument you're looking for, ya twat. Try again. Lemme remind you of the possible commands.", 5, TimeUnit.MINUTES);
                 
@@ -116,13 +118,6 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean sendEnabledRoles(CommandMessage context, GuildSettingsTransformer transformer) {
-        if (transformer.getLeadRoles().isEmpty() && transformer.getHRRoles().isEmpty()
-                && transformer.getLeadRoles().isEmpty() && transformer.getNoLinksRoles().isEmpty()
-                && transformer.getMainDiscordRole() == 0 && transformer.getRobloxGroupId() == 0) {
-            return command.sendErrorMessage(context,
-                    "Sorry, but there are no manager, admin, mod, main role id, roblox group id or no-links roles on the discord configured.");
-        }
-
         Set<Long> mod = transformer.getHRRoles();
         Set<Long> admins = transformer.getLeadRoles();
         Set<Long> noLinks = transformer.getNoLinksRoles();
@@ -188,11 +183,9 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
     private boolean handleFirstSetupRoles(CommandMessage context, GuildSettingsTransformer transformer) {
         Set<Long> admins = transformer.getLeadRoles();
         Set<Long> mods = transformer.getHRRoles();
-        Set<Long> managers = transformer.getLeadRoles();
 
         admins.clear();
         mods.clear();
-        managers.clear();
 
         for (Role r : context.guild.getRoles()) {
             if (r.isManaged()) {
@@ -200,9 +193,6 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             }
             if (r.hasPermission(Permission.ADMINISTRATOR)) {
                 admins.add(r.getIdLong());
-            }
-            if (r.hasPermission(Permission.MANAGE_SERVER) && !r.hasPermission(Permission.ADMINISTRATOR)) {
-                managers.add(r.getIdLong());
             }
             if (r.hasPermission(Permission.MESSAGE_MANAGE) && !r.hasPermission(Permission.ADMINISTRATOR)
                     && !r.hasPermission(Permission.MANAGE_SERVER)) {
@@ -213,7 +203,6 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.getGuild().getId())
                     .update(statement -> {
                         statement.set("admin_roles", Xeus.gson.toJson(admins), true);
-                        statement.set("manager_roles", Xeus.gson.toJson(managers), true);
                         statement.set("moderator_roles", Xeus.gson.toJson(mods), true);
                     });
             StringBuilder sb = new StringBuilder();

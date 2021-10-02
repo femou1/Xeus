@@ -40,6 +40,7 @@ public class RunEveryMinuteJob extends Job {
     private final SyncPlayerExperienceWithDatabaseTask syncPlayerExperienceWithDatabaseTask = new SyncPlayerExperienceWithDatabaseTask();
     private final SyncPlayerUpdateReferencesWithDatabaseTask syncPlayerUpdateReferencesWithDatabaseTask = new SyncPlayerUpdateReferencesWithDatabaseTask();
     private final DrainOnWatchQueueTask drainOnWatchQueueTask = new DrainOnWatchQueueTask();
+    private final DrainUnbanQueueTask drainUnbanQueueTask = new DrainUnbanQueueTask();
 
     public RunEveryMinuteJob(Xeus avaire) {
         super(avaire, 0, 1, TimeUnit.MINUTES);
@@ -58,7 +59,8 @@ public class RunEveryMinuteJob extends Job {
             syncValidVoteRequestsWithMetricsTask,
             syncPlayerExperienceWithDatabaseTask,
             syncPlayerUpdateReferencesWithDatabaseTask,
-            drainOnWatchQueueTask
+            drainOnWatchQueueTask,
+            drainUnbanQueueTask
         );
     }
 }

@@ -55,7 +55,7 @@ public class GlobalSettingsTransformer extends Transformer {
 
     public GlobalSettingsTransformer(Long groupId, DataRow data) {
         super(data);
-
+        if (hasData()) {
         mainGroupId = data.getLong("main_group_id");
         mainGroupName = data.getString("main_group_name");
         globalBan = data.getBoolean("global_ban");
@@ -88,6 +88,7 @@ public class GlobalSettingsTransformer extends Transformer {
             globalFilterWildcard.addAll(dbFilter);
         }
         reset();
+    }
     }
 
 

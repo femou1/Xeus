@@ -19,7 +19,7 @@
  *
  */
 
-package com.pinewoodbuilders.mute.automute;
+package com.pinewoodbuilders.moderation.mute.automute;
 
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;

@@ -100,12 +100,14 @@ public class MiddlewareStack {
                 continue;
             }
 
-            if (split.length == 1) {
+            
+            if (split.length == 1) {  
                 middlewares.add(new MiddlewareContainer(middlewareReference));
                 continue;
             }
             middlewares.add(new MiddlewareContainer(middlewareReference, split[1].split(",")));
         }
+        //middlewares.forEach(action -> System.out.println(action.getMiddleware().getClass().getSimpleName()));
     }
 
     /**

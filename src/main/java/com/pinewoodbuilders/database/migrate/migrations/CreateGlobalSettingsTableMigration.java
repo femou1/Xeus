@@ -33,6 +33,8 @@ public class CreateGlobalSettingsTableMigration implements Migration {
             table.Integer("automod_message_spam", 11).defaultValue(15);
             table.Integer("automod_image_spam", 11).defaultValue(15);
             table.Integer("automod_character_spam", 11).defaultValue(15);
+            table.Long("appeals_discord_id").nullable();
+            table.Long("mgm_logs").nullable();
         });
     }    
 

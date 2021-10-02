@@ -51,6 +51,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
             case "permissions":
             case "modify-permissions":
                 return handleRoleSetupArguments(context, Arrays.copyOfRange(args, 1, args.length));
+            
             case "audit-logs":
                 return runAuditLogsCommand(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
             default:

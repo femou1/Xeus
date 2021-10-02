@@ -26,6 +26,7 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.modlog.Modlog;
 import com.pinewoodbuilders.modlog.ModlogAction;
 import com.pinewoodbuilders.modlog.ModlogType;
+import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
@@ -34,12 +35,18 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 
+import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public abstract class BanableCommand extends Command {
 
+    private final Pattern timeRegEx = Pattern.compile("([0-9]+[w|d|h|m|s])");
+
     /**
-     * Creates the given command instance by calling {@link Command#Command(Xeus, boolean)} with allowDM set to true.
+     * Creates the given command instance by calling
+     * {@link Command#Command(Xeus, boolean)} with allowDM set to true.
      *
      * @param avaire The Xeus class instance.
      */
@@ -48,8 +55,8 @@ public abstract class BanableCommand extends Command {
     }
 
     /**
-     * Creates the given command instance with the given
-     * Xeus instance and the allowDM settings.
+     * Creates the given command instance with the given Xeus instance and the
+     * allowDM settings.
      *
      * @param avaire  The Xeus class instance.
      * @param allowDM Determines if the command can be used in DMs.
@@ -91,42 +98,65 @@ public abstract class BanableCommand extends Command {
         return command.sendErrorMessage(context, context.i18n("mustMentionUser"));
     }
 
-    private boolean banUserById(Xeus avaire, Command command, CommandMessage context, long userId, String[] args, boolean soft) {
-        String reason = generateReason(args);
+    private boolean banUserById(Xeus avaire, Command command, CommandMessage context, long userId, String[] args,
+            boolean soft) {
+        Carbon expiresAt = null;
+        if (args.length > 1) {
+            expiresAt = parseTime(args[1]);
+        }
 
-        context.getGuild().ban(String.valueOf(userId), soft ? 0 : 7, String.format("%s - %s#%s (%s)",
-            reason,
-            context.getAuthor().getName(),
-            context.getAuthor().getDiscriminator(),
-            context.getAuthor().getId()
-        )).queue(aVoid -> {
-            User user = avaire.getShardManager().getUserById(userId);
+        if (expiresAt != null && expiresAt.copy().subSeconds(61).isPast()) {
+            return sendErrorMessage(context, context.i18n("invalidTimeGiven"));
+        }
 
-            if (user != null) {
-                Modlog.log(avaire, context, new ModlogAction(
-                    soft ? ModlogType.SOFT_BAN : ModlogType.BAN,
-                    context.getAuthor(), user, reason
-                ));
-            } else {
-                Modlog.log(avaire, context, new ModlogAction(
-                    soft ? ModlogType.SOFT_BAN : ModlogType.BAN,
-                    context.getAuthor(), userId, reason
-                ));
-            }
+        String reason = generateReason(Arrays.copyOfRange(args, expiresAt == null ? 1 : 2, args.length));
+        ModlogType type = expiresAt == null ? ModlogType.BAN : ModlogType.TEMP_BAN;
 
-            context.makeSuccess(context.i18n("success"))
-                .set("target", userId)
-                .set("reason", reason)
-                .queue(ignoreMessage -> context.delete().queue(null, RestActionUtil.ignore));
-        }, throwable -> context.makeWarning(context.i18n("failedToBan"))
-            .set("target", userId)
-            .set("error", throwable.getMessage())
-            .queue());
+        final Carbon finalExpiresAt = expiresAt;
+
+        context.getGuild().ban(String.valueOf(userId), soft ? 0 : 7, String.format("%s - %s#%s (%s)", reason,
+                context.getAuthor().getName(), context.getAuthor().getDiscriminator(), context.getAuthor().getId()))
+                .queue(aVoid -> {
+                    User user = avaire.getShardManager().getUserById(userId);
+                    String caseId = null;
+ 
+                    if (user != null) {
+                        caseId = Modlog.log(avaire, context,
+                                new ModlogAction(type, context.getAuthor(), user,
+                                        finalExpiresAt != null
+                                                ? finalExpiresAt.toDayDateTimeString() + " ("
+                                                        + finalExpiresAt.diffForHumans(true) + ")" + "\n" + reason
+                                                : "\n" + reason));
+                    } else {
+                        ModlogAction action = new ModlogAction(type, context.getAuthor(), userId,
+                                        finalExpiresAt != null
+                                                ? finalExpiresAt.toDayDateTimeString() + " ("
+                                                        + finalExpiresAt.diffForHumans(true) + ")" + "\n" + reason
+                                                : "\n" + reason);
+
+                    caseId = Modlog.log(avaire, context,action);
+                                
+                    }
+                    try {
+                        avaire.getBanManger().registerBan(caseId, context.getGuild().getIdLong(), user.getIdLong(), finalExpiresAt);
+                
+                    context.makeSuccess(":target has been banned :time")
+                        .set("target", user.getAsMention())
+                        .set("time", finalExpiresAt == null
+                            ? "permenantly"
+                            : String.format("for %s", finalExpiresAt.diffForHumans(true)))
+                        .queue();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }, throwable -> context.makeWarning(context.i18n("failedToBan")).set("target", userId)
+                        .set("error", throwable.getMessage()).queue());
 
         return true;
     }
 
-    private boolean banMemberOfServer(Xeus avaire, Command command, CommandMessage context, User user, String[] args, boolean soft) {
+    private boolean banMemberOfServer(Xeus avaire, Command command, CommandMessage context, User user, String[] args,
+            boolean soft) {
         if (userHasHigherRole(user, context.getMember())) {
             return command.sendErrorMessage(context, context.i18n("higherRole"));
         }
@@ -135,32 +165,49 @@ public abstract class BanableCommand extends Command {
             return sendErrorMessage(context, context.i18n("userHaveHigherRole", user.getAsMention()));
         }
 
-        String reason = generateReason(args);
+        Carbon expiresAt = null;
+        if (args.length > 1) {
+            expiresAt = parseTime(args[1]);
+        }
 
-        ModlogAction modlogAction = new ModlogAction(
-            soft ? ModlogType.SOFT_BAN : ModlogType.BAN,
-            context.getAuthor(), user, reason
-        );
+        if (expiresAt != null && expiresAt.copy().subSeconds(61).isPast()) {
+            return sendErrorMessage(context, context.i18n("invalidTimeGiven"));
+        }
+
+        String reason = generateReason(Arrays.copyOfRange(args, expiresAt == null ? 1 : 2, args.length));
+        ModlogType type = expiresAt == null ? ModlogType.BAN : ModlogType.TEMP_BAN;
+
+        final Carbon finalExpiresAt = expiresAt;
+
+        ModlogAction modlogAction = new ModlogAction(type, context.getAuthor(), user,
+                finalExpiresAt != null
+                        ? finalExpiresAt.toDayDateTimeString() + " (" + finalExpiresAt.diffForHumans(true) + ")" + "\n"
+                                + reason
+                        : "\n" + reason);
 
         String caseId = Modlog.log(avaire, context, modlogAction);
 
         Modlog.notifyUser(user, context.getGuild(), modlogAction, caseId);
 
-        context.getGuild().ban(user, soft ? 0 : 7, String.format("%s - %s#%s (%s)",
-            reason,
-            context.getAuthor().getName(),
-            context.getAuthor().getDiscriminator(),
-            context.getAuthor().getId()
-        )).queue(aVoid -> {
-            context.makeSuccess(context.i18n("success"))
-                .set("target", user.getName() + "#" + user.getDiscriminator())
-                .set("reason", reason)
-                .queue();
-        }, throwable -> context.makeWarning(context.i18n("failedToBan"))
-            .set("target", user.getName() + "#" + user.getDiscriminator())
-            .set("error", throwable.getMessage())
-            .queue());
+        context.getGuild().ban(user, soft ? 0 : 7, String.format("%s - %s#%s (%s)", reason,
+                context.getAuthor().getName(), context.getAuthor().getDiscriminator(), context.getAuthor().getId()))
+                .queue(aVoid -> {
+                    try {
+                        avaire.getBanManger().registerBan(caseId, context.getGuild().getIdLong(), user.getIdLong(), finalExpiresAt);
+                    
 
+                    context.makeSuccess(":target has been banned :time")
+                        .set("target", user.getAsMention())
+                        .set("time", finalExpiresAt == null
+                            ? "permenantly"
+                            : String.format("for %s", finalExpiresAt.diffForHumans(true)))
+                        .queue();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }, throwable -> context.makeWarning(context.i18n("failedToBan"))
+                        .set("target", user.getName() + "#" + user.getDiscriminator())
+                        .set("error", throwable.getMessage()).queue());
         return true;
     }
 
@@ -169,9 +216,48 @@ public abstract class BanableCommand extends Command {
         return role != null && RoleUtil.isRoleHierarchyHigher(author.getRoles(), role);
     }
 
-    private String generateReason(String[] args) {
-        return args.length < 2 ?
+        private String generateReason(String[] args) {
+        return args.length == 0 ?
             "No reason was given." :
-            String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+            String.join(" ", args);
+    }
+
+    private Carbon parseTime(String string) {
+        Matcher matcher = timeRegEx.matcher(string);
+        if (!matcher.find()) {
+            return null;
+        }
+
+        Carbon time = Carbon.now().addSecond();
+        do {
+            String group = matcher.group();
+
+            String type = group.substring(group.length() - 1, group.length());
+            int timeToAdd = NumberUtil.parseInt(group.substring(0, group.length() - 1));
+
+            switch (type.toLowerCase()) {
+                case "w":
+                    time.addWeeks(timeToAdd);
+                    break;
+
+                case "d":
+                    time.addDays(timeToAdd);
+                    break;
+
+                case "h":
+                    time.addHours(timeToAdd);
+                    break;
+
+                case "m":
+                    time.addMinutes(timeToAdd);
+                    break;
+
+                case "s":
+                    time.addSeconds(timeToAdd);
+                    break;
+            }
+        } while (matcher.find());
+
+        return time;
     }
 }

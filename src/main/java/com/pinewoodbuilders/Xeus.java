@@ -89,7 +89,8 @@ import com.pinewoodbuilders.middleware.RequireOnePermissionMiddleware;
 import com.pinewoodbuilders.middleware.RequirePermissionMiddleware;
 import com.pinewoodbuilders.middleware.ThrottleMiddleware;
 import com.pinewoodbuilders.middleware.global.IsCategoryEnabled;
-import com.pinewoodbuilders.mute.MuteManager;
+import com.pinewoodbuilders.moderation.ban.BanManager;
+import com.pinewoodbuilders.moderation.mute.MuteManager;
 import com.pinewoodbuilders.onwatch.OnWatchManager;
 import com.pinewoodbuilders.pinewood.VoiceWhitelistManager;
 import com.pinewoodbuilders.plugin.PluginLoader;
@@ -169,6 +170,7 @@ public class Xeus {
     private final PluginManager pluginManager;
     private final VoteManager voteManager;
     private final MuteManager muteManger;
+    private final BanManager banManager;
     private final OnWatchManager onWatchManger;
     private final ShardEntityCounter shardEntityCounter;
     private final EventEmitter eventEmitter;
@@ -475,6 +477,9 @@ public class Xeus {
         log.info("Preparing mute manager");
         muteManger = new MuteManager(this);
 
+        log.info("Preparing ban manager");
+        banManager = new BanManager(this);
+
         log.info("Preparing on watch manager");
         onWatchManger = new OnWatchManager(this);
 
@@ -599,6 +604,10 @@ public class Xeus {
 
     public MuteManager getMuteManger() {
         return muteManger;
+    }
+
+    public BanManager getBanManger() {
+        return banManager;
     }
 
     public OnWatchManager getOnWatchManger() {
