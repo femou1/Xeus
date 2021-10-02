@@ -238,7 +238,7 @@ public class VoteCommand extends Command {
 
                     context.makeEmbeddedMessage(new Color(0, 158, 224))
                         .addField("Question:", votes.get(0).getString("question"), true)
-                        .addField("Possible answers:", sb.toString(), false)
+                        .setDescription(sb.toString())
                         .setFooter(generateCommandPrefix(context.message) + "vote " + args[1] + " <item> (reason) {In DM's}")
                         .setTimestamp(Instant.now()).queue();
                 }
@@ -279,7 +279,7 @@ public class VoteCommand extends Command {
 
                     context.makeEmbeddedMessage(new Color(0, 158, 224))
                         .addField("Question:", votes.get(0).getString("question"), true)
-                        .addField("Possible answers:", sb.toString(), true)
+                        .setDescription(sb.toString())
                         .setFooter(generateCommandPrefix(context.message) + "vote " + args[1] + " <item> (reason) {In DM's}")
                         .setTimestamp(Instant.now()).queue();
                 }
@@ -417,7 +417,7 @@ public class VoteCommand extends Command {
 
                     context.makeEmbeddedMessage(new Color(0, 158, 224))
                         .addField("Question:", votes.get(0).getString("question"), true)
-                        .addField("Possible answers:", sb.toString(), true)
+                        .setDescription(sb.toString())
                         .addField("Connected guild: ", gc != null ? gc.getName() + " - " + gc.getId() : "Guild not found", false).queue();
                 }
                 if (args.length >= 2) {
