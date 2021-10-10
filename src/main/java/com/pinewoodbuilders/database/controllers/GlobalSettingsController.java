@@ -51,7 +51,8 @@ public class GlobalSettingsController {
             "global_settings.global_filter_log_channel", "global_settings.global_automod",
             "global_settings.automod_mass_mention", "global_settings.automod_emoji_spam",
             "global_settings.automod_link_spam", "global_settings.automod_message_spam",
-            "global_settings.automod_image_spam", "global_settings.automod_character_spam"};
+            "global_settings.automod_image_spam", "global_settings.automod_character_spam", 
+            "global_settings.mgm_logs", "global_settings.appeals_discord_id"};
 
     /**
      * Fetches the guild transformer from the cache, if it doesn't exist in the

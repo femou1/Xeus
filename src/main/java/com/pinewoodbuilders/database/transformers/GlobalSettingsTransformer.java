@@ -53,6 +53,10 @@ public class GlobalSettingsTransformer extends Transformer {
     private int automodImageSpam;
     private int automodCharacterSpam;
 
+    // Global Settings
+    private long appealsDiscordId = 0;
+    private long mgmLogsId = 0;
+
     public GlobalSettingsTransformer(Long groupId, DataRow data) {
         super(data);
         if (hasData()) {
@@ -71,6 +75,8 @@ public class GlobalSettingsTransformer extends Transformer {
         automodMessageSpam = data.getInt("automod_message_spam");
         automodImageSpam = data.getInt("automod_image_spam");
         automodCharacterSpam = data.getInt("automod_character_spam");
+        appealsDiscordId = data.getLong("appeals_discord_id");
+        mgmLogsId = data.getLong("mgm_logs");
 
         if (data.getString("global_filter_exact", null) != null) {
             List<String> dbFilter = Xeus.gson.fromJson(data.getString("global_filter_exact"),
@@ -243,6 +249,22 @@ public class GlobalSettingsTransformer extends Transformer {
 
     public void setCharacterSpam(int automodCharacterSpam) {
         this.automodCharacterSpam = automodCharacterSpam;
+    }
+
+    public long getAppealsDiscordId() {
+        return this.appealsDiscordId;
+    }
+
+    public void setAppealsDiscordId(long appealsDiscordId) {
+        this.appealsDiscordId = appealsDiscordId;
+    }
+
+    public long getMgmLogsId() {
+        return this.mgmLogsId;
+    }
+
+    public void setMgmLogsId(long mgmLogsId) {
+        this.mgmLogsId = mgmLogsId;
     }
 
 }

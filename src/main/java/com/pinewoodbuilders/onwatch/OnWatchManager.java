@@ -143,6 +143,10 @@ public class OnWatchManager {
         }
 
         for (OnWatchContainer container : OnWatchs.get(guildId)) {
+            if (container.isPublic()) {
+                return true;
+            }
+            
             if (container.isSame(guildId, userId)) {
                 return true;
             }

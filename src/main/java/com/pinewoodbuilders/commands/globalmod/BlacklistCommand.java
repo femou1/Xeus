@@ -54,32 +54,25 @@ public class BlacklistCommand extends Command {
     }
 
     @Override
-    public List <String> getUsageInstructions() {
-        return Arrays.asList(
-            "`:command list` - Lists users and servers on the blacklist",
-            "`:command remove <id>` - Removes the entry with the given ID from the blacklist",
-            "`:command add <type> <id> <reason>` - Add the type with the given ID to the blacklist"
-        );
+    public List<String> getUsageInstructions() {
+        return Arrays.asList("`:command list` - Lists users and servers on the blacklist",
+                "`:command remove <id>` - Removes the entry with the given ID from the blacklist",
+                "`:command add <type> <id> <reason>` - Add the type with the given ID to the blacklist");
     }
 
     @Override
-    public List <String> getMiddleware() {
-        return Arrays.asList(
-            "isPinewoodGuild",
-            "isValidMGMMember"
-        );
+    public List<String> getMiddleware() {
+        return Arrays.asList("isPinewoodGuild", "isValidMGMMember");
     }
 
     @Override
-    public List <String> getExampleUsage() {
-        return Arrays.asList(
-            "`:command add G 123` - Blacklists the guild with an ID of 123",
-            "`:command add U 321 Doing stuff` - Blacklists the user with an ID of 321 for \"Doing stuff\""
-        );
+    public List<String> getExampleUsage() {
+        return Arrays.asList("`:command add G 123` - Blacklists the guild with an ID of 123",
+                "`:command add U 321 Doing stuff` - Blacklists the user with an ID of 321 for \"Doing stuff\"");
     }
 
     @Override
-    public List <String> getTriggers() {
+    public List<String> getTriggers() {
         return Collections.singletonList("blacklist");
     }
 
@@ -114,11 +107,8 @@ public class BlacklistCommand extends Command {
 
         avaire.getBlacklist().getBlacklistEntities().forEach(entity -> {
             records.add(I18n.format("{0} **{1}** `{2}`\n ► _\"{3}\"_",
-                entity.getScope().getId() == 0 ? "\uD83E\uDD26" : "\uD83C\uDFEC",
-                entity.getScope().getName(),
-                entity.getId(),
-                entity.getReason() == null ? "No reason was given" : entity.getReason()
-            ));
+                    entity.getScope().getId() == 0 ? "\uD83E\uDD26" : "\uD83C\uDFEC", entity.getScope().getName(),
+                    entity.getId(), entity.getReason() == null ? "No reason was given" : entity.getReason()));
         });
 
         SimplePaginator<String> paginator = new SimplePaginator<>(records, 10, 1);
@@ -129,12 +119,9 @@ public class BlacklistCommand extends Command {
         List<String> messages = new ArrayList<>();
         paginator.forEach((index, key, val) -> messages.add(val));
 
-        context.makeInfo(String.join("\n", messages) + "\n\n" + paginator.generateFooter(
-            context.getGuild(),
-            generateCommandTrigger(context.getMessage()) + " list")
-        )
-            .setTitle("Blacklist Page #" + paginator.getCurrentPage())
-            .queue();
+        context.makeInfo(String.join("\n", messages) + "\n\n"
+                + paginator.generateFooter(context.getGuild(), generateCommandTrigger(context.getMessage()) + " list"))
+                .setTitle("Blacklist Page #" + paginator.getCurrentPage()).queue();
 
         return false;
     }
@@ -158,8 +145,7 @@ public class BlacklistCommand extends Command {
         avaire.getBlacklist().remove(id);
 
         context.makeSuccess("The Blacklist record with an ID of **:id** has been removed from the blacklist")
-            .set("id", id)
-            .queue();
+                .set("id", id).queue();
 
         return true;
     }
@@ -171,7 +157,8 @@ public class BlacklistCommand extends Command {
 
         Scope scope = Scope.parse(args[0]);
         if (scope == null) {
-            return sendErrorMessage(context, "Invalid type given, the type must be a valid blacklist scope!\nValid types are `G` for guilds/servers, or `U` for users.");
+            return sendErrorMessage(context,
+                    "Invalid type given, the type must be a valid blacklist scope!\nValid types are `G` for guilds/servers, or `U` for users.");
         }
 
         long id;
@@ -190,19 +177,19 @@ public class BlacklistCommand extends Command {
         avaire.getBlacklist().addIdToBlacklist(scope, id, reason);
 
         context.makeSuccess("The **:type** with an ID of **:id** has been added to the blacklist!")
-            .set("type", scope.name().toLowerCase())
-            .set("id", id)
-            .queue();
+                .set("type", scope.name().toLowerCase()).set("id", id).queue();
 
-        TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
-        if (tc != null) {
-            tc.sendMessageEmbeds(context.makeInfo("[<@:id> **(``:id``)** was blacklisted from Xeus everywhere in ``:guild`` by :punisher](:link)")
-                .set("id", id)
-                .set("guild", context.getGuild().getName())
-                .set("punisher", context.getMember().getAsMention())
-                .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+        long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+        if (mgmLogs != 0) {
+            TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
+            if (tc != null) {
+                tc.sendMessageEmbeds(context.makeInfo(
+                        "[<@:id> **(``:id``)** was blacklisted from Xeus everywhere in ``:guild`` by :punisher](:link)")
+                        .set("id", id).set("guild", context.getGuild().getName())
+                        .set("punisher", context.getMember().getAsMention())
+                        .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+            }
         }
-
         return true;
     }
 }

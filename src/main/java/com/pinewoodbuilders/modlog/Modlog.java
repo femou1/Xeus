@@ -135,21 +135,6 @@ public class Modlog {
             case WARN:
             case KICK:
             case BAN:
-            case TEMP_BAN:
-            //noinspection ConstantConditions
-            split = action.getMessage().split("\n");
-            builder
-                .addField("User", action.getStringifiedTarget(), true)
-                .addField("Moderator", action.getStringifiedModerator(), true);
-
-            if (split[0].length() > 0) {
-                builder.addField("Expires At", split[0], true);
-            }
-
-            builder.addField("Reason", formatReason(transformer, String.join("\n",
-                Arrays.copyOfRange(split, 1, split.length)
-            )), false);
-            break;
             case UNBAN:
             case UNMUTE:
                 builder
@@ -160,6 +145,7 @@ public class Modlog {
 
             case MUTE:
             case TEMP_MUTE:
+            case TEMP_BAN:
                 //noinspection ConstantConditions
                 split = action.getMessage().split("\n");
                 builder

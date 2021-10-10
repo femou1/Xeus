@@ -117,9 +117,7 @@ public class MuteRatelimit {
      * @param user    The user that was blacklisted.
      * @param expires The carbon time instance for when the blacklist expires.
      */
-    public static void sendMuteMessage(User user, Carbon expires, Guild g) {
-        String guildName = g != null ? g.getName() : "``GUILD NOT AVAILABLE``";
-
+    public static void sendMuteMessage(User user, Carbon expires) {
         user.openPrivateChannel().queue(channel -> {
             channel.sendMessageEmbeds(MessageFactory.createEmbeddedBuilder()
                 .setColor(Color.decode("#A5306B"))
@@ -127,7 +125,7 @@ public class MuteRatelimit {
                 .setFooter("Expires", null)
                 .setTimestamp(expires.getTime().toInstant())
                 .setDescription("Looks like you're triggering my filter a bit too fast, I've muted you "
-                    + "on " + guildName + ".\n"
+                    + "on all connected guilds.\n"
                     + "Your mute expires in ``" + expires.addSecond().diffForHumans(true) + "``, "
                     + "keep in mind repeating the behavior will get you muted for longer "
                     + "periods of time, eventually if you keep it up you will be permanently"
@@ -258,7 +256,7 @@ public class MuteRatelimit {
                 );
 
                 String caseId = Modlog.log(Xeus.getInstance(), context, modlogAction);
-                MuteRatelimit.sendMuteMessage(context.getAuthor(), punishment, g);
+                
 
                 try {
                     Xeus.getInstance().getMuteManger().registerMute(caseId, g.getIdLong(), context.getAuthor().getIdLong(), finalExpiresAt);
@@ -266,7 +264,9 @@ public class MuteRatelimit {
                     Xeus.getLogger().error(e.getMessage(), e);
                 }
             });
+            
         }
+        MuteRatelimit.sendMuteMessage(context.getAuthor(), punishment, context.getGuild());
 
 
     }

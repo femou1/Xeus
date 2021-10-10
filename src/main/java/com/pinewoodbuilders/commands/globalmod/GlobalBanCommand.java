@@ -10,18 +10,26 @@ import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
+import com.pinewoodbuilders.utilities.RestActionUtil;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Invite;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.Invite.Channel;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import static com.pinewoodbuilders.utilities.CheckPermissionUtil.GuildPermissionCheckType.GLOBAL_ADMIN;
+
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
@@ -79,8 +87,8 @@ public class GlobalBanCommand extends Command {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
         if (args.length < 1) {
-            context.makeError("Sorry, but you didn't give any valid argument to use!\n\n"
-                    + "``Valid arguments``: \n" + " - **sync/s** - Sync all global-bans with a server.\n"
+            context.makeError("Sorry, but you didn't give any valid argument to use!\n\n" + "``Valid arguments``: \n"
+                    + " - **sync/s** - Sync all global-bans with a server.\n"
                     + " - **v/view/see <discord-id>** - View the reason why someone is global-banned.\n"
                     + " - **roblox/rb/roblox-ban <roblox-username/id> <reason>** - Add a roblox account in the auto-ban database `(PBAC Ban not applied with this command)`.\n"
                     + " - **discord/d/discord-ban <discord-id> <true/false (Delete messages)> <reason>** - Ban a user on all discords that are connected to PB")
@@ -111,17 +119,19 @@ public class GlobalBanCommand extends Command {
                 try {
                     return banRobloxIdFromServer(context, args);
                 } catch (SQLException throwables) {
-                    context.makeError("Something went wrong when banning the person from their roblox id...\n\n```:error```")
-                    .set("error", throwables.getMessage()).queue();
+                    context.makeError(
+                            "Something went wrong when banning the person from their roblox id...\n\n```:error```")
+                            .set("error", throwables.getMessage()).queue();
                     throwables.printStackTrace();
                 }
             case "d":
             case "discord":
-            case "discordban":
             case "discord-ban":
                 return runGlobalBan(context, Arrays.copyOfRange(args, 1, args.length));
-            default: 
-                context.makeInfo("Please specify if you want to ban someone from their `roblox` account. Or from their `discord` account. (`!global-ban <discord> <true/false> <reason>`/`!global-ban <roblox> <username> <reason>`").queue();
+            default:
+                context.makeInfo(
+                        "Please specify if you want to ban someone from their `roblox` account. Or from their `discord` account. (`!global-ban <discord> <true/false> <reason>`/`!global-ban <roblox> <username> <reason>`")
+                        .queue();
                 return false;
         }
     }
@@ -162,15 +172,39 @@ public class GlobalBanCommand extends Command {
             return false;
         }
 
-        if (context.getGlobalSettingsTransformer() == null) {
-            context.makeError("The global settings could not be loaded, please try again later. Otherwise if this issue still persists, contact the developer!").queue();
+        boolean isGlobalMod = CheckPermissionUtil.getPermissionLevel(context).getLevel() < GLOBAL_ADMIN.getLevel();
+        if (context.getGlobalSettingsTransformer() == null && !isGlobalMod) {
+            context.makeError(
+                    "The global settings could not be loaded, please try again later. Otherwise if this issue still persists, contact the developer!")
+                    .queue();
             return true;
+        }
+
+        Guild g = null;
+        if (context.getGlobalSettingsTransformer().getAppealsDiscordId() != 0) {
+            g = avaire.getShardManager().getGuildById(context.getGlobalSettingsTransformer().getAppealsDiscordId());
         }
 
         StringBuilder sb = new StringBuilder();
         try {
-            Collection guilds = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
+            Collection guilds;
+            int time = soft.getValue() ? 7 : 0;
+            String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+            boolean appealsBan = reason.contains("--appeals-ban") || reason.contains("-ab");
+            boolean globalBan = reason.contains("--global") || reason.contains("--g");
+
+            if (context.getGuildSettingsTransformer().getMainGroupId() != 0) {
+                guilds = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                     .where("main_group_id", settingsTransformer.getMainGroupId()).get();
+            } else {
+                if (isGlobalMod) {
+                    guilds = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).get();
+                } else {
+                    context.makeError("Something went wrong...").queue();
+                    return false;
+                }
+                
+            }
 
             if (guilds.size() == 0) {
                 context.makeError("Huh? How did we get here? There should be at least one guild with this ID. Weird...")
@@ -184,69 +218,108 @@ public class GlobalBanCommand extends Command {
                         .queue();
             }
 
-            int time = soft.getValue() ? 7 : 0;
-            String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+            
+            if (appealsBan) {
+                reason.replace("--appeals-ban", "");
+            }
             int bannedGuilds = 0;
             for (DataRow row : guilds) {
                 Guild guild = avaire.getShardManager().getGuildById(row.getString("id"));
-                if (guild == null) continue;
-                if (!guild.getSelfMember().hasPermission(Permission.BAN_MEMBERS)) continue;                
+                if (g != null) {
+                    if (g.getId() == row.getString("id")) {
+                        if (!appealsBan) {
+                            sb.append("``").append(guild.getName()).append("`` - :x:\n");
+                            continue;
+                        }
+                    }
+                }
+                if (guild == null)
+                    continue;
+                if (!guild.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
+                    continue;
                 if (context.getGlobalSettingsTransformer().getGlobalBan()) {
                     if (row.getBoolean("official_sub_group", false)) {
-                         guild.ban(args[0], time, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: " + reason
-                     + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
-                     .reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason)
-                     .queue();
-                    sb.append("``").append(guild.getName()).append("`` - :white_check_mark:\n");
+                        guild.ban(args[0], time, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: "
+                                + reason
+                                + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
+                                .reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n"
+                                        + reason)
+                                .queue();
+                        sb.append("``").append(guild.getName()).append("`` - :white_check_mark:\n");
                     } else {
-                        guild.ban(args[0], time, "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
-                    .queue();
+                        guild.ban(args[0], time,
+                                "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
+                                .queue();
                     }
                     bannedGuilds++;
                 } else {
-                    context.makeError("Global-banning has been disabled across your entire list of guilds, you are not able to use this feature because of this.").queue();
+                    context.makeError(
+                            "Global-banning has been disabled across your entire list of guilds, you are not able to use this feature because of this.")
+                            .queue();
                     return false;
-                                }
+                }
             }
 
             if (avaire.getShardManager().getUserById(args[0]) != null) {
+                String invite = getFirstInvite(g);
                 String finalReason = reason;
                 avaire.getShardManager().getUserById(args[0]).openPrivateChannel().queue(p -> {
                     p.sendMessageEmbeds(context.makeInfo(
                             "*You have been **global-banned** from all discord that are connected to [this group](:groupLink) by an MGM Moderator. "
                                     + "For the reason: *```" + finalReason + "```\n\n"
                                     + "If you feel that your ban was unjustified please appeal at the group in question;"
-                                    + "https://discord.gg/mWnQm25")
-                            .setColor(Color.BLACK).set("groupLink", "https://roblox.com/groups/" + context.getGlobalSettingsTransformer().getMainGroupId()).buildEmbed()).queue();
-                });
+                                    + invite != null ? invite
+                                            : "Ask an admin of [this group](:groupLink), to create an invite on the appeals communications server of the group.")
+                            .setColor(Color.BLACK)
+                            .set("groupLink",
+                                    "https://roblox.com/groups/"
+                                            + context.getGlobalSettingsTransformer().getMainGroupId())
+                            .buildEmbed()).queue();
+                }, RestActionUtil.ignore);
             }
 
-
-            TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
-            if (tc != null) {
-                tc.sendMessageEmbeds(context.makeInfo(
-                        "[``:global-unbanned-id`` was global-banned from all discords that have global-ban enabled. Banned by: ***:user*** for](:link):\n"
-                                + "```:reason```")
-                        .set("global-unbanned-id", args[0]).set("reason", reason)
-                        .set("user", context.getMember().getAsMention())
-                        .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
-            }
-            context.makeSuccess("<@" + args[0] + "> has been banned from `:guilds` guilds : \n\n" + sb).set("guilds", bannedGuilds).queue();
-
-                VerificationEntity ve = avaire.getRobloxAPIManager().getVerification()
-                        .fetchInstantVerificationWithBackup(args[0]);
-                try {
-                    handleGlobalPermBan(context, args, reason, ve);
-                } catch (SQLException exception) {
-                    Xeus.getLogger().error("ERROR: ", exception);
-                    context.makeError("Something went wrong adding this user to the global perm ban database.").queue();
+            long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+            if (mgmLogs != 0) {
+                TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
+                if (tc != null) {
+                    tc.sendMessageEmbeds(context.makeInfo(
+                            "[``:global-unbanned-id`` was global-banned from all discords that have global-ban enabled. Banned by ***:user*** in `:guild` for](:link):\n"
+                                    + "```:reason```")
+                            .set("global-unbanned-id", args[0]).set("reason", reason)
+                            .set("user", context.getMember().getAsMention())
+                            .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
                 }
+            }
+
+            context.makeSuccess(
+                    "<@" + args[0] + "> (" + args[0] + ") has been banned from `:guilds` guilds : \n\n" + sb)
+                    .set("guilds", bannedGuilds).queue();
+
+            VerificationEntity ve = avaire.getRobloxAPIManager().getVerification()
+                    .fetchInstantVerificationWithBackup(args[0]);
+            try {
+                handleGlobalPermBan(context, args, reason, ve);
+            } catch (SQLException exception) {
+                Xeus.getLogger().error("ERROR: ", exception);
+                context.makeError("Something went wrong adding this user to the global perm ban database.").queue();
+            }
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
         return true;
+    }
+
+    private String getFirstInvite(Guild g) {
+        List<Invite> invites = g.retrieveInvites().complete();
+        if (invites == null || invites.size() < 1)
+            return null;
+        for (Invite i : invites) {
+            return i.getUrl();
+        }
+
+        return null;
     }
 
     private boolean banRobloxIdFromServer(CommandMessage context, String[] args) throws SQLException {
@@ -270,7 +343,9 @@ public class GlobalBanCommand extends Command {
                 if (c.size() < 1) {
                     avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).insert(o -> {
                         o.set("punisherId", context.getAuthor().getId()).set("reason", reason, true)
-                                .set("roblox_username", username).set("roblox_user_id", userId);
+                                .set("roblox_username", username)
+                                .set("main_group_id", context.getGuildSettingsTransformer().getMainGroupId())
+                                .set("roblox_user_id", userId);
 
                     });
                     context.makeSuccess("Permbanned ``" + args[1] + "`` in the database.").queue();
@@ -290,7 +365,9 @@ public class GlobalBanCommand extends Command {
                 if (c.size() < 1) {
                     avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).insert(o -> {
                         o.set("punisherId", context.getAuthor().getId()).set("reason", reason, true)
-                                .set("roblox_username", username).set("roblox_user_id", userId);
+                                .set("roblox_username", username)
+                                .set("main_group_id", context.getGuildSettingsTransformer().getMainGroupId())
+                                .set("roblox_user_id", userId);
                     });
                     context.makeSuccess("Permbanned ``" + args[1] + "`` in the database.").queue();
                     return true;
@@ -339,7 +416,6 @@ public class GlobalBanCommand extends Command {
     private String getRobloxUsername(DataRow d) {
         String username = avaire.getRobloxAPIManager().getUserAPI().getUsername(d.getLong("roblox_user_id"));
         return username != null ? username : "USERNAME NOT FOUND";
-
     }
 
     private boolean showGlobalBanWithReason(CommandMessage context, String[] args) {
@@ -404,7 +480,6 @@ public class GlobalBanCommand extends Command {
                 }
             });
         }
-
         return true;
     }
 
@@ -412,12 +487,44 @@ public class GlobalBanCommand extends Command {
         try {
             Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).get();
             context.makeInfo("Syncing **``" + c.size() + "``** global bans to this guild...").queue();
-            for (DataRow dr : c) {
-                if (dr.getString("userId") == null) continue;
-                //context.guild.ban(dr.getString("userId"), 0,
-                  //      "THIS BAN MAY ONLY BE REVERTED BY A MGM MODERATOR. ORIGINAL BAN REASON: "
-                    //            + dr.getString("reason"))
-                      //  .reason("Ban sync").queue();
+            long mainGroupId = context.getGuildSettingsTransformer().getMainGroupId();
+            if (context.getGuildSettingsTransformer().isOfficialSubGroup()) {
+                for (DataRow dr : c) {
+                    if (dr.getString("userId") == null)
+                        continue;
+                    if (mainGroupId == 0L) {
+                        context.guild.ban(dr.getString("userId"), 0,
+                                "THIS BAN MAY ONLY BE REVERTED BY A MGM MODERATOR. ORIGINAL BAN REASON: "
+                                        + dr.getString("reason"))
+                                .reason("Ban sync").queue();
+                    } else if (mainGroupId == dr.getLong("main_group_id")) {
+                        context.guild.ban(dr.getString("userId"), 0,
+                                "THIS BAN MAY ONLY BE REVERTED BY A MGM MODERATOR. ORIGINAL BAN REASON: "
+                                        + dr.getString("reason"))
+                                .reason("Ban sync").queue();
+                    } else {
+                        continue;
+                    }
+                }
+            } else {
+                for (DataRow dr : c) {
+                    if (dr.getString("userId") == null)
+                        continue;
+                    if (mainGroupId == 0L) {
+                        context.guild.ban(dr.getString("userId"), 0,
+                                "THIS BAN MAY ONLY BE REVERTED BY A MGM MODERATOR. ORIGINAL BAN REASON: "
+                                        + dr.getString("reason"))
+                                .reason("Ban sync").queue();
+                    } else if (mainGroupId == dr.getLong("main_group_id")) {
+                        context.guild.ban(dr.getString("userId"), 0,
+                                "THIS BAN MAY ONLY BE REVERTED BY A MGM MODERATOR. ORIGINAL BAN REASON: "
+                                        + "Hidden for un-official guilds.")
+                                .reason("Ban sync").queue();
+                    } else {
+                        continue;
+                    }
+                }
+
             }
             context.makeSuccess("**``" + c.size() + "``** global bans where synced to this guild...").queue();
 

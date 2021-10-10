@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class AddAutoModExactCommand  extends Command {
+public class AddAutoModExactCommand extends Command {
 
     public AddAutoModExactCommand(Xeus avaire) {
         super(avaire, false);
@@ -36,18 +36,15 @@ public class AddAutoModExactCommand  extends Command {
     }
 
     @Override
-    public List <String> getUsageInstructions() {
-        return Arrays.asList(
-            "`:command <add/remove> <word>` - Add or remove a word from the exact word list.",
-            "`:command <list>` - See all the words in the exact filter."
-        );
+    public List<String> getUsageInstructions() {
+        return Arrays.asList("`:command <add/remove> <word>` - Add or remove a word from the exact word list.",
+                "`:command <list>` - See all the words in the exact filter.");
     }
 
     @Override
     public List<String> getExampleUsage(@Nullable Message message) {
-        return Arrays.asList(
-            "`:command add stealing` - Add's the word ``stealing`` to the exact filter.",
-            "`:command remove stealing` - Removes the word ``stealing`` from the exact filter.");
+        return Arrays.asList("`:command add stealing` - Add's the word ``stealing`` to the exact filter.",
+                "`:command remove stealing` - Removes the word ``stealing`` from the exact filter.");
     }
 
     @Override
@@ -62,11 +59,7 @@ public class AddAutoModExactCommand  extends Command {
 
     @Override
     public List<String> getMiddleware() {
-        return Arrays.asList(
-            "isPinewoodGuild",
-            "throttle:user,2,5",
-            "isGuildLeadership"
-        );
+        return Arrays.asList("isPinewoodGuild", "throttle:user,2,5", "isGuildLeadership");
     }
 
     @Nonnull
@@ -86,18 +79,19 @@ public class AddAutoModExactCommand  extends Command {
             return sendErrorMessage(context, "Unable to load the server settings.");
         }
 
-        if(!transformer.getLocalFilter()) {
+        if (!transformer.getLocalFilter()) {
             return sendErrorMessage(context, "The filter is disabled, enable the filter with `!toggleautomod`");
         }
 
         String words = String.join(" ", Arrays.copyOfRange(args, 1, args.length)).toLowerCase();
         if (words.contains(" ")) {
-            return sendErrorMessage(context, "The EXACT words in the filter are not allowed to contain any spaces, use `!exactfilter`");
+            return sendErrorMessage(context,
+                    "The EXACT words in the filter are not allowed to contain any spaces, use `!exactfilter`");
         }
         if (args[0].equalsIgnoreCase("list")) {
             return getAutoModExactList(context, transformer);
         }
-            if (args[0].equalsIgnoreCase("remove")) {
+        if (args[0].equalsIgnoreCase("remove")) {
             return removeAutoModExact(context, transformer, words);
         }
         if (args[0].equalsIgnoreCase("add")) {
@@ -106,13 +100,19 @@ public class AddAutoModExactCommand  extends Command {
             try {
                 updateGuildAutoModExact(context, transformer);
 
-                context.makeSuccess("Successfully added: ``" + words + "``")
-                    .queue();
+                context.makeSuccess("Successfully added: ``" + words + "``").queue();
 
-                TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
-                if (tc != null) {
-                    tc.sendMessageEmbeds(context.makeInfo("[The following words have been added to the **LOCAL** exact filter by :user in ``:guild``](:link):\n" +
-                        "```:words```").set("guild", context.getGuild().getName()).setColor(new Color(255, 128, 0)).set("words", words).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+                long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+                if (mgmLogs != 0) {
+                    TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
+                    if (tc != null) {
+                        tc.sendMessageEmbeds(context.makeInfo(
+                                "[The following words have been added to the **LOCAL** exact filter by :user in ``:guild``](:link):\n"
+                                        + "```:words```")
+                                .set("guild", context.getGuild().getName()).setColor(new Color(255, 128, 0))
+                                .set("words", words).set("user", context.getMember().getAsMention())
+                                .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+                    }
                 }
 
                 return true;
@@ -126,7 +126,9 @@ public class AddAutoModExactCommand  extends Command {
     }
 
     private boolean getAutoModExactList(CommandMessage context, GuildSettingsTransformer transformer) {
-        context.makeSuccess("This the list of the current filtered EXACT words: \n```" + transformer.getBadWordsExact() + "```").queue();
+        context.makeSuccess(
+                "This the list of the current filtered EXACT words: \n```" + transformer.getBadWordsExact() + "```")
+                .queue();
         return false;
     }
 
@@ -140,8 +142,7 @@ public class AddAutoModExactCommand  extends Command {
         try {
             updateGuildAutoModExact(context, transformer);
 
-            context.makeSuccess("Deleted: " + args)
-                .queue();
+            context.makeSuccess("Deleted: " + args).queue();
             return true;
         } catch (SQLException e) {
             Xeus.getLogger().error("ERROR: ", e);
@@ -149,9 +150,10 @@ public class AddAutoModExactCommand  extends Command {
         }
     }
 
-    private void updateGuildAutoModExact(CommandMessage message, GuildSettingsTransformer transformer) throws SQLException {
-        avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
-            .where("id", message.getGuild().getId())
-            .update(statement -> statement.set("filter_exact", Xeus.gson.toJson(transformer.getBadWordsExact()), true));
+    private void updateGuildAutoModExact(CommandMessage message, GuildSettingsTransformer transformer)
+            throws SQLException {
+        avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", message.getGuild().getId())
+                .update(statement -> statement.set("filter_exact", Xeus.gson.toJson(transformer.getBadWordsExact()),
+                        true));
     }
 }

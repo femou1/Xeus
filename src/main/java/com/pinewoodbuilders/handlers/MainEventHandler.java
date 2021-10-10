@@ -244,8 +244,8 @@ public class MainEventHandler extends EventHandler {
                     messageEvent.onGlobalFilterMessageReceived(event);
                     messageEvent.onNoLinksFilterMessageReceived(event);
 
-                    if (event.getChannel().getId().equals("769274801768235028")) {
-                        messageEvent.onPBSTEventGalleryMessageSent(event);
+                    if (event.getChannel().getId().equals("769274801768235028") || event.getChannel().getId().equals("777903149511082005")) {
+                        messageEvent.onEventGalleryMessageSent(event);
                     }
                 }
                 if (event.getChannel().getId().equals("871890084121673738")) {

@@ -55,31 +55,25 @@ public class FeatureBlacklistCommand extends Command {
     }
 
     @Override
-    public List <String> getUsageInstructions() {
-        return Arrays.asList(
-            "`:command list` - Lists users and servers on the feature blacklist",
-            "`:command remove <id>` - Removes the entry with the given ID from the feature blacklist",
-            "`:command add <type> <id> <reason>` - Add the type with the given ID to the feature blacklist"
-        );
+    public List<String> getUsageInstructions() {
+        return Arrays.asList("`:command list` - Lists users and servers on the feature blacklist",
+                "`:command remove <id>` - Removes the entry with the given ID from the feature blacklist",
+                "`:command add <type> <id> <reason>` - Add the type with the given ID to the feature blacklist");
     }
 
     @Override
-    public List <String> getMiddleware() {
-        return Arrays.asList(
-                "isPinewoodGuild",
-                "isAdminOrHigher"
-        );
+    public List<String> getMiddleware() {
+        return Arrays.asList("isPinewoodGuild", "isAdminOrHigher");
     }
 
     @Override
-    public List <String> getExampleUsage() {
+    public List<String> getExampleUsage() {
         return Arrays.asList(
-            "`:command add M 321920293939203910 Doing stuff` - Blacklists the user with an ID of 321 for \"Doing stuff\" from reports in the guild you ran the command in."
-        );
+                "`:command add M 321920293939203910 Doing stuff` - Blacklists the user with an ID of 321 for \"Doing stuff\" from reports in the guild you ran the command in.");
     }
 
     @Override
-    public List <String> getTriggers() {
+    public List<String> getTriggers() {
         return Arrays.asList("feature-blacklist", "fb");
     }
 
@@ -102,7 +96,7 @@ public class FeatureBlacklistCommand extends Command {
                 return addEntryToBlacklist(context, Arrays.copyOfRange(args, 1, args.length));
 
             case "remove":
-                return removeEntryFromBlacklist(context,Arrays.copyOfRange(args, 1, args.length));
+                return removeEntryFromBlacklist(context, Arrays.copyOfRange(args, 1, args.length));
 
             default:
                 return sendErrorMessage(context, "Invalid `action` given, a valid `action` must be given!");
@@ -114,12 +108,9 @@ public class FeatureBlacklistCommand extends Command {
 
         avaire.getFeatureBlacklist().getBlacklistEntities().forEach(entity -> {
             records.add(I18n.format("{0} **{1}** `{2}` - `{3}`\n ► _\"{4}\"_",
-                entity.getScope().getId() == 0 ? "\uD83E\uDD26" : "\uD83C\uDFEC",
-                entity.getScope().getName(),
-                entity.getId(),
-                entity.getGuildId(),
-                entity.getReason() == null ? "No reason was given" : entity.getReason()
-            ));
+                    entity.getScope().getId() == 0 ? "\uD83E\uDD26" : "\uD83C\uDFEC", entity.getScope().getName(),
+                    entity.getId(), entity.getGuildId(),
+                    entity.getReason() == null ? "No reason was given" : entity.getReason()));
         });
 
         SimplePaginator<String> paginator = new SimplePaginator<>(records, 10, 1);
@@ -130,12 +121,9 @@ public class FeatureBlacklistCommand extends Command {
         List<String> messages = new ArrayList<>();
         paginator.forEach((index, key, val) -> messages.add(val));
 
-        context.makeInfo(String.join("\n", messages) + "\n\n" + paginator.generateFooter(
-            context.getGuild(),
-            generateCommandTrigger(context.getMessage()) + " list")
-        )
-            .setTitle("Blacklist Page #" + paginator.getCurrentPage())
-            .queue();
+        context.makeInfo(String.join("\n", messages) + "\n\n"
+                + paginator.generateFooter(context.getGuild(), generateCommandTrigger(context.getMessage()) + " list"))
+                .setTitle("Blacklist Page #" + paginator.getCurrentPage()).queue();
 
         return false;
     }
@@ -179,8 +167,13 @@ public class FeatureBlacklistCommand extends Command {
         if (s.getId() != 0) {
             guildId = context.guild.getIdLong();
         } else {
-            if (!(CheckPermissionUtil.getPermissionLevel(context).getLevel() > CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel())) {
-                return sendErrorMessage(context, "You're required to be level " + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel() + " (``"+CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getRankName()+"``) or higher to *globally* blacklist someone on all guilds!");
+            if (!(CheckPermissionUtil.getPermissionLevel(context)
+                    .getLevel() > CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel())) {
+                return sendErrorMessage(context,
+                        "You're required to be level "
+                                + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel() + " (``"
+                                + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getRankName()
+                                + "``) or higher to *globally* blacklist someone on all guilds!");
             }
             guildId = 1L;
         }
@@ -191,11 +184,11 @@ public class FeatureBlacklistCommand extends Command {
 
         avaire.getFeatureBlacklist().remove(id, guildId, s);
 
-        context.makeSuccess("The feature blacklist record with an ID of **:id** has been removed from the **:scope** blacklist in ``:guild``!")
-            .set("id", id)
-            .set("guild", s.getId() != 0 ? context.getGuild().getName() : "All **official** Pinewood Discords!")
-            .set("scope", s.getName())
-            .queue();
+        context.makeSuccess(
+                "The feature blacklist record with an ID of **:id** has been removed from the **:scope** blacklist in ``:guild``!")
+                .set("id", id)
+                .set("guild", s.getId() != 0 ? context.getGuild().getName() : "All **official** Pinewood Discords!")
+                .set("scope", s.getName()).queue();
 
         return true;
     }
@@ -229,33 +222,38 @@ public class FeatureBlacklistCommand extends Command {
 
         long guildId;
         if (featureScope.getId() == 0) {
-            if (!(CheckPermissionUtil.getPermissionLevel(context).getLevel() > CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel())) {
-                return sendErrorMessage(context, "You're required to be level " + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel() + " (``"+CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getRankName()+"``) or higher to *globally* blacklist someone on all guilds!");
+            if (!(CheckPermissionUtil.getPermissionLevel(context)
+                    .getLevel() > CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel())) {
+                return sendErrorMessage(context,
+                        "You're required to be level "
+                                + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel() + " (``"
+                                + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getRankName()
+                                + "``) or higher to *globally* blacklist someone on all guilds!");
             }
             guildId = 1L;
         } else {
             guildId = context.guild.getIdLong();
         }
 
-
-
         avaire.getFeatureBlacklist().addIdToBlacklist(featureScope, id, reason, guildId);
 
         context.makeSuccess("The user with an ID of ``:id`` has been added to the **:type** blacklist of ``:guild``!")
-            .set("type", featureScope.getName())
-            .set("id", id)
-            .set("guild", featureScope.getId() != 0 ? context.getGuild().getName() : "All **official** Pinewood Discords!")
-            .queue();
+                .set("type", featureScope.getName()).set("id", id)
+                .set("guild", featureScope.getId() != 0 ? context.getGuild().getName()
+                        : "All **official** Pinewood Discords!")
+                .queue();
 
-
-        TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
-        if (tc != null) {
-            tc.sendMessageEmbeds(context.makeInfo("[<@:id> **(``:id``)** was feature blacklisted for ``:type`` in ``:guild`` by :punisher](:link)")
-                .set("type", featureScope.getName())
-                .set("id", id)
-                .set("punisher", context.getMember().getAsMention())
-                .set("guild", featureScope.getId() != 0 ? context.getGuild().getName() : "GLOBAL")
-                .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+        long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+        if (mgmLogs != 0) {
+            TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
+            if (tc != null) {
+                tc.sendMessageEmbeds(context.makeInfo(
+                        "[<@:id> **(``:id``)** was feature blacklisted for ``:type`` in ``:guild`` by :punisher](:link)")
+                        .set("type", featureScope.getName()).set("id", id)
+                        .set("punisher", context.getMember().getAsMention())
+                        .set("guild", featureScope.getId() != 0 ? context.getGuild().getName() : "GLOBAL")
+                        .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+            }
         }
         return true;
     }

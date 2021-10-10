@@ -35,18 +35,16 @@ public class AddAutoModWildcardCommand extends Command {
     }
 
     @Override
-    public List <String> getUsageInstructions() {
-        return Arrays.asList(
-            "`:command <add/remove> <words/word>` - Add or remove a word from the wildcard word list.",
-            "`:command <list>` - See all the words in the wildcard filter."
-        );
+    public List<String> getUsageInstructions() {
+        return Arrays.asList("`:command <add/remove> <words/word>` - Add or remove a word from the wildcard word list.",
+                "`:command <list>` - See all the words in the wildcard filter.");
     }
 
     @Override
     public List<String> getExampleUsage(@Nullable Message message) {
         return Arrays.asList(
-            "`:command add diddleshot stole` - Add's the words ``diddleshot stole`` to the wildcard filter.",
-            "`:command remove diddleshot stole` - Removes the words ``diddleshot stole`` from the exact filter.");
+                "`:command add diddleshot stole` - Add's the words ``diddleshot stole`` to the wildcard filter.",
+                "`:command remove diddleshot stole` - Removes the words ``diddleshot stole`` from the exact filter.");
     }
 
     @Override
@@ -61,11 +59,7 @@ public class AddAutoModWildcardCommand extends Command {
 
     @Override
     public List<String> getMiddleware() {
-        return Arrays.asList(
-            "isPinewoodGuild",
-            "throttle:user,2,5",
-            "isGuildLeadership"
-        );
+        return Arrays.asList("isPinewoodGuild", "throttle:user,2,5", "isGuildLeadership");
     }
 
     @Nonnull
@@ -85,7 +79,7 @@ public class AddAutoModWildcardCommand extends Command {
             return sendErrorMessage(context, "Unable to load the server settings.");
         }
 
-        if(!transformer.getLocalFilter()) {
+        if (!transformer.getLocalFilter()) {
             return sendErrorMessage(context, "The filter is disabled, enable the filter with `!toggleautomod`");
         }
 
@@ -102,15 +96,20 @@ public class AddAutoModWildcardCommand extends Command {
             try {
                 updateGuildAutoModExact(context, transformer);
 
-                context.makeSuccess("Successfully added: ``" + words + "``")
-                    .queue();
+                context.makeSuccess("Successfully added: ``" + words + "``").queue();
 
-                TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
-                if (tc != null) {
-                    tc.sendMessageEmbeds(context.makeInfo("[The following words have been added to the **LOCAL** wildcard filter by :user in ``:guild``](:link):\n" +
-                        "```:words```").set("guild", context.getGuild().getName()).setColor(new Color(255, 128, 0)).set("words", words).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+                long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+                if (mgmLogs != 0) {
+                    TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
+                    if (tc != null) {
+                        tc.sendMessageEmbeds(context.makeInfo(
+                                "[The following words have been added to the **LOCAL** wildcard filter by :user in ``:guild``](:link):\n"
+                                        + "```:words```")
+                                .set("guild", context.getGuild().getName()).setColor(new Color(255, 128, 0))
+                                .set("words", words).set("user", context.getMember().getAsMention())
+                                .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+                    }
                 }
-
                 return true;
             } catch (SQLException e) {
                 Xeus.getLogger().error("ERROR: ", e);
@@ -131,21 +130,24 @@ public class AddAutoModWildcardCommand extends Command {
         try {
             updateGuildAutoModExact(context, transformer);
 
-            context.makeSuccess("Deleted: ``" + args+"``")
-                .queue();
+            context.makeSuccess("Deleted: ``" + args + "``").queue();
             return true;
         } catch (SQLException e) {
             Xeus.getLogger().error("ERROR: ", e);
             return false;
         }
     }
+
     private boolean getAutoModExactList(CommandMessage context, GuildSettingsTransformer transformer) {
-        context.makeSuccess("This the list of the current filtered wildcard words: \n```" + transformer.getBadWordsWildcard() + "```").queue();
+        context.makeSuccess("This the list of the current filtered wildcard words: \n```"
+                + transformer.getBadWordsWildcard() + "```").queue();
         return false;
     }
-    private void updateGuildAutoModExact(CommandMessage message, GuildSettingsTransformer transformer) throws SQLException {
-        avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
-            .where("id", message.getGuild().getId())
-            .update(statement -> statement.set("filter_wildcard", Xeus.gson.toJson(transformer.getBadWordsWildcard()), true));
+
+    private void updateGuildAutoModExact(CommandMessage message, GuildSettingsTransformer transformer)
+            throws SQLException {
+        avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", message.getGuild().getId())
+                .update(statement -> statement.set("filter_wildcard",
+                        Xeus.gson.toJson(transformer.getBadWordsWildcard()), true));
     }
 }

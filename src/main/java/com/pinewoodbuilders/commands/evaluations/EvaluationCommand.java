@@ -112,9 +112,32 @@ public class EvaluationCommand extends Command {
                 return setQuizChannel(context, args);
             case "questions":
                 return questionSubMenu(context, args);
+            case "kronos-sync":
+                return runKronosSync(context);
             default:
                 return evalSystemCommands(context, args);
         }
+    }
+
+    private boolean runKronosSync(CommandMessage context) {
+        
+        try {
+            Collection collection = avaire.getDatabase().newQueryBuilder(Constants.EVALS_DATABASE_TABLE_NAME).get();
+        
+            context.makeInfo("Syncing `" + collection.size() + "`eval records to Kronos").queue();
+            for (DataRow dr : collection) {
+                if (dr.getBoolean("passed_quiz") && dr.getBoolean("passed_combat") && dr.getBoolean("passed_patrol")) {
+                    avaire.getRobloxAPIManager().getKronosManager().modifyEvalStatus(dr.getLong("roblox_id"), "pbst", true);    
+                } else {
+                    avaire.getRobloxAPIManager().getKronosManager().modifyEvalStatus(dr.getLong("roblox_id"), "pbst", false);
+                }
+            }
+            context.makeSuccess("Synced data with Kronos!").queue();
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+                return false;
     }
 
     private boolean questionSubMenu(CommandMessage context, String[] args) {
@@ -359,14 +382,18 @@ public class EvaluationCommand extends Command {
                                     });
                                 context.makeSuccess("Successfully updated the record in the database").queue();
                                 avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`"+args[0] + "` has passed the `"+args[2]+"` eval.").requestedBy(context.getMember()).buildEmbed()).queue();
+                                try {
                                 if (avaire.getRobloxAPIManager().getEvaluationManager().getPassedEvals(roblox_id).size() == 3) {
                                     avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`"+args[0] + "` has now passed all evaluations!").setColor(new Color(255, 215, 0)).requestedBy(context).buildEmbed()).queue();   
-                                    avaire.getRobloxAPIManager().getKronosManager().modifyEvalStatus(roblox_id, "pbst", true);
+                                    
+                                        avaire.getRobloxAPIManager().getKronosManager().modifyEvalStatus(roblox_id, "pbst", true);
+                                    
                                     return true;
-                                } else {
-                                    avaire.getRobloxAPIManager().getKronosManager().modifyEvalStatus(roblox_id, "pbst", false);
-                                    return false;
                                 }
+                            } catch (Exception e) {
+                                context.makeError("Something went wrong: ```" + e.getMessage() + "```").queue();
+                                return false;
+                            }
                             }
 
                             return true;
@@ -431,6 +458,11 @@ public class EvaluationCommand extends Command {
                                         }
                                     });
                                 context.makeSuccess("Successfully updated the record in the database").queue();
+
+                                if (avaire.getRobloxAPIManager().getEvaluationManager().getPassedEvals(roblox_id).size() < 3){
+                                    avaire.getRobloxAPIManager().getKronosManager().modifyEvalStatus(roblox_id, "pbst", false);
+                                    return false;
+                                }
                                 return true;
                             }
 

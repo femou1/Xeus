@@ -142,6 +142,9 @@ public class MuteManager {
             return false;
         }
 
+        synchronized (mutes) {
+            return mutes.get(guildId).stream().
+
         for (MuteContainer container : mutes.get(guildId)) {
             if (container.isSame(guildId, userId)) {
                 return true;

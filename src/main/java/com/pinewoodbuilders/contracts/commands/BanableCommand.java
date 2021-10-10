@@ -133,15 +133,13 @@ public abstract class BanableCommand extends Command {
                                                 ? finalExpiresAt.toDayDateTimeString() + " ("
                                                         + finalExpiresAt.diffForHumans(true) + ")" + "\n" + reason
                                                 : "\n" + reason);
-
-                    caseId = Modlog.log(avaire, context,action);
-                                
+                        caseId = Modlog.log(avaire, context,action);
                     }
                     try {
-                        avaire.getBanManger().registerBan(caseId, context.getGuild().getIdLong(), user.getIdLong(), finalExpiresAt);
+                        if (finalExpiresAt != null) avaire.getBanManger().registerBan(caseId, context.getGuild().getIdLong(), userId, finalExpiresAt);
                 
                     context.makeSuccess(":target has been banned :time")
-                        .set("target", user.getAsMention())
+                        .set("target", user != null ? user.getAsMention() : userId)
                         .set("time", finalExpiresAt == null
                             ? "permenantly"
                             : String.format("for %s", finalExpiresAt.diffForHumans(true)))
@@ -193,7 +191,7 @@ public abstract class BanableCommand extends Command {
                 context.getAuthor().getName(), context.getAuthor().getDiscriminator(), context.getAuthor().getId()))
                 .queue(aVoid -> {
                     try {
-                        avaire.getBanManger().registerBan(caseId, context.getGuild().getIdLong(), user.getIdLong(), finalExpiresAt);
+                        if (finalExpiresAt != null) avaire.getBanManger().registerBan(caseId, context.getGuild().getIdLong(), user.getIdLong(), finalExpiresAt);
                     
 
                     context.makeSuccess(":target has been banned :time")

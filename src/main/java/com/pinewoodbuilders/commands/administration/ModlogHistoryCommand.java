@@ -113,15 +113,15 @@ public class ModlogHistoryCommand extends Command {
                 user = u.getId();
             }
         } else {
-            if (context.getMessage().getMentionedUsers().size() == 1) {
+            if (context.getMessage().getMentionedUsers().size() > 0) {
                 user = context.getMessage().getMentionedUsers().get(0).getId();
             } else {user = args[0];}
 
         }
 
-        if (!NumberUtil.isNumeric(args[0])) {
-            return sendErrorMessage(context, context.i18n("mustMentionUser"));
-        }
+        // if (!NumberUtil.isNumeric(args[0])) {
+        //     return sendErrorMessage(context, context.i18n("mustMentionUser"));
+        // }
 
         try {
             Collection items;

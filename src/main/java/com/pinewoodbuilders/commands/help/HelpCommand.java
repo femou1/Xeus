@@ -35,6 +35,7 @@ import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.utilities.StringReplacementUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import javax.annotation.Nonnull;
@@ -241,7 +242,7 @@ public class HelpCommand extends Command {
             );
         }
 
-        context.getMessageChannel().sendMessage(embed.setDescription(
+        context.getMessageChannel().sendMessageEmbeds(embed.setDescription(
             command.getCommand().generateDescription(
                 new CommandMessage(command, context.getDatabaseEventHolder(), context.getMessage())
                     .setI18n(context.getI18n())
@@ -282,13 +283,13 @@ public class HelpCommand extends Command {
 
         long before = categories.size();
         List<Category> filteredCategories = categories.stream()
-            .filter(category -> !channel.isCategoryDisabled(category))
+            .filter(category -> context.getMember().hasPermission(Permission.MESSAGE_MANAGE) || !channel.isCategoryDisabled(category))
             .collect(Collectors.toList());
 
         long disabled = before - filteredCategories.size();
 
         return formatCategoriesStream(
-            filteredCategories.stream().filter(category -> !channel.isCategoryDisabled(category)),
+            filteredCategories.stream().filter(category -> context.getMember().hasPermission(Permission.MESSAGE_MANAGE) || !channel.isCategoryDisabled(category)),
             adminUser,
             disabled != 0 ? I18n.format(
                 "\n\n" + (disabled == 1 ?

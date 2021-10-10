@@ -34,6 +34,7 @@ public class MuteContainer {
     private final long userId;
     private final Carbon expiresAt;
     private ScheduledFuture<?> schedule;
+    private final boolean global;
 
     /**
      * Creates a mute container using the given guild ID, user ID, and expiration time.
@@ -48,6 +49,24 @@ public class MuteContainer {
         this.userId = userId;
         this.expiresAt = expiresAt;
         this.schedule = null;
+        this.global = false;
+    }
+
+        /**
+     * Creates a mute container using the given guild ID, user ID, and expiration time.
+     *
+     * @param guildId   The ID of the guild the mute is registered to.
+     * @param userId    The ID of the user the mute is registered for.
+     * @param expiresAt The date and time the mute should expire,
+     *                  or {@code NULL} for permanent mutes.
+     * @param global    Whether the mute is global or not.
+     */
+    public MuteContainer(long guildId, long userId, @Nullable Carbon expiresAt, boolean global) {
+        this.guildId = guildId;
+        this.userId = userId;
+        this.expiresAt = expiresAt;
+        this.schedule = null;
+        this.global = global;
     }
 
     /**
@@ -146,6 +165,16 @@ public class MuteContainer {
     public boolean isSame(long guildId, long userId) {
         return getGuildId() == guildId
             && getUserId() == userId;
+    }
+
+    /**
+     * returns if the mute is global or not. If it's global, it will apply in all guilds that are connected to the MGI
+     *
+     * @return {@code True} if the mute is global, {@code False} otherwise.
+     * @since 3.0.5
+     */
+    public boolean isGlobal() {
+        return global;
     }
 
     @Override

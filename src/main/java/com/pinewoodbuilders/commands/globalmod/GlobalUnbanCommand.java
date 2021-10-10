@@ -64,18 +64,6 @@ public class GlobalUnbanCommand extends Command {
         return Collections.singletonList(CommandGroups.MODERATION);
     }
 
-    public final ArrayList <String> guilds = new ArrayList <String>() {{
-        add("495673170565791754"); // Aerospace
-        add("438134543837560832"); // PBST
-        add("791168471093870622"); // Kronos Dev
-        add("371062894315569173"); // Official PB Server
-        add("514595433176236078"); // PBQA
-        add("436670173777362944"); // PET
-        add("505828893576527892"); // MMFA
-        add("498476405160673286"); // PBM
-        add("572104809973415943"); // TMS
-        add("758057400635883580"); // PBOP
-    }};
 
 
     public final HashMap <Guild, Role> role = new HashMap <>();
@@ -108,11 +96,12 @@ public class GlobalUnbanCommand extends Command {
         }
         context.makeSuccess("<@" + args[0] + "> has been unbanned from: \n\n" + sb).queue();
 
-        TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
-        if (tc != null) {
+        long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+                if (mgmLogs != 0) {
+                    TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);if (tc != null) {
             tc.sendMessageEmbeds(context.makeInfo("[``:global-unbanned-id`` was unbanned from all discords by :user](:link)").set("global-unbanned-id", args[0]).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
         }
-
+    }
 
 
         try {

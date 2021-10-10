@@ -341,7 +341,7 @@ public class MessageEventAdapter extends EventAdapter {
                 return;
             }
             checkPIAInviteFilter(event, databaseEventHolder);
-            // checkPIALinkLoggerFilter(event); TODO: Create a link redirect filter
+            
         } else {
             System.out.println("Guild is null");
         }
@@ -875,7 +875,7 @@ public class MessageEventAdapter extends EventAdapter {
 
     }
 
-    public void onPBSTEventGalleryMessageSent(MessageReceivedEvent event) {
+    public void onEventGalleryMessageSent(MessageReceivedEvent event) {
         if (event.getMember().hasPermission(Permission.MESSAGE_MANAGE)) {
             return;
         }
@@ -890,10 +890,10 @@ public class MessageEventAdapter extends EventAdapter {
 
         event.getMessage().delete().queue();
         event.getAuthor().openPrivateChannel().queue(privateChannel -> {
-            privateChannel.sendMessageEmbeds(MessageFactory.makeWarning(event.getMessage(), "Sorry, but you're only allowed to post screenshots in this channel. Make sure these are actual **PBST** screenshots, made during either a raid or patrol.").buildEmbed()).queue();
+            privateChannel.sendMessageEmbeds(MessageFactory.makeWarning(event.getMessage(), "Sorry, but you're only allowed to post screenshots in this channel. Make sure these are actual screenshots, made during either a raid or patrol.").buildEmbed()).queue();
         });
 
-        event.getChannel().sendMessage(event.getMember().getAsMention()).embed(MessageFactory.makeError(event.getMessage(), "<a:ALERTA:720439101249290250> **Only post actual event images here, don't talk in this channel!** <a:ALERTA:720439101249290250>").setTimestamp(Instant.now()).setThumbnail(event.getAuthor().getEffectiveAvatarUrl()).setFooter("This message self-destructs after 30 seconds.").buildEmbed()).queue(
+        event.getChannel().sendMessage(event.getMember().getAsMention()).setEmbeds(MessageFactory.makeError(event.getMessage(), "<a:ALERTA:720439101249290250> **Only post actual event images here, don't talk in this channel!** <a:ALERTA:720439101249290250>").setTimestamp(Instant.now()).setThumbnail(event.getAuthor().getEffectiveAvatarUrl()).setFooter("This message self-destructs after 30 seconds.").buildEmbed()).queue(
             r -> r.delete().queueAfter(30, TimeUnit.SECONDS)
         );
 

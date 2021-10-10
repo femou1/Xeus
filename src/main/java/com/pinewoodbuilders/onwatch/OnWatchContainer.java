@@ -35,6 +35,24 @@ public class OnWatchContainer {
     private final long userId;
     private final Carbon expiresAt;
     private ScheduledFuture<?> schedule;
+    private final boolean global;
+
+    /**
+     * Constructor
+     * @param guildId   The ID of the guild the OnWatch is registered to.
+     * @param userId    The ID of the user the OnWatch is registered for.
+     * @param expiresAt The date and time the OnWatch should expire,
+     *                  or {@code NULL} for permanent OnWatchs.
+     * @param global    Whether the OnWatch is global or not.
+     */
+    public OnWatchContainer(long guildId, long userId, @Nullable Carbon expiresAt, String caseId, boolean global) {
+        this.guildId = guildId;
+        this.userId = userId;
+        this.expiresAt = expiresAt;
+        this.caseId = caseId;
+        this.schedule = null;
+        this.global = global;
+    }
 
     /**
      * Creates a OnWatch container using the given guild ID, user ID, and expiration time.
@@ -50,6 +68,7 @@ public class OnWatchContainer {
         this.expiresAt = expiresAt;
         this.caseId = caseId;
         this.schedule = null;
+        this.global = false;
     }
 
     /**
@@ -164,5 +183,9 @@ public class OnWatchContainer {
         return String.format("OnWatchContainer={guildId=%s, userId=%s, expiresAt=%s}",
             getGuildId(), getUserId(), getExpiresAt()
         );
+    }
+
+    public boolean isPublic() {
+        return false;
     }
 }

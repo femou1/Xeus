@@ -97,7 +97,7 @@ public class FeatureBlacklistEntity extends Evalable {
      * @return <code>True</code> if the user is still blacklisted, <code>False</code> otherwise.
      */
     public boolean isBlacklisted() {
-        return expiresIn == null || expiresIn.isFuture();
+        return featureScope.equals(FeatureScope.PIA_GLOBAL) ? true : expiresIn == null || expiresIn.isFuture() ;
     }
 
     /**

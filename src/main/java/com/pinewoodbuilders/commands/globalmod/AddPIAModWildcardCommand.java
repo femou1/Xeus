@@ -35,18 +35,17 @@ public class AddPIAModWildcardCommand extends Command {
     }
 
     @Override
-    public List <String> getUsageInstructions() {
+    public List<String> getUsageInstructions() {
         return Arrays.asList(
-            "`:command <add/remove> <words/word>` - Add or remove a word from the global wildcard word list.",
-            "`:command <list>` - See all the words in the global wildcard filter."
-        );
+                "`:command <add/remove> <words/word>` - Add or remove a word from the global wildcard word list.",
+                "`:command <list>` - See all the words in the global wildcard filter.");
     }
 
     @Override
     public List<String> getExampleUsage(@Nullable Message message) {
         return Arrays.asList(
-            "`:command add diddleshot stole` - Add's the words ``diddleshot stole`` to the global wildcard filter.",
-            "`:command remove diddleshot stole` - Removes the words ``diddleshot stole`` from the global wildcard filter.");
+                "`:command add diddleshot stole` - Add's the words ``diddleshot stole`` to the global wildcard filter.",
+                "`:command remove diddleshot stole` - Removes the words ``diddleshot stole`` from the global wildcard filter.");
     }
 
     @Override
@@ -61,9 +60,7 @@ public class AddPIAModWildcardCommand extends Command {
 
     @Override
     public List<String> getMiddleware() {
-        return Arrays.asList(
-            "isValidMGMMember"
-        );
+        return Arrays.asList("isValidMGMMember");
     }
 
     @Nonnull
@@ -80,16 +77,19 @@ public class AddPIAModWildcardCommand extends Command {
 
         GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
         if (guildTransformer == null) {
-            return sendErrorMessage(context, "Unable to load the local server settings. (We need this to get the MGI Connected to this guild)");
+            return sendErrorMessage(context,
+                    "Unable to load the local server settings. (We need this to get the MGI Connected to this guild)");
         }
 
         if (guildTransformer.getMainGroupId() == 0 && !guildTransformer.isOfficialSubGroup()) {
-            return sendErrorMessage(context, "A main group ID has not been set for this guild, or this is not an official server. So I don't know what settings to edit securely. Please set a MGI on this server, and make sure it's an officially connected server!");
+            return sendErrorMessage(context,
+                    "A main group ID has not been set for this guild, or this is not an official server. So I don't know what settings to edit securely. Please set a MGI on this server, and make sure it's an officially connected server!");
         }
 
         GlobalSettingsTransformer transformer = context.getGlobalSettingsTransformer();
         if (transformer == null) {
-            return sendErrorMessage(context, "You have not set the MGI in your guild settings, so I don't know what global settings to edit.");
+            return sendErrorMessage(context,
+                    "You have not set the MGI in your guild settings, so I don't know what global settings to edit.");
         }
 
         String words = String.join(" ", Arrays.copyOfRange(args, 1, args.length)).toLowerCase();
@@ -111,13 +111,18 @@ public class AddPIAModWildcardCommand extends Command {
             try {
                 updateGuildAutoModExact(context, transformer);
 
-                context.makeSuccess("Successfully added: ``" + words + "``")
-                    .queue();
+                context.makeSuccess("Successfully added: ``" + words + "``").queue();
 
-                TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
-                if (tc != null) {
-                    tc.sendMessageEmbeds(context.makeInfo("[The following words have been added to the **GLOBAL** wildcard filter by :user](:link):\n" +
-                        "```:words```").set("words", words).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+                long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+                if (mgmLogs != 0) {
+                    TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
+                    if (tc != null) {
+                        tc.sendMessageEmbeds(context.makeInfo(
+                                "[The following words have been added to the **GLOBAL** wildcard filter by :user](:link):\n"
+                                        + "```:words```")
+                                .set("words", words).set("user", context.getMember().getAsMention())
+                                .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+                    }
                 }
                 return true;
             } catch (SQLException e) {
@@ -133,8 +138,7 @@ public class AddPIAModWildcardCommand extends Command {
             try {
                 updateGuildAutoModExact(context, transformer);
 
-                context.makeSuccess("Successfully added: ``" + words + "``")
-                    .queue();
+                context.makeSuccess("Successfully added: ``" + words + "``").queue();
                 return true;
             } catch (SQLException e) {
                 Xeus.getLogger().error("ERROR: ", e);
@@ -154,8 +158,7 @@ public class AddPIAModWildcardCommand extends Command {
         try {
             updateGuildAutoModExact(context, transformer);
 
-            context.makeSuccess("Deleted: ``" + args +"``")
-                .queue();
+            context.makeSuccess("Deleted: ``" + args + "``").queue();
             return true;
         } catch (SQLException e) {
             Xeus.getLogger().error("ERROR: ", e);
@@ -164,15 +167,17 @@ public class AddPIAModWildcardCommand extends Command {
     }
 
     private boolean getGlobalAutoModExactList(CommandMessage context, GlobalSettingsTransformer transformer) {
-        context.makeSuccess("This the list of the current filtered wildcard words: \n```" + transformer.getGlobalFilterWildcard() + "```").queue();
+        context.makeSuccess("This the list of the current filtered wildcard words: \n```"
+                + transformer.getGlobalFilterWildcard() + "```").queue();
         return false;
     }
 
-    private void updateGuildAutoModExact(CommandMessage message, GlobalSettingsTransformer transformer) throws SQLException {
+    private void updateGuildAutoModExact(CommandMessage message, GlobalSettingsTransformer transformer)
+            throws SQLException {
         for (String id : Constants.guilds) {
-            avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE)
-                .where("main_group_id", id)
-                .update(statement -> statement.set("global_filter_wildcard", Xeus.gson.toJson(transformer.getGlobalFilterWildcard()), true));
+            avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE).where("main_group_id", id)
+                    .update(statement -> statement.set("global_filter_wildcard",
+                            Xeus.gson.toJson(transformer.getGlobalFilterWildcard()), true));
         }
 
     }

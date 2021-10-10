@@ -34,7 +34,7 @@ public class KronosManager {
         this.avaire = avaire;
         this.manager = robloxAPIManager;
         this.apikey = avaire.getConfig().getString("apiKeys.kronosDatabaseApiKey");
-        this.evalApiKey = avaire.getConfig().getString("apiKeys.kronosDatabaseEvalsApiKey")
+        this.evalApiKey = avaire.getConfig().getString("apiKeys.kronosDatabaseEvalsApiKey");
     }
 
     public Long getPoints(Long userId) {
@@ -102,29 +102,27 @@ public class KronosManager {
         }
         return false;
     }
-    private static final MediaType json = MediaType.parse("application/json; charset=utf-8");
-
-    public JSONArray modifyEvalStatus(Long userId, String division, boolean status) {
+    
+    public Object modifyEvalStatus(Long userId, String division, boolean status) {
         Request.Builder request = new Request.Builder()
             .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
-            .addHeader("Access-Key", evalApiKey)
-            .url("https://pb-kronos.dev/api/v2/database/eval/"+division+"/" + userId);
+            .addHeader("Access-Key", evalApiKey);
 
         if (status) {
-            request.post(RequestBody.create(json, "[]"));
+            request.url("https://pb-kronos.dev/api/v2/database/"+division+"/eval/add/" + userId);
         } else {
-            request.delete(RequestBody.create(json, "[]"));
+            request.url("https://pb-kronos.dev/api/v2/database/"+division+"/eval/delete/" + userId);
         }
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200 && response.body() != null) {
                 String body = response.body().string();
-                JSONArray array = new JSONArray(body);
+                JSONObject array = new JSONObject(body);
                 return array;
             } else if (response.code() == 404) {
-                return new JSONArray(response.body().string());
+                return new JSONObject();
             } else if (response.code() == 501) {
-                return new JSONArray("[{\"error\": \"Eval status could not be set.\"}]");
+                return new JSONObject("[{\"error\": \"Eval status could not be set.\"}]");
             } else {
                 throw new Exception("Kronos API returned something else then 200, please retry.");
             }
