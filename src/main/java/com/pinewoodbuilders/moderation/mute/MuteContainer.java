@@ -167,6 +167,18 @@ public class MuteContainer {
             && getUserId() == userId;
     }
 
+        /**
+     * Compares the current container with the given guild and user IDs,
+     * checking if the current container is registered to the same
+     * guild and user IDs given.
+     *
+     * @param userId  The user ID that should be compared.
+     * @return {@code True} if the IDs match, {@code False} otherwise.
+     */
+    public boolean isSame(long userId) {
+        return getUserId() == userId;
+    }
+
     /**
      * returns if the mute is global or not. If it's global, it will apply in all guilds that are connected to the MGI
      *

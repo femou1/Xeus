@@ -72,6 +72,12 @@ public class GlobalSettingsController {
                 () -> loadGuildSettingsFromDatabase(avaire, transformer.getMainGroupId()));
     }
 
+    @CheckReturnValue
+    public static GlobalSettingsTransformer fetchGlobalSettingsFromGroupSettings(Xeus avaire, long groupId) {
+        return (GlobalSettingsTransformer) CacheUtil.getUncheckedUnwrapped(cache, groupId,
+                () -> loadGuildSettingsFromDatabase(avaire, groupId));
+    }
+
     public static void forgetCache(long groupId) {
         cache.invalidate(groupId);
     }

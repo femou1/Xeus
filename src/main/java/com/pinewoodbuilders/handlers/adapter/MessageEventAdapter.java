@@ -720,22 +720,7 @@ public class MessageEventAdapter extends EventAdapter {
                 return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), settings, null);
             }
 
-            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(avaire, settings));
-        });
-    }
-
-    private CompletableFuture <DatabaseEventHolder> loadDatabasePropertiesIntoMemory(final SlashCommandEvent event) {
-        return CompletableFuture.supplyAsync(() -> {
-            if (!event.getChannelType().isGuild()) {
-                return new DatabaseEventHolder(null, null, null, null, null);
-            }
-
-            GuildTransformer guild = GuildController.fetchGuild(avaire, event.getGuild());
-
-            if (guild == null || !guild.isLevels() || event.getUser().isBot()) {
-                return new DatabaseEventHolder(guild, null, VerificationController.fetchVerificationFromGuild(avaire, event.getGuild()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild())));
-            }
-            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, null), VerificationController.fetchVerificationFromGuild(avaire, event.getGuild()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(avaire, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild())));
+            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), settings.getGlobalSettings());
         });
     }
 

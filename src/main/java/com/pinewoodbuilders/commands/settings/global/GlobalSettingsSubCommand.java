@@ -55,11 +55,245 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
 
             case "audit-logs":
                 return runAuditLogsCommand(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
+            case "gfilter":
+            case "global-filter":
+            case "gf":
+            case "globalf":
+                return runGlobalFilterCommand(context, Arrays.copyOfRange(args, 1, args.length));
             default:
                 context.makeInfo(
                         "God damn, please get this command right.\n\n- `smgi` - Set the Main Group Id of this guild")
                         .queue();
                 return false;
+        }
+
+    }
+
+    private boolean runGlobalFilterCommand(CommandMessage context, String[] args) {
+        switch (args[0].toLowerCase()) {
+            case "wcf":
+            case "pwcf":
+                return runEditWCFFilter(context, Arrays.copyOfRange(args, 1, args.length));
+            case "ef":
+            case "pef":
+                return runEditPEFFilter(context, Arrays.copyOfRange(args, 1, args.length));
+            default:
+                context.makeInfo("Please use `pwcf` or `pef` to select what global filter you'd like to edit.").queue();
+                return false;
+
+        }
+    }
+
+    private boolean runEditPEFFilter(CommandMessage context, String[] args) {
+        if (args.length == 0) {
+            return command.sendErrorMessage(context, "You didn't give any arguments.");
+        }
+
+        GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
+        if (guildTransformer == null) {
+            return command.sendErrorMessage(context,
+                    "Unable to load the local server settings. (We need this to get the MGI Connected to this guild)");
+        }
+
+        if (guildTransformer.getMainGroupId() == 0 && !guildTransformer.isOfficialSubGroup()) {
+            return command.sendErrorMessage(context,
+                    "A main group ID has not been set for this guild, or this is not an official server. So I don't know what settings to edit securely. Please set a MGI on this server, and make sure it's an officially connected server!");
+        }
+
+        GlobalSettingsTransformer transformer = context.getGlobalSettingsTransformer();
+        if (transformer == null) {
+            return command.sendErrorMessage(context,
+                    "You have not set the MGI in your guild settings, so I don't know what global settings to edit.");
+        }
+
+        String words = String.join(" ", Arrays.copyOfRange(args, 1, args.length)).toLowerCase();
+        if (words.contains(" ")) {
+            return command.sendErrorMessage(context,
+                    "The EXACT words in the filter are not allowed to contain any spaces, use `!exactfilter`");
+        }
+        if (args[0].equalsIgnoreCase("list")) {
+            return getAutoModExactList(context, transformer);
+        }
+        if (args[0].equalsIgnoreCase("remove")) {
+            if (args.length == 1) {
+                return command.sendErrorMessage(context, "You didn't give any words to remove from the global filter.");
+            }
+            return removeAutoModExact(context, transformer, words);
+        }
+        if (args[0].equalsIgnoreCase("add")) {
+            if (args.length == 1) {
+                return command.sendErrorMessage(context, "You didn't give any words to add to the global filter.");
+            }
+            transformer.getGlobalFilterExact().add(words);
+            try {
+                updateGuildAutoModExact(context, transformer);
+
+                context.makeSuccess("Successfully added: ``" + words + "``").queue();
+
+                long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+                if (mgmLogs != 0) {
+                    TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
+                    if (tc != null) {
+                        tc.sendMessageEmbeds(context.makeInfo(
+                                "[The following words have been added to the **GLOBAL** exact filter by :user](:link):\n"
+                                        + "```:words```")
+                                .set("words", words).set("user", context.getMember().getAsMention())
+                                .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+                    }
+                }
+
+                return true;
+            } catch (SQLException e) {
+                Xeus.getLogger().error("ERROR: ", e);
+                return false;
+            }
+        } else {
+            return command.sendErrorMessage(context, "Invalid argument. See ``!help exactfilter`` for the arguments.");
+        }
+    }
+
+    private boolean getAutoModExactList(CommandMessage context, GlobalSettingsTransformer transformer) {
+        context.makeSuccess(
+                "This the list of the current filtered EXACT words: \n```" + transformer.getGlobalFilterExact() + "```")
+                .queue();
+        return false;
+    }
+
+    private boolean removeAutoModExact(CommandMessage context, GlobalSettingsTransformer transformer, String args) {
+        if (!transformer.getGlobalFilterExact().contains(args)) {
+            return command.sendErrorMessage(context, "This word does not exist in the list");
+        }
+
+        transformer.getGlobalFilterExact().remove(args);
+
+        try {
+            updateGuildAutoModExact(context, transformer);
+
+            context.makeSuccess("Deleted: " + args).queue();
+            return true;
+        } catch (SQLException e) {
+            Xeus.getLogger().error("ERROR: ", e);
+            return false;
+        }
+    }
+
+    private void updateGuildAutoModExact(CommandMessage message, GlobalSettingsTransformer transformer)
+            throws SQLException {
+        for (String id : Constants.guilds) {
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", id)
+                    .update(statement -> statement.set("global_filter_exact",
+                            Xeus.gson.toJson(transformer.getGlobalFilterExact()), true));
+        }
+    }
+
+    private boolean runEditWCFFilter(CommandMessage context, String[] args) {
+        if (args.length == 0) {
+            return command.sendErrorMessage(context, "You didn't give any arguments.");
+        }
+
+        GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
+        if (guildTransformer == null) {
+            return command.sendErrorMessage(context,
+                    "Unable to load the local server settings. (We need this to get the MGI Connected to this guild)");
+        }
+
+        if (guildTransformer.getMainGroupId() == 0 && !guildTransformer.isOfficialSubGroup()) {
+            return command.sendErrorMessage(context,
+                    "A main group ID has not been set for this guild, or this is not an official server. So I don't know what settings to edit securely. Please set a MGI on this server, and make sure it's an officially connected server!");
+        }
+
+        GlobalSettingsTransformer transformer = context.getGlobalSettingsTransformer();
+        if (transformer == null) {
+            return command.sendErrorMessage(context,
+                    "You have not set the MGI in your guild settings, so I don't know what global settings to edit.");
+        }
+
+        String words = String.join(" ", Arrays.copyOfRange(args, 1, args.length)).toLowerCase();
+        if (args[0].equalsIgnoreCase("list")) {
+            return getGlobalAutoModWildcardList(context, transformer);
+        }
+
+        if (args[0].equalsIgnoreCase("remove")) {
+            if (args.length == 1) {
+                return command.sendErrorMessage(context, "You didn't give any words to remove from the global filter.");
+            }
+            return removeAutoModWildcard(context, transformer, words);
+        }
+        if (args[0].equalsIgnoreCase("add")) {
+            if (args.length == 1) {
+                return command.sendErrorMessage(context, "You didn't give any words to add to the global filter.");
+            }
+            transformer.getGlobalFilterWildcard().add(words);
+            try {
+                updateGuildAutoModWildcard(context, transformer);
+
+                context.makeSuccess("Successfully added: ``" + words + "``").queue();
+
+                long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+                if (mgmLogs != 0) {
+                    TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
+                    if (tc != null) {
+                        tc.sendMessageEmbeds(context.makeInfo(
+                                "[The following words have been added to the **GLOBAL** wildcard filter by :user](:link):\n"
+                                        + "```:words```")
+                                .set("words", words).set("user", context.getMember().getAsMention())
+                                .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+                    }
+                }
+                return true;
+            } catch (SQLException e) {
+                Xeus.getLogger().error("ERROR: ", e);
+                return false;
+            }
+        }
+        if (args[0].equalsIgnoreCase("add-comma")) {
+            if (args.length == 1) {
+                return command.sendErrorMessage(context, "You didn't give any words to add to the global filter.");
+            }
+            transformer.getGlobalFilterWildcard().add(words);
+            try {
+                updateGuildAutoModWildcard(context, transformer);
+
+                context.makeSuccess("Successfully added: ``" + words + "``").queue();
+                return true;
+            } catch (SQLException e) {
+                Xeus.getLogger().error("ERROR: ", e);
+                return false;
+            }
+        } else {
+            return command.sendErrorMessage(context, "Invalid argument.");
+        }
+    }
+
+    private boolean removeAutoModWildcard(CommandMessage context, GlobalSettingsTransformer transformer, String args) {
+        if (!transformer.getGlobalFilterWildcard().contains(args)) {
+            return command.sendErrorMessage(context, "This word does not exist in the wildcard list");
+        }
+
+        transformer.getGlobalFilterWildcard().remove(args);
+        try {
+            updateGuildAutoModWildcard(context, transformer);
+
+            context.makeSuccess("Deleted: ``" + args + "``").queue();
+            return true;
+        } catch (SQLException e) {
+            Xeus.getLogger().error("ERROR: ", e);
+            return false;
+        }
+    }
+
+    private boolean getGlobalAutoModWildcardList(CommandMessage context, GlobalSettingsTransformer transformer) {
+        context.makeSuccess("This the list of the current filtered wildcard words: \n```"
+                + transformer.getGlobalFilterWildcard() + "```").queue();
+        return false;
+    }
+
+    private void updateGuildAutoModWildcard(CommandMessage message, GlobalSettingsTransformer transformer)
+            throws SQLException {
+        for (String id : Constants.guilds) {
+            avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE).where("main_group_id", id)
+                    .update(statement -> statement.set("global_filter_wildcard",
+                            Xeus.gson.toJson(transformer.getGlobalFilterWildcard()), true));
         }
 
     }

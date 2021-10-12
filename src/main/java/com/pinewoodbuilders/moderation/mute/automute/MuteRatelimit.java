@@ -259,16 +259,14 @@ public class MuteRatelimit {
                 
 
                 try {
-                    Xeus.getInstance().getMuteManger().registerMute(caseId, g.getIdLong(), context.getAuthor().getIdLong(), finalExpiresAt);
+                    Xeus.getInstance().getMuteManger().registerMute(caseId, g.getIdLong(), context.getAuthor().getIdLong(), finalExpiresAt, true);
                 } catch (SQLException e) {
                     Xeus.getLogger().error(e.getMessage(), e);
                 }
             });
             
         }
-        MuteRatelimit.sendMuteMessage(context.getAuthor(), punishment, context.getGuild());
-
-
+        MuteRatelimit.sendMuteMessage(context.getAuthor(), punishment);
     }
 
     /**

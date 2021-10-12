@@ -22,15 +22,12 @@
 package com.pinewoodbuilders.database.transformers;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.google.gson.reflect.TypeToken;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.database.transformers.Transformer;
 import com.pinewoodbuilders.database.collection.DataRow;
-import net.dv8tion.jda.api.entities.Guild;
 
 public class GlobalSettingsTransformer extends Transformer {
 
@@ -60,44 +57,42 @@ public class GlobalSettingsTransformer extends Transformer {
     public GlobalSettingsTransformer(Long groupId, DataRow data) {
         super(data);
         if (hasData()) {
-        mainGroupId = data.getLong("main_group_id");
-        mainGroupName = data.getString("main_group_name");
-        globalBan = data.getBoolean("global_ban");
-        globalKick = data.getBoolean("global_kick");
-        globalVerify = data.getBoolean("global_verify");
-        globalAntiUnban = data.getBoolean("global_anti_unban");
-        globalFilter = data.getBoolean("global_filter");
-        globalFilterLogChannel = data.getLong("global_filter_log_channel");
-        globalAutomod = data.getBoolean("global_automod");
-        automodMassMention = data.getInt("automod_mass_mention");
-        automodEmojiSpam = data.getInt("automod_emoji_spam");
-        automodLinkSpam = data.getInt("automod_link_spam");
-        automodMessageSpam = data.getInt("automod_message_spam");
-        automodImageSpam = data.getInt("automod_image_spam");
-        automodCharacterSpam = data.getInt("automod_character_spam");
-        appealsDiscordId = data.getLong("appeals_discord_id");
-        mgmLogsId = data.getLong("mgm_logs");
+            mainGroupId = data.getLong("main_group_id");
+            mainGroupName = data.getString("main_group_name");
+            globalBan = data.getBoolean("global_ban");
+            globalKick = data.getBoolean("global_kick");
+            globalVerify = data.getBoolean("global_verify");
+            globalAntiUnban = data.getBoolean("global_anti_unban");
+            globalFilter = data.getBoolean("global_filter");
+            globalFilterLogChannel = data.getLong("global_filter_log_channel");
+            globalAutomod = data.getBoolean("global_automod");
+            automodMassMention = data.getInt("automod_mass_mention");
+            automodEmojiSpam = data.getInt("automod_emoji_spam");
+            automodLinkSpam = data.getInt("automod_link_spam");
+            automodMessageSpam = data.getInt("automod_message_spam");
+            automodImageSpam = data.getInt("automod_image_spam");
+            automodCharacterSpam = data.getInt("automod_character_spam");
+            appealsDiscordId = data.getLong("appeals_discord_id");
+            mgmLogsId = data.getLong("mgm_logs");
 
-        if (data.getString("global_filter_exact", null) != null) {
-            List<String> dbFilter = Xeus.gson.fromJson(data.getString("global_filter_exact"),
-                    new TypeToken<List<String>>() {
-                    }.getType());
+            if (data.getString("global_filter_exact", null) != null) {
+                List<String> dbFilter = Xeus.gson.fromJson(data.getString("global_filter_exact"),
+                        new TypeToken<List<String>>() {
+                        }.getType());
 
-            globalFilterExact.addAll(dbFilter);
+                globalFilterExact.addAll(dbFilter);
+            }
+
+            if (data.getString("global_filter_wildcard", null) != null) {
+                List<String> dbFilter = Xeus.gson.fromJson(data.getString("global_filter_wildcard"),
+                        new TypeToken<List<String>>() {
+                        }.getType());
+
+                globalFilterWildcard.addAll(dbFilter);
+            }
+            reset();
         }
-
-        if (data.getString("global_filter_wildcard", null) != null) {
-            List<String> dbFilter = Xeus.gson.fromJson(data.getString("global_filter_wildcard"),
-                    new TypeToken<List<String>>() {
-                    }.getType());
-
-            globalFilterWildcard.addAll(dbFilter);
-        }
-        reset();
     }
-    }
-
-
 
     public String getGroupName() {
         return this.mainGroupName;

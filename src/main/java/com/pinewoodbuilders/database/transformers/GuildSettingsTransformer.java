@@ -30,6 +30,8 @@ import com.google.gson.reflect.TypeToken;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.database.transformers.Transformer;
 import com.pinewoodbuilders.database.collection.DataRow;
+import com.pinewoodbuilders.database.controllers.GlobalSettingsController;
+
 import net.dv8tion.jda.api.entities.Guild;
 
 public class GuildSettingsTransformer extends Transformer {
@@ -53,6 +55,9 @@ public class GuildSettingsTransformer extends Transformer {
     private boolean verificationAntiMainGlobalModImpersonation;
     private boolean permissionBypass;
     private boolean isOfficialSubGroup;
+
+    // Global Transformer
+    private GlobalSettingsTransformer globalTransformer = null;
 
     // Guild Settings
     private final List<String> badWordsExact = new ArrayList<>();
@@ -84,6 +89,10 @@ public class GuildSettingsTransformer extends Transformer {
             robloxGroupId = data.getLong("roblox_group_id");
             groupName = data.getString("group_name");
             mainGroupId = data.getLong("main_group_id");
+            if (mainGroupId != 0) {
+                GlobalSettingsTransformer globalSettings = GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(Xeus.getInstance(), mainGroupId);
+                globalTransformer = globalSettings != null ? globalSettings : null;
+            }
             mainDiscordRole = data.getLong("main_discord_role");
             minimumHrRank = data.getInt("minimum_hr_rank");
             minimumLeadRank = data.getInt("minimum_lead_rank");   
@@ -248,6 +257,10 @@ public class GuildSettingsTransformer extends Transformer {
 
     public void setMainGroupId(long mainGroupId) {
         this.mainGroupId = mainGroupId;
+    }
+
+    public GlobalSettingsTransformer getGlobalSettings() {
+        return this.globalTransformer;
     }
 
     public long getMainDiscordRole() {

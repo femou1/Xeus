@@ -1,7 +1,6 @@
 package com.pinewoodbuilders.commands.globalmod;
 
 import com.pinewoodbuilders.Xeus;
-import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
@@ -41,10 +40,6 @@ public class GlobalPruneCommand extends Command {
         return Collections.singletonList("`:command` - Prune members from all guilds globally.");
     }
 
-    @Override
-    public List<Class<? extends Command>> getRelations() {
-        return Collections.singletonList(AddPIAModWildcardCommand.class);
-    }
 
     @Override
     public List<String> getTriggers() {
