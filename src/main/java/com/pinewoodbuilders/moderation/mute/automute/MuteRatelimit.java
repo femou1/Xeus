@@ -259,7 +259,7 @@ public class MuteRatelimit {
                 
 
                 try {
-                    Xeus.getInstance().getMuteManger().registerMute(caseId, g.getIdLong(), context.getAuthor().getIdLong(), finalExpiresAt, true);
+                    Xeus.getInstance().getMuteManger().registerMute(caseId, g.getIdLong(), context.getAuthor().getIdLong(), finalExpiresAt);
                 } catch (SQLException e) {
                     Xeus.getLogger().error(e.getMessage(), e);
                 }

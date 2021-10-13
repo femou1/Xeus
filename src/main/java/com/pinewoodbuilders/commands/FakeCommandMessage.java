@@ -92,11 +92,7 @@ public class FakeCommandMessage implements CommandContext {
     public GuildSettingsTransformer getGuildSettingsTransformer() {
         return null;
     }
-    
-    @Override
-    public GlobalSettingsTransformer getGlobalSettingsTransformer() {
-        return null;
-    }
+
 
     @Override
     public List<User> getMentionedUsers() {

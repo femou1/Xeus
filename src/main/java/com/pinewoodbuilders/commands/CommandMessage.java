@@ -207,11 +207,6 @@ public class CommandMessage implements CommandContext {
     }
 
     @Override
-    public GlobalSettingsTransformer getGlobalSettingsTransformer() {
-        return databaseEventHolder == null ? null : databaseEventHolder.getGlobalSettings();
-    }
-
-    @Override
     public DatabaseEventHolder getDatabaseEventHolder() {
         return databaseEventHolder;
     }

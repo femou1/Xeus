@@ -130,9 +130,9 @@ public class UpdateCommand extends Command {
             return false;
         }
 
-        if (context.getGuild().getVerificationLevel().equals(VerificationLevel.VERY_HIGH)) {
-            
-        }
+        // if (context.getGuild().getVerificationLevel().equals(VerificationLevel.VERY_HIGH)) {
+                
+        // }
 
         if (globalVerificationRunning) {
             context.makeError("A pinewood wide verification is already running. Please try again later...").queue();

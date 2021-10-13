@@ -158,10 +158,6 @@ public class GlobalSettingsTransformer extends Transformer {
         this.globalAntiUnban = globalAntiUnban;
     }
 
-    public boolean isGlobalFilter() {
-        return this.globalFilter;
-    }
-
     public boolean getGlobalFilter() {
         return this.globalFilter;
     }

@@ -121,9 +121,6 @@ public interface CommandContext {
     @Nullable
     GuildSettingsTransformer getGuildSettingsTransformer();
 
-    @Nullable 
-    GlobalSettingsTransformer getGlobalSettingsTransformer();
-
     /**
      * Returns the {@link PlayerTransformer player transformer} instance linked to the current message, if
      * the message was sent as a direct message, or the server the message was sent in has leveling
