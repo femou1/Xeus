@@ -1,10 +1,10 @@
 package com.pinewoodbuilders.database.migrate.migrations;
 
-import java.sql.SQLException;
-
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.contracts.database.migrations.Migration;
 import com.pinewoodbuilders.database.schema.Schema;
+
+import java.sql.SQLException;
 
 public class CreateGuildSettingsTableMigration implements Migration {
   
@@ -41,9 +41,20 @@ public class CreateGuildSettingsTableMigration implements Migration {
             
             table.Boolean("local_filter").defaultValue(false);
             table.Long("local_filter_log").nullable();
-            table.LongText("filter_exact").nullable();
-            table.LongText("filter_wildcard").nullable();
-            
+
+            table.Boolean("global_ban").defaultValue(false);
+            table.Boolean("global_kick").defaultValue(false);
+            table.Boolean("global_verify").defaultValue(false);
+            table.Boolean("global_anti_unban").defaultValue(false);
+
+            table.Boolean("global_automod").defaultValue(false).nullable();
+            table.Integer("automod_mass_mention", 11).defaultValue(15);
+            table.Integer("automod_emoji_spam", 11).defaultValue(15);
+            table.Integer("automod_link_spam", 11).defaultValue(15);
+            table.Integer("automod_message_spam", 11).defaultValue(15);
+            table.Integer("automod_image_spam", 11).defaultValue(15);
+            table.Integer("automod_character_spam", 11).defaultValue(15);
+
             table.Long("patrol_remittance_channel").nullable();
             table.LongText("patrol_remittance_message").nullable();
             

@@ -1,7 +1,7 @@
 package com.pinewoodbuilders.commands.automod;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
@@ -98,7 +98,7 @@ public class AddAutoModWildcardCommand extends Command {
 
                 context.makeSuccess("Successfully added: ``" + words + "``").queue();
 
-                long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+                long mgmLogs = context.getGuildSettingsTransformer().getGlobalSettings().getMgmLogsId();
                 if (mgmLogs != 0) {
                     TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
                     if (tc != null) {

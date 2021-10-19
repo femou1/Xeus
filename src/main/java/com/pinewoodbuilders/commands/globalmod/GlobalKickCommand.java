@@ -1,7 +1,6 @@
 package com.pinewoodbuilders.commands.globalmod;
 
 import com.pinewoodbuilders.Xeus;
-import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
@@ -119,7 +118,7 @@ public class GlobalKickCommand extends Command {
                         .setColor(Color.BLACK).buildEmbed()).queue();
             });
         }
-        long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+        long mgmLogs = context.getGuildSettingsTransformer().getGlobalSettings().getMgmLogsId();
         if (mgmLogs != 0) {
             TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
             if (tc != null) {

@@ -21,18 +21,17 @@
 
 package com.pinewoodbuilders.database.transformers;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.google.gson.reflect.TypeToken;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.database.transformers.Transformer;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.controllers.GlobalSettingsController;
-
 import net.dv8tion.jda.api.entities.Guild;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class GuildSettingsTransformer extends Transformer {
     
@@ -58,6 +57,20 @@ public class GuildSettingsTransformer extends Transformer {
 
     // Global Transformer
     private GlobalSettingsTransformer globalTransformer = null;
+
+    // Global Settings
+    private boolean globalBan;
+    private boolean globalKick;
+    private boolean globalVerify;
+    private boolean globalAntiUnban;
+    private boolean globalFilter;
+    private boolean globalAutomod;
+    private int automodMassMention;
+    private int automodEmojiSpam;
+    private int automodLinkSpam;
+    private int automodMessageSpam;
+    private int automodImageSpam;
+    private int automodCharacterSpam;
 
     // Guild Settings
     private final List<String> badWordsExact = new ArrayList<>();
@@ -90,8 +103,7 @@ public class GuildSettingsTransformer extends Transformer {
             groupName = data.getString("group_name");
             mainGroupId = data.getLong("main_group_id");
             if (mainGroupId != 0) {
-                GlobalSettingsTransformer globalSettings = GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(Xeus.getInstance(), mainGroupId);
-                globalTransformer = globalSettings != null ? globalSettings : null;
+                globalTransformer = GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(Xeus.getInstance(), mainGroupId);
             }
             mainDiscordRole = data.getLong("main_discord_role");
             minimumHrRank = data.getInt("minimum_hr_rank");
@@ -107,6 +119,20 @@ public class GuildSettingsTransformer extends Transformer {
             onWatchRole = data.getLong("on_watch_role");
             localFilter = data.getBoolean("local_filter");
             localFilterLog = data.getLong("local_filter_log");
+
+            globalBan = data.getBoolean("global_ban");
+            globalKick = data.getBoolean("global_kick");
+            globalVerify = data.getBoolean("global_verify");
+            globalAntiUnban = data.getBoolean("global_anti_unban");
+            globalFilter = data.getBoolean("global_filter");
+            globalAutomod = data.getBoolean("global_automod");
+            automodMassMention = data.getInt("automod_mass_mention");
+            automodEmojiSpam = data.getInt("automod_emoji_spam");
+            automodLinkSpam = data.getInt("automod_link_spam");
+            automodMessageSpam = data.getInt("automod_message_spam");
+            automodImageSpam = data.getInt("automod_image_spam");
+            automodCharacterSpam = data.getInt("automod_character_spam");
+
             patrolRemittanceChannel = data.getLong("patrol_remittance_channel");
             patrolRemittance = data.getString("patrol_remittance_message");
             handbookReportChannel = data.getLong("handbook_report_channel");
@@ -390,6 +416,122 @@ public class GuildSettingsTransformer extends Transformer {
 
     public String getPatrolRemittance() {
         return this.patrolRemittance;
+    }
+
+    public boolean isGlobalBan() {
+        return this.globalBan;
+    }
+
+    public boolean getGlobalBan() {
+        return this.globalBan;
+    }
+
+    public void setGlobalBan(boolean globalBan) {
+        this.globalBan = globalBan;
+    }
+
+    public boolean isGlobalKick() {
+        return this.globalKick;
+    }
+
+    public boolean getGlobalKick() {
+        return this.globalKick;
+    }
+
+    public void setGlobalKick(boolean globalKick) {
+        this.globalKick = globalKick;
+    }
+
+    public boolean isGlobalVerify() {
+        return this.globalVerify;
+    }
+
+    public boolean getGlobalVerify() {
+        return this.globalVerify;
+    }
+
+    public void setGlobalVerify(boolean globalVerify) {
+        this.globalVerify = globalVerify;
+    }
+
+    public boolean isGlobalAntiUnban() {
+        return this.globalAntiUnban;
+    }
+
+    public boolean getGlobalAntiUnban() {
+        return this.globalAntiUnban;
+    }
+
+    public void setGlobalAntiUnban(boolean globalAntiUnban) {
+        this.globalAntiUnban = globalAntiUnban;
+    }
+
+    public boolean getGlobalFilter() {
+        return this.globalFilter;
+    }
+
+    public void setGlobalFilter(boolean globalFilter) {
+        this.globalFilter = globalFilter;
+    }
+
+    public boolean isGlobalAutomod() {
+        return this.globalAutomod;
+    }
+
+    public boolean getGlobalAutomod() {
+        return this.globalAutomod;
+    }
+
+    public void setGlobalAutomod(boolean globalAutomod) {
+        this.globalAutomod = globalAutomod;
+    }
+
+    public int getMassMention() {
+        return this.automodMassMention;
+    }
+
+    public void setMassMention(int automodMassMention) {
+        this.automodMassMention = automodMassMention;
+    }
+
+    public int getEmojiSpam() {
+        return this.automodEmojiSpam;
+    }
+
+    public void setEmojiSpam(int automodEmojiSpam) {
+        this.automodEmojiSpam = automodEmojiSpam;
+    }
+
+    public int getLinkSpam() {
+        return this.automodLinkSpam;
+    }
+
+    public void setLinkSpam(int automodLinkSpam) {
+        this.automodLinkSpam = automodLinkSpam;
+    }
+
+    public int getMessageSpam() {
+        return this.automodMessageSpam;
+    }
+
+    public void setMessageSpam(int automodMessageSpam) {
+        this.automodMessageSpam = automodMessageSpam;
+    }
+
+    public int getImageSpam() {
+        return this.automodImageSpam;
+    }
+
+    public void setImageSpam(int automodImageSpam) {
+        this.automodImageSpam = automodImageSpam;
+    }
+
+    public int getCharacterSpam() {
+        return this.automodCharacterSpam;
+    }
+
+    public void setCharacterSpam(int automodCharacterSpam) {
+        this.automodCharacterSpam = automodCharacterSpam;
     }
 
     public long getSuggestionChannelId() {

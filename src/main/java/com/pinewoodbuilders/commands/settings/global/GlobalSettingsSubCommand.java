@@ -1,9 +1,5 @@
 package com.pinewoodbuilders.commands.settings.global;
 
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Set;
-
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
@@ -15,10 +11,13 @@ import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
-
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
+
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Set;
 
 public class GlobalSettingsSubCommand extends SettingsSubCommand {
 
@@ -100,7 +99,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
                     "A main group ID has not been set for this guild, or this is not an official server. So I don't know what settings to edit securely. Please set a MGI on this server, and make sure it's an officially connected server!");
         }
 
-        GlobalSettingsTransformer transformer = context.getGlobalSettingsTransformer();
+        GlobalSettingsTransformer transformer = context.getGuildSettingsTransformer().getGlobalSettings();
         if (transformer == null) {
             return command.sendErrorMessage(context,
                     "You have not set the MGI in your guild settings, so I don't know what global settings to edit.");
@@ -130,7 +129,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
 
                 context.makeSuccess("Successfully added: ``" + words + "``").queue();
 
-                long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+                long mgmLogs = context.getGuildSettingsTransformer().getGlobalSettings().getMgmLogsId();
                 if (mgmLogs != 0) {
                     TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
                     if (tc != null) {
@@ -202,7 +201,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
                     "A main group ID has not been set for this guild, or this is not an official server. So I don't know what settings to edit securely. Please set a MGI on this server, and make sure it's an officially connected server!");
         }
 
-        GlobalSettingsTransformer transformer = context.getGlobalSettingsTransformer();
+        GlobalSettingsTransformer transformer = context.getGuildSettingsTransformer().getGlobalSettings();
         if (transformer == null) {
             return command.sendErrorMessage(context,
                     "You have not set the MGI in your guild settings, so I don't know what global settings to edit.");
@@ -229,7 +228,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
 
                 context.makeSuccess("Successfully added: ``" + words + "``").queue();
 
-                long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+                long mgmLogs = context.getGuildSettingsTransformer().getGlobalSettings().getMgmLogsId();
                 if (mgmLogs != 0) {
                     TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
                     if (tc != null) {
@@ -299,15 +298,8 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean runAuditLogsCommand(CommandMessage context, String[] args,
-            GuildSettingsTransformer settingsTransformer) {
-        GlobalSettingsTransformer transformer = context.getGlobalSettingsTransformer();
-
-        if (settingsTransformer.getMainGroupId() == 0 || transformer == null) {
-            context.makeError(
-                    "The global settings connected to this guild could not be loaded, please try again later. If this issue still persists, please contact the developer. In most cases, this guild does not have a main group ID, ask a global mod to set this!")
-                    .queue();
-            return false;
-        }
+            GuildSettingsTransformer transformer) {
+        
 
         if (args.length == 0) {
             context.makeInfo("Please select what setting you'd like to modify (0 = Disabled)\n"
@@ -346,7 +338,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean runCharacterSpamUpdateCommand(CommandMessage context, String[] args,
-            GlobalSettingsTransformer transformer) {
+            GuildSettingsTransformer transformer) {
         if (NumberUtil.isNumeric(args[1])) {
             context.makeInfo("Update character spam to " + args[1]).queue();
             transformer.setCharacterSpam(Integer.parseInt(args[1]));
@@ -359,7 +351,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean runImageSpamUpdateCommand(CommandMessage context, String[] args,
-            GlobalSettingsTransformer transformer) {
+            GuildSettingsTransformer transformer) {
         context.makeInfo("Update image spam to " + args[1]).queue();
         if (NumberUtil.isNumeric(args[1])) {
             context.makeInfo("Update link spam to " + args[1]).queue();
@@ -372,7 +364,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean runMessageSpamUpdateCommand(CommandMessage context, String[] args,
-            GlobalSettingsTransformer transformer) {
+            GuildSettingsTransformer transformer) {
         if (NumberUtil.isNumeric(args[1])) {
             context.makeInfo("Update message spam to " + args[1]).queue();
             transformer.setMessageSpam(Integer.parseInt(args[1]));
@@ -384,7 +376,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean runLinkSpamUpdateCommand(CommandMessage context, String[] args,
-            GlobalSettingsTransformer transformer) {
+            GuildSettingsTransformer transformer) {
         if (NumberUtil.isNumeric(args[1])) {
             context.makeInfo("Update link spam to " + args[1]).queue();
             transformer.setLinkSpam(Integer.parseInt(args[1]));
@@ -396,7 +388,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean runEmojiSpamUpdateCommand(CommandMessage context, String[] args,
-            GlobalSettingsTransformer transformer) {
+            GuildSettingsTransformer transformer) {
         if (NumberUtil.isNumeric(args[1])) {
             context.makeInfo("Update emoji spam to " + args[1]).queue();
             transformer.setEmojiSpam(Integer.parseInt(args[1]));
@@ -408,7 +400,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean runMentionUpdateCommand(CommandMessage context, String[] args,
-            GlobalSettingsTransformer transformer) {
+            GuildSettingsTransformer transformer) {
         if (NumberUtil.isNumeric(args[1])) {
             context.makeInfo("Update mention spam to " + args[1]).queue();
             transformer.setMassMention(Integer.parseInt(args[1]));
@@ -423,12 +415,12 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
         try {
 
             avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE)
-                    .where("main_group_id", context.getGlobalSettingsTransformer().getMainGroupId())
+                    .where("main_group_id", context.getGuildSettingsTransformer().getGlobalSettings().getMainGroupId())
                     .update(statement -> statement.set(table, setTo));
 
             context.makeSuccess("Updated!").queue();
 
-            long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+            long mgmLogs = context.getGuildSettingsTransformer().getGlobalSettings().getMgmLogsId();
             if (mgmLogs != 0) {
                 TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
                 if (tc != null) {

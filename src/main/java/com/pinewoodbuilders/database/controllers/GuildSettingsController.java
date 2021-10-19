@@ -21,15 +21,14 @@
 
 package com.pinewoodbuilders.database.controllers;
 
-import com.pinewoodbuilders.Xeus;
-import com.pinewoodbuilders.Constants;
-import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.utilities.CacheUtil;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.utilities.CacheUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,12 +37,13 @@ import java.util.concurrent.TimeUnit;
 
 public class GuildSettingsController {
 
-    public static final Cache<Long, GuildSettingsTransformer> cache = CacheBuilder.newBuilder().recordStats()
-            .expireAfterAccess(5, TimeUnit.MINUTES).build();
+    public static final Cache <Long, GuildSettingsTransformer> cache = CacheBuilder.newBuilder().recordStats()
+        .expireAfterAccess(5, TimeUnit.MINUTES).build();
 
     private static final Logger log = LoggerFactory.getLogger(GuildSettingsController.class);
 
-    private static final String[] requiredSettingsColumns = new String[] { "guild_settings.id",
+    private static final String[] requiredSettingsColumns = new String[]{
+            "guild_settings.id",
             "guild_settings.roblox_group_id", "guild_settings.group_name", "guild_settings.main_group_id",
             "guild_settings.main_discord_role", "guild_settings.minimum_hr_rank", "guild_settings.minimum_lead_rank",
             "guild_settings.admin_roles", "guild_settings.manager_roles", "guild_settings.moderator_roles", "guild_settings.group_shout_roles",
@@ -54,6 +54,11 @@ public class GuildSettingsController {
             "guild_settings.patrol_remittance_message", "guild_settings.handbook_report_channel",
             "guild_settings.suggestion_channel_id", "guild_settings.suggestion_community_channel_id",
             "guild_settings.suggestion_approved_channel_id", "guild_settings.join_logs",
+            "guild_settings.global_ban", "guild_settings.global_kick",
+            "guild_settings.global_verify", "guild_settings.global_anti_unban", "guild_settings.global_automod",
+            "guild_settings.automod_mass_mention", "guild_settings.automod_emoji_spam",
+            "guild_settings.automod_link_spam", "guild_settings.automod_message_spam",
+            "guild_settings.automod_image_spam", "guild_settings.automod_character_spam",
             "guild_settings.audit_logs_channel_id", "guild_settings.vote_validation_channel_id",
             "guild_settings.user_alerts_channel_id", "guild_settings.evaluation_answer_channel",
             "guild_settings.eval_questions", "guild_settings.handbook_report_info_message", "guild_settings.official_sub_group"};
@@ -65,7 +70,7 @@ public class GuildSettingsController {
      * @param avaire  The avaire instance, used to talking to the database.
      * @param message The JDA message instance for the current message.
      * @return Possibly null, the guild transformer instance for the current guild,
-     *         or null.
+     * or null.
      */
     @CheckReturnValue
     public static GuildSettingsTransformer fetchGuild(Xeus avaire, Message message) {
@@ -82,12 +87,12 @@ public class GuildSettingsController {
      * @param avaire The avaire instance, used to talking to the database.
      * @param guild  The JDA guild instance for the current guild.
      * @return Possibly null, the guild transformer instance for the current guild,
-     *         or null.
+     * or null.
      */
     @CheckReturnValue
     public static GuildSettingsTransformer fetchGuildSettingsFromGuild(Xeus avaire, Guild guild) {
         return (GuildSettingsTransformer) CacheUtil.getUncheckedUnwrapped(cache, guild.getIdLong(),
-                () -> loadGuildSettingsFromDatabase(avaire, guild));
+            () -> loadGuildSettingsFromDatabase(avaire, guild));
     }
 
     public static void forgetCache(long guildId) {
@@ -100,7 +105,7 @@ public class GuildSettingsController {
         }
         try {
             GuildSettingsTransformer transformer = new GuildSettingsTransformer(guild,
-            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
+                avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                     .select(requiredSettingsColumns).where("guild_settings.id", guild.getId()).get()
                     .first());
 
@@ -109,10 +114,10 @@ public class GuildSettingsController {
                     statement.set("id", guild.getId());
                 });
 
-                
+
                 return new GuildSettingsTransformer(guild, avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
-                        .select(requiredSettingsColumns).where("guild_settings.id", guild.getId()).get()
-                        .first());
+                    .select(requiredSettingsColumns).where("guild_settings.id", guild.getId()).get()
+                    .first());
             }
 
             return transformer;

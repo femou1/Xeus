@@ -127,7 +127,7 @@ public class GlobalPruneCommand extends Command {
         }
         context.makeSuccess(sb.toString()).queue();
 
-        long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+        long mgmLogs = context.getGuildSettingsTransformer().getGlobalSettings().getMgmLogsId();
         if (mgmLogs != 0) {
             TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
             if (tc != null) {
