@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.moderation.mute;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.language.I18n;
@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -94,6 +93,8 @@ public class MuteManager {
         mutes.get(guildId).add(new MuteContainer(guildId, userId, expiresAt));
     }
 
+
+
     /**
      * Unregisters a mute matching the given guild ID and user ID.
      *
@@ -128,6 +129,8 @@ public class MuteManager {
         }
     }
 
+
+
     /**
      * Checks if there are any mute record that exists using the given guild and
      * user IDs.
@@ -137,7 +140,7 @@ public class MuteManager {
      * @return {@code True} if a user with the given ID is muted on a server with
      *         the given guild ID, {@code False} otherwise.
      */
-    public boolean isGuildMuted(long guildId, long userId) {
+    public boolean isMuted(long guildId, long userId) {
         if (!mutes.containsKey(guildId)) {
             return false;
         }
@@ -151,43 +154,6 @@ public class MuteManager {
         return false;
     }
 
-    /**
-     * Checks if there are any mute record that exists using the given guild and
-     * user IDs.
-     * 
-     * @param global  Whether or not the mute should be checked globally.
-     * @param guildId The ID of the guild that should be checked.
-     * @param userId  The ID of the user that should be muted.
-     * @return {@code True} if a user with the given ID is muted on a server with
-     *         the given guild ID, {@code False} otherwise.
-     */
-    public boolean isMuted(boolean global, long userId, long guildId) {
-        if (global) {
-            return isGlobalMuted(userId);
-        } else {
-            return isGuildMuted(guildId, userId);
-        }
-    }
-
-    public boolean isMuted(boolean global, long userId) {
-        return isMuted(global, userId, 0);
-    }
-
-    public boolean isMuted(long userId, long guildId) {
-        return isMuted(false, userId, guildId);
-    }
-
-    private boolean isGlobalMuted(long userId) {
-        for (HashSet<MuteContainer> muteSet : mutes.values()) {
-            for (MuteContainer container : muteSet) {
-                if (container.isSame(userId)) {
-                    return container.isGlobal();
-                }
-            }
-
-        }
-        return false;
-    }
 
     /**
      * Gets the total amount of mutes currently stored in memory, this includes
@@ -202,6 +168,8 @@ public class MuteManager {
         }
         return totalMutes;
     }
+
+
 
     /**
      * Gets the map of mutes currently stored, where the key is the guild ID for the
@@ -218,8 +186,8 @@ public class MuteManager {
         log.info("Syncing mutes with the database...");
 
         String query = I18n.format(
-                "SELECT `{1}`.`guild_id`, `{1}`.`target_id`, `{0}`.`expires_in` FROM `{0}` INNER JOIN `{1}` ON `{0}`.`modlog_id` = `{1}`.`modlogCase` WHERE `{0}`.`modlog_id` = `{1}`.`modlogCase` AND `{0}`.`guild_id` = `{1}`.`guild_id`;",
-                Constants.MUTE_TABLE_NAME, Constants.LOG_TABLE_NAME);
+            "SELECT `{1}`.`guild_id`, `{1}`.`target_id`, `{0}`.`expires_in` FROM `{0}` INNER JOIN `{1}` ON `{0}`.`modlog_id` = `{1}`.`modlogCase` WHERE `{0}`.`modlog_id` = `{1}`.`modlogCase` AND `{0}`.`guild_id` = `{1}`.`guild_id`;",
+            Constants.MUTE_TABLE_NAME, Constants.LOG_TABLE_NAME);
 
         try {
             int size = getTotalAmountOfMutes();
@@ -231,31 +199,33 @@ public class MuteManager {
                 }
 
                 mutes.get(guildId).add(new MuteContainer(row.getLong("guild_id"), row.getLong("target_id"),
-                        row.getTimestamp("expires_in")));
+                    row.getTimestamp("expires_in")));
             }
 
             log.info("Syncing complete! {} mutes entries was found that has not expired yet",
-                    getTotalAmountOfMutes() - size);
+                getTotalAmountOfMutes() - size);
         } catch (SQLException e) {
             Xeus.getLogger().error("ERROR: ", e);
         }
     }
 
+
+
     private void cleanupMutes(long guildId, long userId) throws SQLException {
         Collection collection = avaire.getDatabase().newQueryBuilder(Constants.MUTE_TABLE_NAME)
-                .select(Constants.MUTE_TABLE_NAME + ".modlog_id as id")
-                .innerJoin(Constants.LOG_TABLE_NAME, Constants.MUTE_TABLE_NAME + ".modlog_id",
-                        Constants.LOG_TABLE_NAME + ".modlogCase")
-                .where(Constants.LOG_TABLE_NAME + ".guild_id", guildId)
-                .andWhere(Constants.LOG_TABLE_NAME + ".target_id", userId)
-                .andWhere(Constants.MUTE_TABLE_NAME + ".guild_id", guildId)
-                .andWhere(builder -> builder.where(Constants.LOG_TABLE_NAME + ".type", ModlogType.MUTE.getId())
-                        .orWhere(Constants.LOG_TABLE_NAME + ".type", ModlogType.TEMP_MUTE.getId()))
-                .get();
+            .select(Constants.MUTE_TABLE_NAME + ".modlog_id as id")
+            .innerJoin(Constants.LOG_TABLE_NAME, Constants.MUTE_TABLE_NAME + ".modlog_id",
+                Constants.LOG_TABLE_NAME + ".modlogCase")
+            .where(Constants.LOG_TABLE_NAME + ".guild_id", guildId)
+            .andWhere(Constants.LOG_TABLE_NAME + ".target_id", userId)
+            .andWhere(Constants.MUTE_TABLE_NAME + ".guild_id", guildId)
+            .andWhere(builder -> builder.where(Constants.LOG_TABLE_NAME + ".type", ModlogType.MUTE.getId())
+                .orWhere(Constants.LOG_TABLE_NAME + ".type", ModlogType.TEMP_MUTE.getId()))
+            .get();
 
         if (!collection.isEmpty()) {
             String query = String.format("DELETE FROM `%s` WHERE `guild_id` = ? AND `modlog_id` = ?",
-                    Constants.MUTE_TABLE_NAME);
+                Constants.MUTE_TABLE_NAME);
 
             avaire.getDatabase().queryBatch(query, statement -> {
                 for (DataRow row : collection) {
@@ -266,4 +236,5 @@ public class MuteManager {
             });
         }
     }
+
 }

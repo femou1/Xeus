@@ -5,14 +5,20 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.annotations.DeprecatedSince;
+import net.dv8tion.jda.annotations.ForRemoval;
+import net.dv8tion.jda.annotations.ReplaceWith;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.awt.*;
-import java.util.List;
 import java.util.*;
-
+@Deprecated
+@ForRemoval(deadline = "3.2.0")
+@ReplaceWith("GlobalModCommand")
+@DeprecatedSince("3.1.0")
 public class GlobalKickCommand extends Command {
 
     public final ArrayList<String> guilds = new ArrayList<String>() {
@@ -62,11 +68,6 @@ public class GlobalKickCommand extends Command {
         return Arrays.asList("global-kick");
     }
 
-    @Override
-    public List<String> getMiddleware() {
-        return Arrays.asList("isPinewoodGuild", "isValidMGMMember");
-    }
-
     @Nonnull
     @Override
     public List<CommandGroup> getGroups() {
@@ -75,6 +76,10 @@ public class GlobalKickCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
+
+        context.makeWarning("Command moved to !global-mod (!gb)...\n`!gm gk <id>` | `!global-mod global-kick <id>").queue();
+
+/*
         if (args.length < 1) {
             context.makeError("Sorry, but you didn't give any member id to globally kick!").queue();
             return false;
@@ -99,55 +104,9 @@ public class GlobalKickCommand extends Command {
                 guild.add(g);
             }
         }
+*/
 
-        String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
 
-        if (reason.endsWith("--pbac-kick")) {
-            reason = reason.replace("--pbac-kick", "");
-            guild.add(avaire.getShardManager().getGuildById("750471488095780966"));
-        }
-
-        User u = avaire.getShardManager().getUserById(args[0]);
-        if (u != null) {
-            String finalReason = reason;
-            u.openPrivateChannel().queue(p -> {
-                p.sendMessageEmbeds(context.makeInfo(
-                        "*You have been **global-kicked** from all the Pinewood Builders discords by an MGM Moderator*. For the reason: *```"
-                                + finalReason + "```\n\n"
-                                + "You may rejoin the guilds you where kicked from, unless you where banned in one.")
-                        .setColor(Color.BLACK).buildEmbed()).queue();
-            });
-        }
-        long mgmLogs = context.getGuildSettingsTransformer().getGlobalSettings().getMgmLogsId();
-        if (mgmLogs != 0) {
-            TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
-            if (tc != null) {
-                tc.sendMessageEmbeds(context
-                        .makeInfo("[``:global-unbanned-id`` was global-kicked from all discords by :user for](:link):\n"
-                                + "```:reason```")
-                        .set("global-unbanned-id", args[0]).set("reason", reason)
-                        .set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl())
-                        .buildEmbed()).queue();
-            }
-        }
-
-        StringBuilder sb = new StringBuilder();
-        for (Guild g : guild) {
-            Member m = g.getMemberById(args[0]);
-            if (m != null) {
-                g.kick(m,
-                        "Kicked by: " + context.member.getEffectiveName() + "\n" + "For: " + reason
-                                + "\n*THIS IS A MGM GLOBAL KICK*")
-                        .reason("Global Kick, executed by " + context.member.getEffectiveName() + ". For: \n" + reason)
-                        .queue();
-            }
-            sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
-        }
-        context.makeSuccess("<@" + args[0] + "> has been kicked from: \n\n" + sb).queue();
-
-        context.guild
-                .kick(context.getGuild().getMemberById("257193596074065921"), "For role removal. Approved by LENEMAR.")
-                .queue();
 
         return true;
     }

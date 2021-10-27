@@ -64,26 +64,25 @@ public class VerificationManager {
     }
 
     public boolean verify(CommandMessage context, boolean useCache) {
-        return verify(context, context.member, useCache);
+        return verify(context, context.member, useCache, context.guild);
     }
 
     public boolean verify(CommandMessage context, Member m) {
-        return verify(context, m, true);
+        return verify(context, m, true, context.guild);
     }
 
     public boolean verify(CommandMessage context) {
-        return verify(context, context.member, true);
+        return verify(context, context.member, true, context.guild);
     }
 
-    public boolean verify(CommandMessage context, Member member, boolean useCache) {
-        Guild guild = context.getGuild();
+    public boolean verify(CommandMessage context, Member member, boolean useCache, Guild guild) {
         context.makeInfo("<a:loading:742658561414266890> Checking verification database <a:loading:742658561414266890>")
             .queue(originalMessage -> {
                 VerificationResult vr = verify(context.getGuildSettingsTransformer(), member, guild, useCache);
-                if (vr.isSuccess()) {
-                    originalMessage.editMessageEmbeds(context.makeSuccess(vr.getMessage()).buildEmbed()).queue();
-                } else {
+                if (!vr.isSuccess()) {
                     originalMessage.editMessageEmbeds(context.makeError(vr.getMessage()).buildEmbed()).queue();
+                } else {
+                    originalMessage.editMessageEmbeds(context.makeSuccess(vr.getMessage()).buildEmbed()).queue();
                 }
             });
 
@@ -212,15 +211,17 @@ public class VerificationManager {
                     .update(p -> p.set("userId", member.getUser().getId()));
                 long appealsDiscord = transformer.getGlobalSettings().getAppealsDiscordId();
                 if (appealsDiscord != 0) {
-                if (!(guild.getIdLong() == appealsDiscord))
-                    return new VerificationResult(false, "User has been global banned. Verification cancelled.");}
+                    if (!(guild.getIdLong() == appealsDiscord))
+                        return new VerificationResult(false, "User has been global banned. Verification cancelled.");
+                }
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-            return new VerificationResult(false,"Something went wrong checking the MGM Anti-Unban table. Please check with the developer (`Stefano#7366`)");
+            return new VerificationResult(false, "Something went wrong checking the MGM Anti-Unban table. Please check with the developer (`Stefano#7366`)");
         }
 
-        if (isBlacklisted(guild, verificationEntity)) return new VerificationResult(false, "Blacklisted on " + guild.getName());
+        if (isBlacklisted(guild, verificationEntity))
+            return new VerificationResult(false, "Blacklisted on " + guild.getName());
 
         VerificationTransformer verificationTransformer = VerificationController.fetchVerificationFromGuild(avaire, guild);
         if (verificationTransformer == null) {
@@ -339,13 +340,13 @@ public class VerificationManager {
         }
     }
 
-    private VerificationResult isBlacklisted(ArrayList<Long> blacklist, Guild guild, VerificationEntity verificationEntity) {
+    private VerificationResult isBlacklisted(ArrayList <Long> blacklist, Guild guild, VerificationEntity verificationEntity) {
         if (blacklist.contains(verificationEntity.getRobloxId())) {
-            return new VerificationResult(false, "You're blacklisted on `" + guild.getName() + "`, access to the server has been denied.\n"
+            return new VerificationResult(true, "You're blacklisted on `" + guild.getName() + "`, access to the server has been denied.\n"
                 + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; "
                 + "https://discord.gg/mWnQm25");
         }
-        return new VerificationResult(true, "Not blacklisted, continue...");
+        return new VerificationResult(false, "Not blacklisted, continue...");
     }
 
     private boolean runTrelloBan(GuildSettingsTransformer transformer, Member member, Guild guild, VerificationEntity verificationEntity) {

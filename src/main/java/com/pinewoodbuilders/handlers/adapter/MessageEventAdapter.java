@@ -59,17 +59,10 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.GenericMessageEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
-import org.nibor.autolink.LinkExtractor;
-import org.nibor.autolink.LinkSpan;
-import org.nibor.autolink.LinkType;
-import org.nibor.autolink.Span;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
@@ -294,8 +287,6 @@ public class MessageEventAdapter extends EventAdapter {
         
 
         GuildSettingsTransformer guild = databaseEventHolder.getGuildSettings();
-        
-
         if (guild != null) {
             GlobalSettingsTransformer settings = guild.getGlobalSettings();
             if (!guild.getGlobalFilter()) {
@@ -343,41 +334,6 @@ public class MessageEventAdapter extends EventAdapter {
         }
     }
 
-    private void checkPIALinkLoggerFilter(Message event) {
-        LinkExtractor linkExtractor = LinkExtractor.builder()
-            .linkTypes(EnumSet.of(LinkType.URL)) // limit to URLs
-            .build();
-        Iterable <Span> spans = linkExtractor.extractSpans(event.getContentRaw());
-
-        for (Span span : spans) {
-            String text = event.getContentRaw().substring(span.getBeginIndex(), span.getEndIndex());
-            if (span instanceof LinkSpan) {
-                // span is a URL
-                try {
-                    List <String> redirects = fetchRedirect(text, new ArrayList <>());
-
-                } catch (IOException e) {
-                    Xeus.getLogger().error("ERROR: ", e);
-                }
-
-            }
-        }
-    }
-
-    private List <String> fetchRedirect(String url, List <String> redirects) throws IOException {
-        redirects.add(url);
-
-        HttpURLConnection con = (HttpURLConnection) (new URL(url).openConnection());
-        con.setRequestMethod("GET");
-        con.setRequestProperty("User-Agent", "Mozilla/5.0");
-        con.setInstanceFollowRedirects(false);
-        con.connect();
-
-        if (con.getHeaderField("Location") == null) {
-            return redirects;
-        }
-        return fetchRedirect(con.getHeaderField("Location"), redirects);
-    }
 
     private boolean checkAutomodFilters(Message message, GuildSettingsTransformer guild) {
         if (guild.getMassMention() > 0) {

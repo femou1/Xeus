@@ -29,16 +29,9 @@ import com.pinewoodbuilders.contracts.handlers.EventAdapter;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
-import com.pinewoodbuilders.database.controllers.VerificationController;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.database.transformers.VerificationTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
-import com.pinewoodbuilders.requests.service.group.GuildRobloxRanksService;
-import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
-import com.pinewoodbuilders.roblox.RobloxAPIManager;
-import com.pinewoodbuilders.utilities.RoleUtil;
-
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.TargetType;
@@ -60,20 +53,14 @@ import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
-import net.dv8tion.jda.internal.utils.PermissionUtil;
 
 import java.awt.*;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class GuildEventAdapter extends EventAdapter {
 
@@ -425,8 +412,6 @@ public class GuildEventAdapter extends EventAdapter {
 
             if (cache.isInCache(event.getMessageIdLong())) {
                 CachedMessage message = cache.get(event.getMessageIdLong());
-                Guild guild = event.getGuild();
-                MessageChannel channel = event.getChannel();
                 String content = message.getContentRaw();
 
                 if (tc != null) {
@@ -438,15 +423,23 @@ public class GuildEventAdapter extends EventAdapter {
                     tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
                             .setAuthor("A message was deleted", null, message.getAuthor().getGetEffectiveAvatarUrl())
                             .setDescription("**Author**: " + message.getAuthor().getAsMention() + "\n**Sent In**: "
-                                    + guild.getTextChannelById(channel.getId()).getAsMention() + "\n**Sent On**: "
+                                    + event.getChannel().getAsMention() + "\n**Sent On**: "
                                     + message.getTimeCreated()
                                             .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))
                                     + "\n\n**Message Content**:\n" + content)
+                            .setImage(getImageFromAttachment(message.getAttachment()))
                             .setColor(new Color(255, 0, 0)).setTimestamp(Instant.now()).buildEmbed()).queue();
                     cache.remove(message);
                 }
             }
         }
+    }
+
+    private String getImageFromAttachment(String attachment) {
+        if (attachment.endsWith(".png") || attachment.endsWith(".jpeg") || attachment.endsWith(".img")) {
+            return attachment;
+        }
+        return null;
     }
 
     private GuildChannel getModifiedChannel(GenericGuildEvent event, boolean newChannel) {

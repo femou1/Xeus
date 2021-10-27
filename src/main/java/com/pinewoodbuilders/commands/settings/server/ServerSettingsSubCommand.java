@@ -1,10 +1,5 @@
 package com.pinewoodbuilders.commands.settings.server;
 
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
@@ -15,10 +10,14 @@ import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
-
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
+
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class ServerSettingsSubCommand extends SettingsSubCommand {
 
@@ -75,18 +74,18 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
         if (NumberUtil.isNumeric(args[0]) && c != null) {
             context.makeInfo("Updated young member warning channel to " + c.getName()).queue();
             transformer.setUserAlertsChannelId(Long.parseLong(args[0]));
-            return updateLocalRecordInDatabase(context, "user_alerts_channel_id", transformer.getUserAlertsChannelId());
+            return updateLocalRecordInDatabase(context, transformer.getUserAlertsChannelId());
         } else {
             context.makeError("Please enter a valid channel ID.").queue();
             return false;
         }
     }
-    private boolean updateLocalRecordInDatabase(CommandMessage context, String member_to_young_channel_id,
-            long memberToYoungChannelId) {
+    private boolean updateLocalRecordInDatabase(CommandMessage context,
+                                                long memberToYoungChannelId) {
         try {
             avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                     .where("id", context.getGuild().getId()).update(p -> {
-                        p.set(member_to_young_channel_id, memberToYoungChannelId);
+                        p.set("user_alerts_channel_id", memberToYoungChannelId);
                     });
             context.makeSuccess("Channel was set!").queue();
         } catch (SQLException exception) {

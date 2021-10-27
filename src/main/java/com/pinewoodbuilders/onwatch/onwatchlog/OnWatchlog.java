@@ -136,7 +136,7 @@ public class OnWatchlog {
             case UN_ON_WATCH:
                 builder
                     .addField("User", action.getStringifiedTarget(), true)
-                    .addField("Moderator", action.getStringifiedModerator(), true)
+                    //.addField("Moderator", action.getStringifiedModerator(), true)
                     .addField("Reason", formatReason(transformer, action.getMessage()), false);
                 break;
 
@@ -146,8 +146,8 @@ public class OnWatchlog {
                 split = action.getMessage().split("\n");
                 builder
                     .addField("User", action.getStringifiedTarget(), true)
-                    .addField("Moderator", action.getStringifiedModerator(), true);
-
+                    //.addField("Moderator", action.getStringifiedModerator(), true);
+                    ;
                 if (split[0].length() > 0) {
                     builder.addField("Expires At", split[0], true);
                 }
@@ -206,7 +206,7 @@ public class OnWatchlog {
                         ? "in" : "from",
                     guild.getName()
                 ))
-                .addField("Moderator", action.getModerator().getName() + "#" + action.getModerator().getDiscriminator(), true)
+                //.addField("Moderator", action.getModerator().getName() + "#" + action.getModerator().getDiscriminator(), true)
                 .addField("Reason", action.getMessage(), true)
                 .setTimestamp(Instant.now());
 

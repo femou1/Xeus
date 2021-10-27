@@ -5,15 +5,21 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
+import net.dv8tion.jda.annotations.DeprecatedSince;
+import net.dv8tion.jda.annotations.ForRemoval;
+import net.dv8tion.jda.annotations.ReplaceWith;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
+@Deprecated
+@ForRemoval(deadline = "3.2.0")
+@ReplaceWith("GlobalModCommand")
+@DeprecatedSince("3.1.0")
 public class GlobalPruneCommand extends Command {
 
     public GlobalPruneCommand(Xeus avaire) {
@@ -90,7 +96,8 @@ public class GlobalPruneCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        if (guild.size() > 0) {
+        context.makeError("Replaced with `!verification kick-unverified`").queue();
+        /*if (guild.size() > 0) {
             guild.clear();
         }
         for (String s : guilds) {
@@ -135,7 +142,7 @@ public class GlobalPruneCommand extends Command {
                         .set("guildName", "ALL GUILDS").set("mention", context.getMember().getAsMention())
                         .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
             }
-        }
+        }*/
         return true;
     }
 

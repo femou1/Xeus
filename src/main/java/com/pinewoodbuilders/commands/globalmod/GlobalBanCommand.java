@@ -5,6 +5,9 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
+import net.dv8tion.jda.annotations.DeprecatedSince;
+import net.dv8tion.jda.annotations.ForRemoval;
+import net.dv8tion.jda.annotations.ReplaceWith;
 import net.dv8tion.jda.api.entities.Message;
 
 import javax.annotation.Nonnull;
@@ -12,7 +15,10 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
+@Deprecated
+@ForRemoval(deadline = "3.2.0")
+@ReplaceWith("GlobalModCommand")
+@DeprecatedSince("3.1.0")
 public class GlobalBanCommand extends Command {
 
 
@@ -46,11 +52,6 @@ public class GlobalBanCommand extends Command {
         return Arrays.asList("global-ban");
     }
 
-    @Override
-    public List<String> getMiddleware() {
-        return Arrays.asList("isValidMGMMember");
-    }
-
     @Nonnull
     @Override
     public List<CommandGroup> getGroups() {
@@ -59,8 +60,8 @@ public class GlobalBanCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        context.makeWarning("Command moved to !global-mod (!gb)...").queue();
-    return false;
+        context.makeWarning("Command moved to !global-mod (!gb)...\n`!gm gb d <id> <true/false> <reason>` | `!global-mod global-ban discord <id> <true/false> <reason>").queue();
+        return false;
     }
 
 

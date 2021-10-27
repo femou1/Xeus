@@ -21,11 +21,11 @@
 
 package com.pinewoodbuilders;
 
-import java.io.File;
-import java.util.ArrayList;
-
 import net.dv8tion.jda.annotations.ForRemoval;
 import net.dv8tion.jda.annotations.ReplaceWith;
+
+import java.io.File;
+import java.util.ArrayList;
 
 @SuppressWarnings("WeakerAccess")
 public class Constants {
@@ -55,6 +55,7 @@ public class Constants {
     public static final String VERIFICATION_SETTINGS_TABLE_NAME = "verification_settings";
     public static final String VERIFICATION_DATABASE_TABLE_NAME = "verification_database";
     public static final String ROLE_PERSISTENCE_TABLE_NAME = "role_persistence";
+    public static final String MGM_LOG_TABLE_NAME = "mgm_logs";
 
     // Pinewood Specific Tables
     public static final String GLOBAL_SETTINGS_TABLE = "global_settings";
@@ -147,5 +148,6 @@ public class Constants {
         //add("257193596074065921"); // Omni - Not MGM Anymore.
         //add("329668217515540482"); // TenX - Has left
     }};
+
 
 }
