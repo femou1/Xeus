@@ -26,18 +26,14 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.commands.CommandContext;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
-import com.pinewoodbuilders.database.collection.DataRow;
-import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.internal.utils.PermissionUtil;
 
-import java.sql.SQLException;
-
 import javax.annotation.Nullable;
+import java.sql.SQLException;
 
 public class CheckPermissionUtil {
 
@@ -168,7 +164,7 @@ public class CheckPermissionUtil {
 
         private final int permissionLevel;
         private final String rankName;
-        private String description;
+        private final String description;
 
         GuildPermissionCheckType(Integer pL, String rankName, String description) {
             this.permissionLevel = pL;

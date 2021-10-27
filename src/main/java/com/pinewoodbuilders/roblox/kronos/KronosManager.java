@@ -4,16 +4,14 @@ import com.pinewoodbuilders.AppInfo;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.cache.CacheType;
 import com.pinewoodbuilders.contracts.kronos.TrellobanLabels;
+import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.service.kronos.trelloban.TrellobanService;
 import com.pinewoodbuilders.requests.service.kronos.trelloban.trello.Card;
 import com.pinewoodbuilders.requests.service.kronos.trelloban.trello.Datum;
 import com.pinewoodbuilders.requests.service.kronos.trelloban.trello.Label;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
 import com.pinewoodbuilders.utilities.NumberUtil;
-
-import okhttp3.MediaType;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -22,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class KronosManager {
 
@@ -135,12 +134,47 @@ public class KronosManager {
     }
 
 
-    public HashMap <Long, List<TrellobanLabels>> getTrelloBans() {
-        TrellobanService tbs = (TrellobanService) avaire.getRobloxAPIManager().toService((String) avaire.getCache().getAdapter(CacheType.FILE).get("trelloban.global"), TrellobanService.class);
-        //System.out.println(avaire.getCache().getAdapter(CacheType.FILE).get("trelloban.global"));
-        //System.out.println(tbs.getLoaded());
-
+    public HashMap <Long, List<TrellobanLabels>> getTrelloBans(long mainGroupId) {
+        String cache = (String) avaire.getCache().getAdapter(CacheType.FILE).get("trelloban.global." + mainGroupId);
         HashMap<Long, List<TrellobanLabels>> root = new HashMap<>();
+        if (cache != null) {
+            TrellobanService tbs = (TrellobanService) avaire.getRobloxAPIManager().toService(cache, TrellobanService.class);
+            //System.out.println(avaire.getCache().getAdapter(CacheType.FILE).get("trelloban.global"));
+            //System.out.println(tbs.getLoaded());
+
+            createTrelloBanList(root, tbs);
+
+        } else {
+            RequestFactory.makeGET("https://pb-kronos.dev/api/v2/moderation/admin")
+                .addHeader("Access-Key", avaire.getConfig().getString("apiKeys.kronosTrellobanKey"))
+                .send((Consumer <Response>) response -> {
+
+                    try {
+                        TrellobanService tbs = (TrellobanService) avaire.getRobloxAPIManager().toService((String) response.body().string(), TrellobanService.class);
+
+                        createTrelloBanList(root, tbs);
+
+                        avaire.getCache().getAdapter(CacheType.FILE).remember("trelloban.global." + mainGroupId, (60*60)*90, () -> {
+                            try {
+                                return response.body().string();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            return null;
+                        });
+                    } catch (IOException ignored) {
+                        return;
+                    }
+                });
+        }
+        return root;
+    }
+
+    public HashMap <Long, List<TrellobanLabels>> getTrelloBans() {
+        return getTrelloBans(159511L);
+    }
+
+    private void createTrelloBanList(HashMap <Long, List <TrellobanLabels>> root, TrellobanService tbs) {
         for (Datum d : tbs.getData()) {
             if ((d.getId().equals("59eb2341cdaf6ca9203ab35f") && d.getName().equals("Banlist"))
                 || (d.getId().equals("5bb6a2564f067782ad4e21e9") && d.getName().equals("Alt Banlist"))) {
@@ -154,7 +188,7 @@ public class KronosManager {
                     String userId = c.getName().split(":")[1].trim();
                     if (!NumberUtil.isNumeric(userId)) continue;
 
-                    List<TrellobanLabels> labels = new ArrayList <>();
+                    List <TrellobanLabels> labels = new ArrayList <>();
                     for (Label l : c.getLabels()) {
                         TrellobanLabels label = TrellobanLabels.getLabelFromId(l.getId());
                         if (label == null) {
@@ -166,7 +200,6 @@ public class KronosManager {
                 }
             }
         }
-        return root;
     }
 
 }

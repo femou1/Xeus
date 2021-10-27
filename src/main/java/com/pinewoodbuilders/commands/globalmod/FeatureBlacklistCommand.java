@@ -22,7 +22,6 @@
 package com.pinewoodbuilders.commands.globalmod;
 
 import com.pinewoodbuilders.Xeus;
-import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.blacklist.features.FeatureScope;
 import com.pinewoodbuilders.chat.SimplePaginator;
 import com.pinewoodbuilders.commands.CommandMessage;
@@ -110,7 +109,7 @@ public class FeatureBlacklistCommand extends Command {
             records.add(I18n.format("{0} **{1}** `{2}` - `{3}`\n ► _\"{4}\"_",
                     entity.getScope().getId() == 0 ? "\uD83E\uDD26" : "\uD83C\uDFEC", entity.getScope().getName(),
                     entity.getId(), entity.getGuildId(),
-                    entity.getReason() == null ? "No reason was given" : entity.getReason()));
+                    entity.getReason() == null ? "NRF" : entity.getReason()));
         });
 
         SimplePaginator<String> paginator = new SimplePaginator<>(records, 10, 1);
@@ -243,7 +242,7 @@ public class FeatureBlacklistCommand extends Command {
                         : "All **official** Pinewood Discords!")
                 .queue();
 
-        long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+        long mgmLogs = context.getGuildSettingsTransformer().getGlobalSettings().getMgmLogsId();
         if (mgmLogs != 0) {
             TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
             if (tc != null) {

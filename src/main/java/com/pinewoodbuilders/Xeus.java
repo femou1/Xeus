@@ -21,18 +21,9 @@
 
 package com.pinewoodbuilders;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.concurrent.ScheduledFuture;
-
-import javax.annotation.Nullable;
-import javax.security.auth.login.LoginException;
-
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.filter.ThresholdFilter;
 import com.avairebot.shared.DiscordConstants;
 import com.avairebot.shared.ExitCodes;
 import com.avairebot.shared.SentryConstants;
@@ -46,15 +37,11 @@ import com.pinewoodbuilders.blacklist.kronos.BlacklistManager;
 import com.pinewoodbuilders.cache.CacheManager;
 import com.pinewoodbuilders.cache.CacheType;
 import com.pinewoodbuilders.chat.ConsoleColor;
+import com.pinewoodbuilders.commands.Category;
 import com.pinewoodbuilders.commands.CategoryDataContext;
 import com.pinewoodbuilders.commands.CategoryHandler;
-import com.pinewoodbuilders.commands.Category;
 import com.pinewoodbuilders.commands.CommandHandler;
-import com.pinewoodbuilders.config.Configuration;
-import com.pinewoodbuilders.config.ConstantsConfiguration;
-import com.pinewoodbuilders.config.EnvironmentMacros;
-import com.pinewoodbuilders.config.EnvironmentOverride;
-import com.pinewoodbuilders.config.FeatureToggleContextHandler;
+import com.pinewoodbuilders.config.*;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.database.migrations.Migration;
 import com.pinewoodbuilders.contracts.database.seeder.Seeder;
@@ -73,24 +60,11 @@ import com.pinewoodbuilders.imagegen.RankBackgroundHandler;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.level.LevelManager;
 import com.pinewoodbuilders.metrics.Metrics;
-import com.pinewoodbuilders.middleware.HasAnyRoleMiddleware;
-import com.pinewoodbuilders.middleware.HasRoleMiddleware;
-import com.pinewoodbuilders.middleware.HasVotedTodayMiddleware;
-import com.pinewoodbuilders.middleware.IsAdminOrHigherMiddleware;
-import com.pinewoodbuilders.middleware.IsBotAdminMiddleware;
-import com.pinewoodbuilders.middleware.IsDMMessageMiddleware;
-import com.pinewoodbuilders.middleware.IsGroupShoutOrHigherMiddleware;
-import com.pinewoodbuilders.middleware.IsManagerOrHigherMiddleware;
-import com.pinewoodbuilders.middleware.IsModOrHigherMiddleware;
-import com.pinewoodbuilders.middleware.IsOfficialPinewoodGuildMiddleware;
-import com.pinewoodbuilders.middleware.IsValidPIAMemberMiddleware;
-import com.pinewoodbuilders.middleware.MiddlewareHandler;
-import com.pinewoodbuilders.middleware.RequireOnePermissionMiddleware;
-import com.pinewoodbuilders.middleware.RequirePermissionMiddleware;
-import com.pinewoodbuilders.middleware.ThrottleMiddleware;
+import com.pinewoodbuilders.middleware.*;
 import com.pinewoodbuilders.middleware.global.IsCategoryEnabled;
 import com.pinewoodbuilders.moderation.ban.BanManager;
 import com.pinewoodbuilders.moderation.mute.MuteManager;
+import com.pinewoodbuilders.moderation.punishments.GlobalPunishmentManager;
 import com.pinewoodbuilders.onwatch.OnWatchManager;
 import com.pinewoodbuilders.pinewood.VoiceWhitelistManager;
 import com.pinewoodbuilders.plugin.PluginLoader;
@@ -99,17 +73,7 @@ import com.pinewoodbuilders.roblox.RobloxAPIManager;
 import com.pinewoodbuilders.scheduler.ScheduleHandler;
 import com.pinewoodbuilders.servlet.WebServlet;
 import com.pinewoodbuilders.servlet.routes.v1.delete.DeleteAccountVerificationLink;
-import com.pinewoodbuilders.servlet.routes.v1.get.GetAccountVerificationLink;
-import com.pinewoodbuilders.servlet.routes.v1.get.GetDiscordIdsByRobloxId;
-import com.pinewoodbuilders.servlet.routes.v1.get.GetEvaluationQuestions;
-import com.pinewoodbuilders.servlet.routes.v1.get.GetEvaluationStatus;
-import com.pinewoodbuilders.servlet.routes.v1.get.GetGuildCleanup;
-import com.pinewoodbuilders.servlet.routes.v1.get.GetGuilds;
-import com.pinewoodbuilders.servlet.routes.v1.get.GetGuildsExists;
-import com.pinewoodbuilders.servlet.routes.v1.get.GetLeaderboardPlayers;
-import com.pinewoodbuilders.servlet.routes.v1.get.GetPlayerCleanup;
-import com.pinewoodbuilders.servlet.routes.v1.get.GetRobloxUserByDiscordId;
-import com.pinewoodbuilders.servlet.routes.v1.get.GetStats;
+import com.pinewoodbuilders.servlet.routes.v1.get.*;
 import com.pinewoodbuilders.servlet.routes.v1.post.PostAccountVerificationLink;
 import com.pinewoodbuilders.servlet.routes.v1.post.PostEvalAnswers;
 import com.pinewoodbuilders.servlet.routes.v1.post.PostGuildCleanup;
@@ -118,15 +82,6 @@ import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.AutoloaderUtil;
 import com.pinewoodbuilders.utilities.EventWaiter;
 import com.pinewoodbuilders.vote.VoteManager;
-
-import org.gitlab4j.api.GitLabApi;
-import org.reflections.Reflections;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.filter.ThresholdFilter;
 import io.sentry.Sentry;
 import io.sentry.logback.SentryAppender;
 import net.dv8tion.jda.api.JDA;
@@ -141,6 +96,20 @@ import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.SessionControllerAdapter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
+import javax.security.auth.login.LoginException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.concurrent.ScheduledFuture;
 
 public class Xeus {
 
@@ -180,6 +149,7 @@ public class Xeus {
     private final RobloxAPIManager robloxApiManager;
     private final BlacklistManager blacklistManager;
     private final VoiceWhitelistManager voiceWhitelistManager;
+    private final GlobalPunishmentManager globalPunishmentManager;
     private Carbon shutdownTime = null;
     private int shutdownCode = ExitCodes.EXIT_CODE_RESTART;
     private ShardManager shardManager = null;
@@ -407,6 +377,9 @@ public class Xeus {
         log.info("Preparing user blacklist and syncing the list with the manager");
         blacklistManager = new BlacklistManager(this);
 
+        log.info("Prepairing global-banlist and syncing the list with the manager");
+        globalPunishmentManager = new GlobalPunishmentManager(this);
+
         log.info("Preparing and setting up web servlet");
         servlet = new WebServlet(config.getInt("web-servlet.port",
             config.getInt("metrics.port", WebServlet.defaultPort)
@@ -614,6 +587,10 @@ public class Xeus {
         return onWatchManger;
     }
 
+    public GlobalPunishmentManager getGlobalPunishmentManager() {
+        return globalPunishmentManager;
+    }
+
     public WebServlet getServlet() {
         return servlet;
     }
@@ -767,4 +744,6 @@ public class Xeus {
     public VoiceWhitelistManager getVoiceWhitelistManager() {
         return voiceWhitelistManager;
     }
+
+
 }

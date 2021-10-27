@@ -36,7 +36,7 @@ import java.util.function.Consumer;
 public class TrellobanUpdateJob extends Job {
 
     private final String cacheToken = "trelloban.global";
-    private static final Logger log = LoggerFactory.getLogger(TMSBlacklistUpdateJob.class);
+    private static final Logger log = LoggerFactory.getLogger(TrellobanUpdateJob.class);
 
     public TrellobanUpdateJob(Xeus avaire) {
         super(avaire, 90, 90, TimeUnit.MINUTES);
@@ -46,16 +46,7 @@ public class TrellobanUpdateJob extends Job {
     @Override
     public void run() {
         handleTask(avaire -> {
-            RequestFactory.makeGET("https://pb-kronos.dev/api/v2/moderation/admin")
-                .addHeader("Access-Key", avaire.getConfig().getString("apiKeys.kronosTrellobanKey"))
-                .send((Consumer<Response>) response -> {
-                    log.info("Trello ban list has been updated.");
-                    try {
-                        avaire.getCache().getAdapter(CacheType.FILE).forever(cacheToken, response.getResponse().body().string());
-                    } catch (IOException ignored) {
 
-                    }
-                });
         });
     }
 }

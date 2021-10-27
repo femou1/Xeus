@@ -21,15 +21,14 @@
 
 package com.pinewoodbuilders.database.controllers;
 
-import com.pinewoodbuilders.Xeus;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.CacheUtil;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,21 +44,16 @@ public class GlobalSettingsController {
 
     private static final String[] requiredSettingsColumns = new String[] { 
             "global_settings.main_group_name",
-            "global_settings.main_group_id", "global_settings.global_ban", "global_settings.global_kick",
-            "global_settings.global_verify", "global_settings.global_anti_unban", "global_settings.global_filter",
+            "global_settings.main_group_id", "global_settings.global_filter",
             "global_settings.global_filter_exact", "global_settings.global_filter_wildcard",
-            "global_settings.global_filter_log_channel", "global_settings.global_automod",
-            "global_settings.automod_mass_mention", "global_settings.automod_emoji_spam",
-            "global_settings.automod_link_spam", "global_settings.automod_message_spam",
-            "global_settings.automod_image_spam", "global_settings.automod_character_spam", 
-            "global_settings.mgm_logs", "global_settings.appeals_discord_id"};
+            "global_settings.global_filter_log_channel", "global_settings.mgm_logs",
+            "global_settings.appeals_discord_id"};
 
     /**
      * Fetches the guild transformer from the cache, if it doesn't exist in the
      * cache it will be loaded into the cache and then returned afterwords.
      *
      * @param avaire The avaire instance, used to talking to the database.
-     * @param guild  The JDA guild instance for the current guild.
      * @return Possibly null, the guild transformer instance for the current guild,
      *         or null.
      */
@@ -68,8 +62,7 @@ public class GlobalSettingsController {
         if (transformer == null) {return null;}
         if (transformer.getMainGroupId() == 0) {return null;}
 
-        return (GlobalSettingsTransformer) CacheUtil.getUncheckedUnwrapped(cache, transformer.getMainGroupId(),
-                () -> loadGuildSettingsFromDatabase(avaire, transformer.getMainGroupId()));
+        return fetchGlobalSettingsFromGroupSettings(avaire, transformer.getMainGroupId());
     }
 
     @CheckReturnValue

@@ -22,7 +22,6 @@
 package com.pinewoodbuilders.commands.globalmod;
 
 import com.pinewoodbuilders.Xeus;
-import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.blacklist.bot.Scope;
 import com.pinewoodbuilders.chat.SimplePaginator;
 import com.pinewoodbuilders.commands.CommandMessage;
@@ -179,7 +178,7 @@ public class BlacklistCommand extends Command {
         context.makeSuccess("The **:type** with an ID of **:id** has been added to the blacklist!")
                 .set("type", scope.name().toLowerCase()).set("id", id).queue();
 
-        long mgmLogs = context.getGlobalSettingsTransformer().getMgmLogsId();
+        long mgmLogs = context.getGuildSettingsTransformer().getGlobalSettings().getMgmLogsId();
         if (mgmLogs != 0) {
             TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
             if (tc != null) {
