@@ -53,7 +53,7 @@ public class GlobalBanContainer {
     }
 
     public boolean isSame(long mgi, String userId) {
-        return this.mgi == mgi
-            && this.userId.equals(userId);
+        if (userId == null || this.userId == null) {return false;}
+        return this.userId.equals(userId) && this.mgi == mgi;
     }
 }

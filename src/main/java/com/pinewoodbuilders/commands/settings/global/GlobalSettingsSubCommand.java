@@ -61,7 +61,8 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
                 return runGlobalFilterCommand(context, Arrays.copyOfRange(args, 1, args.length));
             default:
                 context.makeInfo(
-                        "God damn, please get this command right.\n\n- `smgi` - Set the Main Group Id of this guild")
+                        "God damn, please get this command right.\n\n - `smgi` - Set the Main Group Id of this guild\n - `smr` - Set the main role of the discord\n" +
+                            " - `permissions` - Manage the xeus permissions of the server.")
                         .queue();
                 return false;
         }
@@ -69,6 +70,10 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean runGlobalFilterCommand(CommandMessage context, String[] args) {
+        if (args.length == 0) {
+            context.makeInfo("Please use `pwcf` or `pef` to select what global filter you'd like to edit.").queue();
+            return true;
+        }
         switch (args[0].toLowerCase()) {
             case "wcf":
             case "pwcf":

@@ -56,12 +56,11 @@ public class GlobalPunishmentManager {
             Collection rows = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).get();
             long size = rows.size();
             for (DataRow row : rows) {
-                if (row.getString("userId") == null) {return;}
                 long mgi = row.getLong("main_group_id");
 
 
                 if (!globalBans.containsKey(mgi)) {
-                    globalBans.put(mgi, new HashSet <>());
+                    globalBans.put(mgi, new HashSet<>());
                 }
 
                 globalBans.get(mgi).add(new GlobalBanContainer(row));
@@ -140,7 +139,7 @@ public class GlobalPunishmentManager {
                 return true;
             }
         }
-
         return false;
     }
+
 }

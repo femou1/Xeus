@@ -24,14 +24,13 @@ package com.pinewoodbuilders.handlers.adapter;
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.cache.MessageCache;
+import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.contracts.cache.CachedMessage;
 import com.pinewoodbuilders.contracts.handlers.EventAdapter;
-import com.pinewoodbuilders.contracts.verification.VerificationEntity;
-import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
-import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
+import com.pinewoodbuilders.moderation.punishments.globalban.GlobalBanContainer;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.TargetType;
@@ -55,7 +54,6 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
 
 import java.awt.*;
-import java.sql.SQLException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -69,96 +67,93 @@ public class GuildEventAdapter extends EventAdapter {
     }
 
     public void onGuildPIAMemberBanEvent(GuildUnbanEvent e) {
-        try {
-            VerificationEntity ve = avaire.getRobloxAPIManager().getVerification()
-                    .callUserFromRoverAPI(e.getUser().getId());
+        GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, e.getGuild());
+        if (transformer == null) {
+            return;
+        }
 
-            QueryBuilder qb;
-            if (ve != null) {
-                qb = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME)
-                        .where("userId", e.getUser().getId()).orWhere("roblox_user_id", ve.getRobloxId());
-            } else {
-                qb = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("userId",
-                        e.getUser().getId());
-            }
+        boolean isBanned = avaire.getGlobalPunishmentManager().isGlobalBanned(transformer.getMainGroupId(), e.getUser().getId());
+        if (isBanned) {
+            List<GlobalBanContainer> unbanCollection = avaire.getGlobalPunishmentManager().getGlobalBans().get(transformer.getMainGroupId()).stream().filter(l -> {
+                if (l.getUserId() != null) {
+                    return l.getUserId().equals(e.getUser().getId());
+                } else {
+                    return false;
+                }
+            }).collect(Collectors.toList());
 
-            Collection unbanCollection = qb.get();
-            if (unbanCollection.size() > 0) {
-                e.getGuild().retrieveAuditLogs().queue(items -> {
-                    List<AuditLogEntry> logs = items.stream()
-                            .filter(d -> d.getType().equals(ActionType.UNBAN)
-                                    && d.getTargetType().equals(TargetType.MEMBER)
-                                    && d.getTargetId().equals(e.getUser().getId()))
-                            .collect(Collectors.toList());
-                    MessageChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
+            e.getGuild().retrieveAuditLogs().queue(items -> {
+                List<AuditLogEntry> logs = items.stream()
+                        .filter(d -> d.getType().equals(ActionType.UNBAN)
+                                && d.getTargetType().equals(TargetType.MEMBER)
+                                && d.getTargetId().equals(e.getUser().getId()))
+                        .collect(Collectors.toList());
+                MessageChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
 
-                    if (logs.size() < 1) {
-                        if (tc != null) {
-                            tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription(e.getUser()
-                                    .getAsTag() + " has been unbanned from **" + e.getGuild()
-                                    + "**, however, I could not find the user responsible for the unban. Please check the audit logs in the responsible server for more information. (User has been re-banned)")
+                if (logs.size() < 1) {
+                    if (tc != null) {
+                        tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription(e.getUser()
+                                .getAsTag() + " has been unbanned from **" + e.getGuild()
+                                + "**, however, I could not find the user responsible for the unban. Please check the audit logs in the responsible server for more information. (User has been re-banned)")
+                                .buildEmbed()).queue();
+                    }
+                    e.getGuild().ban(e.getUser().getId(), 0,
+                            "User was unbanned, user has been re-banned due to permban system in Xeus. Original ban reason (Do not unban without MGM permission): "
+                                    + unbanCollection.get(0).getReason())
+                            .reason("PIA BAN: " + unbanCollection.get(0).getReason()).queue();
+                } else {
+                    if (tc != null) {
+                        if (logs.get(0).getUser().equals(e.getJDA().getSelfUser()))
+                            return;
+                        if (Constants.piaMembers.contains(logs.get(0).getUser().getId())) {
+                            tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
+                                    .setDescription("**" + e.getUser().getName() + e.getUser().getDiscriminator()
+                                            + "**" + " has been unbanned from **" + e.getGuild().getName()
+                                            + "**\nIssued by MGM Moderator: " + logs.get(0).getUser().getName()
+                                            + "#" + logs.get(0).getUser().getDiscriminator() + "\nWith reason: "
+                                            + (logs.get(0).getReason() != null ? logs.get(0).getReason()
+                                                    : "No reason given"))
                                     .buildEmbed()).queue();
-                        }
-                        e.getGuild().ban(e.getUser().getId(), 0,
-                                "User was unbanned, user has been re-banned due to permban system in Xeus. Original ban reason (Do not unban without MGM permission): "
-                                        + unbanCollection.get(0).getString("reason"))
-                                .reason("PIA BAN: " + unbanCollection.get(0).getString("reason")).queue();
-                    } else {
-                        if (tc != null) {
-                            if (logs.get(0).getUser().equals(e.getJDA().getSelfUser()))
-                                return;
-                            if (Constants.piaMembers.contains(logs.get(0).getUser().getId())) {
-                                tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
-                                        .setDescription("**" + e.getUser().getName() + e.getUser().getDiscriminator()
-                                                + "**" + " has been unbanned from **" + e.getGuild().getName()
-                                                + "**\nIssued by MGM Moderator: " + logs.get(0).getUser().getName()
-                                                + "#" + logs.get(0).getUser().getDiscriminator() + "\nWith reason: "
-                                                + (logs.get(0).getReason() != null ? logs.get(0).getReason()
-                                                        : "No reason given"))
+                            logs.get(0).getUser().openPrivateChannel().queue(o -> {
+                                if (o.getUser().isBot())
+                                    return;
+                                o.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
+                                        .setDescription("You have currently unbanned a Global-Banned user.")
                                         .buildEmbed()).queue();
-                                logs.get(0).getUser().openPrivateChannel().queue(o -> {
-                                    if (o.getUser().isBot())
-                                        return;
-                                    o.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
-                                            .setDescription("You have currently unbanned a Global-Banned user.")
-                                            .buildEmbed()).queue();
-                                });
-                            } else {
-                                tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
-                                        .setDescription("**" + e.getUser().getName() + e.getUser().getDiscriminator()
-                                                + "** has been unbanned from **" + e.getGuild().getName()
-                                                + "**\nIssued by Guild Member: " + logs.get(0).getUser().getName() + "#"
-                                                + logs.get(0).getUser().getDiscriminator()
-                                                + " (User has been re-banned)")
+                            });
+                        } else {
+                            tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
+                                    .setDescription("**" + e.getUser().getName() + e.getUser().getDiscriminator()
+                                            + "** has been unbanned from **" + e.getGuild().getName()
+                                            + "**\nIssued by Guild Member: " + logs.get(0).getUser().getName() + "#"
+                                            + logs.get(0).getUser().getDiscriminator()
+                                            + " (User has been re-banned)")
+                                    .buildEmbed()).queue();
+
+                            logs.get(0).getUser().openPrivateChannel().queue(o -> {
+                                if (o.getUser().isBot())
+                                    return;
+                                o.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription(
+                                        "Sorry, but this user **:bannedUser** was permbanned of PB though the Xeus blacklist feature and may **not** be unbanned. Please ask a MGM Moderator to handle an unban if deemed necessary.")
+                                        .set("bannedUser", e.getUser().getAsTag() + " / " + e.getUser().getName())
                                         .buildEmbed()).queue();
+                            });
 
-                                logs.get(0).getUser().openPrivateChannel().queue(o -> {
-                                    if (o.getUser().isBot())
-                                        return;
-                                    o.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc).setDescription(
-                                            "Sorry, but this user **:bannedUser** was permbanned of PB though the Xeus blacklist feature and may **not** be unbanned. Please ask a MGM Moderator to handle an unban if deemed necessary.")
-                                            .set("bannedUser", e.getUser().getAsTag() + " / " + e.getUser().getName())
-                                            .buildEmbed()).queue();
-                                });
-
-                                String agent = avaire.getShardManager().getUserById(
-                                        unbanCollection.get(0).getLong("punishedId")) != null ? avaire.getShardManager()
-                                                .getUserById(unbanCollection.get(0).getLong("punishedId")).getName()
-                                                : "No MGM Moderator found";
-                                e.getGuild().ban(e.getUser().getId(), 0, "Banned by: " + agent + "\n" + "For: "
-                                        + unbanCollection.get(0).getString("reason")
-                                        + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
-                                        .reason("Global Ban, executed by " + agent + ". For: \n"
-                                                + unbanCollection.get(0).getString("reason"))
-                                        .queue();
-                            }
+                            String agent = avaire.getShardManager().getUserById(
+                                    unbanCollection.get(0).getPunisherId()) != null ? avaire.getShardManager()
+                                            .getUserById(unbanCollection.get(0).getPunisherId()).getName()
+                                            : "No MGM Moderator found";
+                            e.getGuild().ban(e.getUser().getId(), 0, "Banned by: " + agent + "\n" + "For: "
+                                    + unbanCollection.get(0).getReason()
+                                    + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
+                                    .reason("Global Ban, executed by " + agent + ". For: \n"
+                                            + unbanCollection.get(0).getReason())
+                                    .queue();
                         }
                     }
-                });
+                }
+            });
 
-            }
-        } catch (SQLException exception) {
-            Xeus.getLogger().error("ERROR: ", exception);
         }
     }
 
@@ -420,15 +415,20 @@ public class GuildEventAdapter extends EventAdapter {
                     if (content.length() >= 1500)
                         content = content.substring(0, 1500) + " **...**";
 
-                    tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
-                            .setAuthor("A message was deleted", null, message.getAuthor().getGetEffectiveAvatarUrl())
-                            .setDescription("**Author**: " + message.getAuthor().getAsMention() + "\n**Sent In**: "
-                                    + event.getChannel().getAsMention() + "\n**Sent On**: "
-                                    + message.getTimeCreated()
-                                            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))
-                                    + "\n\n**Message Content**:\n" + content)
-                            .setImage(getImageFromAttachment(message.getAttachment()))
-                            .setColor(new Color(255, 0, 0)).setTimestamp(Instant.now()).buildEmbed()).queue();
+                    PlaceholderMessage placeHolderMessage = MessageFactory.makeEmbeddedMessage(tc)
+                        .setAuthor("A message was deleted", null, message.getAuthor().getGetEffectiveAvatarUrl())
+                        .setDescription("**Author**: " + message.getAuthor().getAsMention() + "\n**Sent In**: "
+                            + event.getChannel().getAsMention() + "\n**Sent On**: "
+                            + message.getTimeCreated()
+                            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))
+                            + "\n\n**Message Content**:\n" + content)
+                        .setColor(new Color(255, 0, 0)).setTimestamp(Instant.now());
+
+                    if (message.getAttachment() != null) {
+                        placeHolderMessage.setImage(getImageFromAttachment(message.getAttachment()));
+                    }
+
+                    tc.sendMessageEmbeds(placeHolderMessage.buildEmbed()).queue();
                     cache.remove(message);
                 }
             }
