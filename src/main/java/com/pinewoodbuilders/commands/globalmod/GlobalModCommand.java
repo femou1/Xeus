@@ -145,7 +145,7 @@ public class GlobalModCommand extends Command {
 
         StringBuilder sb = new StringBuilder();
         for (Guild g : guild) {
-            if (g.getIdLong() == context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId()) continue;
+            if (appealsKick && g.getIdLong() == context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId()) continue;
             Member m = g.getMemberById(args[0]);
             if (m != null) {
                 g.kick(m,
