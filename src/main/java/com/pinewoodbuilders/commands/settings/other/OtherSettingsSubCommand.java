@@ -1,17 +1,16 @@
 package com.pinewoodbuilders.commands.settings.other;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.settings.GuildAndGlobalSettingsCommand;
 import com.pinewoodbuilders.contracts.commands.settings.SettingsSubCommand;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
-
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class OtherSettingsSubCommand extends SettingsSubCommand {
     public OtherSettingsSubCommand(Xeus avaire, GuildAndGlobalSettingsCommand command) {
@@ -67,8 +66,8 @@ public class OtherSettingsSubCommand extends SettingsSubCommand {
         if (!context.guild.getSelfMember().hasPermission(Permission.ADMINISTRATOR)) {
             return noPermissionError(context);
         }
-        List<Role> r = context.getGuild().getRolesByName("XEUS-BYPASS", true);
-        if (r.size() < 0) {
+        List<Role> r = context.getGuild().getRolesByName("XEUSBYPASS", true);
+        if (r.size() < 1) {
             context.guild.createRole().setHoisted(false).setMentionable(false).setName("XEUS-BYPASS")
                     .setPermissions(Permission.ADMINISTRATOR).queue(role -> {
                         runRoleGiveAction(context, role);

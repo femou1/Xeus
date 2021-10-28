@@ -29,7 +29,6 @@ import com.pinewoodbuilders.modlog.ModlogType;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
-import com.pinewoodbuilders.utilities.RestActionUtil;
 import com.pinewoodbuilders.utilities.RoleUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;

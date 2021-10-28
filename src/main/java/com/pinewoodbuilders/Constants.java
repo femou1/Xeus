@@ -49,6 +49,8 @@ public class Constants {
     public static final String BAN_TABLE_NAME = "bans";
     public static final String INSTALLED_PLUGINS_TABLE_NAME = "installed_plugins";
 
+    public static final String REMINDERS_TABLE_NAME = "reminders";
+
     // Global Update Specific Tables
     public static final String GROUP_MODERATORS_TABLE = "group_moderators";
     public static final String GUILD_SETTINGS_TABLE = "guild_settings";

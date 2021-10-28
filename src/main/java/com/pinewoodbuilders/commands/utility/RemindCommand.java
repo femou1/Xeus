@@ -21,22 +21,28 @@
 
 package com.pinewoodbuilders.commands.utility;
 
+import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
+import com.pinewoodbuilders.chat.SimplePaginator;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
+import com.pinewoodbuilders.database.controllers.RemindersController;
+import com.pinewoodbuilders.database.transformers.RemindersTransformer;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.NumberUtil;
-import com.pinewoodbuilders.utilities.RestActionUtil;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RemindCommand extends Command {
+    private static final Logger log = LoggerFactory.getLogger(RemindCommand.class);
 
     public RemindCommand(Xeus avaire) {
         super(avaire);
@@ -56,7 +62,8 @@ public class RemindCommand extends Command {
     public List<String> getUsageInstructions() {
         return Arrays.asList(
             "`:command me <time> <message>`\n- Reminds you about the message after the time is up in a DM.",
-            "`:command here <time> <message>`\n- Reminds you about the message after the time is up in the channel the command was used in."
+            "`:command here <time> <message>`\n- Reminds you about the message after the time is up in the channel the command was used in.",
+            "`:command list <page number>`\n - showing up to 10 at a time, with the message, where\n" + "the user will received the message(channel or DM), and when they will receive the message"
         );
     }
 
@@ -65,7 +72,8 @@ public class RemindCommand extends Command {
         return Arrays.asList(
             "`:command me 25m Something` - Reminds you about something after 25 minutes.",
             "`:command me 2h30m9s Stuff` - Reminds you about stuff after 2 hours, 30 minutes, and 9 seconds.",
-            "`:command here 30m Potatoe` - Reminds you about Potatoe in 30 minutes in the current channel."
+            "`:command here 30m Potato` - Reminds you about Potato in 30 minutes in the current channel.",
+            "`:command list 2` - List all pending reminders on page 2"
         );
     }
 
@@ -85,23 +93,30 @@ public class RemindCommand extends Command {
             return sendErrorMessage(context, "errors.missingArgument", "type");
         }
 
+        if(args[0].equalsIgnoreCase("list"))
+        {
+            return sendReminderList(context,args);
+        }
+        else if(args[0].equalsIgnoreCase("delete"))
+        {
+            return deleteReminder(context,args);
+        }
+
         if (!(args[0].equalsIgnoreCase("here") || args[0].equalsIgnoreCase("me"))) {
             return sendErrorMessage(context, context.i18n("errors.invalidMeHere"));
         }
+
+
+
         boolean respondInDM = args[0].equalsIgnoreCase("me");
 
         if (args.length == 1) {
             return sendErrorMessage(context, "errors.missingArgument", "time");
         }
 
-        final int time = parse(args[1]);
-        if (time == 0) {
+        final Carbon time = parseTime(args[1]);
+        if (time == null) {
             return sendErrorMessage(context, "errors.invalidProperty", "time", "time format");
-        }
-
-        // Time must be greater than 60 seconds and less than 3 days.
-        if (time < 60 || time > 259200) {
-            return sendErrorMessage(context, context.i18n("errors.invalidTime"));
         }
 
         if (args.length == 2) {
@@ -110,76 +125,163 @@ public class RemindCommand extends Command {
 
         handleReminderMessage(
             context,
-            new MessageBuilder()
-                .setContent(String.format("%s, %s you asked to be reminded about:",
-                    context.getAuthor().getAsMention(),
-                    Carbon.now().subSeconds(time).diffForHumans()
-                ))
-                .setEmbeds(new EmbedBuilder()
-                    .setDescription(String.join(" ", Arrays.copyOfRange(args, 2, args.length)))
-                    .build()
-                ).build(),
+            String.join(" ", Arrays.copyOfRange(args, 2, args.length)),
             time,
             respondInDM);
 
-        context.makeInfo("Alright :user, in :time I'll remind you about :message")
-            .set("time", Carbon.now().subSeconds(time).diffForHumans(true))
+        context.makeInfo("Alright :user, in `:time` I'll remind you about \n```:message```")
+            .set("time", time.diffForHumans(true))
             .set("message", String.join(" ", Arrays.copyOfRange(args, 2, args.length)))
             .queue();
 
         return true;
     }
 
-    private void handleReminderMessage(CommandMessage context, Message message, int time, boolean respondInDM) {
-        if (respondInDM) {
-            context.getAuthor().openPrivateChannel().queue(privateChannel -> {
-                privateChannel.sendMessage(message).queueAfter(time, TimeUnit.SECONDS, null, RestActionUtil.ignore);
-            }, throwable -> {
-                context.getMessageChannel().sendMessage(message).queueAfter(time, TimeUnit.SECONDS, null, RestActionUtil.ignore);
-            });
-        } else {
-            context.getMessageChannel().sendMessage(message).queueAfter(time, TimeUnit.SECONDS, null, throwable -> {
-                context.getAuthor().openPrivateChannel().queue(privateChannel -> {
-                    privateChannel.sendMessage(message).queueAfter(time, TimeUnit.SECONDS, null, RestActionUtil.ignore);
-                });
-            });
-        }
-    }
-
-    public int parse(String input) {
-        int result = 0;
-        String number = "";
-        String unit = "";
-        for (int i = 0; i < input.length(); i++) {
-            char c = input.charAt(i);
-            if (c >= '0' && c <= '9') {
-                if (!unit.isEmpty() && !number.isEmpty()) {
-                    result += convert(NumberUtil.parseInt(number, 0), unit);
-                    number = "";
-                    unit = "";
-                }
-                number += c;
-            } else if (Character.isLetter(c) && !number.isEmpty()) {
-                unit += c;
+    private boolean deleteReminder(CommandMessage context, String[] args)
+    {
+        int id = Integer.parseInt(args[1]);
+        boolean reminderExists = false;
+        RemindersTransformer reminders = RemindersController.fetchPendingReminders(avaire, context.getAuthor().getIdLong());
+        for (RemindersTransformer.Reminder reminder: reminders.getReminders())
+        {
+            if(reminder.getId() == id && reminder.getUserId() == context.getAuthor().getIdLong())
+            {
+                reminderExists = true;
+                break ;
             }
         }
-        if (!unit.isEmpty() && !number.isEmpty()) {
-            result += convert(NumberUtil.parseInt(number, 0), unit);
+        if(!reminderExists)
+        {
+            return sendErrorMessage(context,context.i18n("errors.notFound",id));
         }
-        return result;
+        try
+        {
+            int deleted = avaire.getDatabase().newQueryBuilder(Constants.REMINDERS_TABLE_NAME)
+                .where("id",id)
+                .andWhere("user_id",context.getAuthor().getIdLong())
+                .delete();
+            if(deleted == 1)
+            {
+                RemindersController.cache.invalidate(context.getAuthor().getIdLong());
+                context.makeSuccess(context.i18n("deletedReminder",id));
+            }
+            else
+            {
+                return sendErrorMessage(context,context.i18n("errors.notFound",id));
+            }
+            return true;
+        }
+        catch (SQLException e)
+        {
+            log.debug(e.getMessage());
+        }
+        return true;
     }
 
-    private int convert(int value, String unit) {
-        switch (unit.substring(0, 1).toLowerCase()) {
-            case "d":
-                return value * 60 * 60 * 24;
-            case "h":
-                return value * 60 * 60;
-            case "m":
-                return value * 60;
-            case "s":
-                return value;
+    private boolean sendReminderList(CommandMessage context, String[] args)
+    {
+        RemindersTransformer transformer = RemindersController.fetchPendingReminders(avaire, context.getAuthor().getIdLong());
+        List<RemindersTransformer.Reminder> reminders = transformer.getReminders();
+        ArrayList <String> reminderList = new ArrayList<String>();
+        for (RemindersTransformer.Reminder reminder: reminders)
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.append("ID:").append( reminder.getId()).append("\n");
+            builder.append("Message: ")
+                .append(reminder.getMessage())
+                .append("\n")
+                .append("Location:");
+            if(reminder.getChannelId() == null || reminder.getChannelId().isEmpty())
+            {
+                builder.append("DM");
+            }
+            else
+            {
+                builder.append(context.getGuild()
+                    .getTextChannelById(reminder.getChannelId())
+                    .getAsMention());
+            }
+            builder.append("\n");
+            builder.append("Remaining Time:")
+                .append(reminder.getExpirationDate().diffForHumans(true));
+            reminderList.add(builder.toString());
         }
-        return 0;
+        SimplePaginator <String> paginator = new SimplePaginator<String>(reminderList,10);
+        if (args.length > 1) {
+            paginator.setCurrentPage(NumberUtil.parseInt(args[1], 1));
+        }
+        List<String> messages = new ArrayList<>();
+        paginator.forEach((index, key, val) -> messages.add(val));
+
+        context.makeInfo(":reminders\n\n:paginator")
+            .setTitle(context.i18n("title"))
+            .set("reminders",String.join("\n",messages))
+            .set("paginator", paginator.generateFooter(context.getGuild(), generateCommandTrigger(context.getMessage())))
+            .queue();
+        return false;
+
+    }
+
+    private void handleReminderMessage(CommandMessage context, String message, Carbon time, boolean respondInDM)
+    {
+        try
+        {
+
+                avaire.getDatabase().newQueryBuilder(Constants.REMINDERS_TABLE_NAME)
+                    .insert(statement -> {
+                        statement.set("user_id", context.getAuthor().getIdLong());
+                        statement.set("message", message, true);
+                        statement.set("channel_id", !respondInDM ? context.getMessageChannel().getId() : null);
+                        statement.set("stored_at",Carbon.now());
+                        statement.set("expires_at", time);
+                    });
+
+        }
+        catch(SQLException e)
+        {
+            log.error("Something went wrong while a use was trying to store a reminder: {}", e.getMessage(), e);
+
+            sendErrorMessage(context, context.i18n("failedToStoreInfo", e.getMessage()));
+        }
+    }
+
+    private final Pattern timeRegEx = Pattern.compile("([0-9]+[w|d|h|m|s])");
+    private Carbon parseTime(String string) {
+        Matcher matcher = timeRegEx.matcher(string);
+        if (!matcher.find()) {
+            return null;
+        }
+
+        Carbon time = Carbon.now().addSecond();
+        do {
+            String group = matcher.group();
+
+            String type = group.substring(group.length() - 1);
+            int timeToAdd = NumberUtil.parseInt(group.substring(0, group.length() - 1));
+
+            switch (type.toLowerCase()) {
+                case "w":
+                    time.addWeeks(timeToAdd);
+                    break;
+
+                case "d":
+                    time.addDays(timeToAdd);
+                    break;
+
+                case "h":
+                    time.addHours(timeToAdd);
+                    break;
+
+                case "m":
+                    time.addMinutes(timeToAdd);
+                    break;
+
+                case "s":
+                    time.addSeconds(timeToAdd);
+                    break;
+            }
+        } while (matcher.find());
+
+        return time;
     }
 }

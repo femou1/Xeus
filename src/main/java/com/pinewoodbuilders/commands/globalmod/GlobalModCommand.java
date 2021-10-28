@@ -410,17 +410,17 @@ public class GlobalModCommand extends Command {
                 if (row.getBoolean("global_ban", false)) continue;
 
                 if (row.getBoolean("official_sub_group", false)) {
-                        /*guild.ban(args[0], time, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: "
+                        guild.ban(args[0], time, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: "
                             + reason
                             + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
                             .reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n"
                                 + reason)
-                            .queue();*/
+                            .queue();
                     sb.append("``").append(guild.getName()).append("`` - :white_check_mark:\n");
                 } else {
-                        /*guild.ban(args[0], time,
+                        guild.ban(args[0], time,
                             "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
-                            .queue();*/
+                            .queue();
                     sb.append("``").append(guild.getName()).append("`` - :ballot_box_with_check:\n");
                 }
                 bannedGuilds++;
@@ -699,7 +699,7 @@ public class GlobalModCommand extends Command {
     private void handleGlobalPermBan(CommandMessage context, String[] args, String reason, VerificationEntity ve)
         throws SQLException {
         Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("userId", args[0])
-            .get();
+            .where("main_group_id", context.getGuildSettingsTransformer().getMainGroupId()).get();
         if (c.size() < 1) {
             /*avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).insert(o -> {
                 o.set("userId", args[0]).set("punisherId", context.getAuthor().getId()).set("reason", reason, true)

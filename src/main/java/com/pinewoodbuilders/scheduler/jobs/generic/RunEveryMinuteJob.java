@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 public class RunEveryMinuteJob extends Job {
 
     private final ChangeGameTask changeGameTask = new ChangeGameTask();
+    private final SendRemindersTask sendRemindersTask = new SendRemindersTask();
     private final DrainMuteQueueTask drainMuteQueueTask = new DrainMuteQueueTask();
     private final GarbageCollectorTask garbageCollectorTask = new GarbageCollectorTask();
     private final SyncBlacklistMetricsTask syncBlacklistMetricsTask = new SyncBlacklistMetricsTask();
@@ -50,6 +51,7 @@ public class RunEveryMinuteJob extends Job {
     public void run() {
         handleTask(
             changeGameTask,
+            sendRemindersTask,
             drainMuteQueueTask,
             garbageCollectorTask,
             syncBlacklistMetricsTask,
