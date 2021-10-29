@@ -694,8 +694,6 @@ public class Xeus {
             GatewayIntent.DIRECT_MESSAGE_REACTIONS
         ))
             .setToken(getConfig().getString("discord.token"))
-            .disableIntents(GatewayIntent.GUILD_VOICE_STATES)
-            .disableCache(CacheFlag.VOICE_STATE)
             .setSessionController(new SessionControllerAdapter())
             .setActivity(Activity.watching("pinewood dominate the world!"))
             .setBulkDeleteSplittingEnabled(false)
