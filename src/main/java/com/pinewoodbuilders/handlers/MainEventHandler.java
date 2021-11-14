@@ -111,6 +111,7 @@ public class MainEventHandler extends EventHandler {
     private static final Logger log = LoggerFactory.getLogger(MainEventHandler.class);
 
 
+
     /**
      * Instantiates the event handler and sets the avaire class instance.
      *

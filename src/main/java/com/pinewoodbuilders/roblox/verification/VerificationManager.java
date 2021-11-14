@@ -89,7 +89,7 @@ public class VerificationManager {
         return false;
     }
 
-    private VerificationResult verify(GuildSettingsTransformer transformer, Member member, Guild guild, boolean useCache) {
+    public VerificationResult verify(GuildSettingsTransformer transformer, Member member, Guild guild, boolean useCache) {
         if (member == null) {
             return new VerificationResult(false, "Member entity doesn't exist. Verification cancelled on you");
         }
@@ -159,11 +159,12 @@ public class VerificationManager {
                 }
 
                 if (avaire.getShardManager().getUserById(member.getId()) != null) {
+                    String invite = getFirstInvite(guild);
                     avaire.getShardManager().getUserById(member.getId()).openPrivateChannel().queue(p -> p.sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder(),
                         "*You have been **global-banned** from all discord that are connected to [this group](:groupLink) by an MGM Moderator. "
                             + "For the reason: *```" + reason + "```\n\n"
                             + "If you feel that your ban was unjustified please appeal at the group in question;"
-                            + "https://discord.gg/mWnQm25")
+                            + invite)
                         .setColor(Color.BLACK)
                         .set("groupLink",
                             "https://roblox.com/groups/" + transformer.getGlobalSettings().getMainGroupId())
@@ -194,11 +195,12 @@ public class VerificationManager {
 
                 member.getUser().openPrivateChannel().queue(p -> {
                     try {
+                        String invite = getFirstInvite(guild);
                         p.sendMessageEmbeds(new EmbedBuilder().setDescription(
                             "*You have been **global-banned** from all the Pinewood Builders discords by an MGM Moderator. "
                                 + "For the reason: *```" + accounts.get(0).getString("reason") + "```\n\n"
                                 + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; "
-                                + "https://discord.gg/mWnQm25")
+                                + invite)
                             .setColor(Color.BLACK).build()).queue();
                     } catch (ErrorResponseException ignored) {
                     }
@@ -325,6 +327,17 @@ public class VerificationManager {
         return new VerificationResult(true, verificationEntity, stringBuilder.toString());
     }
 
+    private String getFirstInvite(Guild g) {
+        List <Invite> invites = g.retrieveInvites().complete();
+        if (invites == null || invites.size() < 1)
+            return null;
+        for (Invite i : invites) {
+            return i.getUrl();
+        }
+
+        return null;
+    }
+
     private boolean isBlacklisted(Guild guild, VerificationEntity verificationEntity) {
         switch (guild.getId()) {
             case "438134543837560832":
@@ -342,9 +355,10 @@ public class VerificationManager {
 
     private VerificationResult isBlacklisted(ArrayList <Long> blacklist, Guild guild, VerificationEntity verificationEntity) {
         if (blacklist.contains(verificationEntity.getRobloxId())) {
+            String invite = getFirstInvite(guild);
             return new VerificationResult(true, "You're blacklisted on `" + guild.getName() + "`, access to the server has been denied.\n"
                 + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; "
-                + "https://discord.gg/mWnQm25");
+                + invite);
         }
         return new VerificationResult(false, "Not blacklisted, continue...");
     }

@@ -1,33 +1,18 @@
 package com.pinewoodbuilders.roblox.verification.methods;
 
 import com.pinewoodbuilders.Xeus;
-import com.pinewoodbuilders.Constants;
-import com.pinewoodbuilders.contracts.kronos.TrellobanLabels;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
-import com.pinewoodbuilders.database.collection.Collection;
-import com.pinewoodbuilders.database.controllers.VerificationController;
-import com.pinewoodbuilders.database.transformers.VerificationTransformer;
-import com.pinewoodbuilders.requests.service.group.GuildRobloxRanksService;
-import com.pinewoodbuilders.requests.service.user.inventory.RobloxGamePassService;
-import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
+import com.pinewoodbuilders.contracts.verification.VerificationResult;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.internal.utils.PermissionUtil;
 
 import java.awt.*;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static javassist.util.proxy.ProxyFactory.useCache;
+import java.time.Instant;
 
 public class VerificationMethodsManager {
     private final Xeus avaire;
@@ -39,7 +24,25 @@ public class VerificationMethodsManager {
     }
 
     public void slashCommandVerify(Member member, Guild guild, InteractionHook hook) {
-        HashMap <Long, List <TrellobanLabels>> trellobans = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans();
+        GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
+        VerificationResult result = robloxAPIManger.getVerification().verify(transformer, member, guild, true);
+
+
+        EmbedBuilder eb = new EmbedBuilder();
+        eb.setTitle("Pinewood Verification")
+            .setDescription(result.getMessage())
+            .setTimestamp(Instant.now())
+            .setFooter(result.getVerificationEntity() != null ? result.getVerificationEntity().getRobloxUsername() : "Verification failed...");
+        if (!result.isSuccess()) {
+            eb.setColor(new Color(255, 0, 0));
+            hook.setEphemeral(true).sendMessage(member.getAsMention()).addEmbeds(eb.build()).queue();
+        } else {
+            eb.setColor(new Color(0, 255, 0));
+            hook.setEphemeral(false).sendMessage(member.getAsMention()).addEmbeds(eb.build()).queue();
+        }
+
+
+        /*HashMap <Long, List <TrellobanLabels>> trellobans = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans();
         if (member == null) {
             hook.sendMessage("You do not exist, so you have not been verified.").queue();
             return;
@@ -193,7 +196,8 @@ public class VerificationMethodsManager {
             }
         }
         EmbedBuilder eb = new EmbedBuilder().setThumbnail(getImageFromVerificationEntity(verificationEntity)).setColor(new Color(0, 255, 0)).setDescription(stringBuilder.toString()).setFooter("Have fun!");
-        hook.sendMessageEmbeds(eb.build()).queue();
+        hook.sendMessageEmbeds(eb.build()).queue();*/
+
     }
 
     private boolean isTrelloBanned(VerificationEntity verificationEntity) {

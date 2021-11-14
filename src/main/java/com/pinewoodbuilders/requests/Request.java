@@ -1,30 +1,27 @@
 /*
  * Copyright (c) 2018.
  *
- * This file is part of Xeus.
+ * This file is part of AvaIre.
  *
- * Xeus is free software: you can redistribute it and/or modify
+ * AvaIre is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Xeus is distributed in the hope that it will be useful,
+ * AvaIre is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Xeus.  If not, see <https://www.gnu.org/licenses/>.
+ * along with AvaIre.  If not, see <https://www.gnu.org/licenses/>.
  *
  *
  */
 
 package com.pinewoodbuilders.requests;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.async.Future;
-import okhttp3.ConnectionPool;
-import okhttp3.Dispatcher;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,18 +32,16 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class Request extends Future {
-
     private static final Logger log = LoggerFactory.getLogger(Request.class);
 
     private final String url;
     private final RequestType type;
 
-    private final OkHttpClient.Builder clientBuilder;
+    private final OkHttpClient client;
     private final okhttp3.Request.Builder builder;
 
     private final Map<String, Object> parameters = new HashMap<>();
@@ -60,20 +55,8 @@ public class Request extends Future {
         this.url = url;
         this.type = type;
 
-        clientBuilder = new OkHttpClient.Builder();//.addInterceptor(new RateLimitInterceptor());
+        client = new OkHttpClient();
         builder = new okhttp3.Request.Builder();
-
-
-        Dispatcher dispatcher = new Dispatcher();
-        dispatcher.setMaxRequests(200);
-        dispatcher.setMaxRequestsPerHost(60);
-        ConnectionPool connectionPool = new ConnectionPool(5,
-            5, TimeUnit.MINUTES);
-        OkHttpClient.Builder builder = new OkHttpClient.Builder();
-
-        builder.dispatcher(dispatcher);
-        builder.connectionPool(connectionPool);
-
         headers.put("User-Agent", "Mozilla/5.0");
     }
 
@@ -101,7 +84,7 @@ public class Request extends Future {
                     break;
             }
 
-            success.accept(new Response(clientBuilder.build().newCall(builder.build()).execute()));
+            success.accept(new Response(client.newCall(builder.build()).execute()));
         } catch (Exception ex) {
             failure.accept(ex);
         }
@@ -122,7 +105,7 @@ public class Request extends Future {
                     item.getValue().toString(), "UTF-8"
                 ));
             } catch (UnsupportedEncodingException e) {
-                Xeus.getLogger().error("ERROR: ", e);
+                e.printStackTrace();
                 return String.format("%s=%s", item.getKey(), "invalid-format");
             }
         }).collect(Collectors.joining("&"));

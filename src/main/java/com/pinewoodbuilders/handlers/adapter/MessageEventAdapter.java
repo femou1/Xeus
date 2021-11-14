@@ -846,6 +846,11 @@ public class MessageEventAdapter extends EventAdapter {
         event.getMessage().addReaction("tmsaye:873681202048016385").queue();
         event.getMessage().addReaction("tmsabstain:873681310881837106").queue();
         event.getMessage().addReaction("tmsnay:873681430054588456").queue();
+        if (event.getMessage().getMentionedRoles().stream().anyMatch(role -> role.getName().equals("PIA"))) {
+        event.getMessage().addReaction("piaaye:900484641037881405").queue();
+        event.getMessage().addReaction("piaabstain:900484610771812352").queue();
+        event.getMessage().addReaction("pianay:900484582032420955").queue();
+        }
     }
 }
 

@@ -57,7 +57,7 @@ public class GuildSettingsController {
             "guild_settings.global_ban", "guild_settings.global_kick",
             "guild_settings.global_verify", "guild_settings.global_anti_unban", "guild_settings.global_automod",
             "guild_settings.automod_mass_mention", "guild_settings.automod_emoji_spam",
-            "guild_settings.automod_link_spam", "guild_settings.automod_message_spam", "guild_settings.global_filter",
+            "guild_settings.automod_link_spam", "guild_settings.automod_message_spam",
             "guild_settings.automod_image_spam", "guild_settings.automod_character_spam",
             "guild_settings.audit_logs_channel_id", "guild_settings.vote_validation_channel_id",
             "guild_settings.user_alerts_channel_id", "guild_settings.evaluation_answer_channel",

@@ -61,7 +61,7 @@ public class SlashCommandEventAdapter extends EventAdapter {
         event.deferReply().setEphemeral(true).queue(
             l -> {
                 Role role = event.getOption("role").getAsRole();
-                final String title = (ROLE_EMOJI + " Role: " + escapeMentions(role.getName()));
+                final String title = (ROLE_EMOJI + " Role " + escapeMentions(role.getName()));
                 Color color = role.getColor();
 
                 StringBuilder description = new StringBuilder(""
@@ -145,11 +145,12 @@ public class SlashCommandEventAdapter extends EventAdapter {
                     "**Roblox Username**: :rusername\n" +
                         "**Roblox ID**: :userId\n" +
                         "**Ranks**:\n" +
-                        ":userRanks")
+                        ":userRanksn\n\n" +
+                        "**Linked Discord Account**:\n:discordAcc")
                     .set("rusername", verifiedRobloxUser.getRobloxUsername())
                     .set("userId", verifiedRobloxUser.getRobloxId())
                     .set("userRanks", sb.toString())
-
+                    .set("discordAcc", "<@" + verifiedRobloxUser.getDiscordId() + ">")
                     .setThumbnail(getImageFromVerificationEntity(verifiedRobloxUser)).buildEmbed()).queue();
             } catch (SQLException throwables) {
                 throwables.printStackTrace();

@@ -1,43 +1,28 @@
 package com.pinewoodbuilders.commands.globalmod;
 
 import com.pinewoodbuilders.Xeus;
+import com.pinewoodbuilders.commands.CommandContainer;
+import com.pinewoodbuilders.commands.CommandHandler;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
-import net.dv8tion.jda.annotations.DeprecatedSince;
-import net.dv8tion.jda.annotations.ForRemoval;
 import net.dv8tion.jda.annotations.ReplaceWith;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.Role;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
-@Deprecated
-@ForRemoval(deadline = "3.2.0")
-@ReplaceWith("GlobalModCommand")
-@DeprecatedSince("3.1.0")
-public class GlobalKickCommand extends Command {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
-    public final ArrayList<String> guilds = new ArrayList<String>() {
-        {
-            add("495673170565791754"); // Aerospace
-            add("438134543837560832"); // PBST
-            add("791168471093870622"); // Kronos Dev
-            add("371062894315569173"); // Official PB Server
-            add("514595433176236078"); // PBQA
-            add("436670173777362944"); // PET
-            add("505828893576527892"); // MMFA
-            add("498476405160673286"); // PBM
-            add("572104809973415943"); // TMS
-            add("758057400635883580"); // PBOP
-            add("669672893730258964"); // PB Dev
-        }
-    };
-    public final HashMap<Guild, Role> role = new HashMap<>();
-    private final ArrayList<Guild> guild = new ArrayList<>();
+//@Deprecated
+//@ForRemoval(deadline = "3.2.0")
+@ReplaceWith("GlobalModCommand")
+//@DeprecatedSince("3.1.0")
+public class GlobalKickCommand extends Command {
 
     public GlobalKickCommand(Xeus avaire) {
         super(avaire, false);
@@ -77,8 +62,18 @@ public class GlobalKickCommand extends Command {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
 
-        context.makeWarning("Command moved to !global-mod (!gb)...\n`!gm gk <id>` | `!global-mod global-kick <id>").queue();
+        //context.makeWarning("Reminder that this command is scheduled for removal in `v3.2.0`").queue();
+        CommandContainer container = CommandHandler.getCommand(GlobalModCommand.class);
+        if (container == null) {
+            return sendErrorMessage(context, "Unable to get the Global Moderation Command...");
+        }
+        context.setI18nCommandPrefix(container);
 
+        List<String> argList = new ArrayList<>();
+        argList.add("gk");
+        argList.addAll(Arrays.stream(args).collect(Collectors.toList()));
+
+        return container.getCommand().onCommand(context, argList.toArray(String[]::new));
 /*
         if (args.length < 1) {
             context.makeError("Sorry, but you didn't give any member id to globally kick!").queue();
@@ -108,7 +103,6 @@ public class GlobalKickCommand extends Command {
 
 
 
-        return true;
     }
 
 }
