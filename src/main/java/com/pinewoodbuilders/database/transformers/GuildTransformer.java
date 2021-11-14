@@ -61,6 +61,7 @@ public class GuildTransformer extends Transformer {
     private String nameRaw;
     private String locale;
     private String levelChannel = null;
+    private String autoChannel = null;
     private boolean levels = false;
     private boolean levelAlerts = false;
     private boolean levelHierarchy = false;
@@ -117,6 +118,7 @@ public class GuildTransformer extends Transformer {
             muteRole = data.getString("mute_role");
             modlogCase = data.getInt("modlog_case");
             onWatchCase = data.getInt("on_watch_case");
+            autoChannel = data.getString("auto_channel");
            
             // Sets the discord partner value if the guild isn't already a Discord partner.
             if (!partner) {
@@ -410,6 +412,14 @@ public class GuildTransformer extends Transformer {
 
     public Map <String, Map <String, String>> getCategories() {
         return modules;
+    }
+
+    public String getAutoChannel() {
+        return autoChannel;
+    }
+
+    public void setAutoChannel(String autoChannel) {
+        this.autoChannel = autoChannel;
     }
 
     public boolean isPartner() {

@@ -1,40 +1,36 @@
 package com.pinewoodbuilders.handlers.adapter;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
+import com.pinewoodbuilders.contracts.handlers.EventAdapter;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
-import com.pinewoodbuilders.database.controllers.GuildController;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
-
-import org.jetbrains.annotations.NotNull;
-
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-public class SlashCommandEventAdapter {
-    private final Xeus avaire;
+public class SlashCommandEventAdapter extends EventAdapter {
 
     private final static String LINESTART = " ▶ " + " ";
     private final static String ROLE_EMOJI = "\uD83C\uDFAD"; // 🎭
 
 
     public SlashCommandEventAdapter(Xeus avaire) {
-        this.avaire = avaire;
+        super(avaire);
     }
 
 
@@ -65,7 +61,7 @@ public class SlashCommandEventAdapter {
         event.deferReply().setEphemeral(true).queue(
             l -> {
                 Role role = event.getOption("role").getAsRole();
-                final String title = (ROLE_EMOJI + " Role: " + escapeMentions(role.getName()));
+                final String title = (ROLE_EMOJI + " Role " + escapeMentions(role.getName()));
                 Color color = role.getColor();
 
                 StringBuilder description = new StringBuilder(""
@@ -149,11 +145,12 @@ public class SlashCommandEventAdapter {
                     "**Roblox Username**: :rusername\n" +
                         "**Roblox ID**: :userId\n" +
                         "**Ranks**:\n" +
-                        ":userRanks")
+                        ":userRanksn\n\n" +
+                        "**Linked Discord Account**:\n:discordAcc")
                     .set("rusername", verifiedRobloxUser.getRobloxUsername())
                     .set("userId", verifiedRobloxUser.getRobloxId())
                     .set("userRanks", sb.toString())
-
+                    .set("discordAcc", "<@" + verifiedRobloxUser.getDiscordId() + ">")
                     .setThumbnail(getImageFromVerificationEntity(verifiedRobloxUser)).buildEmbed()).queue();
             } catch (SQLException throwables) {
                 throwables.printStackTrace();

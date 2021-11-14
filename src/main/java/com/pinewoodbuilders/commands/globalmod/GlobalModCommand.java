@@ -13,7 +13,6 @@ import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
-import com.pinewoodbuilders.utilities.RestActionUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 
@@ -418,31 +417,34 @@ public class GlobalModCommand extends Command {
                             .queue();
                     sb.append("``").append(guild.getName()).append("`` - :white_check_mark:\n");
                 } else {
-                        guild.ban(args[0], time,
+                    guild.ban(args[0], time,
                             "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
-                            .queue();
+                        .queue();
                     sb.append("``").append(guild.getName()).append("`` - :ballot_box_with_check:\n");
                 }
                 bannedGuilds++;
 
             }
 
-            if (avaire.getShardManager().getUserById(args[0]) != null) {
+            User u = avaire.getShardManager().getUserById(args[0]);
+            if (u != null) {
                 String invite = getFirstInvite(g);
                 String finalReason = reason;
-                avaire.getShardManager().getUserById(args[0]).openPrivateChannel().queue(p -> {
-                    p.sendMessageEmbeds(context.makeInfo(
+                u.openPrivateChannel().submit().thenAccept(p -> p.sendMessageEmbeds(context.makeInfo(
                         "*You have been **global-banned** from all discord that are connected to [this group](:groupLink) by an MGM Moderator. "
                             + "For the reason: *```" + finalReason + "```\n\n"
                             + "If you feel that your ban was unjustified please appeal at the group in question;"
                             + (invite != null ? invite
                             : "Ask an admin of [this group](:groupLink), to create an invite on the appeals discord server of the group."))
-                        .setColor(Color.BLACK)
-                        .set("groupLink",
-                            "https://roblox.com/groups/"
-                                + context.getGuildSettingsTransformer().getGlobalSettings().getMainGroupId())
-                        .buildEmbed()).queue();
-                }, RestActionUtil.ignore);
+                    .setColor(Color.BLACK)
+                    .set("groupLink",
+                        "https://roblox.com/groups/"
+                            + context.getGuildSettingsTransformer().getGlobalSettings().getMainGroupId())
+                    .buildEmbed()).submit()).whenComplete((message, error) -> {
+                    if (error != null) {
+                        error.printStackTrace();
+                    }
+                });
             }
 
             long mgmLogs = context.getGuildSettingsTransformer().getGlobalSettings().getMgmLogsId();
@@ -706,10 +708,16 @@ public class GlobalModCommand extends Command {
                     .set("roblox_user_id", getRobloxIdFromVerificationEntity(ve))
                     .set("main_group_id", context.getGuildSettingsTransformer().getMainGroupId());
             });*/
+            if (ve == null) {
+                avaire.getGlobalPunishmentManager().registerGlobalBan(context.getAuthor().getId(),
+                    context.getGuildSettingsTransformer().getMainGroupId(),
+                    args[0], 0, null, reason);
 
-            avaire.getGlobalPunishmentManager().registerGlobalBan(context.getAuthor().getId(),
-                context.getGuildSettingsTransformer().getMainGroupId(),
-                args[0], ve.getRobloxId(), ve.getRobloxUsername(), reason);
+            } else {
+                avaire.getGlobalPunishmentManager().registerGlobalBan(context.getAuthor().getId(),
+                    context.getGuildSettingsTransformer().getMainGroupId(),
+                    args[0], ve.getRobloxId(), ve.getRobloxUsername(), reason);
+            }
 
             context.makeSuccess("Permbanned ``" + args[0] + "`` in the database.").queue();
         } else {

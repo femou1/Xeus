@@ -49,6 +49,19 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
                 return runSetMinimalLeadRank(context, args);
             case "setup-basic-roles":
                 return handleFirstSetupRoles(context, guildTransformer);
+
+            case "main-group-id":
+            case "smgi":
+            case "set-main-group-id":
+                return runSetMainGroupId(context, args);
+            case "smr":
+            case "set-main-role":
+                return runSetMainRole(context, args);
+            case "permissions":
+            case "modify-permissions":
+            case "roles":
+            case "setup":
+                return handleRoleSetupArguments(context, Arrays.copyOfRange(args, 1, args.length));
             case "group-id":
             case "sgi":
             case "set-group-id":
@@ -57,10 +70,6 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             case "user-alerts-channel":
             case "alerts-channel":
                 return runYoungWarningChannelUpdateCommand(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
-            case "permissions":
-            case "roles":
-            case "setup":
-                return handleRoleSetupArguments(context, args);
             case "young-warning-channel":
                 return runYoungWarningChannelUpdateCommand(context, args, context.getGuildSettingsTransformer());
             default:
@@ -501,6 +510,81 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             sb.append("\n\n**Main Role ID**: ``").append(mainRoleId).append("``");
         } else {
             sb.append("\n\n**Main Role ID**\n``Main Role ID has not been set!``");
+        }
+    }
+
+
+    private boolean runSetMainGroupId(CommandMessage context, String[] args) {
+        if (args.length < 2) {
+            return command.sendErrorMessage(context, "Incorrect arguments");
+        }
+
+        if (NumberUtil.isNumeric(args[1])) {
+            GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
+            if (transformer == null) {
+                context.makeError("I can't pull the guilds information, please try again later.").queue();
+                return false;
+            }
+            transformer.setMainGroupId(Integer.parseInt(args[1]));
+            return updateMainGroupId(transformer, context);
+        } else {
+            return command.sendErrorMessage(context,
+                "Something went wrong, please check if you ran the command correctly.");
+        }
+    }
+
+    private boolean runSetMainRole(CommandMessage context, String[] args) {
+        if (args.length < 2) {
+            return command.sendErrorMessage(context, "Incorrect arguments");
+        }
+
+        if (NumberUtil.isNumeric(args[1])) {
+            GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
+            if (transformer == null) {
+                context.makeError("I can't pull the guilds information, please try again later.").queue();
+                return false;
+            }
+            transformer.setMainDiscordRole(Long.parseLong(args[1]));
+            return updateMainRole(transformer, context);
+        } else {
+            return command.sendErrorMessage(context,
+                "Something went wrong, please check if you ran the command correctly.");
+        }
+
+    }
+    private boolean updateMainRole(GuildSettingsTransformer transformer, CommandMessage context) {
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id",
+            context.guild.getId());
+        try {
+            qb.update(q -> {
+                q.set("main_discord_role", transformer.getMainDiscordRole());
+            });
+
+            context.makeSuccess("Set the main discord role for ``:guild`` to ``:id``")
+                .set("guild", context.getGuild().getName()).set("id", transformer.getMainDiscordRole()).queue();
+            return true;
+        } catch (SQLException throwables) {
+            context.makeError("Something went wrong in the database, please check with the developer. (Stefano#7366)")
+                .queue();
+            return false;
+        }
+    }
+
+    private boolean updateMainGroupId(GuildSettingsTransformer transformer, CommandMessage context) {
+        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id",
+            context.guild.getId());
+        try {
+            qb.update(q -> {
+                q.set("main_group_id", transformer.getMainGroupId());
+            });
+
+            context.makeSuccess("Set the ID for ``:guild`` to ``:id``").set("guild", context.getGuild().getName())
+                .set("id", transformer.getMainGroupId()).queue();
+            return true;
+        } catch (SQLException throwables) {
+            context.makeError("Something went wrong in the database, please check with the developer. (Stefano#7366)")
+                .queue();
+            return false;
         }
     }
 }

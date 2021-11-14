@@ -42,6 +42,7 @@ import net.dv8tion.jda.api.events.channel.text.TextChannelCreateEvent;
 import net.dv8tion.jda.api.events.channel.text.TextChannelDeleteEvent;
 import net.dv8tion.jda.api.events.channel.text.update.TextChannelUpdateNameEvent;
 import net.dv8tion.jda.api.events.channel.text.update.TextChannelUpdatePositionEvent;
+import net.dv8tion.jda.api.events.channel.voice.VoiceChannelDeleteEvent;
 import net.dv8tion.jda.api.events.channel.voice.update.VoiceChannelUpdateRegionEvent;
 import net.dv8tion.jda.api.events.emote.EmoteRemovedEvent;
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
@@ -50,10 +51,9 @@ import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateNameEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -101,6 +101,7 @@ public class MainEventHandler extends EventHandler {
     private final WhitelistEventAdapter whitelistEventAdapter;
     private final ButtonClickEventAdapter buttonClickEventAdapter;
     private final SlashCommandEventAdapter slashCommandEventAdapter;
+    private final VoiceChannelHandler voiceChannelHandler;
 
     public static final Cache <Long, Boolean> cache = CacheBuilder.newBuilder()
         .recordStats()
@@ -108,6 +109,8 @@ public class MainEventHandler extends EventHandler {
         .build();
 
     private static final Logger log = LoggerFactory.getLogger(MainEventHandler.class);
+
+
 
     /**
      * Instantiates the event handler and sets the avaire class instance.
@@ -129,6 +132,7 @@ public class MainEventHandler extends EventHandler {
         this.whitelistEventAdapter = new WhitelistEventAdapter(avaire, avaire.getVoiceWhitelistManager());
         this.buttonClickEventAdapter = new ButtonClickEventAdapter(avaire);
         this.slashCommandEventAdapter = new SlashCommandEventAdapter(avaire);
+        this.voiceChannelHandler = new VoiceChannelHandler(avaire);
     }
 
     @Override
@@ -194,13 +198,27 @@ public class MainEventHandler extends EventHandler {
         channelEvent.updateChannelData(event.getGuild());
     }
 
+    @Override
     public void onGuildVoiceJoin(@Nonnull GuildVoiceJoinEvent event) {
         whitelistEventAdapter.whitelistCheckEvent(event);
-    }
-    public void onGuildVoiceMove(@Nonnull GuildVoiceMoveEvent event) {
-        whitelistEventAdapter.whitelistCheckEvent(event);
+        voiceChannelHandler.createPrivateChannelOnLobbyJoin(event);
     }
 
+    @Override
+    public void onGuildVoiceMove(@Nonnull GuildVoiceMoveEvent event) {
+        whitelistEventAdapter.whitelistCheckEvent(event);
+        voiceChannelHandler.createPrivateChannelOnLobbyJoinFromMove(event);
+    }
+
+    @Override
+    public void onGuildVoiceLeave(@Nonnull GuildVoiceLeaveEvent event) {
+        voiceChannelHandler.removePrivateChannelOn(event);
+    }
+
+    @Override
+    public void onVoiceChannelDelete(@Nonnull VoiceChannelDeleteEvent event) {
+        voiceChannelHandler.onVoiceDelete(event);
+    }
 
     @Override
     public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {

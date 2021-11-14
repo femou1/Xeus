@@ -1,91 +1,77 @@
 package com.pinewoodbuilders.handlers.adapter;
 
 import com.pinewoodbuilders.Xeus;
+import com.pinewoodbuilders.contracts.handlers.EventAdapter;
+import com.pinewoodbuilders.database.controllers.GuildController;
+import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.channel.voice.VoiceChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-public class VoiceChannelHandler {
-    private final Xeus avaire;
+
+public class VoiceChannelHandler extends EventAdapter {
+
+    public ArrayList <String> voiceChannels = new ArrayList <>();
+
     public VoiceChannelHandler(Xeus avaire) {
-        this.avaire = avaire;
+        super(avaire);
     }
 
-    List<VoiceChannel> active = new ArrayList<>();
+    long owner = Permission.ALL_CHANNEL_PERMISSIONS;
 
-    public void onGuildVoiceJoin(GuildVoiceJoinEvent event) {
-        HashMap<VoiceChannel, Guild> autochans = commands.guildAdministration.Autochannel.getAutochans();
-        VoiceChannel vc = event.getChannelJoined();
-        Guild g = event.getGuild();
 
-        if (autochans.containsKey(vc)) {
-            VoiceChannel nvc = (VoiceChannel) g.getController().createVoiceChannel(vc.getName() + " [AC]")
-                .setBitrate(vc.getBitrate())
-                .setUserlimit(vc.getUserLimit())
-                .complete();
-            System.out.println(vc.getParent());
-
-            if (vc.getParent() != null)
-                nvc.getManager().setParent(vc.getParent()).queue();
-
-            g.getController().modifyVoiceChannelPositions().selectPosition(nvc).moveTo(vc.getPosition() + 1).queue();
-            g.getController().modifyVoiceChannelPositions().selectPosition(nvc).moveTo(vc.getPosition() + 1).queue();
-            g.getController().moveVoiceMember(event.getMember(), nvc).queue();
-            active.add(nvc);
-        }
+    public void createPrivateChannelOnLobbyJoin(GuildVoiceJoinEvent event) {
+        createPrivateChannel(event.getGuild(), event.getChannelJoined(), event.getMember());
     }
 
-    @Override
-    public void onGuildVoiceMove(GuildVoiceMoveEvent event) {
-        HashMap<VoiceChannel, Guild> autochans = commands.guildAdministration.Autochannel.getAutochans();
-        Guild g = event.getGuild();
-
-        VoiceChannel vc = event.getChannelJoined();
-
-        if (autochans.containsKey(vc)) {
-            VoiceChannel nvc = (VoiceChannel) g.getController().createVoiceChannel(vc.getName() + " [AC]")
-                .setBitrate(vc.getBitrate())
-                .setUserlimit(vc.getUserLimit())
-                .complete();
-
-            if (vc.getParent() != null)
-                nvc.getManager().setParent(vc.getParent()).queue();
-
-            g.getController().modifyVoiceChannelPositions().selectPosition(nvc).moveTo(vc.getPosition() + 1).queue();
-            g.getController().moveVoiceMember(event.getMember(), nvc).queue();
-            active.add(nvc);
+    public void createPrivateChannelOnLobbyJoinFromMove(GuildVoiceMoveEvent event) {
+        if (voiceChannels.contains(event.getChannelLeft().getId())) {
+            if (event.getChannelLeft().getMembers().size() < 1) {removeWhenEmpty(event.getChannelLeft());}
         }
-
-        vc = event.getChannelLeft();
-
-        if (active.contains(vc) && vc.getMembers().size() == 0) {
-            active.remove(vc);
-            vc.delete().queue();
-        }
+        createPrivateChannel(event.getGuild(), event.getChannelJoined(), event.getMember());
     }
 
-    @Override
-    public void onGuildVoiceLeave(GuildVoiceLeaveEvent event) {
+
+    private void createPrivateChannel(Guild guild, VoiceChannel channelJoined, Member member) {
+        GuildTransformer transformer = GuildController.fetchGuild(avaire, guild);
+        if (transformer == null) return;
+        if (transformer.getAutoChannel() == null) return;
+        if (!transformer.getAutoChannel().equals(channelJoined.getId())) return;
+        if (channelJoined.getParent() == null) return;
+        channelJoined.getParent()
+            .createVoiceChannel(channelJoined.getName() + " | " + member.getEffectiveName())
+            .addMemberPermissionOverride(member.getIdLong(), owner, 0)
+            .addMemberPermissionOverride(guild.getSelfMember().getIdLong(), owner, 0)
+            .setPosition(channelJoined.getPosition() - 1).queue(
+            success -> {
+                voiceChannels.add(success.getId());
+                guild.moveVoiceMember(member, success).queue();
+            },
+            failure -> guild.kickVoiceMember(member).queue()
+        );
+    }
+
+    public void removePrivateChannelOn(GuildVoiceLeaveEvent event) {
+        if (!voiceChannels.contains(event.getChannelLeft().getId())) return;
         VoiceChannel vc = event.getChannelLeft();
-
-        if (active.contains(vc) && vc.getMembers().size() == 0) {
-            active.remove(vc);
-            vc.delete().queue();
+        if (vc.getMembers().size() < 1) {
+            removeWhenEmpty(vc);
         }
     }
 
-    public void onVoiceChannelDelete(VoiceChannelDeleteEvent event) {
-        HashMap<VoiceChannel, Guild> autochans = commands.guildAdministration.Autochannel.getAutochans();
-        if (autochans.containsKey(event.getChannel())) {
-            commands.guildAdministration.Autochannel.unsetChan(event.getChannel());
-        }
+    private void removeWhenEmpty(VoiceChannel vc) {
+        voiceChannels.remove(vc.getId());
+        vc.delete().queue();
+    }
 
+    public void onVoiceDelete(VoiceChannelDeleteEvent event) {
+        if (!voiceChannels.contains(event.getChannel().getId())) return;
+        voiceChannels.remove(event.getChannel().getId());
     }
 }
