@@ -341,7 +341,7 @@ public class GlobalModCommand extends Command {
                 String caseId = GlobalWatchlog.log(avaire, context, modlogAction);
                 GlobalWatchlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
 
-                avaire.getGlobalWatchManager().registerGlobalWatch(caseId, mainGroupSettings.getMainGroupId(), user.getIdLong(), finalExpiresAt);
+                avaire.getGlobalWatchManager().registerGlobalWatch(caseId, localGuildSettings.getMainGroupId(), user.getIdLong(), finalExpiresAt);
 
                 context.makeSuccess(context.i18n("userHasBeenMuted"))
                     .set("target", user.getAsMention())

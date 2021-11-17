@@ -52,7 +52,7 @@ import java.util.*;
 @Deprecated
 @DeprecatedSince("3.0.0")
 @ReplaceWith("ServerSettingsSubCommand")
-@ForRemoval(deadline = "3.2.0")
+@ForRemoval(deadline = "3.2.1")
 public class RoleSettingsCommand extends SystemCommand {
 
     private static final Logger log = LoggerFactory.getLogger(RoleSettingsCommand.class);
