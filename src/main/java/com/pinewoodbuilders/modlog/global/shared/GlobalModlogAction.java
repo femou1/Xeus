@@ -19,20 +19,21 @@
  *
  */
 
-package com.pinewoodbuilders.onwatch.onwatchlog;
+package com.pinewoodbuilders.modlog.global.shared;
 
+import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
 import net.dv8tion.jda.api.entities.User;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class OnWatchAction {
+public class GlobalModlogAction {
 
     private final User moderator;
     private final User target;
     private final long targetId;
 
-    private OnWatchType type;
+    private GlobalModlogType type;
     private String message = null;
 
     /**
@@ -43,7 +44,7 @@ public class OnWatchAction {
      * @param moderator The moderator for the modlog action.
      * @param target    The target of the modlog action.
      */
-    public OnWatchAction(@Nonnull OnWatchType action, @Nonnull User moderator, User target) {
+    public GlobalModlogAction(@Nonnull GlobalModlogType action, @Nonnull User moderator, User target) {
         this(action, moderator, target, null);
     }
 
@@ -55,7 +56,7 @@ public class OnWatchAction {
      * @param moderator The moderator for the modlog action.
      * @param target    The target of the modlog action.
      */
-    public OnWatchAction(@Nonnull OnWatchType action, @Nonnull User moderator, User target, @Nullable String message) {
+    public GlobalModlogAction(@Nonnull GlobalModlogType action, @Nonnull User moderator, User target, @Nullable String message) {
         this.moderator = moderator;
         this.target = target;
         this.type = action;
@@ -72,7 +73,7 @@ public class OnWatchAction {
      * @param moderator The moderator for the modlog action.
      * @param targetId  The target ID of the modlog action.
      */
-    public OnWatchAction(@Nonnull OnWatchType action, @Nonnull User moderator, long targetId, @Nullable String message) {
+    public GlobalModlogAction(@Nonnull GlobalModlogType action, @Nonnull User moderator, long targetId, @Nullable String message) {
         this.moderator = moderator;
         this.type = action;
         this.message = message;
@@ -139,7 +140,7 @@ public class OnWatchAction {
      *
      * @return The type of modlog action that is being preformed.
      */
-    public OnWatchType getType() {
+    public GlobalModlogType getType() {
         return type;
     }
 
@@ -148,7 +149,7 @@ public class OnWatchAction {
      *
      * @param type The type of modlog action that should be preformed.
      */
-    public void setType(OnWatchType type) {
+    public void setType(GlobalModlogType type) {
         this.type = type;
     }
 

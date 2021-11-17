@@ -27,18 +27,21 @@ public class VerificationMethodsManager {
         GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
         VerificationResult result = robloxAPIManger.getVerification().verify(transformer, member, guild, true);
 
-
+        String image = getImageFromVerificationEntity(result.getVerificationEntity());
         EmbedBuilder eb = new EmbedBuilder();
-        eb.setTitle("Pinewood Verification")
+
+        eb.setAuthor(member.getUser().getName(), "https://xeus.pinewood-builders.com", member.getUser().getEffectiveAvatarUrl())
             .setDescription(result.getMessage())
             .setTimestamp(Instant.now())
+            .setThumbnail(image != null ? image : "https://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&userid=1")
             .setFooter(result.getVerificationEntity() != null ? result.getVerificationEntity().getRobloxUsername() : "Verification failed...");
+
         if (!result.isSuccess()) {
             eb.setColor(new Color(255, 0, 0));
             hook.setEphemeral(true).sendMessage(member.getAsMention()).addEmbeds(eb.build()).queue();
         } else {
             eb.setColor(new Color(0, 255, 0));
-            hook.setEphemeral(false).sendMessage(member.getAsMention()).addEmbeds(eb.build()).queue();
+            hook.sendMessage(member.getAsMention()).addEmbeds(eb.build()).queue();
         }
 
 

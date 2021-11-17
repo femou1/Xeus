@@ -54,7 +54,7 @@ public class GuildSettingsController {
             "guild_settings.patrol_remittance_message", "guild_settings.handbook_report_channel",
             "guild_settings.suggestion_channel_id", "guild_settings.suggestion_community_channel_id",
             "guild_settings.suggestion_approved_channel_id", "guild_settings.join_logs",
-            "guild_settings.global_ban", "guild_settings.global_kick",
+            "guild_settings.global_ban", "guild_settings.global_kick", "guild_settings.global_filter",
             "guild_settings.global_verify", "guild_settings.global_anti_unban", "guild_settings.global_automod",
             "guild_settings.automod_mass_mention", "guild_settings.automod_emoji_spam",
             "guild_settings.automod_link_spam", "guild_settings.automod_message_spam",

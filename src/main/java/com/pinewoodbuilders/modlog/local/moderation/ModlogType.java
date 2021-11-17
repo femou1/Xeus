@@ -19,7 +19,7 @@
  *
  */
 
-package com.pinewoodbuilders.modlog;
+package com.pinewoodbuilders.modlog.local.moderation;
 
 import com.pinewoodbuilders.chat.MessageType;
 import com.pinewoodbuilders.language.I18n;

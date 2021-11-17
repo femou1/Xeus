@@ -140,7 +140,7 @@ public class LeaderboardCommand extends Command {
             Member member = context.getGuild().getMemberById(row.getLong("user_id"));
             String username = row.getString("username") + "#" + row.getString("discriminator");
             if (member != null) {
-                username = member.getUser().getName() + "#" + member.getUser().getDiscriminator();
+                username = member.getEffectiveName();
             }
 
             long experience = row.getLong("experience", 100);
@@ -168,7 +168,7 @@ public class LeaderboardCommand extends Command {
             if (++rank > 0) {
                 message.addField("➡ " + context.i18n("yourRank"), context.i18n("line")
                         .replace(":num", NumberUtil.formatNicely(rank))
-                        .replace(":username", context.getAuthor().getName() + "#" + context.getAuthor().getDiscriminator())
+                        .replace(":username", context.getMember().getEffectiveName())
                         .replace(":level", NumberUtil.formatNicely(avaire.getLevelManager().getLevelFromExperience(
                             context.getGuildTransformer(), context.getPlayerTransformer().getExperience() + zeroExperience
                         )))

@@ -25,9 +25,9 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.*;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.onwatch.onwatchlog.OnWatchAction;
-import com.pinewoodbuilders.onwatch.onwatchlog.OnWatchType;
-import com.pinewoodbuilders.onwatch.onwatchlog.OnWatchlog;
+import com.pinewoodbuilders.modlog.local.watchlog.WatchAction;
+import com.pinewoodbuilders.modlog.local.watchlog.WatchType;
+import com.pinewoodbuilders.modlog.local.watchlog.Watchlog;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
@@ -161,21 +161,21 @@ public class OnWatchCommand extends OnWatchableCommand {
         }
 
         String reason = generateMessage(Arrays.copyOfRange(args, expiresAt == null ? 1 : 2, args.length));
-        OnWatchType type = expiresAt == null ? OnWatchType.ON_WATCH : OnWatchType.TEMP_ON_WATCH;
+        WatchType type = expiresAt == null ? WatchType.ON_WATCH : WatchType.TEMP_ON_WATCH;
 
         final Carbon finalExpiresAt = expiresAt;
         context.getGuild().addRoleToMember(
             context.getGuild().getMember(user), on_watch_role
         ).reason(reason).queue(aVoid -> {
-            OnWatchAction onWatchAction = new OnWatchAction(
+            WatchAction watchAction = new WatchAction(
                 type, context.getAuthor(), user,
                 finalExpiresAt != null
                     ? finalExpiresAt.toDayDateTimeString() + " (" + finalExpiresAt.diffForHumans(true) + ")" + "\n" + reason
                     : "\n" + reason
             );
 
-            String caseId = OnWatchlog.log(avaire, context, onWatchAction);
-            OnWatchlog.notifyUser(user, context.getGuild(), onWatchAction, caseId);
+            String caseId = Watchlog.log(avaire, context, watchAction);
+            Watchlog.notifyUser(user, context.getGuild(), watchAction, caseId);
 
             try {
                 avaire.getOnWatchManger().registerOnWatch(caseId, context.getGuild().getIdLong(), user.getIdLong(), finalExpiresAt);

@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.handlers.events;
 
-import com.pinewoodbuilders.modlog.ModlogAction;
-import com.pinewoodbuilders.modlog.ModlogType;
+import com.pinewoodbuilders.modlog.local.moderation.ModlogAction;
+import com.pinewoodbuilders.modlog.local.moderation.ModlogType;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.Event;

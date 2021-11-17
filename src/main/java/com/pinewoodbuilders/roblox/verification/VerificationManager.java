@@ -328,13 +328,12 @@ public class VerificationManager {
     }
 
     private String getFirstInvite(Guild g) {
-        List <Invite> invites = g.retrieveInvites().complete();
+        List <Invite> invites = g.retrieveInvites().submit().getNow(null);
         if (invites == null || invites.size() < 1)
             return null;
         for (Invite i : invites) {
             return i.getUrl();
         }
-
         return null;
     }
 
@@ -392,7 +391,7 @@ public class VerificationManager {
                 member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message..."))
                     .flatMap(m -> m.editMessage(member.getAsMention())
                         .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned forever within `"
-                            + transformer.getGlobalSettings().getGroupName()
+                            + transformer.getGlobalSettings().getMainGroupName()
                             + "` however you are still allowed to appeal within the "
                             + (appealsDiscord != 0 ? guild.getName() : "Appeals guild not set") + ".\n\n"
                             + "Your trello-ban has the following labels, I'd suggest sharing these with your appeals handler:)"
@@ -405,7 +404,7 @@ public class VerificationManager {
                 member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message..."))
                     .flatMap(m -> m.editMessage(member.getAsMention())
                         .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned within`"
-                            + transformer.getGlobalSettings().getGroupName()
+                            + transformer.getGlobalSettings().getMainGroupName()
                             + "` however you are still allowed to appeal within the "
                             + (appealsDiscord != 0 ? guild.getName() : "Appeals guild not set.\n\n")
                             + "Your trello-ban has the following labels, I'd suggest sharing these with your appeals handler:"
@@ -419,7 +418,7 @@ public class VerificationManager {
                 member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Loading ban message..."))
                     .flatMap(m -> m.editMessage(member.getAsMention())
                         .setEmbeds(MessageFactory.makeSuccess(m, "[You have been trello-banned forever within "
-                            + transformer.getGlobalSettings().getGroupName()
+                            + transformer.getGlobalSettings().getMainGroupName()
                             + ", this ban is permanent, so you're not allowed to appeal it. We wish you a very good day sir/madam, and goodbye.](https://www.youtube.com/watch?v=BXUhfoUJjuQ)")
                             .buildEmbed()))
                     .queue();
@@ -453,7 +452,7 @@ public class VerificationManager {
             member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message..."))
                 .flatMap(m -> m.editMessage(member.getAsMention())
                     .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned within "
-                        + transformer.getGlobalSettings().getGroupName()
+                        + transformer.getGlobalSettings().getMainGroupName()
                         + ", [however you are still allowed to appeal within the " + guild.getName() + "]().\n\n"
                         + "Your trello-ban has the following labels, I'd suggest sharing these with your ticket handler:"
                         + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))

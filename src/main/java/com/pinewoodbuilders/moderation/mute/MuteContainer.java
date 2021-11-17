@@ -33,8 +33,10 @@ public class MuteContainer {
     private final long guildId;
     private final long userId;
     private final Carbon expiresAt;
-    private ScheduledFuture<?> schedule;
+    private final long mgi;
     private final boolean global;
+    private ScheduledFuture<?> schedule;
+
 
     /**
      * Creates a mute container using the given guild ID, user ID, and expiration time.
@@ -50,9 +52,10 @@ public class MuteContainer {
         this.expiresAt = expiresAt;
         this.schedule = null;
         this.global = false;
+        this.mgi = 0;
     }
 
-        /**
+    /**
      * Creates a mute container using the given guild ID, user ID, and expiration time.
      *
      * @param guildId   The ID of the guild the mute is registered to.
@@ -67,6 +70,25 @@ public class MuteContainer {
         this.expiresAt = expiresAt;
         this.schedule = null;
         this.global = global;
+        this.mgi = 0;
+    }
+
+    /**
+     * Creates a mute container using the given guild ID, user ID, and expiration time.
+     *
+     * @param guildId   The ID of the guild the mute is registered to.
+     * @param userId    The ID of the user the mute is registered for.
+     * @param expiresAt The date and time the mute should expire,
+     *                  or {@code NULL} for permanent mutes.
+     * @param global    Whether the mute is global or not.
+     */
+    public MuteContainer(long guildId, long userId, @Nullable Carbon expiresAt, boolean global, long mgi) {
+        this.guildId = guildId;
+        this.userId = userId;
+        this.expiresAt = expiresAt;
+        this.schedule = null;
+        this.global = global;
+        this.mgi = mgi;
     }
 
     /**
@@ -167,7 +189,15 @@ public class MuteContainer {
             && getUserId() == userId;
     }
 
-        /**
+    public boolean isGlobalSame(long userId, long mgi) {
+        return 0L == this.guildId
+            && getUserId() == userId
+            && getMgi() == mgi;
+    }
+
+
+
+    /**
      * Compares the current container with the given guild and user IDs,
      * checking if the current container is registered to the same
      * guild and user IDs given.
@@ -187,6 +217,10 @@ public class MuteContainer {
      */
     public boolean isGlobal() {
         return global;
+    }
+
+    public long getMgi() {
+        return mgi;
     }
 
     @Override

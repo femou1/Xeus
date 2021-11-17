@@ -47,7 +47,9 @@ public class GlobalSettingsController {
             "global_settings.main_group_id", "global_settings.global_filter",
             "global_settings.global_filter_exact", "global_settings.global_filter_wildcard",
             "global_settings.global_filter_log_channel", "global_settings.mgm_logs",
-            "global_settings.appeals_discord_id"};
+            "global_settings.appeals_discord_id", "global_settings.global_modlog",
+            "global_settings.global_modlog_case"
+    };
 
     /**
      * Fetches the guild transformer from the cache, if it doesn't exist in the
@@ -66,9 +68,9 @@ public class GlobalSettingsController {
     }
 
     @CheckReturnValue
-    public static GlobalSettingsTransformer fetchGlobalSettingsFromGroupSettings(Xeus avaire, long groupId) {
-        return (GlobalSettingsTransformer) CacheUtil.getUncheckedUnwrapped(cache, groupId,
-                () -> loadGuildSettingsFromDatabase(avaire, groupId));
+    public static GlobalSettingsTransformer fetchGlobalSettingsFromGroupSettings(Xeus avaire, long mgi) {
+        return (GlobalSettingsTransformer) CacheUtil.getUncheckedUnwrapped(cache, mgi,
+                () -> loadGuildSettingsFromDatabase(avaire, mgi));
     }
 
     public static void forgetCache(long groupId) {
@@ -80,10 +82,12 @@ public class GlobalSettingsController {
             log.debug("Settings cache for " + groupId + " was refreshed");
         }
         try {
-            Collection query = avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE).select(requiredSettingsColumns)
-            .where("global_settings.main_group_id", groupId).get();
-            GlobalSettingsTransformer transformer = new GlobalSettingsTransformer(groupId,
-            query.first());
+            Collection query = avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE)
+                .select(requiredSettingsColumns)
+                .where("global_settings.main_group_id", groupId)
+                .get();
+
+            GlobalSettingsTransformer transformer = new GlobalSettingsTransformer(query.first());
 
             if (query.size() == 0) {
                 return null;

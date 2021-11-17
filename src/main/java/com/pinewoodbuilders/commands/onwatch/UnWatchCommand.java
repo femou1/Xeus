@@ -25,9 +25,9 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.*;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.onwatch.onwatchlog.OnWatchAction;
-import com.pinewoodbuilders.onwatch.onwatchlog.OnWatchType;
-import com.pinewoodbuilders.onwatch.onwatchlog.OnWatchlog;
+import com.pinewoodbuilders.modlog.local.watchlog.WatchAction;
+import com.pinewoodbuilders.modlog.local.watchlog.WatchType;
+import com.pinewoodbuilders.modlog.local.watchlog.Watchlog;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.RoleUtil;
 import net.dv8tion.jda.api.entities.Role;
@@ -110,6 +110,19 @@ public class UnWatchCommand extends OnWatchableCommand {
             return sendErrorMessage(context, "errors.errorOccurredWhileLoading", "server settings");
         }
 
+        User user = MentionableUtil.getUser(context, args);
+        if (user == null) {
+            return sendErrorMessage(context, context.i18n("invalidUserMentioned"));
+        }
+
+        GuildSettingsTransformer globalSettingsTransformer = context.getGuildSettingsTransformer();
+        if (globalSettingsTransformer != null) {
+            long mgi = globalSettingsTransformer.getMainGroupId() != 0 ? globalSettingsTransformer.getMainGroupId() : 0;
+            if (avaire.getGlobalWatchManager().isGlobalWatched(mgi, user.getIdLong())) {
+                return sendErrorMessage(context, "This user has a global watch on their name, hence you cannot unwatch this person. If you are a MGM, please use `gm uw` to this person across all connected guilds.");
+            }
+        }
+
         if (transformer.getOnWatchChannel() == 0) {
             String prefix = generateCommandPrefix(context.getMessage());
             return sendErrorMessage(context, context.i18n("requiresModlogToBeSet", prefix));
@@ -134,10 +147,7 @@ public class UnWatchCommand extends OnWatchableCommand {
             return sendErrorMessage(context, "errors.missingArgument", "user");
         }
 
-        User user = MentionableUtil.getUser(context, args);
-        if (user == null) {
-            return sendErrorMessage(context, context.i18n("invalidUserMentioned"));
-        }
+
 
         if (!RoleUtil.hasRole(context.getGuild().getMember(user), watchRole)) {
             return sendErrorMessage(context, context.i18n("userDoesntHaveMuteRole", user.getAsMention()));
@@ -155,12 +165,12 @@ public class UnWatchCommand extends OnWatchableCommand {
         context.getGuild().removeRoleFromMember(
             context.getGuild().getMember(user), watchRole
         ).reason(reason).queue(aVoid -> {
-            OnWatchAction modlogAction = new OnWatchAction(
-                OnWatchType.UN_ON_WATCH, context.getAuthor(), user, reason
+            WatchAction modlogAction = new WatchAction(
+                WatchType.UN_ON_WATCH, context.getAuthor(), user, reason
             );
 
-            String caseId = OnWatchlog.log(avaire, context, modlogAction);
-            OnWatchlog.notifyUser(user, context.getGuild(), modlogAction, caseId);
+            String caseId = Watchlog.log(avaire, context, modlogAction);
+            Watchlog.notifyUser(user, context.getGuild(), modlogAction, caseId);
 
 
             context.makeSuccess(context.i18n("userHasBeenUnmuted"))

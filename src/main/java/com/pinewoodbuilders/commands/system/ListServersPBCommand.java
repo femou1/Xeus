@@ -73,7 +73,7 @@ public class ListServersPBCommand extends SystemCommand {
 
         /*for (Guild g : avaire.getShardManager().getGuilds()) {
             if (isValidPBGuild(g.getId())) {
-                context.makeWarning("``" + g.getName()+ "`` has been ignored. Since this is an OFFICIAL PB Guild").queue();
+                context.makeWarning("`" + g.getName()+ "` has been ignored. Since this is an OFFICIAL PB Guild").queue();
             } else {
                 g.leave().queue();
                 context.makeWarning("Left ``" + g.getName() + "``").queue();

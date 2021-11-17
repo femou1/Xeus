@@ -225,9 +225,9 @@ public class FeatureBlacklistCommand extends Command {
                     .getLevel() > CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel())) {
                 return sendErrorMessage(context,
                         "You're required to be level "
-                                + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel() + " (``"
+                                + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel() + " (`"
                                 + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getRankName()
-                                + "``) or higher to *globally* blacklist someone on all guilds!");
+                                + "`) or higher to *globally* blacklist someone on all guilds!");
             }
             guildId = 1L;
         } else {
@@ -236,7 +236,7 @@ public class FeatureBlacklistCommand extends Command {
 
         avaire.getFeatureBlacklist().addIdToBlacklist(featureScope, id, reason, guildId);
 
-        context.makeSuccess("The user with an ID of ``:id`` has been added to the **:type** blacklist of ``:guild``!")
+        context.makeSuccess("The user with an ID of `:id` has been added to the **:type** blacklist of `:guild`!")
                 .set("type", featureScope.getName()).set("id", id)
                 .set("guild", featureScope.getId() != 0 ? context.getGuild().getName()
                         : "All **official** Pinewood Discords!")
@@ -247,7 +247,7 @@ public class FeatureBlacklistCommand extends Command {
             TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
             if (tc != null) {
                 tc.sendMessageEmbeds(context.makeInfo(
-                        "[<@:id> **(``:id``)** was feature blacklisted for ``:type`` in ``:guild`` by :punisher](:link)")
+                        "[<@:id> **(`:id`)** was feature blacklisted for `:type` in `:guild` by :punisher](:link)")
                         .set("type", featureScope.getName()).set("id", id)
                         .set("punisher", context.getMember().getAsMention())
                         .set("guild", featureScope.getId() != 0 ? context.getGuild().getName() : "GLOBAL")

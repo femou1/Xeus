@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.handlers.adapter;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.handlers.EventAdapter;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.controllers.GuildController;
@@ -153,9 +153,20 @@ public class MemberEventAdapter extends EventAdapter {
         // and the user is still registered as WATCHED for the server.
         if (settings.getOnWatchRole() != 0) {
             Role watch = event.getGuild().getRoleById(settings.getOnWatchRole());
-            if (canGiveRole(event, watch) && avaire.getOnWatchManger().isOnWatchd(event.getGuild().getIdLong(), event.getUser().getIdLong())) {
+            if (canGiveRole(event, watch) && (avaire.getOnWatchManger().isOnWatchd(event.getGuild().getIdLong(), event.getUser().getIdLong()) || avaire.getGlobalWatchManager().isGlobalWatched(settings.getMainGroupId(), event.getMember().getIdLong()))) {
                 event.getGuild().addRoleToMember(
                     event.getMember(), watch
+                ).queue();
+            }
+        }
+
+        // Re-mutes the user if a valid mute role have been setup for the guild
+        // and the user is still registered as muted for the server.
+        if (transformer.getMuteRole() != null) {
+            Role mutedRole = event.getGuild().getRoleById(transformer.getMuteRole());
+            if (canGiveRole(event, mutedRole) && avaire.getGlobalMuteManager().isGlobalMuted(settings.getMainGroupId(), event.getMember().getIdLong())) {
+                event.getGuild().addRoleToMember(
+                    event.getMember(), mutedRole
                 ).queue();
             }
         }

@@ -26,7 +26,7 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.language.I18n;
-import com.pinewoodbuilders.modlog.ModlogType;
+import com.pinewoodbuilders.modlog.local.moderation.ModlogType;
 import com.pinewoodbuilders.time.Carbon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -186,7 +186,7 @@ public class MuteManager {
         log.info("Syncing mutes with the database...");
 
         String query = I18n.format(
-            "SELECT `{1}`.`guild_id`, `{1}`.`target_id`, `{0}`.`expires_in` FROM `{0}` INNER JOIN `{1}` ON `{0}`.`modlog_id` = `{1}`.`modlogCase` WHERE `{0}`.`modlog_id` = `{1}`.`modlogCase` AND `{0}`.`guild_id` = `{1}`.`guild_id`;",
+            "SELECT `{1}`.`guild_id`, `{1}`.`target_id`, `{0}`.`expires_in` FROM `{0}` INNER JOIN `{1}` ON `{0}`.`modlog_id` = `{1}`.`modlogCase` WHERE `{0}`.`modlog_id` = `{1}`.`modlogCase` AND `{0}`.`guild_id` = `{1}`.`guild_id` AND `{0}`.`global` = 0;",
             Constants.MUTE_TABLE_NAME, Constants.LOG_TABLE_NAME);
 
         try {

@@ -34,10 +34,6 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             return false;
         }
 
-        if (args.length == 0 || NumberUtil.parseInt(args[0], -1) > 0) {
-            return sendEnabledRoles(context, guildTransformer);
-        }
-
         switch (args[0].toLowerCase()) {
             case "smhrr":
             case "s-mhr-r":
@@ -47,16 +43,12 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             case "s-l-r":
             case "set-ml-rank":
                 return runSetMinimalLeadRank(context, args);
-            case "setup-basic-roles":
-                return handleFirstSetupRoles(context, guildTransformer);
 
             case "main-group-id":
             case "smgi":
             case "set-main-group-id":
                 return runSetMainGroupId(context, args);
-            case "smr":
-            case "set-main-role":
-                return runSetMainRole(context, args);
+
             case "permissions":
             case "modify-permissions":
             case "roles":
@@ -313,6 +305,24 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean handleRoleSetupArguments(CommandMessage context, String[] args) {
+
+        if (args.length == 0 || NumberUtil.parseInt(args[0], -1) > 0) {
+            return sendEnabledRoles(context, context.getGuildSettingsTransformer());
+        }
+
+        switch (args[0]) {
+            case "setup-basic-roles":
+                return handleFirstSetupRoles(context, context.getGuildSettingsTransformer());
+            case "smr":
+            case "set-main-role":
+                return runSetMainRole(context, args);
+            default:
+                return handleRoles(context, args);
+        }
+
+    }
+
+    private boolean handleRoles(CommandMessage context, String[] args) {
         Role role = MentionableUtil.getRole(context.getMessage(), new String[] { args[0] });
         if (role == null) {
             return command.sendErrorMessage(context, context.i18n("invalidRole", args[0]));

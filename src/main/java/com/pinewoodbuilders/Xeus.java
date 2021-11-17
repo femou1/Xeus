@@ -64,8 +64,10 @@ import com.pinewoodbuilders.middleware.*;
 import com.pinewoodbuilders.middleware.global.IsCategoryEnabled;
 import com.pinewoodbuilders.moderation.ban.BanManager;
 import com.pinewoodbuilders.moderation.mute.MuteManager;
+import com.pinewoodbuilders.moderation.mute.globalmute.GlobalMuteManager;
 import com.pinewoodbuilders.moderation.punishments.GlobalPunishmentManager;
-import com.pinewoodbuilders.onwatch.OnWatchManager;
+import com.pinewoodbuilders.moderation.watch.WatchManager;
+import com.pinewoodbuilders.moderation.watch.globalwatch.GlobalWatchManager;
 import com.pinewoodbuilders.pinewood.VoiceWhitelistManager;
 import com.pinewoodbuilders.plugin.PluginLoader;
 import com.pinewoodbuilders.plugin.PluginManager;
@@ -140,7 +142,8 @@ public class Xeus {
     private final VoteManager voteManager;
     private final MuteManager muteManger;
     private final BanManager banManager;
-    private final OnWatchManager onWatchManger;
+    private final GlobalMuteManager globalMuteManager;
+    private final WatchManager onWatchManger;
     private final ShardEntityCounter shardEntityCounter;
     private final EventEmitter eventEmitter;
     private final BotAdmin botAdmins;
@@ -150,6 +153,7 @@ public class Xeus {
     private final BlacklistManager blacklistManager;
     private final VoiceWhitelistManager voiceWhitelistManager;
     private final GlobalPunishmentManager globalPunishmentManager;
+    private final GlobalWatchManager globalWatchManager;
     private Carbon shutdownTime = null;
     private int shutdownCode = ExitCodes.EXIT_CODE_RESTART;
     private ShardManager shardManager = null;
@@ -450,11 +454,17 @@ public class Xeus {
         log.info("Preparing mute manager");
         muteManger = new MuteManager(this);
 
+        log.info("Prepairing global mute manager");
+        globalMuteManager = new GlobalMuteManager(this);
+
         log.info("Preparing ban manager");
         banManager = new BanManager(this);
 
         log.info("Preparing on watch manager");
-        onWatchManger = new OnWatchManager(this);
+        onWatchManger = new WatchManager(this);
+
+        log.info("Prepairing global mute manager");
+        globalWatchManager = new GlobalWatchManager(this);
 
         log.info("Preparing voice whitelist manager.");
         voiceWhitelistManager = new VoiceWhitelistManager(this);
@@ -583,7 +593,7 @@ public class Xeus {
         return banManager;
     }
 
-    public OnWatchManager getOnWatchManger() {
+    public WatchManager getOnWatchManger() {
         return onWatchManger;
     }
 
@@ -598,6 +608,10 @@ public class Xeus {
     public EventEmitter getEventEmitter() {
         return eventEmitter;
     }
+
+    public GlobalMuteManager getGlobalMuteManager() {return globalMuteManager;}
+
+    public GlobalWatchManager getGlobalWatchManager() {return globalWatchManager;}
 
     public BotAdmin getBotAdmins() {
         return botAdmins;

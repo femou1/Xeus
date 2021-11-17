@@ -25,8 +25,9 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
         GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
-        if (!(context.getMember().hasPermission(Permission.ADMINISTRATOR)
-                || context.getMember().hasPermission(Permission.MANAGE_SERVER)))
+        if (!(context.getMember().hasPermission(Permission.ADMINISTRATOR) || context.getMember().hasPermission(Permission.MANAGE_SERVER)) || avaire.getBotAdmins().getUserById(context.member.getId()).isGlobalAdmin()) {
+            return command.sendErrorMessage(context, "Sorry, but you do not have the permissions required to run this command.");
+        }
 
             if (guildTransformer == null) {
                 context.makeError("Server settings could not be gathered").queue();
@@ -38,17 +39,19 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
         }
 
         switch (args[0].toLowerCase()) {
+            case "al":
             case "audit-logs":
                 return runAuditLogsCommand(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
             case "gfilter":
             case "global-filter":
             case "gf":
+            case "f":
+            case "filter":
             case "globalf":
                 return runGlobalFilterCommand(context, Arrays.copyOfRange(args, 1, args.length));
             default:
                 context.makeInfo(
-                        "God damn, please get this command right.\n\n - `smgi` - Set the Main Group Id of this guild\n - `smr` - Set the main role of the discord\n" +
-                            " - `permissions` - Manage the xeus permissions of the server.")
+                        "God damn, please get this command right.\n\n - `al` -> Set the audit log in all connected guilds.\n - `filter` -> Set the filter across the servers\n")
                         .queue();
                 return false;
         }

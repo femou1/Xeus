@@ -19,7 +19,7 @@
  *
  */
 
-package com.pinewoodbuilders.onwatch.onwatchlog;
+package com.pinewoodbuilders.modlog.local.watchlog;
 
 import com.pinewoodbuilders.chat.MessageType;
 import com.pinewoodbuilders.language.I18n;
@@ -30,7 +30,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.*;
 
-public enum OnWatchType {
+public enum WatchType {
 
     /**
      * Represents when a user is muted from a server.
@@ -57,11 +57,11 @@ public enum OnWatchType {
     final boolean punishment;
     final Color color;
 
-    OnWatchType(int id, String emote, boolean notifyable, Color color) {
+    WatchType(int id, String emote, boolean notifyable, Color color) {
         this(id, emote, notifyable, true, color);
     }
 
-    OnWatchType(int id, @Nullable String emote, boolean notifyable, boolean punishment, Color color) {
+    WatchType(int id, @Nullable String emote, boolean notifyable, boolean punishment, Color color) {
         this.id = id;
         this.emote = emote;
         this.notifyable = notifyable;
@@ -76,8 +76,8 @@ public enum OnWatchType {
      * @param id The ID that the modlog type should have.
      * @return Possibly-null, the modlog tpe with the given ID.
      */
-    public static OnWatchType fromId(int id) {
-        for (OnWatchType type : values()) {
+    public static WatchType fromId(int id) {
+        for (WatchType type : values()) {
             if (type.getId() == id) {
                 return type;
             }

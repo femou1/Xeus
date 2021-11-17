@@ -168,24 +168,25 @@ public class SlashCommandEventAdapter extends EventAdapter {
 
     private boolean runMemberUpdate(SlashCommandEvent event) {
         event.deferReply().setEphemeral(true).queue(l -> {
-            if (!event.isFromGuild()) {
+            Guild g = event.getGuild();
+            if (!event.isFromGuild() || g == null) {
                 l.sendMessage("Run this command in a guild.").queue();
                 return;
             }
 
-            GuildSettingsTransformer guildTransformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild());
+            GuildSettingsTransformer guildTransformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
             if (guildTransformer == null) {
                 l.sendMessage("GuildTransformer is empty.").queue();
                 return;
             }
             if (CheckPermissionUtil.getPermissionLevel(guildTransformer, event.getGuild(), event.getOption("member").getAsMember()).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel())
-                avaire.getRobloxAPIManager().getVerification().getVerificationMethodsManager().slashCommandVerify(event.getOption("member").getAsMember(), event.getGuild(), l);
+                avaire.getRobloxAPIManager().getVerification().getVerificationMethodsManager().slashCommandVerify(event.getOption("member").getAsMember(), g, l);
         });
         return false;
     }
 
     private boolean runMemberVerify(SlashCommandEvent event) {
-        event.deferReply().setEphemeral(true).queue(l -> avaire.getRobloxAPIManager()
+        event.deferReply().queue(l -> avaire.getRobloxAPIManager()
             .getVerification()
             .getVerificationMethodsManager()
             .slashCommandVerify(event.getMember(), event.getGuild(), l));

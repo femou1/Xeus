@@ -1,7 +1,7 @@
 package com.pinewoodbuilders.commands.pinewood;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.blacklist.features.FeatureScope;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
@@ -13,7 +13,6 @@ import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.EventWaiter;
 import com.pinewoodbuilders.utilities.MentionableUtil;
-import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
@@ -161,7 +160,7 @@ public class FeedbackCommand extends Command {
                         return;
                     }
 
-                    message.editMessageEmbeds(context.makeInfo("You've selected a suggestion for: ``:guild``\nPlease tell me, what is your suggestion?").set("guild", emote.getGuild().getName()).buildEmbed()).queue();
+                    message.editMessageEmbeds(context.makeInfo("You've selected a suggestion for: `:guild`\nPlease tell me, what is your suggestion?").set("guild", c.getGuild().getName()).buildEmbed()).queue();
                     message.clearReactions().queue();
 
 

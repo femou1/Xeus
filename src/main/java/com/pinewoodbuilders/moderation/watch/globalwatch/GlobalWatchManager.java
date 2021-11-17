@@ -1,13 +1,12 @@
-package com.pinewoodbuilders.moderation.mute.globalmute;
+package com.pinewoodbuilders.moderation.watch.globalwatch;
 
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.language.I18n;
-import com.pinewoodbuilders.moderation.mute.MuteContainer;
+import com.pinewoodbuilders.moderation.watch.WatchContainer;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
-import com.pinewoodbuilders.modlog.local.moderation.ModlogType;
 import com.pinewoodbuilders.time.Carbon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +17,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-public class GlobalMuteManager {
+public class GlobalWatchManager {
     private final Xeus avaire;
 
     /**
@@ -27,24 +26,24 @@ public class GlobalMuteManager {
      *
      * @param avaire The main Xeus instance.
      */
-    public GlobalMuteManager(Xeus avaire) {
+    public GlobalWatchManager(Xeus avaire) {
         this.avaire = avaire;
 
         syncWithGlobalDatabase();
     }
 
-    private final HashMap <Long, HashSet <MuteContainer>> globalMutes = new HashMap<>();
+    private final HashMap <Long, HashSet <WatchContainer>> globalWatches = new HashMap<>();
 
-    public void registerGlobalMute(String caseId, long mainGroupId, long userId, @Nullable Carbon expiresAt) throws SQLException {
-        if (!globalMutes.containsKey(mainGroupId)) {
-            globalMutes.put(mainGroupId, new HashSet<>());
+    public void registerGlobalWatch(String caseId, long mainGroupId, long userId, @Nullable Carbon expiresAt) throws SQLException {
+        if (!globalWatches.containsKey(mainGroupId)) {
+            globalWatches.put(mainGroupId, new HashSet<>());
         }
 
-        if (isGlobalMuted(mainGroupId, userId)) {
-            unregisterGlobalMute(mainGroupId, userId);
+        if (isGlobalWatched(mainGroupId, userId)) {
+            unregisterGlobalWatch(mainGroupId, userId);
         }
 
-        avaire.getDatabase().newQueryBuilder(Constants.MUTE_TABLE_NAME).insert(statement -> {
+        avaire.getDatabase().newQueryBuilder(Constants.ON_WATCH_TABLE_NAME).insert(statement -> {
             statement.set("guild_id", 0);
             statement.set("modlog_id", caseId);
             statement.set("expires_in", expiresAt);
@@ -52,7 +51,7 @@ public class GlobalMuteManager {
             statement.set("main_group_id", mainGroupId);
         });
 
-        globalMutes.get(mainGroupId).add(new MuteContainer(0, userId, expiresAt, true, mainGroupId));
+        globalWatches.get(mainGroupId).add(new WatchContainer(0, userId, mainGroupId, expiresAt, true));
     }
 
     /**
@@ -62,14 +61,14 @@ public class GlobalMuteManager {
      * @throws SQLException If the unmute fails to delete the mute record from the
      *                      database.
      */
-    public void unregisterGlobalMute(long mainGroupId, long userId) throws SQLException {
-        if (!globalMutes.containsKey(mainGroupId)) {
+    public void unregisterGlobalWatch(long mainGroupId, long userId) throws SQLException {
+        if (!globalWatches.containsKey(mainGroupId)) {
             return;
         }
 
         final boolean[] removedEntities = { false };
-        synchronized (globalMutes) {
-            globalMutes.get(mainGroupId).removeIf(next -> {
+        synchronized (globalWatches) {
+            globalWatches.get(mainGroupId).removeIf(next -> {
                 if (!next.isSame(mainGroupId, userId)) {
                     return false;
                 }
@@ -84,16 +83,16 @@ public class GlobalMuteManager {
         }
 
         if (removedEntities[0]) {
-            cleanupGlobalMutes(mainGroupId, userId);
+            cleanupGlobalWatches(mainGroupId, userId);
         }
     }
 
-    public boolean isGlobalMuted(long mainGroupId, long userId) {
-        if (!globalMutes.containsKey(mainGroupId)) {
+    public boolean isGlobalWatched(long mainGroupId, long userId) {
+        if (!globalWatches.containsKey(mainGroupId)) {
             return false;
         }
 
-        for (MuteContainer container : globalMutes.get(mainGroupId)) {
+        for (WatchContainer container : globalWatches.get(mainGroupId)) {
             if (container.isGlobalSame(userId, mainGroupId)) {
                 return true;
             }
@@ -108,72 +107,73 @@ public class GlobalMuteManager {
      *
      * @return The total amount of mutes stored.
      */
-    public int getTotalAmountOfGlobalMutes() {
-        int totalMutes = 0;
-        for (Map.Entry<Long, HashSet<MuteContainer>> entry : globalMutes.entrySet()) {
-            totalMutes += entry.getValue().size();
+    public int getTotalAmountOfGlobalWatches() {
+        int totalWatches = 0;
+        for (Map.Entry<Long, HashSet<WatchContainer>> entry : globalWatches.entrySet()) {
+            totalWatches += entry.getValue().size();
         }
-        return totalMutes;
+        return totalWatches;
     }
 
-    public HashMap<Long, HashSet<MuteContainer>> getGlobalMutes() {
-        return globalMutes;
+    public HashMap<Long, HashSet<WatchContainer>> getGlobalWatches() {
+        return globalWatches;
     }
 
-    private final Logger log = LoggerFactory.getLogger(GlobalMuteManager.class);
+    private final Logger log = LoggerFactory.getLogger(GlobalWatchManager.class);
     private void syncWithGlobalDatabase() {
-        log.info("Syncing global mutes with the database...");
+        log.info("Syncing global watches with the database...");
 
         String query = I18n.format(
             "SELECT `{1}`.`mgi`, `{1}`.`target_id`, `{0}`.`expires_in` FROM `{0}` INNER JOIN `{1}` ON `{0}`.`modlog_id` = `{1}`.`modlogCase` WHERE `{0}`.`modlog_id` = `{1}`.`modlogCase` AND `{0}`.`main_group_id` = `{1}`.`mgi` AND `{0}`.`global` = 1;",
-            Constants.MUTE_TABLE_NAME, Constants.MGM_LOG_TABLE_NAME);
+            Constants.ON_WATCH_TABLE_NAME, Constants.MGM_LOG_TABLE_NAME);
 
         System.out.println(query);
         try {
-            int size = getTotalAmountOfMutes();
+            int size = getTotalAmountOfWatches();
             for (DataRow row : avaire.getDatabase().query(query)) {
                 long mgi = row.getLong("mgi");
 
-                if (!globalMutes.containsKey(mgi)) {
-                    globalMutes.put(mgi, new HashSet<>());
+                if (!globalWatches.containsKey(mgi)) {
+                    globalWatches.put(mgi, new HashSet<>());
                 }
 
-                globalMutes.get(mgi).add(new MuteContainer(row.getLong("mgi"), row.getLong("target_id"),
+
+                globalWatches.get(mgi).add(new WatchContainer(0, row.getLong("target_id"), row.getLong("mgi"),
                     row.getTimestamp("expires_in"), row.getBoolean("global")));
             }
 
-            log.info("Syncing complete! {} global mutes entries was found that has not expired yet",
-                getTotalAmountOfMutes() - size);
+            log.info("Syncing complete! {} global watch entries was found that has not expired yet",
+                getTotalAmountOfWatches() - size);
         } catch (SQLException e) {
             Xeus.getLogger().error("ERROR: ", e);
         }
     }
-    private void cleanupGlobalMutes(long mainGroupId, long userId) throws SQLException {
-        Collection collection = avaire.getDatabase().newQueryBuilder(Constants.MUTE_TABLE_NAME)
-            .select(Constants.MUTE_TABLE_NAME + ".modlog_id as id")
-            .innerJoin(Constants.MGM_LOG_TABLE_NAME, Constants.MUTE_TABLE_NAME + ".modlog_id",
+    private void cleanupGlobalWatches(long mainGroupId, long userId) throws SQLException {
+        Collection collection = avaire.getDatabase().newQueryBuilder(Constants.ON_WATCH_TABLE_NAME)
+            .select(Constants.ON_WATCH_TABLE_NAME + ".modlog_id as ml_id")
+            .innerJoin(Constants.MGM_LOG_TABLE_NAME, Constants.ON_WATCH_TABLE_NAME + ".modlog_id",
                 Constants.MGM_LOG_TABLE_NAME + ".modlogCase")
             .where(Constants.MGM_LOG_TABLE_NAME + ".mgi", mainGroupId)
             .andWhere(Constants.MGM_LOG_TABLE_NAME + ".target_id", userId)
-            .andWhere(Constants.MUTE_TABLE_NAME + ".main_group_id", mainGroupId)
-            .andWhere(builder -> builder.where(Constants.MGM_LOG_TABLE_NAME + ".type", ModlogType.MUTE.getId())
-                .orWhere(Constants.MGM_LOG_TABLE_NAME + ".type", ModlogType.TEMP_MUTE.getId()))
+            .andWhere(Constants.ON_WATCH_TABLE_NAME + ".main_group_id", mainGroupId)
+            .andWhere(builder -> builder.where(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_WATCH.getId())
+                .orWhere(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_TEMP_WATCH.getId()))
             .get();
 
-        String query2 = avaire.getDatabase().newQueryBuilder(Constants.MUTE_TABLE_NAME)
-            .select(Constants.MUTE_TABLE_NAME + ".modlog_id as ml_id")
-            .innerJoin(Constants.MGM_LOG_TABLE_NAME, Constants.MUTE_TABLE_NAME + ".modlog_id",
+/*        String query2 = avaire.getDatabase().newQueryBuilder(Constants.ON_WATCH_TABLE_NAME)
+            .select(Constants.ON_WATCH_TABLE_NAME + ".modlog_id as ml_id")
+            .innerJoin(Constants.MGM_LOG_TABLE_NAME, Constants.ON_WATCH_TABLE_NAME + ".modlog_id",
                 Constants.MGM_LOG_TABLE_NAME + ".modlogCase")
             .where(Constants.MGM_LOG_TABLE_NAME + ".mgi", mainGroupId)
             .andWhere(Constants.MGM_LOG_TABLE_NAME + ".target_id", userId)
-            .andWhere(Constants.MUTE_TABLE_NAME + ".main_group_id", mainGroupId)
+            .andWhere(Constants.ON_WATCH_TABLE_NAME + ".main_group_id", mainGroupId)
             .andWhere(builder -> builder.where(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_MUTE.getId())
                 .orWhere(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_TEMP_MUTE.getId())).toSQL();
-        System.out.println(query2);
+        System.out.println(query2);*/
 
         if (!collection.isEmpty()) {
             String query = String.format("DELETE FROM `%s` WHERE `guild_id` = ? AND `main_group_id` = ? AND `modlog_id` = ?",
-                Constants.MUTE_TABLE_NAME);
+                Constants.ON_WATCH_TABLE_NAME);
 
             avaire.getDatabase().queryBatch(query, statement -> {
                 for (DataRow row : collection) {
@@ -193,12 +193,12 @@ public class GlobalMuteManager {
      *
      * @return The total amount of mutes stored.
      */
-    public int getTotalAmountOfMutes() {
-        int totalMutes = 0;
-        for (Map.Entry<Long, HashSet<MuteContainer>> entry : globalMutes.entrySet()) {
-            totalMutes += entry.getValue().size();
+    public int getTotalAmountOfWatches() {
+        int totalWatches = 0;
+        for (Map.Entry<Long, HashSet<WatchContainer>> entry : globalWatches.entrySet()) {
+            totalWatches += entry.getValue().size();
         }
-        return totalMutes;
+        return totalWatches;
     }
 
 }

@@ -35,15 +35,18 @@ public class GlobalSettingsTransformer extends Transformer {
     private long mainGroupId = 0;
     private String mainGroupName;
 
-    private List<String> globalFilterExact = new ArrayList<>();
-    private List<String> globalFilterWildcard = new ArrayList<>();
+    private final List<String> globalFilterExact = new ArrayList<>();
+    private final List<String> globalFilterWildcard = new ArrayList<>();
     private long globalFilterLogChannel;
 
     // Global Settings
     private long appealsDiscordId = 0;
     private long mgmLogsId = 0;
 
-    public GlobalSettingsTransformer(Long groupId, DataRow data) {
+    private String globalModlogChannel = null;
+    private int globalModlogCase = 0;
+
+    public GlobalSettingsTransformer(DataRow data) {
         super(data);
         if (hasData()) {
             mainGroupId = data.getLong("main_group_id");
@@ -53,6 +56,9 @@ public class GlobalSettingsTransformer extends Transformer {
 
             appealsDiscordId = data.getLong("appeals_discord_id");
             mgmLogsId = data.getLong("mgm_logs");
+
+            globalModlogChannel = data.getString("global_modlog");
+            globalModlogCase = data.getInt("global_modlog_case");
 
             if (data.getString("global_filter_exact", null) != null) {
                 List<String> dbFilter = Xeus.gson.fromJson(data.getString("global_filter_exact"),
@@ -73,14 +79,13 @@ public class GlobalSettingsTransformer extends Transformer {
         }
     }
 
-    public String getGroupName() {
-        return this.mainGroupName;
+    public String getMainGroupName() {
+        return mainGroupName;
     }
 
-    public void setGroupName(String mainGroupName) {
+    public void setMainGroupName(String mainGroupName) {
         this.mainGroupName = mainGroupName;
     }
-
     public long getMainGroupId() {
         return this.mainGroupId;
     }
@@ -120,6 +125,22 @@ public class GlobalSettingsTransformer extends Transformer {
 
     public void setMgmLogsId(long mgmLogsId) {
         this.mgmLogsId = mgmLogsId;
+    }
+
+    public String getGlobalModlogChannel() {
+        return globalModlogChannel;
+    }
+
+    public void setGlobalModlogChannel(String globalModlogChannel) {
+        this.globalModlogChannel = globalModlogChannel;
+    }
+
+    public int getGlobalModlogCase() {
+        return globalModlogCase;
+    }
+
+    public void setGlobalModlogCase(int globalModlogCase) {
+        this.globalModlogCase = globalModlogCase;
     }
 
 }
