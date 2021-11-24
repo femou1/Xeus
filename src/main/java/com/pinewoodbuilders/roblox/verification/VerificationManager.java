@@ -14,6 +14,7 @@ import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.contracts.verification.VerificationResult;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.controllers.VerificationController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.VerificationTransformer;
@@ -26,7 +27,6 @@ import com.pinewoodbuilders.utilities.CacheUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.internal.utils.PermissionUtil;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -127,20 +127,34 @@ public class VerificationManager {
                 }
 
 
-                Collection guilds = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
-                    .where("main_group_id", transformer.getMainGroupId()).get();
+                if (avaire.getShardManager().getUserById(member.getId()) != null) {
+                    String invite = getFirstInvite(guild);
+                    avaire.getShardManager().getUserById(member.getId()).openPrivateChannel().flatMap(p -> p.sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder(),
+                        "*You have been **global-banned** from all discord that are connected to [this group](:groupLink) by an MGM Moderator. "
+                            + "For the reason: *```" + accounts.get(0).getString("reason") + "```\n\n"
+                            + "If you feel that your ban was unjustified please appeal at the group in question;"
+                            + invite)
+                        .setColor(Color.BLACK)
+                        .set("groupLink",
+                            "https://roblox.com/groups/" + transformer.getGlobalSettings().getMainGroupId())
+                        .buildEmbed())).queue();
+                }
+
+
+                List<Guild> guilds = getGuildsByMainGroupId(avaire, transformer.getMainGroupId());
 
                 int time = 0;
                 String reason = "User has been global-banned from the MGM Bans database.";
                 int bannedGuilds = 0;
-                for (DataRow row : guilds) {
-                    Guild guilde = avaire.getShardManager().getGuildById(row.getString("id"));
+                for (Guild guilde : guilds) {
                     if (guilde == null)
                         continue;
                     if (!guilde.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
                         continue;
-                    if (transformer.getGlobalBan()) {
-                        if (row.getBoolean("official_sub_group", false)) {
+
+                    GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guilde);
+                    if (settings.getGlobalBan()) {
+                        if (settings.isOfficialSubGroup()) {
                             guild
                                 .ban(member.getId(), time,
                                     "Banned by: " + member.getEffectiveName() + "\n" + "For: " + reason
@@ -158,18 +172,6 @@ public class VerificationManager {
                     }
                 }
 
-                if (avaire.getShardManager().getUserById(member.getId()) != null) {
-                    String invite = getFirstInvite(guild);
-                    avaire.getShardManager().getUserById(member.getId()).openPrivateChannel().queue(p -> p.sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder(),
-                        "*You have been **global-banned** from all discord that are connected to [this group](:groupLink) by an MGM Moderator. "
-                            + "For the reason: *```" + reason + "```\n\n"
-                            + "If you feel that your ban was unjustified please appeal at the group in question;"
-                            + invite)
-                        .setColor(Color.BLACK)
-                        .set("groupLink",
-                            "https://roblox.com/groups/" + transformer.getGlobalSettings().getMainGroupId())
-                        .buildEmbed()).queue());
-                }
 
                 long mgmLogs = transformer.getGlobalSettings().getMgmLogsId();
                 if (mgmLogs != 0) {
@@ -193,18 +195,7 @@ public class VerificationManager {
 
                 }
 
-                member.getUser().openPrivateChannel().queue(p -> {
-                    try {
-                        String invite = getFirstInvite(guild);
-                        p.sendMessageEmbeds(new EmbedBuilder().setDescription(
-                            "*You have been **global-banned** from all the Pinewood Builders discords by an MGM Moderator. "
-                                + "For the reason: *```" + accounts.get(0).getString("reason") + "```\n\n"
-                                + "If you feel that your ban was unjustified please appeal at the Pinewood Builders Appeal Center; "
-                                + invite)
-                            .setColor(Color.BLACK).build()).queue();
-                    } catch (ErrorResponseException ignored) {
-                    }
-                });
+
 
 
                 avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME)
@@ -325,6 +316,32 @@ public class VerificationManager {
         }
 
         return new VerificationResult(true, verificationEntity, stringBuilder.toString());
+    }
+
+    public List <Guild> getGuildsByMainGroupId(Xeus avaire, Long mainGroupId) throws SQLException {
+        return getGuildsByMainGroupId(avaire, mainGroupId, false);
+    }
+
+    public List <Guild> getGuildsByMainGroupId(Xeus avaire, Long mainGroupId, boolean isOfficial) throws SQLException {
+        if (!avaire.areWeReadyYet()) {
+            return null;
+        }
+        Collection guildQuery = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
+            .where("main_group_id", mainGroupId)
+            .where(builder -> {if (isOfficial) {
+                builder.where("official_sub_group", 1);
+            }})
+            .get();
+
+        List <Guild> guildList = new LinkedList <>();
+        for (DataRow dataRow : guildQuery) {
+            Guild guild = avaire.getShardManager().getGuildById(dataRow.getString("id"));
+            if (guild != null) {
+                guildList.add(guild);
+            }
+        }
+
+        return guildList;
     }
 
     private String getFirstInvite(Guild g) {

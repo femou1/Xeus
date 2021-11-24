@@ -774,24 +774,12 @@ public class GlobalModCommand extends Command {
 
         StringBuilder sb = new StringBuilder();
         try {
-            Collection guilds;
             int time = soft.getValue() ? 7 : 0;
             String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
             boolean appealsBan = reason.contains("--appeals-ban") || reason.contains("-ab");
             boolean globalBan = reason.contains("--global") || reason.contains("--g");
 
-            if (context.getGuildSettingsTransformer().getMainGroupId() != 0) {
-                guilds = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
-                    .where("main_group_id", settingsTransformer.getMainGroupId()).get();
-            } else {
-                if (isGlobalMod) {
-                    guilds = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).get();
-                } else {
-                    context.makeError("Something went wrong...").queue();
-                    return false;
-                }
-
-            }
+            List<Guild> guilds = getGuildsByMainGroupId(settingsTransformer.getMainGroupId());
 
             if (guilds.size() == 0) {
                 context.makeError("Huh? How did we get here? There should be at least one guild with this ID. Weird...")
@@ -814,10 +802,9 @@ public class GlobalModCommand extends Command {
             }
 
             int bannedGuilds = 0;
-            for (DataRow row : guilds) {
-                Guild guild = avaire.getShardManager().getGuildById(row.getString("id"));
+            for (Guild guild : guilds) {
                 if (g != null) {
-                    if (g.getId().equals(row.getString("id"))) {
+                    if (g.getId().equals(guild.getId())) {
                         if (!appealsBan) {
                             sb.append("``").append(guild.getName()).append("`` - :x:\n");
                             continue;
@@ -828,9 +815,10 @@ public class GlobalModCommand extends Command {
                     continue;
                 if (!guild.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
                     continue;
-                if (row.getBoolean("global_ban", false)) continue;
 
-                if (row.getBoolean("official_sub_group", false)) {
+                GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
+                if (settings.getGlobalBan()) continue;
+                if (settings.isOfficialSubGroup()) {
                     guild.ban(args[0], time, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: "
                             + reason
                             + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
@@ -845,7 +833,6 @@ public class GlobalModCommand extends Command {
                     sb.append("``").append(guild.getName()).append("`` - :ballot_box_with_check:\n");
                 }
                 bannedGuilds++;
-
             }
 
             User u = avaire.getShardManager().getUserById(args[0]);
@@ -906,12 +893,12 @@ public class GlobalModCommand extends Command {
     private String getFirstInvite(Guild g) {
         List <Invite> invites = g.retrieveInvites().submit().getNow(null);
         if (invites == null || invites.size() < 1)
-            return null;
+            return "https://discord.gg/NgztZpNQ9X";
         for (Invite i : invites) {
             return i.getUrl();
         }
 
-        return null;
+        return "https://discord.gg/NgztZpNQ9X";
     }
 
     private boolean banRobloxIdFromServer(CommandMessage context, String[] args) throws SQLException {
