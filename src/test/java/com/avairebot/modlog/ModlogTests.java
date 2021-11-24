@@ -25,7 +25,7 @@ import com.avairebot.BaseTest;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.language.LanguageContainer;
 import com.google.common.base.CaseFormat;
-import com.pinewoodbuilders.modlog.ModlogType;
+import com.pinewoodbuilders.modlog.local.moderation.ModlogType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

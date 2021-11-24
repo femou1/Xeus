@@ -143,7 +143,7 @@ public class GlobalLeaderboardCommand extends Command {
             Member member = context.getGuild().getMemberById(row.getLong("user_id"));
             String username = row.getString("username") + "#" + row.getString("discriminator");
             if (member != null) {
-                username = member.getUser().getName() + "#" + member.getUser().getDiscriminator();
+                username = member.getEffectiveName();
             }
 
             long experience = row.getLong("total", 100);
@@ -169,7 +169,7 @@ public class GlobalLeaderboardCommand extends Command {
                     long experience = userXp.first().getLong("total");
                     message.addField("➡ " + context.i18n("yourRank"), context.i18n("line")
                             .replace(":num", NumberUtil.formatNicely(rank))
-                            .replace(":username", context.getAuthor().getName() + "#" + context.getAuthor().getDiscriminator())
+                            .replace(":username", context.getMember().getEffectiveName())
                             .replace(":level", NumberUtil.formatNicely(avaire.getLevelManager().getLevelFromExperience(experience)))
                             .replace(":experience", NumberUtil.formatNicely(experience - 100))
                             + "\n\n" + paginator.generateFooter(context.getGuild(), generateCommandTrigger(context.getMessage())),

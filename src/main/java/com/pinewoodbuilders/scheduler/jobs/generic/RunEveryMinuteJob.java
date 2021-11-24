@@ -32,6 +32,8 @@ public class RunEveryMinuteJob extends Job {
     private final ChangeGameTask changeGameTask = new ChangeGameTask();
     private final SendRemindersTask sendRemindersTask = new SendRemindersTask();
     private final DrainMuteQueueTask drainMuteQueueTask = new DrainMuteQueueTask();
+    private final DrainGlobalMuteQueueTask drainGlobalMuteQueueTask = new DrainGlobalMuteQueueTask();
+    private final DrainGlobalWatchQueueTask drainGlobalWatchQueueTask = new DrainGlobalWatchQueueTask();
     private final GarbageCollectorTask garbageCollectorTask = new GarbageCollectorTask();
     private final SyncBlacklistMetricsTask syncBlacklistMetricsTask = new SyncBlacklistMetricsTask();
     private final ResetRespectStatisticsTask resetRespectStatisticsTask = new ResetRespectStatisticsTask();
@@ -53,6 +55,7 @@ public class RunEveryMinuteJob extends Job {
             changeGameTask,
             sendRemindersTask,
             drainMuteQueueTask,
+            drainGlobalMuteQueueTask,
             garbageCollectorTask,
             syncBlacklistMetricsTask,
             resetRespectStatisticsTask,
@@ -62,6 +65,7 @@ public class RunEveryMinuteJob extends Job {
             syncPlayerExperienceWithDatabaseTask,
             syncPlayerUpdateReferencesWithDatabaseTask,
             drainOnWatchQueueTask,
+            drainGlobalWatchQueueTask,
             drainUnbanQueueTask
         );
     }

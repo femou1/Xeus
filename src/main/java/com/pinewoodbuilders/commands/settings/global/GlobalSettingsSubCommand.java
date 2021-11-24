@@ -7,8 +7,8 @@ import com.pinewoodbuilders.commands.settings.GuildAndGlobalSettingsCommand;
 import com.pinewoodbuilders.contracts.commands.settings.SettingsSubCommand;
 import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 
@@ -25,8 +25,10 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
         GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
-        if (!(context.getMember().hasPermission(Permission.ADMINISTRATOR)
-                || context.getMember().hasPermission(Permission.MANAGE_SERVER)))
+        int permission = CheckPermissionUtil.getPermissionLevel(context).getLevel();
+        if (permission < CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
+            return command.sendErrorMessage(context, "Sorry, but you do not have the permissions required to run this command.");
+        }
 
             if (guildTransformer == null) {
                 context.makeError("Server settings could not be gathered").queue();
@@ -34,21 +36,23 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
             }
 
         if (args.length == 0 || NumberUtil.parseInt(args[0], -1) > 0) {
-            return sendEnabledRoles(context, guildTransformer);
+            command.sendErrorMessage(context, "Please use one of the arguments (`audit-log` or `filter`)");
         }
 
         switch (args[0].toLowerCase()) {
+            case "al":
             case "audit-logs":
                 return runAuditLogsCommand(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
             case "gfilter":
             case "global-filter":
             case "gf":
+            case "f":
+            case "filter":
             case "globalf":
                 return runGlobalFilterCommand(context, Arrays.copyOfRange(args, 1, args.length));
             default:
                 context.makeInfo(
-                        "God damn, please get this command right.\n\n - `smgi` - Set the Main Group Id of this guild\n - `smr` - Set the main role of the discord\n" +
-                            " - `permissions` - Manage the xeus permissions of the server.")
+                        "God damn, please get this command right.\n\n - `al` -> Set the audit log in all connected guilds.\n - `filter` -> Set the filter across the servers\n")
                         .queue();
                 return false;
         }

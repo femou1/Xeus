@@ -28,7 +28,8 @@ public enum MessageType {
     ERROR("#EF5350"),
     WARNING("#FAA61A"),
     SUCCESS("#43B581"),
-    INFO("#3A71C1");
+    INFO("#3A71C1"),
+    MGM_PINEWOOD("#000001");
 
     private final String color;
 

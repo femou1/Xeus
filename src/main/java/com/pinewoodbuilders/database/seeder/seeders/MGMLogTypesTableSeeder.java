@@ -21,16 +21,16 @@
 
 package com.pinewoodbuilders.database.seeder.seeders;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.database.seeder.Seeder;
-import com.pinewoodbuilders.modlog.local.moderation.ModlogType;
+import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
 
 import java.sql.SQLException;
 
-public class LogTypesTableSeeder extends Seeder {
+public class MGMLogTypesTableSeeder extends Seeder {
 
-    public LogTypesTableSeeder(Xeus avaire) {
+    public MGMLogTypesTableSeeder(Xeus avaire) {
         super(avaire);
     }
 
@@ -41,7 +41,7 @@ public class LogTypesTableSeeder extends Seeder {
 
     @Override
     public void run() throws SQLException {
-        for (ModlogType type : ModlogType.values()) {
+        for (GlobalModlogType type : GlobalModlogType.values()) {
             if (!tableHasValue("id", type.getId())) {
                 createRecord(type.getId(), type.getName(null));
             }

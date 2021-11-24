@@ -19,33 +19,30 @@
  *
  */
 
-package com.pinewoodbuilders.modlog;
+package com.pinewoodbuilders.modlog.global.moderation;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
-import com.pinewoodbuilders.commands.CommandContainer;
-import com.pinewoodbuilders.commands.CommandHandler;
+import com.pinewoodbuilders.Xeus;
+import com.pinewoodbuilders.chat.MessageType;
 import com.pinewoodbuilders.commands.CommandMessage;
-import com.pinewoodbuilders.commands.administration.ModlogReasonCommand;
-import com.pinewoodbuilders.database.controllers.GuildController;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
-import com.pinewoodbuilders.handlers.events.ModlogActionEvent;
 import com.pinewoodbuilders.language.I18n;
+import com.pinewoodbuilders.modlog.global.shared.GlobalModlogAction;
+import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
 import com.pinewoodbuilders.utilities.RestActionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 
 import javax.annotation.Nullable;
-import java.awt.*;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Arrays;
 
-public class Modlog {
+public class GlobalModlog {
 
     /**
      * Logs an action to the modlog channel for the given context.
@@ -57,38 +54,23 @@ public class Modlog {
      * otherwise <code>null</code> will be returned.
      */
     @Nullable
-    public static String log(Xeus avaire, CommandMessage context, ModlogAction action) {
-        return log(avaire, context.getGuild(), action);
+    public static String log(Xeus avaire, CommandMessage context, GlobalModlogAction action) {
+        return log(avaire, context.getGuildSettingsTransformer(), action);
     }
 
     /**
      * Logs an action to the modlog channel for the given message.
      *
      * @param avaire  The main Xeus application instance.
-     * @param message The message that triggered the modlog action.
+     * @param transformer The message that triggered the modlog action.
      * @param action  The action that should be logged to the modlog.
      * @return Possibly-null, the case ID if the modlog was logged successfully,
      * otherwise <code>null</code> will be returned.
      */
     @Nullable
-    public static String log(Xeus avaire, Message message, ModlogAction action) {
-        return log(avaire, message.getGuild(), action);
-    }
-
-    /**
-     * Logs an action to the modlog channel for the given guild.
-     *
-     * @param avaire The main Xeus application instance.
-     * @param guild  The guild the modlog action should be logged in.
-     * @param action The action that should be logged to the modlog.
-     * @return Possibly-null, the case ID if the modlog was logged successfully,
-     * otherwise <code>null</code> will be returned.
-     */
-    @Nullable
-    public static String log(Xeus avaire, Guild guild, ModlogAction action) {
-        GuildTransformer transformer = GuildController.fetchGuild(avaire, guild);
+    public static String log(Xeus avaire, GuildSettingsTransformer transformer, GlobalModlogAction action) {
         if (transformer != null) {
-            return log(avaire, guild, transformer, action);
+            return log(avaire, transformer.getGlobalSettings(), action);
         }
         return null;
     }
@@ -98,19 +80,18 @@ public class Modlog {
      * using the guild transformer, and the modlog action.
      *
      * @param avaire      The main Xeus application instance.
-     * @param guild       The guild the modlog action should be logged in.
      * @param transformer The guild transformer containing all the guild settings used in the modlog action.
      * @param action      The action that should be logged to the modlog.
      * @return Possibly-null, the case ID if the modlog was logged successfully,
      * otherwise <code>null</code> will be returned.
      */
     @Nullable
-    public static String log(Xeus avaire, Guild guild, GuildTransformer transformer, ModlogAction action) {
-        if (transformer.getModlog() == null) {
+    public static String log(Xeus avaire, GlobalSettingsTransformer transformer, GlobalModlogAction action) {
+        if (transformer.getGlobalModlogChannel() == null) {
             return null;
         }
 
-        TextChannel channel = guild.getTextChannelById(transformer.getModlog());
+        TextChannel channel = avaire.getShardManager().getTextChannelById(transformer.getGlobalModlogChannel());
         if (channel == null) {
             return null;
         }
@@ -119,33 +100,33 @@ public class Modlog {
             return null;
         }
 
-        transformer.setModlogCase(transformer.getModlogCase() + 1);
+        transformer.setGlobalModlogCase(transformer.getGlobalModlogCase() + 1);
 
         String[] split = null;
         EmbedBuilder builder = MessageFactory.createEmbeddedBuilder()
             .setTitle(I18n.format("{0} {1} | Case #{2}",
                 action.getType().getEmote(),
-                action.getType().getName(guild),
-                transformer.getModlogCase()
+                transformer.getMainGroupName(),
+                transformer.getGlobalModlogCase()
             ))
             .setColor(action.getType().getColor())
             .setTimestamp(Instant.now());
 
         switch (action.getType()) {
-            case WARN:
-            case KICK:
-            case BAN:
-            case UNBAN:
-            case UNMUTE:
+            case GLOBAL_WARN:
+            case GLOBAL_KICK:
+            case GLOBAL_BAN:
+            case GLOBAL_UNBAN:
+            case GLOBAL_UNMUTE:
                 builder
                     .addField("User", action.getStringifiedTarget(), true)
                     .addField("Moderator", action.getStringifiedModerator(), true)
                     .addField("Reason", formatReason(transformer, action.getMessage()), false);
                 break;
 
-            case MUTE:
-            case TEMP_MUTE:
-            case TEMP_BAN:
+            case GLOBAL_MUTE:
+            case GLOBAL_TEMP_MUTE:
+            case GLOBAL_TEMP_BAN:
                 //noinspection ConstantConditions
                 split = action.getMessage().split("\n");
                 builder
@@ -160,38 +141,13 @@ public class Modlog {
                     Arrays.copyOfRange(split, 1, split.length)
                 )), false);
                 break;
-
-            case PURGE:
-                builder
-                    .addField("Moderator", action.getStringifiedModerator(), true)
-                    .addField("Action", action.getMessage(), true)
-                    .addField("Reason", formatReason(transformer, null), false);
-                action.setMessage(null);
-                break;
-
-            case VOICE_KICK:
-                //noinspection ConstantConditions
-                split = action.getMessage().split("\n");
-                builder
-                    .addField("User", action.getStringifiedTarget(), true)
-                    .addField("Moderator", action.getStringifiedModerator(), true)
-                    .addField("Voice Channel", split[0], false)
-                    .addField("Reason", formatReason(transformer, String.join("\n",
-                        Arrays.copyOfRange(split, 1, split.length)
-                    )), false);
-
-                action.setMessage(String.join("\n",
-                    Arrays.copyOfRange(split, 1, split.length)
-                ));
-                break;
-
-            case PARDON:
+            case GLOBAL_PARDON:
                 //noinspection ConstantConditions
                 split = action.getMessage().split("\n");
                 String[] modlogParts = split[0].split(":");
                 builder
                     .addField("Pardoned Case ID", I18n.format("#[{0}](https://discordapp.com/channels/{1}/{2}/{3})",
-                        modlogParts[0], transformer.getId(), transformer.getModlog(), modlogParts[1]
+                        modlogParts[0], channel.getGuild().getId(), channel.getId(), modlogParts[1]
                     ), true)
                     .addField("Moderator", action.getStringifiedModerator(), true)
                     .addField("Reason", formatReason(transformer, String.join("\n",
@@ -204,75 +160,35 @@ public class Modlog {
                 break;
         }
 
-        avaire.getEventEmitter().push(new ModlogActionEvent(
-            guild.getJDA(), action, transformer.getModlogCase()
-        ));
+        /*avaire.getEventEmitter().push(new GlobalModlogActionEvent(
+            guild.getJDA(), action, transformer.getGlobalModlogCase()
+        ));*/
 
         channel.sendMessageEmbeds(builder.build()).queue(success -> {
             try {
-                avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
-                    .where("id", guild.getId())
+                avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE)
+                    .where("main_group_id", transformer.getMainGroupId())
                     .update(statement -> {
-                        statement.set("modlog_case", transformer.getModlogCase());
+                        statement.set("global_modlog_case", transformer.getGlobalModlogCase());
                     });
 
-                logActionToTheDatabase(avaire, guild, action, success, transformer.getModlogCase());
+                logActionToTheDatabase(avaire, transformer.getMainGroupId(), action, success, transformer.getGlobalModlogCase());
             } catch (SQLException ignored) {
                 //
             }
         }, RestActionUtil.ignore);
 
-        return "" + transformer.getModlogCase();
+        return "" + transformer.getGlobalModlogCase();
     }
 
-    /**
-     * Notifies the given user about a modlog action by DMing them
-     * a message, if the user have DM messages disabled, nothing
-     * will be sent and the method will fail silently.
-     *
-     * @param user   The user that should be notified about a modlog action.
-     * @param guild  The guild that the modlog action happened in.
-     * @param action The modlog action that the user should be notified of.
-     * @param caseId The case ID that is attached to the modlog action.
-     */
-    public static void notifyUser(User user, Guild guild, ModlogAction action, @Nullable String caseId) {
-        String type = action.getType().getNotifyName(guild);
-        if (type == null || user.isBot()) {
-            return;
-        }
-
-        user.openPrivateChannel().queue(channel -> {
-            EmbedBuilder message = MessageFactory.createEmbeddedBuilder()
-                .setColor(action.getType().getColor())
-                .setDescription(String.format("%s You have been **%s** %s " + guild.getName(),
-                    action.getType().getEmote(),
-                    type,
-                    action.getType().equals(ModlogType.WARN)
-                        ? "in" : "from"
-                ))
-                //.addField("Type", action.getType().getEmote() + action.getType().getName(guild), true)
-                .addField("Reason", action.getMessage(), true)
-                .setTimestamp(Instant.now());
-
-            if (caseId != null) {
-                message.setFooter("Case ID #" + caseId, null);
-                if (caseId.equals("FILTER")) {
-                    message.addField("Note on the side", "Filter violations do NOT count against your warning total. These are not logged. **However**, we still recieve notifications about filter violations.", false);
-                }
-            }
-
-            channel.sendMessageEmbeds(message.build()).queue(null, RestActionUtil.ignore);
-        }, RestActionUtil.ignore);
-    }
-
-    private static void logActionToTheDatabase(Xeus avaire, Guild guild, ModlogAction action, Message message, int modlogCase) {
+    private static void logActionToTheDatabase(Xeus avaire, long mgi, GlobalModlogAction action, Message message, int modlogCase) {
         try {
-            avaire.getDatabase().newQueryBuilder(Constants.LOG_TABLE_NAME)
+            avaire.getDatabase().newQueryBuilder(Constants.MGM_LOG_TABLE_NAME)
                 .useAsync(true)
                 .insert(statement -> {
                     statement.set("modlogCase", modlogCase);
                     statement.set("type", action.getType().getId());
-                    statement.set("guild_id", guild.getId());
+                    statement.set("mgi", mgi);
                     statement.set("user_id", action.getModerator().getId());
 
                     if (action.getTarget() != null) {
@@ -286,22 +202,22 @@ public class Modlog {
                     statement.set("reason", formatReason(null, action.getMessage()), true);
                 });
         } catch (SQLException ignored) {
-            //
+            ignored.printStackTrace();
         }
     }
 
     @SuppressWarnings("ConstantConditions")
-    private static String formatReason(@Nullable GuildTransformer transformer, String reason) {
+    private static String formatReason(@Nullable GlobalSettingsTransformer transformer, String reason) {
         if (reason == null || reason.trim().equalsIgnoreCase("No reason was given.")) {
             if (transformer != null) {
-                CommandContainer command = CommandHandler.getCommand(ModlogReasonCommand.class);
-                String prefix = transformer.getPrefixes().getOrDefault(
+                //CommandContainer command = CommandHandler.getCommand(GlobalModlogReasonCommand.class);
+                /*String prefix = transformer.getPrefixes().getOrDefault(
                     command.getCategory().getName(), command.getDefaultPrefix()
-                );
+                );*/
 
                 return String.format(
                     "Moderator do `%sreason %s <reason>`",
-                    prefix, transformer.getModlogCase()
+                    /*prefix,*/"<prefix>", transformer.getGlobalModlogCase()
                 );
             }
             return null;
@@ -318,9 +234,8 @@ public class Modlog {
      * @param guild  The guild that the modlog action happened in.
      * @param action The modlog action that the user should be notified of.
      * @param caseId The case ID that is attached to the modlog action.
-     * @param color  The color the embed is for the message
      */
-    public static void notifyUser(User user, Guild guild, ModlogAction action, @Nullable String caseId, Color color) {
+    public static void notifyUser(User user, GlobalSettingsTransformer guild, GlobalModlogAction action, @Nullable String caseId) {
         String type = action.getType().getNotifyName(guild);
         if (type == null || user.isBot()) {
             return;
@@ -328,15 +243,15 @@ public class Modlog {
 
         user.openPrivateChannel().queue(channel -> {
             EmbedBuilder message = MessageFactory.createEmbeddedBuilder()
-                .setColor(color)
+                .setColor(MessageType.MGM_PINEWOOD.getColor())
                 .setDescription(String.format("%s You have been **%s** %s %s",
                     action.getType().getEmote(),
                     type,
-                    action.getType().equals(ModlogType.WARN)
+                    action.getType().equals(GlobalModlogType.GLOBAL_WARN)
                         ? "in" : "from",
-                    guild.getName()
+                    guild.getMainGroupName()
                 ))
-                .addField("Moderator", action.getModerator().getName() + "#" + action.getModerator().getDiscriminator(), true)
+                //.addField("Moderator", action.getModerator().getName() + "#" + action.getModerator().getDiscriminator(), true)
                 .addField("Reason", action.getMessage(), true)
                 .setTimestamp(Instant.now());
 

@@ -58,7 +58,7 @@ public class OtherSettingsSubCommand extends SettingsSubCommand {
             return false;
         }
 
-        context.makeSuccess("Command bypass has been enabled, MGM (Main Global Leadership) or higher can now bypass certain permissions and is now allowed to use the permission override feature. (See ``");
+        context.makeSuccess("Command bypass has been enabled, MGM (Main Global Leadership) or higher can now bypass certain permissions and is now allowed to use the permission override feature.`");
         return false;
     }
 

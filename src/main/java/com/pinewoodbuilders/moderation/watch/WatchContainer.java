@@ -19,7 +19,7 @@
  *
  */
 
-package com.pinewoodbuilders.onwatch;
+package com.pinewoodbuilders.moderation.watch;
 
 import com.pinewoodbuilders.time.Carbon;
 
@@ -28,14 +28,32 @@ import javax.annotation.Nullable;
 import java.util.concurrent.ScheduledFuture;
 
 @SuppressWarnings("WeakerAccess")
-public class OnWatchContainer {
+public class WatchContainer {
 
-    private final String caseId;
     private final long guildId;
     private final long userId;
     private final Carbon expiresAt;
     private ScheduledFuture<?> schedule;
+    private final long mgi;
     private final boolean global;
+
+
+    /**
+     * Creates a OnWatch container using the given guild ID, user ID, and expiration time.
+     *
+     * @param guildId   The ID of the guild the OnWatch is registered to.
+     * @param userId    The ID of the user the OnWatch is registered for.
+     * @param expiresAt The date and time the OnWatch should expire,
+     *                  or {@code NULL} for permanent OnWatchs.
+     */
+    public WatchContainer(long guildId, long userId, @Nullable Carbon expiresAt) {
+        this.guildId = guildId;
+        this.userId = userId;
+        this.expiresAt = expiresAt;
+        this.schedule = null;
+        this.global = false;
+        this.mgi = 0;
+    }
 
     /**
      * Constructor
@@ -45,13 +63,13 @@ public class OnWatchContainer {
      *                  or {@code NULL} for permanent OnWatchs.
      * @param global    Whether the OnWatch is global or not.
      */
-    public OnWatchContainer(long guildId, long userId, @Nullable Carbon expiresAt, String caseId, boolean global) {
+    public WatchContainer(long guildId, long userId, @Nullable Carbon expiresAt, boolean global) {
         this.guildId = guildId;
         this.userId = userId;
         this.expiresAt = expiresAt;
-        this.caseId = caseId;
         this.schedule = null;
         this.global = global;
+        this.mgi = 0;
     }
 
     /**
@@ -62,13 +80,13 @@ public class OnWatchContainer {
      * @param expiresAt The date and time the OnWatch should expire,
      *                  or {@code NULL} for permanent OnWatchs.
      */
-    public OnWatchContainer(long guildId, long userId, @Nullable Carbon expiresAt, String caseId) {
+    public WatchContainer(long guildId, long userId, long mgi, @Nullable Carbon expiresAt,  boolean global) {
         this.guildId = guildId;
         this.userId = userId;
         this.expiresAt = expiresAt;
-        this.caseId = caseId;
         this.schedule = null;
-        this.global = false;
+        this.global = global;
+        this.mgi = mgi;
     }
 
     /**
@@ -89,9 +107,6 @@ public class OnWatchContainer {
         return userId;
     }
 
-    public String getCaseId() {
-        return caseId;
-    }
 
     /**
      * Gets the date and time the OnWatch should automatically expire,
@@ -155,7 +170,7 @@ public class OnWatchContainer {
      * @param container The container that should be compared.
      * @return {@code True} if the containers match, {@code False} otherwise.
      */
-    public boolean isSame(@Nonnull OnWatchContainer container) {
+    public boolean isSame(@Nonnull WatchContainer container) {
         return isSame(container.getGuildId(), container.getUserId());
     }
 
@@ -175,12 +190,25 @@ public class OnWatchContainer {
 
     @Override
     public boolean equals(Object obj) {
-        return obj != null && obj instanceof OnWatchContainer && isSame((OnWatchContainer) obj);
+        return obj != null && obj instanceof WatchContainer && isSame((WatchContainer) obj);
+    }
+    public boolean isGlobalSame(long userId, long mgi) {
+        return 0L == this.guildId
+            && getUserId() == userId
+            && getMgi() == mgi;
+    }
+
+    public long getMgi() {
+        return mgi;
+    }
+
+    public boolean isGlobal() {
+        return global;
     }
 
     @Override
     public String toString() {
-        return String.format("OnWatchContainer={guildId=%s, userId=%s, expiresAt=%s}",
+        return String.format("WatchContainer={guildId=%s, userId=%s, expiresAt=%s}",
             getGuildId(), getUserId(), getExpiresAt()
         );
     }

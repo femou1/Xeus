@@ -19,14 +19,14 @@
  *
  */
 
-package com.pinewoodbuilders.onwatch;
+package com.pinewoodbuilders.moderation.watch;
 
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.language.I18n;
-import com.pinewoodbuilders.onwatch.onwatchlog.OnWatchType;
+import com.pinewoodbuilders.modlog.local.watchlog.WatchType;
 import com.pinewoodbuilders.time.Carbon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,10 +37,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-public class OnWatchManager {
+public class WatchManager {
 
-    private final Logger log = LoggerFactory.getLogger(OnWatchManager.class);
-    private final HashMap<Long, HashSet<OnWatchContainer>> OnWatchs = new HashMap<>();
+    private final Logger log = LoggerFactory.getLogger(WatchManager.class);
+    private final HashMap<Long, HashSet<WatchContainer>> OnWatchs = new HashMap<>();
 
     private final Xeus avaire;
 
@@ -51,7 +51,7 @@ public class OnWatchManager {
      *
      * @param avaire The main Xeus instance.
      */
-    public OnWatchManager(Xeus avaire) {
+    public WatchManager(Xeus avaire) {
         this.avaire = avaire;
 
         syncWithDatabase();
@@ -92,7 +92,7 @@ public class OnWatchManager {
                 statement.set("expires_in", expiresAt);
             });
 
-        OnWatchs.get(guildId).add(new OnWatchContainer(guildId, userId, expiresAt, caseId));
+        OnWatchs.get(guildId).add(new WatchContainer(guildId, userId, expiresAt));
     }
 
     /**
@@ -142,7 +142,7 @@ public class OnWatchManager {
             return false;
         }
 
-        for (OnWatchContainer container : OnWatchs.get(guildId)) {
+        for (WatchContainer container : OnWatchs.get(guildId)) {
             if (container.isPublic()) {
                 return true;
             }
@@ -162,7 +162,7 @@ public class OnWatchManager {
      */
     public int getTotalAmountOfOnWatchs() {
         int totalOnWatchs = 0;
-        for (Map.Entry<Long, HashSet<OnWatchContainer>> entry : OnWatchs.entrySet()) {
+        for (Map.Entry<Long, HashSet<WatchContainer>> entry : OnWatchs.entrySet()) {
             totalOnWatchs += entry.getValue().size();
         }
         return totalOnWatchs;
@@ -175,14 +175,14 @@ public class OnWatchManager {
      *
      * @return The complete map of OnWatchs currently stored.
      */
-    public HashMap<Long, HashSet<OnWatchContainer>> getOnWatchs() {
+    public HashMap<Long, HashSet<WatchContainer>> getOnWatchs() {
         return OnWatchs;
     }
 
     private void syncWithDatabase() {
         log.info("Syncing OnWatchs with the database...");
 
-        String query = I18n.format("SELECT `{1}`.`guild_id`, `{1}`.`target_id`, `{0}`.`expires_in` FROM `{0}` INNER JOIN `{1}` ON `{0}`.`modlog_id` = `{1}`.`modlogCase` WHERE `{0}`.`modlog_id` = `{1}`.`modlogCase` AND `{0}`.`guild_id` = `{1}`.`guild_id`;",
+        String query = I18n.format("SELECT `{1}`.`guild_id`, `{1}`.`target_id`, `{0}`.`expires_in` FROM `{0}` INNER JOIN `{1}` ON `{0}`.`modlog_id` = `{1}`.`modlogCase` WHERE `{0}`.`modlog_id` = `{1}`.`modlogCase` AND `{0}`.`guild_id` = `{1}`.`guild_id` AND `{0}`.`global` = 0;",
             Constants.ON_WATCH_TABLE_NAME, Constants.ON_WATCH_LOG_TABLE_NAME
         );
 
@@ -195,11 +195,10 @@ public class OnWatchManager {
                     OnWatchs.put(guildId, new HashSet<>());
                 }
 
-                OnWatchs.get(guildId).add(new OnWatchContainer(
+                OnWatchs.get(guildId).add(new WatchContainer(
                     row.getLong("guild_id"),
                     row.getLong("target_id"),
-                    row.getTimestamp("expires_in"),
-                    row.getString("modlog_id")
+                    row.getTimestamp("expires_in")
                 ));
             }
 
@@ -223,8 +222,8 @@ public class OnWatchManager {
             .andWhere(Constants.ON_WATCH_LOG_TABLE_NAME + ".target_id", userId)
             .andWhere(Constants.ON_WATCH_TABLE_NAME + ".guild_id", guildId)
             .andWhere(builder -> builder
-                .where(Constants.ON_WATCH_LOG_TABLE_NAME + ".type", OnWatchType.ON_WATCH.getId())
-                .orWhere(Constants.ON_WATCH_LOG_TABLE_NAME + ".type", OnWatchType.TEMP_ON_WATCH.getId())
+                .where(Constants.ON_WATCH_LOG_TABLE_NAME + ".type", WatchType.ON_WATCH.getId())
+                .orWhere(Constants.ON_WATCH_LOG_TABLE_NAME + ".type", WatchType.TEMP_ON_WATCH.getId())
             ).get();
 
         if (!collection.isEmpty()) {

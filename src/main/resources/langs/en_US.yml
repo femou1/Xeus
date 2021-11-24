@@ -28,50 +28,85 @@ pagination:
     simpleFooter: "Page **{0}** out of **{1}** pages.\n`{2} [page]`"
 
 modlog-types:
-    kick:
-        name: "Kick"
-        action: "Kicked"
-    voiceKick:
-        name: "Voice Kick"
-        action: "Voice Kicked"
-    ban:
-        name: "Ban"
-        action: "Banned"
-    softBan:
-        name: "Soft Ban"
-        action: "Soft Banned"
-    unban:
-        name: "Unban"
-        action: "Unbanned"
-    purge:
-        name: "Purge"
-        action: "Purged"
-    warn:
-        name: "Warn"
-        action: "Warned"
-    pardon:
-        name: "Pardon"
-        action: "Pardoned"
-    mute:
-        name: "Mute"
-        action: "Muted"
-    tempMute:
-        name: "Temp Mute"
-        action: "Temp Muted"
-    unmute:
-        name: "Unmute"
-        action: "Unmuted"
+  kick:
+    name: "Kick"
+    action: "Kicked"
+  voiceKick:
+    name: "Voice Kick"
+    action: "Voice Kicked"
+  ban:
+    name: "Ban"
+    action: "Banned"
+  tempBan:
+    name: "Soft Ban"
+    action: "Soft Banned"
+  unban:
+    name: "Unban"
+    action: "Unbanned"
+  purge:
+    name: "Purge"
+    action: "Purged"
+  warn:
+    name: "Warn"
+    action: "Warned"
+  pardon:
+    name: "Pardon"
+    action: "Pardoned"
+  mute:
+    name: "Mute"
+    action: "Muted"
+  tempMute:
+    name: "Temp Mute"
+    action: "Temp Muted"
+  unmute:
+    name: "Unmute"
+    action: "Unmuted"
+
+global-modlog-types:
+  globalKick:
+    name: "Global Kick"
+    action: "Global Kicked"
+  globalBan:
+    name: "Global Ban"
+    action: "Global Banned"
+  globalUnban:
+    name: "Global Unban"
+    action: "Global Unbanned"
+  globalWarn:
+    name: "Global Warn"
+    action: "Global Warned"
+  globalPardon:
+    name: "Global Pardon"
+    action: "Global Pardoned"
+  globalMute:
+    name: "Global Mute"
+    action: "Global Muted"
+  globalTempMute:
+    name: "Global Temp Mute"
+    action: "Global Temp Muted"
+  globalUnmute:
+    name: "Global Unmute"
+    action: "Global Unmuted"
+  globalWatch:
+    name: "Global Watch"
+    action: "Global Watched"
+  globalUnWatch:
+    name: "Un watched"
+    action: "Unwatched"
+  globalTempWatch:
+    name: "Global Temp Watch"
+    action: "Global Temporary Watch"
 
 on-watch-types:
-    onWatch:
-        name: "On Watch!"
-        action: "On Watch"
-    unOnWatch:
-        name: "Un watched"
-        action: "Unwatched"
-    tempOnWatch:
-        name: "Temp Watch"
-        action: "Temporary On Watch"
+  onWatch:
+    name: "On Watch!"
+    action: "On Watch"
+  unOnWatch:
+    name: "Un watched"
+    action: "Unwatched"
+  tempOnWatch:
+    name: "Temp Watch"
+    action: "Temporary On Watch"
 
 
 onwatch:

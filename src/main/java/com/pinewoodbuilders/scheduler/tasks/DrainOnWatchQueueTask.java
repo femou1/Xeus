@@ -22,23 +22,21 @@
 package com.pinewoodbuilders.scheduler.tasks;
 
 import com.pinewoodbuilders.Xeus;
-import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.contracts.scheduler.Task;
 import com.pinewoodbuilders.database.controllers.GuildController;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.language.I18n;
-import com.pinewoodbuilders.onwatch.OnWatchContainer;
-import com.pinewoodbuilders.onwatch.onwatchlog.OnWatchAction;
-import com.pinewoodbuilders.onwatch.onwatchlog.OnWatchType;
-import com.pinewoodbuilders.onwatch.onwatchlog.OnWatchlog;
+import com.pinewoodbuilders.moderation.watch.WatchContainer;
+import com.pinewoodbuilders.modlog.local.watchlog.WatchAction;
+import com.pinewoodbuilders.modlog.local.watchlog.WatchType;
+import com.pinewoodbuilders.modlog.local.watchlog.Watchlog;
 import com.pinewoodbuilders.scheduler.ScheduleHandler;
 import com.pinewoodbuilders.time.Carbon;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,36 +55,13 @@ public class DrainOnWatchQueueTask implements Task {
             return;
         }
 
-        for (Map.Entry<Long, HashSet<OnWatchContainer>> entry : avaire.getOnWatchManger().getOnWatchs().entrySet()) {
-            for (OnWatchContainer container : entry.getValue()) {
+        for (Map.Entry<Long, HashSet<WatchContainer>> entry : avaire.getOnWatchManger().getOnWatchs().entrySet()) {
+            for (WatchContainer container : entry.getValue()) {
                 if (container.isPermanent() || container.getSchedule() != null) {
                     continue;
                 }
 
                 Carbon expires = container.getExpiresAt();
-                Guild g = avaire.getShardManager().getGuildById(container.getGuildId());
-                if (container.getCaseId() != null) {
-                    if (expires != null) {
-                        if (g != null) {
-                            User u = avaire.getShardManager().getUserById(container.getUserId());
-                            if (u != null) {
-                                Member m = g.getMember(u);
-                                if (m == null) {
-                                    try {
-                                        avaire.getDatabase().newQueryBuilder(Constants.ON_WATCH_TABLE_NAME)
-                                            .where("guild_id", container.getGuildId())
-                                            .where("modlog_id", container.getCaseId())
-                                            .update(statement -> {
-                                                statement.set("expires_in", expires.addMinute());
-                                            });
-                                    } catch (SQLException throwables) {
-                                        continue;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
 
                 //noinspection ConstantConditions
                 if (expires.copy().subMinutes(5).isPast()) {
@@ -113,7 +88,7 @@ public class DrainOnWatchQueueTask implements Task {
         return System.currentTimeMillis() / 1000L;
     }
 
-    private void handleAutomaticUnmute(Xeus avaire, OnWatchContainer container) {
+    private void handleAutomaticUnmute(Xeus avaire, WatchContainer container) {
         try {
             Guild guild = avaire.getShardManager().getGuildById(container.getGuildId());
             if (guild == null) {
@@ -153,14 +128,14 @@ public class DrainOnWatchQueueTask implements Task {
                     muteRole.getName(), member.getUser().getAsTag(), guild.getName()
                 );
 
-                OnWatchAction onWatchAction = new OnWatchAction(
-                    OnWatchType.UN_ON_WATCH, guild.getSelfMember().getUser(), member.getUser(),
+                WatchAction watchAction = new WatchAction(
+                    WatchType.UN_ON_WATCH, guild.getSelfMember().getUser(), member.getUser(),
                     I18n.getString(guild, "onwatch.UnWatchCommand.userAutoUnmutedReason")
                 );
 
-                String caseId = OnWatchlog.log(avaire, guild, transformer, onWatchAction, settings);
+                String caseId = Watchlog.log(avaire, guild, transformer, watchAction, settings);
 
-                OnWatchlog.notifyUser(member.getUser(), guild, onWatchAction, caseId);
+                Watchlog.notifyUser(member.getUser(), guild, watchAction, caseId);
 
 
             }, throwable -> {
@@ -173,7 +148,7 @@ public class DrainOnWatchQueueTask implements Task {
         }
     }
 
-    private void unregisterDatabaseRecord(Xeus avaire, OnWatchContainer container) {
+    private void unregisterDatabaseRecord(Xeus avaire, WatchContainer container) {
         try {
             avaire.getOnWatchManger().unregisterOnWatch(container.getGuildId(), container.getUserId());
         } catch (SQLException e) {

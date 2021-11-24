@@ -23,9 +23,9 @@ package com.pinewoodbuilders.contracts.commands;
 
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
-import com.pinewoodbuilders.modlog.Modlog;
-import com.pinewoodbuilders.modlog.ModlogAction;
-import com.pinewoodbuilders.modlog.ModlogType;
+import com.pinewoodbuilders.modlog.local.moderation.Modlog;
+import com.pinewoodbuilders.modlog.local.moderation.ModlogAction;
+import com.pinewoodbuilders.modlog.local.moderation.ModlogType;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;

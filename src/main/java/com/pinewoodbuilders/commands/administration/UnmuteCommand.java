@@ -24,10 +24,11 @@ package com.pinewoodbuilders.commands.administration;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.*;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
-import com.pinewoodbuilders.modlog.Modlog;
-import com.pinewoodbuilders.modlog.ModlogAction;
-import com.pinewoodbuilders.modlog.ModlogType;
+import com.pinewoodbuilders.modlog.local.moderation.Modlog;
+import com.pinewoodbuilders.modlog.local.moderation.ModlogAction;
+import com.pinewoodbuilders.modlog.local.moderation.ModlogType;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.RoleUtil;
 import net.dv8tion.jda.api.entities.Role;
@@ -109,6 +110,23 @@ public class UnmuteCommand extends MuteableCommand {
             return sendErrorMessage(context, "errors.errorOccurredWhileLoading", "server settings");
         }
 
+        if (args.length == 0) {
+            return sendErrorMessage(context, "errors.missingArgument", "user");
+        }
+
+        User user = MentionableUtil.getUser(context, args);
+        if (user == null) {
+            return sendErrorMessage(context, context.i18n("invalidUserMentioned"));
+        }
+
+        GuildSettingsTransformer globalSettingsTransformer = context.getGuildSettingsTransformer();
+        if (globalSettingsTransformer != null) {
+            long mgi = globalSettingsTransformer.getMainGroupId() != 0 ? globalSettingsTransformer.getMainGroupId() : 0;
+            if (avaire.getGlobalMuteManager().isGlobalMuted(mgi, user.getIdLong())) {
+                return sendErrorMessage(context, "This user has a global mute on their name, hence you cannot unmute this person. If you are a MGM, please use `gm um` to this person across all connected guilds.");
+            }
+        }
+
         if (transformer.getModlog() == null) {
             String prefix = generateCommandPrefix(context.getMessage());
             return sendErrorMessage(context, context.i18n("requiresModlogToBeSet", prefix));
@@ -129,18 +147,12 @@ public class UnmuteCommand extends MuteableCommand {
             return sendErrorMessage(context, context.i18n("muteRoleIsPositionedHigher", muteRole.getAsMention()));
         }
 
-        if (args.length == 0) {
-            return sendErrorMessage(context, "errors.missingArgument", "user");
-        }
-
-        User user = MentionableUtil.getUser(context, args);
-        if (user == null) {
-            return sendErrorMessage(context, context.i18n("invalidUserMentioned"));
-        }
 
         if (!RoleUtil.hasRole(context.getGuild().getMember(user), muteRole)) {
             return sendErrorMessage(context, context.i18n("userDoesntHaveMuteRole", user.getAsMention()));
         }
+
+
 
         String reason = generateMessage(Arrays.copyOfRange(args, 1, args.length));
         context.getGuild().removeRoleFromMember(
