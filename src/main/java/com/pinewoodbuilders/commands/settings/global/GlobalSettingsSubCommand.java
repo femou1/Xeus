@@ -25,18 +25,18 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
         GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
-        int permission = CheckPermissionUtil.getPermissionLevel(context).getLevel();
+        int permission = CheckPermissionUtil.getPermissionLevel(guildTransformer, context.guild, context.member).getLevel();
         if (permission < CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
             return command.sendErrorMessage(context, "Sorry, but you do not have the permissions required to run this command.");
         }
 
-            if (guildTransformer == null) {
-                context.makeError("Server settings could not be gathered").queue();
-                return false;
-            }
+        if (guildTransformer == null) {
+            context.makeError("Server settings could not be gathered").queue();
+            return false;
+        }
 
         if (args.length == 0 || NumberUtil.parseInt(args[0], -1) > 0) {
-            command.sendErrorMessage(context, "Please use one of the arguments (`audit-log` or `filter`)");
+            return sendEnabledRoles(context, guildTransformer);
         }
 
         switch (args[0].toLowerCase()) {
@@ -50,14 +50,39 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
             case "filter":
             case "globalf":
                 return runGlobalFilterCommand(context, Arrays.copyOfRange(args, 1, args.length));
+            case "tnms":
+            case "toggle-new-moderation-system":
+            case "nms":
+            case "new-moderation-system":
+                return newModerationSystem(context, guildTransformer);
             default:
                 context.makeInfo(
-                        "God damn, please get this command right.\n\n - `al` -> Set the audit log in all connected guilds.\n - `filter` -> Set the filter across the servers\n")
-                        .queue();
+                        "God damn, please get this command right.\n\n- `tnms` -> Toggle the new moderation system\n - `al` -> Set the audit log in all connected guilds.\n - `filter` -> Set the filter across the servers\n")
+                    .queue();
                 return false;
         }
 
     }
+
+    private boolean newModerationSystem(CommandMessage context, GuildSettingsTransformer guildTransformer) {
+        GlobalSettingsTransformer settings = guildTransformer.getGlobalSettings();
+        if (settings == null) return command.sendErrorMessage(context, "Global settings have not been set.");
+
+        settings.setNewWarnSystem(!settings.getNewWarnSystem());
+        try {
+            avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE).where("main_group_id", settings.getMainGroupId())
+                .update(l -> {
+                    l.set("new_moderation_system", true);
+                });
+            context.makeSuccess((settings.getNewWarnSystem() ? "Enabled" : "Disabled") + " the new moderation system in " + settings.getMainGroupName()).queue();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
 
     private boolean runGlobalFilterCommand(CommandMessage context, String[] args) {
         if (args.length == 0) {
@@ -86,24 +111,24 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
         GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
         if (guildTransformer == null) {
             return command.sendErrorMessage(context,
-                    "Unable to load the local server settings. (We need this to get the MGI Connected to this guild)");
+                "Unable to load the local server settings. (We need this to get the MGI Connected to this guild)");
         }
 
         if (guildTransformer.getMainGroupId() == 0 && !guildTransformer.isOfficialSubGroup()) {
             return command.sendErrorMessage(context,
-                    "A main group ID has not been set for this guild, or this is not an official server. So I don't know what settings to edit securely. Please set a MGI on this server, and make sure it's an officially connected server!");
+                "A main group ID has not been set for this guild, or this is not an official server. So I don't know what settings to edit securely. Please set a MGI on this server, and make sure it's an officially connected server!");
         }
 
         GlobalSettingsTransformer transformer = context.getGuildSettingsTransformer().getGlobalSettings();
         if (transformer == null) {
             return command.sendErrorMessage(context,
-                    "You have not set the MGI in your guild settings, so I don't know what global settings to edit.");
+                "You have not set the MGI in your guild settings, so I don't know what global settings to edit.");
         }
 
         String words = String.join(" ", Arrays.copyOfRange(args, 1, args.length)).toLowerCase();
         if (words.contains(" ")) {
             return command.sendErrorMessage(context,
-                    "The EXACT words in the filter are not allowed to contain any spaces, use `!exactfilter`");
+                "The EXACT words in the filter are not allowed to contain any spaces, use `!exactfilter`");
         }
         if (args[0].equalsIgnoreCase("list")) {
             return getAutoModExactList(context, transformer);
@@ -130,9 +155,9 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
                     if (tc != null) {
                         tc.sendMessageEmbeds(context.makeInfo(
                                 "[The following words have been added to the **GLOBAL** exact filter by :user](:link):\n"
-                                        + "```:words```")
-                                .set("words", words).set("user", context.getMember().getAsMention())
-                                .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+                                    + "```:words```")
+                            .set("words", words).set("user", context.getMember().getAsMention())
+                            .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
                     }
                 }
 
@@ -149,7 +174,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     private boolean getAutoModExactList(CommandMessage context, GlobalSettingsTransformer transformer) {
         context.makeSuccess(
                 "This the list of the current filtered EXACT words: \n```" + transformer.getGlobalFilterExact() + "```")
-                .queue();
+            .queue();
         return false;
     }
 
@@ -172,11 +197,11 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private void updateGuildAutoModExact(CommandMessage message, GlobalSettingsTransformer transformer)
-            throws SQLException {
+        throws SQLException {
         for (String id : Constants.guilds) {
             avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", id)
-                    .update(statement -> statement.set("global_filter_exact",
-                            Xeus.gson.toJson(transformer.getGlobalFilterExact()), true));
+                .update(statement -> statement.set("global_filter_exact",
+                    Xeus.gson.toJson(transformer.getGlobalFilterExact()), true));
         }
     }
 
@@ -188,18 +213,18 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
         GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
         if (guildTransformer == null) {
             return command.sendErrorMessage(context,
-                    "Unable to load the local server settings. (We need this to get the MGI Connected to this guild)");
+                "Unable to load the local server settings. (We need this to get the MGI Connected to this guild)");
         }
 
         if (guildTransformer.getMainGroupId() == 0 && !guildTransformer.isOfficialSubGroup()) {
             return command.sendErrorMessage(context,
-                    "A main group ID has not been set for this guild, or this is not an official server. So I don't know what settings to edit securely. Please set a MGI on this server, and make sure it's an officially connected server!");
+                "A main group ID has not been set for this guild, or this is not an official server. So I don't know what settings to edit securely. Please set a MGI on this server, and make sure it's an officially connected server!");
         }
 
         GlobalSettingsTransformer transformer = context.getGuildSettingsTransformer().getGlobalSettings();
         if (transformer == null) {
             return command.sendErrorMessage(context,
-                    "You have not set the MGI in your guild settings, so I don't know what global settings to edit.");
+                "You have not set the MGI in your guild settings, so I don't know what global settings to edit.");
         }
 
         String words = String.join(" ", Arrays.copyOfRange(args, 1, args.length)).toLowerCase();
@@ -229,9 +254,9 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
                     if (tc != null) {
                         tc.sendMessageEmbeds(context.makeInfo(
                                 "[The following words have been added to the **GLOBAL** wildcard filter by :user](:link):\n"
-                                        + "```:words```")
-                                .set("words", words).set("user", context.getMember().getAsMention())
-                                .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+                                    + "```:words```")
+                            .set("words", words).set("user", context.getMember().getAsMention())
+                            .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
                     }
                 }
                 return true;
@@ -278,39 +303,39 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
 
     private boolean getGlobalAutoModWildcardList(CommandMessage context, GlobalSettingsTransformer transformer) {
         context.makeSuccess("This the list of the current filtered wildcard words: \n```"
-                + transformer.getGlobalFilterWildcard() + "```").queue();
+            + transformer.getGlobalFilterWildcard() + "```").queue();
         return false;
     }
 
     private void updateGuildAutoModWildcard(CommandMessage message, GlobalSettingsTransformer transformer)
-            throws SQLException {
+        throws SQLException {
 
-            avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE).where("main_group_id", transformer.getMainGroupId())
-                    .update(statement -> statement.set("global_filter_wildcard",
-                            Xeus.gson.toJson(transformer.getGlobalFilterWildcard()), true));
+        avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE).where("main_group_id", transformer.getMainGroupId())
+            .update(statement -> statement.set("global_filter_wildcard",
+                Xeus.gson.toJson(transformer.getGlobalFilterWildcard()), true));
 
 
     }
 
     private boolean runAuditLogsCommand(CommandMessage context, String[] args,
-            GuildSettingsTransformer transformer) {
-        
+                                        GuildSettingsTransformer transformer) {
+
 
         if (args.length == 0) {
             context.makeInfo("Please select what setting you'd like to modify (0 = Disabled)\n"
-                    + " - ``mass-mention`` - "
-                    + (transformer.getMassMention() != 0 ? transformer.getMassMention() : "**Empty/Disabled**") + ")"
-                    + "\n" + " - ``emoji-spam`` - "
-                    + (transformer.getEmojiSpam() != 0 ? transformer.getEmojiSpam() : "**Empty/Disabled**") + ")" + "\n"
-                    + " - ``link-spam`` - "
-                    + (transformer.getLinkSpam() != 0 ? transformer.getLinkSpam() : "**Empty/Disabled**") + ")" + "\n"
-                    + " - ``message-spam`` - "
-                    + (transformer.getMessageSpam() != 0 ? transformer.getMessageSpam() : "**Empty/Disabled**") + ")"
-                    + "\n" + " - ``image-spam`` - "
-                    + (transformer.getImageSpam() != 0 ? transformer.getImageSpam() : "**Empty/Disabled**") + ")" + "\n"
-                    + " - ``character-spam`` - "
-                    + (transformer.getCharacterSpam() != 0 ? transformer.getCharacterSpam() : "**Empty/Disabled**")
-                    + ")").queue();
+                + " - ``mass-mention`` - "
+                + (transformer.getMassMention() != 0 ? transformer.getMassMention() : "**Empty/Disabled**") + ")"
+                + "\n" + " - ``emoji-spam`` - "
+                + (transformer.getEmojiSpam() != 0 ? transformer.getEmojiSpam() : "**Empty/Disabled**") + ")" + "\n"
+                + " - ``link-spam`` - "
+                + (transformer.getLinkSpam() != 0 ? transformer.getLinkSpam() : "**Empty/Disabled**") + ")" + "\n"
+                + " - ``message-spam`` - "
+                + (transformer.getMessageSpam() != 0 ? transformer.getMessageSpam() : "**Empty/Disabled**") + ")"
+                + "\n" + " - ``image-spam`` - "
+                + (transformer.getImageSpam() != 0 ? transformer.getImageSpam() : "**Empty/Disabled**") + ")" + "\n"
+                + " - ``character-spam`` - "
+                + (transformer.getCharacterSpam() != 0 ? transformer.getCharacterSpam() : "**Empty/Disabled**")
+                + ")").queue();
             return false;
         }
 
@@ -333,7 +358,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean runCharacterSpamUpdateCommand(CommandMessage context, String[] args,
-            GuildSettingsTransformer transformer) {
+                                                  GuildSettingsTransformer transformer) {
         if (NumberUtil.isNumeric(args[1])) {
             context.makeInfo("Update character spam to " + args[1]).queue();
             transformer.setCharacterSpam(Integer.parseInt(args[1]));
@@ -346,7 +371,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean runImageSpamUpdateCommand(CommandMessage context, String[] args,
-            GuildSettingsTransformer transformer) {
+                                              GuildSettingsTransformer transformer) {
         context.makeInfo("Update image spam to " + args[1]).queue();
         if (NumberUtil.isNumeric(args[1])) {
             context.makeInfo("Update link spam to " + args[1]).queue();
@@ -359,7 +384,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean runMessageSpamUpdateCommand(CommandMessage context, String[] args,
-            GuildSettingsTransformer transformer) {
+                                                GuildSettingsTransformer transformer) {
         if (NumberUtil.isNumeric(args[1])) {
             context.makeInfo("Update message spam to " + args[1]).queue();
             transformer.setMessageSpam(Integer.parseInt(args[1]));
@@ -371,7 +396,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean runLinkSpamUpdateCommand(CommandMessage context, String[] args,
-            GuildSettingsTransformer transformer) {
+                                             GuildSettingsTransformer transformer) {
         if (NumberUtil.isNumeric(args[1])) {
             context.makeInfo("Update link spam to " + args[1]).queue();
             transformer.setLinkSpam(Integer.parseInt(args[1]));
@@ -383,7 +408,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean runEmojiSpamUpdateCommand(CommandMessage context, String[] args,
-            GuildSettingsTransformer transformer) {
+                                              GuildSettingsTransformer transformer) {
         if (NumberUtil.isNumeric(args[1])) {
             context.makeInfo("Update emoji spam to " + args[1]).queue();
             transformer.setEmojiSpam(Integer.parseInt(args[1]));
@@ -395,7 +420,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean runMentionUpdateCommand(CommandMessage context, String[] args,
-            GuildSettingsTransformer transformer) {
+                                            GuildSettingsTransformer transformer) {
         if (NumberUtil.isNumeric(args[1])) {
             context.makeInfo("Update mention spam to " + args[1]).queue();
             transformer.setMassMention(Integer.parseInt(args[1]));
@@ -410,8 +435,8 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
         try {
 
             avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE)
-                    .where("main_group_id", context.getGuildSettingsTransformer().getGlobalSettings().getMainGroupId())
-                    .update(statement -> statement.set(table, setTo));
+                .where("main_group_id", context.getGuildSettingsTransformer().getGlobalSettings().getMainGroupId())
+                .update(statement -> statement.set(table, setTo));
 
             context.makeSuccess("Updated!").queue();
 
@@ -421,10 +446,10 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
                 if (tc != null) {
                     tc.sendMessageEmbeds(
                             context.makeInfo("[``:tableSetting`` was changed to ``:value`` by :mention](:link)")
-                                    .set("tableSetting", table).set("value", setTo)
-                                    .set("mention", context.getMember().getAsMention())
-                                    .set("link", context.getMessage().getJumpUrl()).buildEmbed())
-                            .queue();
+                                .set("tableSetting", table).set("value", setTo)
+                                .set("mention", context.getMember().getAsMention())
+                                .set("link", context.getMessage().getJumpUrl()).buildEmbed())
+                        .queue();
                 }
             }
 
@@ -437,10 +462,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     }
 
 
-
-
-
-    private void runModRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set<Long> mods) {
+    private void runModRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set <Long> mods) {
         if (b) {
             sb.append("\n\n**Moderator roles**:");
             for (Long s : mods) {
@@ -454,7 +476,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
         }
     }
 
-    private void runGroupShoutRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set<Long> groupShouts) {
+    private void runGroupShoutRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set <Long> groupShouts) {
         if (b) {
             sb.append("\n\n**Group Shout roles**:");
             for (Long s : groupShouts) {
@@ -468,7 +490,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
         }
     }
 
-    private void runAdminRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set<Long> admins) {
+    private void runAdminRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set <Long> admins) {
         if (b) {
             sb.append("\n\n**Admin roles**:");
             for (Long s : admins) {
@@ -482,7 +504,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
         }
     }
 
-    private void runNoLinksRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set<Long> admins) {
+    private void runNoLinksRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set <Long> admins) {
         if (b) {
             sb.append("\n\n**No-Link roles** (Roles that can't send any links):");
             for (Long s : admins) {
@@ -498,16 +520,16 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
 
     private boolean sendEnabledRoles(CommandMessage context, GuildSettingsTransformer transformer) {
         if (transformer.getLeadRoles().isEmpty() && transformer.getHRRoles().isEmpty()
-                && transformer.getLeadRoles().isEmpty() && transformer.getNoLinksRoles().isEmpty()
-                && transformer.getMainDiscordRole() == 0 && transformer.getRobloxGroupId() == 0) {
+            && transformer.getLeadRoles().isEmpty() && transformer.getNoLinksRoles().isEmpty()
+            && transformer.getMainDiscordRole() == 0 && transformer.getRobloxGroupId() == 0) {
             return command.sendErrorMessage(context,
-                    "Sorry, but there are no manager, admin, mod, main role id, roblox group id or no-links roles on the discord configured.");
+                "Sorry, but there are no manager, admin, mod, main role id, roblox group id or no-links roles on the discord configured.");
         }
 
-        Set<Long> mod = transformer.getHRRoles();
-        Set<Long> admins = transformer.getLeadRoles();
-        Set<Long> noLinks = transformer.getNoLinksRoles();
-        Set<Long> groupShouts = transformer.getGroupShoutRoles();
+        Set <Long> mod = transformer.getHRRoles();
+        Set <Long> admins = transformer.getLeadRoles();
+        Set <Long> noLinks = transformer.getNoLinksRoles();
+        Set <Long> groupShouts = transformer.getGroupShoutRoles();
         Long groupId = transformer.getRobloxGroupId();
         Long mainRoleId = transformer.getMainDiscordRole();
 
@@ -520,11 +542,11 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
         runMainRoleIdCheck(context, sb, mainRoleId);
 
         context.makeInfo(context.i18n("listRoles")).set("roles", sb.toString())
-                .setTitle(
-                        context.i18n("listRolesTitle",
-                                transformer.getHRRoles().size() + transformer.getLeadRoles().size()
-                                        + transformer.getLeadRoles().size() + transformer.getNoLinksRoles().size()))
-                .queue();
+            .setTitle(
+                context.i18n("listRolesTitle",
+                    transformer.getHRRoles().size() + transformer.getLeadRoles().size()
+                        + transformer.getLeadRoles().size() + transformer.getNoLinksRoles().size()))
+            .queue();
 
         return true;
     }

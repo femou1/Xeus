@@ -23,6 +23,7 @@ package com.pinewoodbuilders.commands.administration;
 
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.chat.SimplePaginator;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
@@ -83,7 +84,7 @@ public class ModlogHistoryCommand extends Command {
 
     @Override
     public List <String> getTriggers() {
-        return Arrays.asList("modloghistory", "history", "warnings", "warns");
+        return Arrays.asList("warns", "history", "warnings", "modloghistory");
     }
 
     @Override
@@ -150,6 +151,10 @@ public class ModlogHistoryCommand extends Command {
                         .queue();
 
                     return true;
+                } else {
+                    context.makeError("Unable to find anyone with these parameters...")
+                        .queue();
+                    return false;
                 }
             }
 
@@ -187,16 +192,18 @@ public class ModlogHistoryCommand extends Command {
             paginator.forEach((_index, _key, val) -> messages.add(val));
             messages.add("\n" + paginator.generateFooter(context.getGuild(), generateCommandTrigger(context.getMessage())));
 
+
+            int warns = avaire.getWarningsManager().getWarns(context.guild.getIdLong(), Long.valueOf(user)).size();
+
+            PlaceholderMessage mess = context.makeInfo(String.join("\n", messages)).setFooter("This user has " + warns + "running warnings");
             User u = avaire.getShardManager().getUserById(user);
             if (u != null) {
-                context.makeInfo(String.join("\n", messages))
-                    .setTitle(context.i18n("title",
+                    mess.setTitle(context.i18n("title",
                         u.getName(), u.getDiscriminator(), paginator.getTotal()
                     ))
                     .queue();
             } else {
-                context.makeInfo(String.join("\n", messages))
-                    .setTitle(context.i18n("title",
+                mess.setTitle(context.i18n("title",
                         user, "DNF", paginator.getTotal()
                     ))
                     .queue();

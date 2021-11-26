@@ -31,6 +31,7 @@ import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.internal.utils.PermissionUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.sql.SQLException;
@@ -339,7 +340,7 @@ public class CheckPermissionUtil {
         return false;
     }
 
-    public static GuildPermissionCheckType getPermissionLevel(CommandContext context) {
+    public static GuildPermissionCheckType getPermissionLevel(@NotNull CommandContext context) {
         return getPermissionLevel(context.getGuildSettingsTransformer(), context.getGuild(), context.getMember());
     }
 }

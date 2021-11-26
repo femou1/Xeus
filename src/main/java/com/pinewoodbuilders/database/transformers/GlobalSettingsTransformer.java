@@ -149,4 +149,8 @@ public class GlobalSettingsTransformer extends Transformer {
     public boolean getNewWarnSystem() {
         return newWarnSystem;
     }
+
+    public void setNewWarnSystem(boolean newWarnSystem) {
+        this.newWarnSystem = newWarnSystem;
+    }
 }
