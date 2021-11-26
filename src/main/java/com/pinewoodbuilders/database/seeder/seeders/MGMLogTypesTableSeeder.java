@@ -36,7 +36,7 @@ public class MGMLogTypesTableSeeder extends Seeder {
 
     @Override
     public String table() {
-        return Constants.LOG_TYPES_TABLE_NAME;
+        return Constants.MGM_LOG_TYPES_TABLE_NAME;
     }
 
     @Override

@@ -132,7 +132,6 @@ public class Modlog {
             .setTimestamp(Instant.now());
 
         switch (action.getType()) {
-            case WARN:
             case KICK:
             case BAN:
             case UNBAN:
@@ -146,6 +145,7 @@ public class Modlog {
             case MUTE:
             case TEMP_MUTE:
             case TEMP_BAN:
+            case WARN:
                 //noinspection ConstantConditions
                 split = action.getMessage().split("\n");
                 builder
@@ -250,7 +250,7 @@ public class Modlog {
                     action.getType().equals(ModlogType.WARN)
                         ? "in" : "from"
                 ))
-                //.addField("Type", action.getType().getEmote() + action.getType().getName(guild), true)
+                .addField("Type", action.getType().getEmote() + action.getType().getName(guild), true)
                 .addField("Reason", action.getMessage(), true)
                 .setTimestamp(Instant.now());
 

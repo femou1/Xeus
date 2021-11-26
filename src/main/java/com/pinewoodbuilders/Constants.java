@@ -65,6 +65,7 @@ public class Constants {
     public static final String EVALS_DATABASE_TABLE_NAME = "pinewood_evaluations";
     public static final String EVALS_LOG_DATABASE_TABLE_NAME = "pinewood_evaluations_log";
     public static final String PENDING_QUIZ_TABLE_NAME = "pinewood_pending_quiz";
+    public static final String WARNINGS_TABLE_NAME = "warns";
 
     public static final String VOTE_TABLE_NAME = "xeus_vote";
     public static final String VOTES_TABLE_NAME = "xeus_votes";
@@ -77,7 +78,6 @@ public class Constants {
     public static final String ON_WATCH_TABLE_NAME = "on_watch";
     public static final String ON_WATCH_LOG_TABLE_NAME = "on_watch_logs";
     public static final String ON_WATCH_TYPES_TABLE_NAME = "on_watch_types";
-
 
     public static final String ANTI_UNBAN_TABLE_NAME = "pia_antiban";
     public static final String FEATURE_BLACKLIST_TABLE_NAME = "feature_blacklist";

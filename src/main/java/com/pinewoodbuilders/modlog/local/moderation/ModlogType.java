@@ -72,7 +72,7 @@ public enum ModlogType {
     /**
      * Represents when a user is pardoned for an old modlog case.
      */
-    PARDON(8, null, false, false, MessageType.SUCCESS.getColor()),
+    PARDON(8, null, true, false, MessageType.SUCCESS.getColor()),
 
     /**
      * Represents when a user is muted from a server.

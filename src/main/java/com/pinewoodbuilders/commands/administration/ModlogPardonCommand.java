@@ -21,21 +21,25 @@
 
 package com.pinewoodbuilders.commands.administration;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
+import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.moderation.warn.WarnContainer;
 import com.pinewoodbuilders.modlog.local.moderation.Modlog;
 import com.pinewoodbuilders.modlog.local.moderation.ModlogAction;
 import com.pinewoodbuilders.modlog.local.moderation.ModlogType;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.User;
 
 import javax.annotation.Nonnull;
 import java.sql.SQLException;
@@ -62,19 +66,19 @@ public class ModlogPardonCommand extends Command {
     }
 
     @Override
-    public List<String> getUsageInstructions() {
+    public List <String> getUsageInstructions() {
         return Collections.singletonList(
             "`:command <modlog id> [reason]` - Pardons the given modlog case ID with the given reason."
         );
     }
 
     @Override
-    public List<String> getExampleUsage() {
+    public List <String> getExampleUsage() {
         return Collections.singletonList("`:command 9 Whoops, was a mistake`");
     }
 
     @Override
-    public List<Class<? extends Command>> getRelations() {
+    public List <Class <? extends Command>> getRelations() {
         return Arrays.asList(
             ModlogHistoryCommand.class,
             WarnCommand.class,
@@ -87,12 +91,12 @@ public class ModlogPardonCommand extends Command {
     }
 
     @Override
-    public List<String> getTriggers() {
+    public List <String> getTriggers() {
         return Collections.singletonList("pardon");
     }
 
     @Override
-    public List<String> getMiddleware() {
+    public List <String> getMiddleware() {
         return Arrays.asList(
             "throttle:user,1,4",
             "isGuildHROrHigher"
@@ -102,7 +106,7 @@ public class ModlogPardonCommand extends Command {
 
     @Nonnull
     @Override
-    public List<CommandGroup> getGroups() {
+    public List <CommandGroup> getGroups() {
         return Collections.singletonList(CommandGroups.MODERATION);
     }
 
@@ -172,9 +176,31 @@ public class ModlogPardonCommand extends Command {
             context.makeSuccess(context.i18n("message"))
                 .set("case", caseId)
                 .queue();
+
+            if (type == ModlogType.WARN) {
+                GuildSettingsTransformer settings = context.getGuildSettingsTransformer();
+                if (settings == null) return true;
+                GlobalSettingsTransformer globalSettings = settings.getGlobalSettings();
+                if (globalSettings == null) return true;
+                if (!globalSettings.getNewWarnSystem()) return true;
+
+                User u = avaire.getShardManager().getUserById(row.getString("target_id"));
+                if (u == null) return false;
+
+                for (WarnContainer c : avaire.getWarningsManager().getWarns(context.getGuild().getIdLong(), u.getIdLong()))
+                    if (c.getCaseId().equals(String.valueOf(caseId))) {
+                        try {
+                            avaire.getWarningsManager().unregisterWarn(context.guild.getIdLong(), u.getIdLong(), String.valueOf(caseId));
+                            Modlog.notifyUser(u, context.guild, modlogAction, "Warn has been removed from the database, your warn total has now lessened.");
+                        } catch (SQLException e) {
+                            context.makeError("Failed to remove the warn in the database, this warn may not expire... Please check with the developer.").queue();
+                        }
+                    }
+            }
         } catch (SQLException e) {
             return sendErrorMessage(context, "Failed to load the case ID from the database, please try again later.");
         }
+
 
         return true;
     }

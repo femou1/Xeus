@@ -138,8 +138,8 @@ public class GlobalMuteManager {
                     globalMutes.put(mgi, new HashSet<>());
                 }
 
-                globalMutes.get(mgi).add(new MuteContainer(row.getLong("mgi"), row.getLong("target_id"),
-                    row.getTimestamp("expires_in"), row.getBoolean("global")));
+                globalMutes.get(mgi).add(new MuteContainer(row.getLong("guild_id"), row.getLong("target_id"),
+                    row.getTimestamp("expires_in"), row.getBoolean("global"), row.getLong("mgi")));
             }
 
             log.info("Syncing complete! {} global mutes entries was found that has not expired yet",

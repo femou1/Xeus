@@ -462,37 +462,37 @@ public class VerificationManager {
                 }
             }
             return true;
-        }
-        if (canAppeal) {
-            guild.modifyMemberRoles(member, guild.getRoleById(canAppealRoleId))
-                .queue();
-            member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message..."))
-                .flatMap(m -> m.editMessage(member.getAsMention())
-                    .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned within "
-                        + transformer.getGlobalSettings().getMainGroupName()
-                        + ", [however you are still allowed to appeal within the " + guild.getName() + "]().\n\n"
-                        + "Your trello-ban has the following labels, I'd suggest sharing these with your ticket handler:"
-                        + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
-                        .buildEmbed()))
-                .queue();
-        }
+        } else {
+            if (canAppeal) {
+                guild.modifyMemberRoles(member, guild.getRoleById(canAppealRoleId))
+                    .queue();
+                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message..."))
+                    .flatMap(m -> m.editMessage(member.getAsMention())
+                        .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned within "
+                                + transformer.getGlobalSettings().getMainGroupName()
+                                + ", [however you are still allowed to appeal within the " + guild.getName() + "]().\n\n"
+                                + "Your trello-ban has the following labels, I'd suggest sharing these with your ticket handler:"
+                                + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
+                            .buildEmbed()))
+                    .queue();
+            }
 
-        if (!canAppeal && isPermenant) {
-            guild.modifyMemberRoles(member, guild.getRoleById(trellobanRoleId))
-                .queue();
-            member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Loading ban message..."))
-                .flatMap(m -> m.editMessage(member.getAsMention()).setEmbeds(MessageFactory.makeSuccess(m,
-                    "[You have been trello-banned forever within Pinewood, this ban is permenant, so you're not allowed to appeal it. We wish you a very good day sir, and goodbye.](https://www.youtube.com/watch?v=BXUhfoUJjuQ)")
-                    .buildEmbed()))
-                .queue();
-            avaire.getShardManager().getTextChannelById("778853992704507945").sendMessage("Loading...")
-                .flatMap(mess -> mess.editMessage("Shut the fuck up.")
-                    .setEmbeds(new PlaceholderMessage(new EmbedBuilder(), member.getAsMention()
-                        + " has a permanent trelloban. They have been sent the STFU video (if their DMs are on).")
+            if (!canAppeal && isPermenant) {
+                guild.modifyMemberRoles(member, guild.getRoleById(trellobanRoleId))
+                    .queue();
+                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Loading ban message..."))
+                    .flatMap(m -> m.editMessage(member.getAsMention()).setEmbeds(MessageFactory.makeSuccess(m,
+                            "[You have been trello-banned forever within Pinewood, this ban is permenant, so you're not allowed to appeal it. We wish you a very good day sir, and goodbye.](https://www.youtube.com/watch?v=BXUhfoUJjuQ)")
                         .buildEmbed()))
-                .queue();
+                    .queue();
+                avaire.getShardManager().getTextChannelById("778853992704507945").sendMessage("Loading...")
+                    .flatMap(mess -> mess.editMessage("Shut the fuck up.")
+                        .setEmbeds(new PlaceholderMessage(new EmbedBuilder(), member.getAsMention()
+                            + " has a permanent trelloban. They have been sent the STFU video (if their DMs are on).")
+                            .buildEmbed()))
+                    .queue();
+            }
         }
-
         return false;
     }
 

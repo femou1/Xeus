@@ -48,7 +48,7 @@ public class GlobalSettingsController {
             "global_settings.global_filter_exact", "global_settings.global_filter_wildcard",
             "global_settings.global_filter_log_channel", "global_settings.mgm_logs",
             "global_settings.appeals_discord_id", "global_settings.global_modlog",
-            "global_settings.global_modlog_case"
+            "global_settings.global_modlog_case", "global_settings.new_warn_system"
     };
 
     /**

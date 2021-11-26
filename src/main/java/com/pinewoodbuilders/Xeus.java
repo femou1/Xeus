@@ -66,6 +66,7 @@ import com.pinewoodbuilders.moderation.ban.BanManager;
 import com.pinewoodbuilders.moderation.mute.MuteManager;
 import com.pinewoodbuilders.moderation.mute.globalmute.GlobalMuteManager;
 import com.pinewoodbuilders.moderation.punishments.GlobalPunishmentManager;
+import com.pinewoodbuilders.moderation.warn.WarnsManager;
 import com.pinewoodbuilders.moderation.watch.WatchManager;
 import com.pinewoodbuilders.moderation.watch.globalwatch.GlobalWatchManager;
 import com.pinewoodbuilders.pinewood.VoiceWhitelistManager;
@@ -144,6 +145,7 @@ public class Xeus {
     private final BanManager banManager;
     private final GlobalMuteManager globalMuteManager;
     private final WatchManager onWatchManger;
+    private final WarnsManager warnsManager;
     private final ShardEntityCounter shardEntityCounter;
     private final EventEmitter eventEmitter;
     private final BotAdmin botAdmins;
@@ -454,7 +456,7 @@ public class Xeus {
         log.info("Preparing mute manager");
         muteManger = new MuteManager(this);
 
-        log.info("Prepairing global mute manager");
+        log.info("Preparing global mute manager");
         globalMuteManager = new GlobalMuteManager(this);
 
         log.info("Preparing ban manager");
@@ -463,8 +465,11 @@ public class Xeus {
         log.info("Preparing on watch manager");
         onWatchManger = new WatchManager(this);
 
-        log.info("Prepairing global mute manager");
+        log.info("Preparing global mute manager");
         globalWatchManager = new GlobalWatchManager(this);
+
+        log.info("Preparing warnings manager");
+        warnsManager = new WarnsManager(this);
 
         log.info("Preparing voice whitelist manager.");
         voiceWhitelistManager = new VoiceWhitelistManager(this);
@@ -758,4 +763,7 @@ public class Xeus {
     }
 
 
+    public WarnsManager getWarningsManager() {
+        return warnsManager;
+    }
 }

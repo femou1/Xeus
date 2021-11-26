@@ -104,7 +104,8 @@ public class GlobalModlog {
 
         String[] split = null;
         EmbedBuilder builder = MessageFactory.createEmbeddedBuilder()
-            .setTitle(I18n.format("{0} {1} | Case #{2}",
+            .setTitle(I18n.format("{0} {1} - {2} | Case #{3}",
+                action.getType().getName(transformer),
                 action.getType().getEmote(),
                 transformer.getMainGroupName(),
                 transformer.getGlobalModlogCase()
@@ -118,6 +119,8 @@ public class GlobalModlog {
             case GLOBAL_BAN:
             case GLOBAL_UNBAN:
             case GLOBAL_UNMUTE:
+            case GLOBAL_WATCH:
+            case GLOBAL_UN_WATCH:
                 builder
                     .addField("User", action.getStringifiedTarget(), true)
                     .addField("Moderator", action.getStringifiedModerator(), true)
@@ -127,6 +130,7 @@ public class GlobalModlog {
             case GLOBAL_MUTE:
             case GLOBAL_TEMP_MUTE:
             case GLOBAL_TEMP_BAN:
+            case GLOBAL_TEMP_WATCH:
                 //noinspection ConstantConditions
                 split = action.getMessage().split("\n");
                 builder

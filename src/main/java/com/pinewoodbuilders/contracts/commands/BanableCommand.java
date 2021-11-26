@@ -177,10 +177,10 @@ public abstract class BanableCommand extends Command {
         final Carbon finalExpiresAt = expiresAt;
 
         ModlogAction modlogAction = new ModlogAction(type, context.getAuthor(), user,
-                finalExpiresAt != null
-                        ? finalExpiresAt.toDayDateTimeString() + " (" + finalExpiresAt.diffForHumans(true) + ")" + "\n"
-                                + reason
-                        : "\n" + reason);
+            finalExpiresAt != null
+                ? finalExpiresAt.toDayDateTimeString() + " (" + finalExpiresAt.diffForHumans(true) + ")" + "\n"
+                + reason
+                : "\n" + reason);
 
         String caseId = Modlog.log(avaire, context, modlogAction);
 
@@ -188,10 +188,10 @@ public abstract class BanableCommand extends Command {
 
         context.getGuild().ban(user, soft ? 0 : 7, String.format("%s - %s#%s (%s)", reason,
                 context.getAuthor().getName(), context.getAuthor().getDiscriminator(), context.getAuthor().getId()))
-                .queue(aVoid -> {
-                    try {
-                        if (finalExpiresAt != null) avaire.getBanManger().registerBan(caseId, context.getGuild().getIdLong(), user.getIdLong(), finalExpiresAt);
-                    
+            .queue(aVoid -> {
+                try {
+                    if (finalExpiresAt != null) avaire.getBanManger().registerBan(caseId, context.getGuild().getIdLong(), user.getIdLong(), finalExpiresAt);
+
 
                     context.makeSuccess(":target has been banned :time")
                         .set("target", user.getAsMention())
@@ -199,12 +199,12 @@ public abstract class BanableCommand extends Command {
                             ? "permenantly"
                             : String.format("for %s", finalExpiresAt.diffForHumans(true)))
                         .queue();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }, throwable -> context.makeWarning(context.i18n("failedToBan"))
-                        .set("target", user.getName() + "#" + user.getDiscriminator())
-                        .set("error", throwable.getMessage()).queue());
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }, throwable -> context.makeWarning(context.i18n("failedToBan"))
+                .set("target", user.getName() + "#" + user.getDiscriminator())
+                .set("error", throwable.getMessage()).queue());
         return true;
     }
 
@@ -213,7 +213,7 @@ public abstract class BanableCommand extends Command {
         return role != null && RoleUtil.isRoleHierarchyHigher(author.getRoles(), role);
     }
 
-        private String generateReason(String[] args) {
+    private String generateReason(String[] args) {
         return args.length == 0 ?
             "No reason was given." :
             String.join(" ", args);

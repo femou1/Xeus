@@ -63,7 +63,7 @@ public enum GlobalModlogType {
     /**
      * Represents when a user is pardoned for an old modlog case.
      */
-    GLOBAL_PARDON(6, null, false, false, MessageType.MGM_PINEWOOD.getColor()),
+    GLOBAL_PARDON(6, null, true, false, MessageType.MGM_PINEWOOD.getColor()),
 
     /**
      * Represents when a user is muted from a server.
@@ -202,9 +202,10 @@ public enum GlobalModlogType {
     }
 
     private String loadNameProperty(GlobalSettingsTransformer guild, String type) {
+        System.out.println(CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name()));
         return I18n.getString(Xeus.getInstance().getShardManager().getGuildById(guild.getAppealsDiscordId()),
             String.format("global-modlog-types.%s.%s",
-            CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name()),
+                CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name()),
             type
         ));
     }

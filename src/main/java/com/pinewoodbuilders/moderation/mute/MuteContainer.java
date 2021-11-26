@@ -190,8 +190,7 @@ public class MuteContainer {
     }
 
     public boolean isGlobalSame(long userId, long mgi) {
-        return 0L == this.guildId
-            && getUserId() == userId
+        return getUserId() == userId
             && getMgi() == mgi;
     }
 

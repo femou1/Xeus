@@ -166,7 +166,7 @@ public class GlobalModCommand extends Command {
         if (user == null) {
             return sendErrorMessage(context, context.i18n("invalidUserMentioned"));
         }
-        if (avaire.getGlobalMuteManager().isGlobalMuted(mainGroupSettings.getMainGroupId(), user.getIdLong())) {
+        if (!avaire.getGlobalWatchManager().isGlobalWatched(mainGroupSettings.getMainGroupId(), user.getIdLong())) {
             return sendErrorMessage(context, "This user is **not** global muted, check if they are locally muted.");
         }
 
@@ -235,7 +235,7 @@ public class GlobalModCommand extends Command {
         if (user == null) {
             return sendErrorMessage(context, context.i18n("invalidUserMentioned"));
         }
-        if (avaire.getGlobalMuteManager().isGlobalMuted(mainGroupSettings.getMainGroupId(), user.getIdLong())) {
+        if (!avaire.getGlobalMuteManager().isGlobalMuted(mainGroupSettings.getMainGroupId(), user.getIdLong())) {
             return sendErrorMessage(context, "This user is **not** global muted, check if they are locally muted.");
         }
 

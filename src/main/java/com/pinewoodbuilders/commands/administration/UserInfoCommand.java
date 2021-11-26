@@ -182,16 +182,21 @@ public class UserInfoCommand extends Command {
                 
                 if (data.getString("roblox_group_id") != null) {
                     List<RobloxUserGroupRankService.Data> ranks = avaire.getRobloxAPIManager().getUserAPI().getUserRanks(verifiedRobloxUser.getRobloxId());
-                    for (RobloxUserGroupRankService.Data rank : ranks) {
-                        if (rank.getGroup().getId() == data.getLong("roblox_group_id")) {
-                            if (rank.getRole().getRank() >= data.getInt("minimum_hr_rank")) {
-                                sb.append("\n**").append(g.getName()).append("** - `").append(rank.getRole().getName()).append("` (`").append(rank.getRole().getRank()).append("`)");
-                            } else {
-                                sb.append("\n").append(g.getName()).append(" - `").append(rank.getRole().getName()).append("` (`").append(rank.getRole().getRank()).append("`)");
-                            }
+                    if (ranks != null) {
+                        for (RobloxUserGroupRankService.Data rank : ranks) {
+                            if (rank.getGroup().getId() == data.getLong("roblox_group_id")) {
+                                if (rank.getRole().getRank() >= data.getInt("minimum_hr_rank")) {
+                                    sb.append("\n**").append(g.getName()).append("** - `").append(rank.getRole().getName()).append("` (`").append(rank.getRole().getRank()).append("`)");
+                                } else {
+                                    sb.append("\n").append(g.getName()).append(" - `").append(rank.getRole().getName()).append("` (`").append(rank.getRole().getRank()).append("`)");
+                                }
 
+                            }
                         }
+                    } else {
+                        sb.append("***No roles found for `").append(g.getName()).append("`***");
                     }
+
                 }
             }
 

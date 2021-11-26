@@ -45,6 +45,7 @@ public class GlobalSettingsTransformer extends Transformer {
 
     private String globalModlogChannel = null;
     private int globalModlogCase = 0;
+    private boolean newWarnSystem = false;
 
     public GlobalSettingsTransformer(DataRow data) {
         super(data);
@@ -59,6 +60,8 @@ public class GlobalSettingsTransformer extends Transformer {
 
             globalModlogChannel = data.getString("global_modlog");
             globalModlogCase = data.getInt("global_modlog_case");
+
+            newWarnSystem = data.getBoolean("new_warn_system");
 
             if (data.getString("global_filter_exact", null) != null) {
                 List<String> dbFilter = Xeus.gson.fromJson(data.getString("global_filter_exact"),
@@ -143,4 +146,7 @@ public class GlobalSettingsTransformer extends Transformer {
         this.globalModlogCase = globalModlogCase;
     }
 
+    public boolean getNewWarnSystem() {
+        return newWarnSystem;
+    }
 }

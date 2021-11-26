@@ -109,7 +109,6 @@ public class RemindCommand extends Command {
 
 
         boolean respondInDM = args[0].equalsIgnoreCase("me");
-
         if (args.length == 1) {
             return sendErrorMessage(context, "errors.missingArgument", "time");
         }
@@ -221,6 +220,7 @@ public class RemindCommand extends Command {
         return false;
 
     }
+
 
     private void handleReminderMessage(CommandMessage context, String message, Carbon time, boolean respondInDM)
     {
