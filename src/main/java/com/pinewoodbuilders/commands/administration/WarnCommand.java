@@ -201,7 +201,7 @@ public class WarnCommand extends Command {
 
 
         HashSet <WarnContainer> warns = avaire.getWarningsManager().getWarns(context.getGuild().getIdLong(), user.getIdLong());
-        if (warns.size() >= 3) startWarningsCheck(context, user, warns.size());
+        if (warns.size() >= 1) startWarningsCheck(context, user, warns.size());
 
         return true;
     }
@@ -223,7 +223,7 @@ public class WarnCommand extends Command {
             "Cancel");
 
         if (!grade.isGlobalMute()) globalMute = globalMute.asDisabled();
-        if (!(grade.isGlobalWatch() && size >= 6)) gwatchmute = gwatchmute.asDisabled();
+        if (!(grade.isGlobalWatch())) gwatchmute = gwatchmute.asDisabled();
         if (!grade.isLocalBan()) localBanAndGlobalWatch = localBanAndGlobalWatch.asDisabled();
         if (!grade.isGlobalBan()) globalBan = globalBan.asDisabled();
 

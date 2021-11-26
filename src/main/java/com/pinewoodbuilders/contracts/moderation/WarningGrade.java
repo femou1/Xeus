@@ -56,6 +56,7 @@ public enum WarningGrade {
     public static WarningGrade getLabelFromWarns(int warns){
         for(WarningGrade grade : WarningGrade.values()){
             if(warns == grade.getWarns()) return grade;
+            if (warns >= 16) return FIFTEEN_WARNINGS;
         }
         return null;
     }
