@@ -156,13 +156,25 @@ public class WarnCommand extends Command {
 
         Carbon expiresAt = null;
         if (args.length > 1) {
-            expiresAt = parseTime(args[1]);
+            expiresAt = parseTime(args[1].toLowerCase(Locale.ROOT));
         }
 
         String reason = generateReason(Arrays.copyOfRange(args, expiresAt == null ? 1 : 2, args.length));
 
+
         if (expiresAt == null) {
-            expiresAt = Carbon.now().addDays(30);
+            Carbon expire = Carbon.now().addSecond();
+            switch (args[1].toLowerCase(Locale.ROOT)) {
+                case "T1":
+                    expire = expire.addMonth();
+                case "T2":
+                    expire = expire.addMonths(2);
+                case "T3":
+                    expire = expire.addMonths(3);
+                default:
+                    expire = expire.addDays(30);
+            }
+            expiresAt = expire;
         }
 
         ModlogAction modlogAction = new ModlogAction(
@@ -201,12 +213,13 @@ public class WarnCommand extends Command {
 
 
         HashSet <WarnContainer> warns = avaire.getWarningsManager().getWarns(context.getGuild().getIdLong(), user.getIdLong());
-        if (warns.size() >= 1) startWarningsCheck(context, user, warns.size());
+        if (warns.size() >= 1) startWarningsCheck(context, user, warns);
 
         return true;
     }
 
-    private void startWarningsCheck(CommandMessage context, User user, int size) {
+    private void startWarningsCheck(CommandMessage context, User user, HashSet <WarnContainer> warns) {
+        int size = warns.size();
         WarningGrade grade = WarningGrade.getLabelFromWarns(size);
 
         if (grade == null) return;
@@ -227,15 +240,47 @@ public class WarnCommand extends Command {
         if (!grade.isLocalBan()) localBanAndGlobalWatch = localBanAndGlobalWatch.asDisabled();
         if (!grade.isGlobalBan()) globalBan = globalBan.asDisabled();
 
-        MessageEmbed messageEmbed = context.makeInfo(user.getAsMention() + " has reached a total of " + size + " warns, by this rule. This user should either of these punishments.").buildEmbed();
+        MessageEmbed messageEmbed = context.makeInfo(user.getAsMention() + " has reached a total of " + size + " warns, by this rule. This user should either of these punishments. The fetched warnings: \n").buildEmbed();
         ActionRow ar = ActionRow.of(
             globalMute, gwatchmute, localBanAndGlobalWatch, globalBan, cancel
         );
         context.getMessageChannel()
-            .sendMessageEmbeds(messageEmbed)
+            .sendMessageEmbeds(messageEmbed, outputWarnsWithReason(warns))
             .setActionRows(ar)
             .queue(message -> listenForInteraction(message, context, user, size, grade));
 
+    }
+
+    private MessageEmbed outputWarnsWithReason(HashSet <WarnContainer> warns) {
+        try {
+            StringBuilder sb = new StringBuilder();
+            int warnNumber = 1;
+            for (WarnContainer warn : warns) {
+                Collection collection = avaire.getDatabase().newQueryBuilder(Constants.LOG_TABLE_NAME)
+                    .where("guild_id", warn.getGuildId())
+                    .where("modlogCase", warn.getCaseId())
+                    .get();
+
+
+                if (collection.isEmpty()) {
+                    continue;
+                }
+
+                DataRow row = collection.first();
+                String reason = row.getString("reason");
+                Carbon warnDate = row.getTimestamp("created_at");
+                Carbon expireDate = warn.getExpiresAt();
+
+                sb.append("**").append(warnNumber).append("** - `").append(warnDate.diffForHumans(true)).append("`").append("\n")
+                    .append("```").append(reason).append("```").append("\n`")
+                    .append(expireDate != null ? expireDate.diffForHumans(true) : "Forever").append("`\n\n");
+                warnNumber++;
+            }
+            return new EmbedBuilder().setDescription(sb.toString()).setColor(new Color(1,1,1)).build();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return new EmbedBuilder().setDescription("Unable to retrieve warns...").setColor(new Color(255,0,0)).build();
     }
 
     private void listenForInteraction(Message messageExecute, CommandMessage context, User user, int size, WarningGrade grade) {
@@ -312,15 +357,15 @@ public class WarnCommand extends Command {
         StringBuilder sb = new StringBuilder();
         String reason = "User has been global-banned due to reaching 15 warnings in " + context.getGuild().getName();
 
-        List<Guild> guilds = getGuildsByMainGroupId(settingsTransformer.getMainGroupId());
+        List <Guild> guilds = getGuildsByMainGroupId(settingsTransformer.getMainGroupId());
 
         int bannedGuilds = 0;
         for (Guild guild : guilds) {
             if (g != null) {
                 if (g.getId().equals(guild.getId())) {
 
-                        sb.append("``").append(guild.getName()).append("`` - :x:\n");
-                        continue;
+                    sb.append("``").append(guild.getName()).append("`` - :x:\n");
+                    continue;
 
                 }
             }
@@ -490,15 +535,14 @@ public class WarnCommand extends Command {
         Modlog.notifyUser(user, context.getGuild(), modlogAction, caseId);
 
 
-
         context.guild.ban(user, 0, String.format("%s - %s#%s (%s)", reason,
                 context.getAuthor().getName(), context.getAuthor().getDiscriminator(), context.getAuthor().getId()))
             .queue(aVoid -> edit.editMessageEmbeds(context.makeSuccess(":target has been banned :time")
-                .set("target", user.getAsMention())
-                .set("time","permenantly").buildEmbed()).queue(),
+                    .set("target", user.getAsMention())
+                    .set("time", "permenantly").buildEmbed()).queue(),
                 throwable -> edit.editMessageEmbeds(context.makeWarning("Failed to ban :targer with error `:error`")
-                .set("target", user.getName() + "#" + user.getDiscriminator())
-                .set("error", throwable.getMessage()).buildEmbed()).queue());
+                    .set("target", user.getName() + "#" + user.getDiscriminator())
+                    .set("error", throwable.getMessage()).buildEmbed()).queue());
         System.out.println("AAAAAAAAAAAAAAAAAAAAAAAA");
     }
 
