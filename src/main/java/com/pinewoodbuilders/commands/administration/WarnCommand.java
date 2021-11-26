@@ -165,14 +165,18 @@ public class WarnCommand extends Command {
         if (expiresAt == null) {
             Carbon expire = Carbon.now().addSecond();
             switch (args[1].toLowerCase(Locale.ROOT)) {
-                case "T1":
+                case "t1":
                     expire = expire.addMonth();
-                case "T2":
+                    break;
+                case "t2":
                     expire = expire.addMonths(2);
-                case "T3":
+                    break;
+                case "t3":
                     expire = expire.addMonths(3);
+                    break;
                 default:
                     expire = expire.addDays(30);
+                    break;
             }
             expiresAt = expire;
         }
@@ -240,7 +244,7 @@ public class WarnCommand extends Command {
         if (!grade.isLocalBan()) localBanAndGlobalWatch = localBanAndGlobalWatch.asDisabled();
         if (!grade.isGlobalBan()) globalBan = globalBan.asDisabled();
 
-        MessageEmbed messageEmbed = context.makeInfo(user.getAsMention() + " has reached a total of " + size + " warns, by this rule. This user should either of these punishments. The fetched warnings: \n").buildEmbed();
+        MessageEmbed messageEmbed = context.makeInfo(user.getAsMention() + " has reached a total of " + size + " warns, by this rule. This user should get either of these punishments. The previous warnings: \n").buildEmbed();
         ActionRow ar = ActionRow.of(
             globalMute, gwatchmute, localBanAndGlobalWatch, globalBan, cancel
         );
@@ -271,9 +275,8 @@ public class WarnCommand extends Command {
                 Carbon warnDate = row.getTimestamp("created_at");
                 Carbon expireDate = warn.getExpiresAt();
 
-                sb.append("**").append(warnNumber).append("** - `").append(warnDate.diffForHumans(true)).append("`").append("\n")
-                    .append("```").append(reason).append("```").append("\n`")
-                    .append(expireDate != null ? expireDate.diffForHumans(true) : "Forever").append("`\n\n");
+                sb.append("**").append(warnNumber).append("**").append("\n")
+                    .append("```").append(reason).append("```").append("\n").append("\n");
                 warnNumber++;
             }
             return new EmbedBuilder().setDescription(sb.toString()).setColor(new Color(1,1,1)).build();
@@ -293,7 +296,7 @@ public class WarnCommand extends Command {
                     buttonClicker.getInteraction().deferReply(true).flatMap(mes -> mes.sendMessage("You're not " + context.getMember().getAsMention())).queue();
                 } return false;
         }, interaction -> interaction.getInteraction().deferEdit()
-            .flatMap(k -> messageExecute.editMessageEmbeds(new EmbedBuilder().setDescription("Checking entered punishment...").build()).setActionRows(Collections.emptyList()))
+            .flatMap(k -> messageExecute.editMessageEmbeds(new EmbedBuilder().setDescription("Checking pressed button...").build()).setActionRows(Collections.emptyList()))
             .delay(Duration.ofSeconds(1))
             .queue(edit -> punishUserDependingOnButton(interaction, context, user, edit, size, grade)));
     }
