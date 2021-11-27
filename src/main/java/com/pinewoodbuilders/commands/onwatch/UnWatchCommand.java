@@ -25,8 +25,8 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.*;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.modlog.local.watchlog.WatchAction;
-import com.pinewoodbuilders.modlog.local.watchlog.WatchType;
+import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
+import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.modlog.local.watchlog.Watchlog;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.RoleUtil;
@@ -165,8 +165,8 @@ public class UnWatchCommand extends OnWatchableCommand {
         context.getGuild().removeRoleFromMember(
             context.getGuild().getMember(user), watchRole
         ).reason(reason).queue(aVoid -> {
-            WatchAction modlogAction = new WatchAction(
-                WatchType.UN_ON_WATCH, context.getAuthor(), user, reason
+            ModlogAction modlogAction = new ModlogAction(
+               ModlogType.UN_ON_WATCH, context.getAuthor(), user, reason
             );
 
             String caseId = Watchlog.log(avaire, context, modlogAction);

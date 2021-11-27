@@ -25,8 +25,8 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.*;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.modlog.local.watchlog.WatchAction;
-import com.pinewoodbuilders.modlog.local.watchlog.WatchType;
+import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
+import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.modlog.local.watchlog.Watchlog;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
@@ -161,13 +161,13 @@ public class OnWatchCommand extends OnWatchableCommand {
         }
 
         String reason = generateMessage(Arrays.copyOfRange(args, expiresAt == null ? 1 : 2, args.length));
-        WatchType type = expiresAt == null ? WatchType.ON_WATCH : WatchType.TEMP_ON_WATCH;
+        ModlogType type = expiresAt == null ? ModlogType.ON_WATCH : ModlogType.TEMP_ON_WATCH;
 
         final Carbon finalExpiresAt = expiresAt;
         context.getGuild().addRoleToMember(
             context.getGuild().getMember(user), on_watch_role
         ).reason(reason).queue(aVoid -> {
-            WatchAction watchAction = new WatchAction(
+            ModlogAction watchAction = new ModlogAction(
                 type, context.getAuthor(), user,
                 finalExpiresAt != null
                     ? finalExpiresAt.toDayDateTimeString() + " (" + finalExpiresAt.diffForHumans(true) + ")" + "\n" + reason

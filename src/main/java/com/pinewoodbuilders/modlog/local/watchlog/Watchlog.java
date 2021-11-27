@@ -33,6 +33,8 @@ import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.language.I18n;
+import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
+import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.utilities.RestActionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -57,7 +59,7 @@ public class Watchlog {
      *         otherwise <code>null</code> will be returned.
      */
     @Nullable
-    public static String log(Xeus avaire, CommandMessage context, WatchAction action) {
+    public static String log(Xeus avaire, CommandMessage context, ModlogAction action) {
         return log(avaire, context.getGuild(), action);
     }
 
@@ -71,7 +73,7 @@ public class Watchlog {
      *         otherwise <code>null</code> will be returned.
      */
     @Nullable
-    public static String log(Xeus avaire, Message message, WatchAction action) {
+    public static String log(Xeus avaire, Message message, ModlogAction action) {
         return log(avaire, message.getGuild(), action);
     }
 
@@ -85,7 +87,7 @@ public class Watchlog {
      *         otherwise <code>null</code> will be returned.
      */
     @Nullable
-    public static String log(Xeus avaire, Guild guild, WatchAction action) {
+    public static String log(Xeus avaire, Guild guild, ModlogAction action) {
         GuildTransformer transformer = GuildController.fetchGuild(avaire, guild);
         if (transformer != null) {
             return log(avaire, guild, transformer, action, GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild));
@@ -106,7 +108,7 @@ public class Watchlog {
      *         otherwise <code>null</code> will be returned.
      */
     @Nullable
-    public static String log(Xeus avaire, Guild guild, GuildTransformer transformer, WatchAction action, GuildSettingsTransformer GuildSettingsTransformer) {
+    public static String log(Xeus avaire, Guild guild, GuildTransformer transformer, ModlogAction action, GuildSettingsTransformer GuildSettingsTransformer) {
         if (GuildSettingsTransformer.getOnWatchChannel() == 0) {
             return null;
         }
@@ -186,7 +188,7 @@ public class Watchlog {
      * @param action The modlog action that the user should be notified of.
      * @param caseId The case ID that is attached to the modlog action.
      */
-    public static void notifyUser(User user, Guild guild, WatchAction action, @Nullable String caseId) {
+    public static void notifyUser(User user, Guild guild, ModlogAction action, @Nullable String caseId) {
         String type = action.getType().getNotifyName(guild);
         if (type == null || user.isBot()) {
             return;
@@ -198,7 +200,7 @@ public class Watchlog {
                 .setDescription(String.format("%s You have been **%s** %s %s",
                     action.getType().getEmote(),
                     type,
-                    action.getType().equals(WatchType.ON_WATCH)
+                    action.getType().equals(ModlogType.ON_WATCH)
                         ? "in" : "from",
                     guild.getName()
                 ))
@@ -214,7 +216,7 @@ public class Watchlog {
         }, RestActionUtil.ignore);
     }
 
-    private static void logActionToTheDatabase(Xeus avaire, Guild guild, WatchAction action, Message message, int modlogCase) {
+    private static void logActionToTheDatabase(Xeus avaire, Guild guild, ModlogAction action, Message message, int modlogCase) {
         try {
             avaire.getDatabase().newQueryBuilder(Constants.ON_WATCH_LOG_TABLE_NAME)
                 .useAsync(true)

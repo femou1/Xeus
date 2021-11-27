@@ -60,6 +60,7 @@ public class ReverifyCommand extends VerificationCommandContract {
                     VerificationEntity rover = avaire.getRobloxAPIManager().getVerification().callUserFromRoverAPI(context.member.getId());
                     VerificationEntity bloxlink = avaire.getRobloxAPIManager().getVerification().callUserFromBloxlinkAPI(context.member.getId());
                     VerificationEntity pinewood = avaire.getRobloxAPIManager().getVerification().callUserFromDatabaseAPI(context.member.getId());
+                    VerificationEntity rowifi = avaire.getRobloxAPIManager().getVerification().callUserFromRoWifiAPI(context.member.getId());
 
                     List<VerificationEntity> verificationEntities = new ArrayList<>();
                     if (rover != null) {
@@ -72,6 +73,9 @@ public class ReverifyCommand extends VerificationCommandContract {
                         verificationEntities.add(pinewood);
                     }
 
+                    if (rowifi != null) {
+                        verificationEntities.add(rowifi);
+                    }
 
                     if (verificationEntities.size() < 1) {
                         unverifiedMessage.editMessageEmbeds(context.makeWarning("An account could not be found that's linked to your discord id. Please enter your Roblox name:").requestedBy(context).buildEmbed()).queue(unused -> {

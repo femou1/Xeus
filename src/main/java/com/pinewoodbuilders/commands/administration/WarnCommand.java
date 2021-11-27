@@ -41,10 +41,8 @@ import com.pinewoodbuilders.modlog.global.moderation.GlobalModlog;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogAction;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
 import com.pinewoodbuilders.modlog.local.moderation.Modlog;
-import com.pinewoodbuilders.modlog.local.moderation.ModlogAction;
-import com.pinewoodbuilders.modlog.local.moderation.ModlogType;
-import com.pinewoodbuilders.modlog.local.watchlog.WatchAction;
-import com.pinewoodbuilders.modlog.local.watchlog.WatchType;
+import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
+import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.modlog.local.watchlog.Watchlog;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
@@ -525,8 +523,8 @@ public class WarnCommand extends Command {
                 }
 
                 if (transformer.getOnWatchChannel() != 0) {
-                    WatchAction localAction = new WatchAction(
-                        WatchType.ON_WATCH, context.getAuthor(), user,
+                    ModlogAction localAction = new ModlogAction(
+                        ModlogType.ON_WATCH, context.getAuthor(), user,
                         "\n" + reason
                     );
 
@@ -693,8 +691,8 @@ public class WarnCommand extends Command {
                 }
 
                 if (transformer.getOnWatchChannel() != 0) {
-                    WatchAction localAction = new WatchAction(
-                        WatchType.TEMP_ON_WATCH, context.getAuthor(), user,
+                    ModlogAction localAction = new ModlogAction(
+                        ModlogType.TEMP_ON_WATCH, context.getAuthor(), user,
                         expiresAt != null
                             ? expiresAt.toDayDateTimeString() + " (" + expiresAt.diffForHumans(true) + ")" + "\n"
                             + reason : "\n" + reason

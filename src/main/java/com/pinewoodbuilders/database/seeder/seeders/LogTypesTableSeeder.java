@@ -24,7 +24,7 @@ package com.pinewoodbuilders.database.seeder.seeders;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.contracts.database.seeder.Seeder;
-import com.pinewoodbuilders.modlog.local.moderation.ModlogType;
+import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 
 import java.sql.SQLException;
 

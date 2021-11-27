@@ -1,13 +1,16 @@
 package com.pinewoodbuilders.contracts.commands;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
+import com.pinewoodbuilders.contracts.verification.VerificationEntity;
+import com.pinewoodbuilders.contracts.verification.VerificationResult;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.utilities.RandomUtil;
 import net.dv8tion.jda.api.entities.Emoji;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.interactions.components.Button;
 
@@ -67,26 +70,44 @@ public abstract class VerificationCommandContract extends Command {
             QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME);
             Collection accounts = qb.where("id", context.getMember().getId()).get();
             //Collection mainAccount = qb.where("main", "1").get();
+
             if (accounts.size() > 0) {
                 qb.update(addAccount -> {
                     addAccount
-                            .set("robloxId", robloxId);
+                        .set("robloxId", robloxId);
                 });
             } else {
                 qb.insert(addAccount -> {
                     addAccount
-                            .set("id", context.getMember().getId())
-                            .set("robloxId", robloxId);
+                        .set("id", context.getMember().getId())
+                        .set("robloxId", robloxId);
                 });
             }
 
-            originalMessage.editMessageEmbeds(context.makeSuccess("Your profile has been verified and your account `:username` with id `:robloxId` has been linked to your discord account (`:id`). You will be verified on this discord in a few seconds.")
-                    .set("username", avaire.getRobloxAPIManager().getUserAPI().getUsername(robloxId)).set("robloxId", robloxId).set("id", context.getMember().getId()).requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
-            avaire.getRobloxAPIManager().getVerification().verify(context, false);
+
+            VerificationResult vr = avaire.getRobloxAPIManager().getVerification().verify(context.getGuildSettingsTransformer(), context.member, context.guild, false);
+            MessageEmbed embed1 = context.makeSuccess("Your profile has been verified and your account `:username` with id `:robloxId` has been linked to your discord account (`:id`). You will be verified on this discord in a few seconds.")
+                .set("username", avaire.getRobloxAPIManager().getUserAPI().getUsername(robloxId)).set("robloxId", robloxId).set("id", context.getMember().getId()).buildEmbed();
+
+            MessageEmbed embed2 = vr.isSuccess() ? context.makeSuccess(vr.getMessage()).setTitle("Verification success!").setImage(getImageFromVerificationEntity(vr.getVerificationEntity())).requestedBy(context).buildEmbed() :
+                context.makeError("Something went wrong during verification of your account..." + vr.getMessage()).buildEmbed();
+
+
+            originalMessage.editMessageEmbeds(embed1, embed2).setActionRows(Collections.emptyList()).queue();
+
+
+
         } catch (SQLException throwables) {
             originalMessage.editMessageEmbeds(context.makeError("Something went wrong adding your account to the database :(").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
             throwables.printStackTrace();
         }
+    }
+
+    private String getImageFromVerificationEntity(VerificationEntity ve) {
+        if (ve == null) {
+            return null;
+        }
+        return "https://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&userid=" + ve.getRobloxId();
     }
 
     public void runGameVerification(CommandMessage context, Message originalMessage, Long robloxId) {

@@ -29,8 +29,8 @@ import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.moderation.watch.WatchContainer;
-import com.pinewoodbuilders.modlog.local.watchlog.WatchAction;
-import com.pinewoodbuilders.modlog.local.watchlog.WatchType;
+import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
+import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.modlog.local.watchlog.Watchlog;
 import com.pinewoodbuilders.scheduler.ScheduleHandler;
 import com.pinewoodbuilders.time.Carbon;
@@ -128,8 +128,8 @@ public class DrainOnWatchQueueTask implements Task {
                     muteRole.getName(), member.getUser().getAsTag(), guild.getName()
                 );
 
-                WatchAction watchAction = new WatchAction(
-                    WatchType.UN_ON_WATCH, guild.getSelfMember().getUser(), member.getUser(),
+                ModlogAction watchAction = new ModlogAction(
+                    ModlogType.UN_ON_WATCH, guild.getSelfMember().getUser(), member.getUser(),
                     I18n.getString(guild, "onwatch.UnWatchCommand.userAutoUnmutedReason")
                 );
 

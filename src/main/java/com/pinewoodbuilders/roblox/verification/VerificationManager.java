@@ -141,7 +141,7 @@ public class VerificationManager {
                 }
 
 
-                List<Guild> guilds = getGuildsByMainGroupId(avaire, transformer.getMainGroupId());
+                List <Guild> guilds = getGuildsByMainGroupId(avaire, transformer.getMainGroupId());
 
                 int time = 0;
                 String reason = "User has been global-banned from the MGM Bans database.";
@@ -194,8 +194,6 @@ public class VerificationManager {
                         .requestedBy(member).queue();
 
                 }
-
-
 
 
                 avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME)
@@ -328,9 +326,11 @@ public class VerificationManager {
         }
         Collection guildQuery = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
             .where("main_group_id", mainGroupId)
-            .where(builder -> {if (isOfficial) {
-                builder.where("official_sub_group", 1);
-            }})
+            .where(builder -> {
+                if (isOfficial) {
+                    builder.where("official_sub_group", 1);
+                }
+            })
             .get();
 
         List <Guild> guildList = new LinkedList <>();
@@ -408,11 +408,11 @@ public class VerificationManager {
                 member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message..."))
                     .flatMap(m -> m.editMessage(member.getAsMention())
                         .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned forever within `"
-                            + transformer.getGlobalSettings().getMainGroupName()
-                            + "` however you are still allowed to appeal within the "
-                            + (appealsDiscord != 0 ? guild.getName() : "Appeals guild not set") + ".\n\n"
-                            + "Your trello-ban has the following labels, I'd suggest sharing these with your appeals handler:)"
-                            + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
+                                + transformer.getGlobalSettings().getMainGroupName()
+                                + "` however you are still allowed to appeal within the "
+                                + (appealsDiscord != 0 ? guild.getName() : "Appeals guild not set") + ".\n\n"
+                                + "Your trello-ban has the following labels, I'd suggest sharing these with your appeals handler:)"
+                                + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
                             .buildEmbed()))
                     .queue();
             }
@@ -421,11 +421,11 @@ public class VerificationManager {
                 member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message..."))
                     .flatMap(m -> m.editMessage(member.getAsMention())
                         .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned within`"
-                            + transformer.getGlobalSettings().getMainGroupName()
-                            + "` however you are still allowed to appeal within the "
-                            + (appealsDiscord != 0 ? guild.getName() : "Appeals guild not set.\n\n")
-                            + "Your trello-ban has the following labels, I'd suggest sharing these with your appeals handler:"
-                            + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
+                                + transformer.getGlobalSettings().getMainGroupName()
+                                + "` however you are still allowed to appeal within the "
+                                + (appealsDiscord != 0 ? guild.getName() : "Appeals guild not set.\n\n")
+                                + "Your trello-ban has the following labels, I'd suggest sharing these with your appeals handler:"
+                                + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
                             .buildEmbed()))
                     .queue();
 
@@ -435,15 +435,15 @@ public class VerificationManager {
                 member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Loading ban message..."))
                     .flatMap(m -> m.editMessage(member.getAsMention())
                         .setEmbeds(MessageFactory.makeSuccess(m, "[You have been trello-banned forever within "
-                            + transformer.getGlobalSettings().getMainGroupName()
-                            + ", this ban is permanent, so you're not allowed to appeal it. We wish you a very good day sir/madam, and goodbye.](https://www.youtube.com/watch?v=BXUhfoUJjuQ)")
+                                + transformer.getGlobalSettings().getMainGroupName()
+                                + ", this ban is permanent, so you're not allowed to appeal it. We wish you a very good day sir/madam, and goodbye.](https://www.youtube.com/watch?v=BXUhfoUJjuQ)")
                             .buildEmbed()))
                     .queue();
                 avaire.getShardManager().getTextChannelById("778853992704507945").sendMessage("Loading...")
                     .flatMap(mess -> mess.editMessage("Shuted the fuck up.")
                         .setEmbeds(MessageFactory.makeInfo(mess, member.getAsMention()
-                            + " tried to verify in `" + guild.getName()
-                            + "`. However, this person has a permenant trelloban to his name. He has been sent the STFU video (If his DM's are on) and have been global-banned.")
+                                + " tried to verify in `" + guild.getName()
+                                + "`. However, this person has a permenant trelloban to his name. He has been sent the STFU video (If his DM's are on) and have been global-banned.")
                             .buildEmbed()))
                     .queue();
             }
@@ -452,12 +452,12 @@ public class VerificationManager {
                 TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
                 if (tc != null) {
                     tc.sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder(), "[``:global-unbanned-id`` has tried to verify in " + guild.getName()
-                        + " but was trello banned, and has been global-banned. His labels are:](:link):\n"
-                        + "```:reason```")
-                        .set("global-unbanned-id", verificationEntity.getRobloxId())
-                        .set("reason",
-                            banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
-                        .set("user", "XEUS AUTO BAN").buildEmbed())
+                            + " but was trello banned, and has been global-banned. His labels are:](:link):\n"
+                            + "```:reason```")
+                            .set("global-unbanned-id", verificationEntity.getRobloxId())
+                            .set("reason",
+                                banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
+                            .set("user", "XEUS AUTO BAN").buildEmbed())
                         .queue();
                 }
             }
@@ -599,7 +599,7 @@ public class VerificationManager {
                 if (json.has("primaryAccount")) {
                     VerificationEntity verificationEntity = new VerificationEntity(json.getLong("primaryAccount"),
                         manager.getUserAPI().getUsername(json.getLong("primaryAccount")), Long.valueOf(discordUserId),
-                        "bloxlink");
+                        "bloxlink", true);
                     cache.put("bloxlink:" + discordUserId, verificationEntity);
                     return verificationEntity;
                 }
@@ -634,13 +634,13 @@ public class VerificationManager {
     public VerificationEntity callUserFromDatabaseAPI(String discordUserId) {
         try {
             Collection linkedAccounts = avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME)
-                .where("id", discordUserId) /* .andWhere("main", "1") */.get();
+                .where("id", discordUserId).andWhere("main", "1").get();
             if (linkedAccounts.size() == 0) {
                 return null;
             } else {
                 VerificationEntity ve = new VerificationEntity(linkedAccounts.first().getLong("robloxId"),
                     manager.getUserAPI().getUsername(linkedAccounts.first().getLong("robloxId")), Long.valueOf(discordUserId),
-                    "pinewood");
+                    "pinewood", true);
                 cache.put("pinewood:" + discordUserId, ve);
                 return ve;
             }
@@ -659,7 +659,7 @@ public class VerificationManager {
                 JSONObject json = new JSONObject(response.body().string());
 
                 VerificationEntity verificationEntity = new VerificationEntity(json.getLong("robloxId"),
-                    manager.getUserAPI().getUsername(json.getLong("robloxId")), Long.valueOf(discordUserId), "rover");
+                    manager.getUserAPI().getUsername(json.getLong("robloxId")), Long.valueOf(discordUserId), "rover", true);
 
                 cache.put(discordUserId, verificationEntity);
                 return verificationEntity;
@@ -679,17 +679,58 @@ public class VerificationManager {
     public VerificationEntity callDiscordUserFromDatabaseAPI(Long robloxId) {
         try {
             Collection linkedAccounts = Xeus.getInstance().getDatabase()
-                .newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME).where("robloxId", robloxId).get();
+                .newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME).where("robloxId", robloxId)
+                .andWhere("main", "1").get();
             if (linkedAccounts.size() == 0) {
                 return null;
             } else {
                 return new VerificationEntity(
                     linkedAccounts.first().getLong("robloxId"), Xeus.getInstance().getRobloxAPIManager().getUserAPI()
                     .getUsername(linkedAccounts.first().getLong("robloxId")),
-                    linkedAccounts.first().getLong("id"), "pinewood");
+                    linkedAccounts.first().getLong("id"), "pinewood", true);
             }
         } catch (SQLException throwables) {
             return null;
+        }
+    }
+
+    public HashSet <VerificationEntity> callDiscordUsersFromDatabaseAPI(Long robloxId) {
+        try {
+            Collection linkedAccounts = Xeus.getInstance().getDatabase()
+                .newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME).where("robloxId", robloxId).get();
+            if (linkedAccounts.size() == 0) {
+                return new HashSet <>();
+            }
+
+            HashSet <VerificationEntity> discordUsers = new HashSet <>();
+            for (DataRow row : linkedAccounts) {
+                discordUsers.add(new VerificationEntity(row.getLong("robloxId"), Xeus.getInstance().getRobloxAPIManager().getUserAPI()
+                    .getUsername(row.getLong("robloxId")),
+                    row.getLong("id"), "pinewood", row.getBoolean("main")));
+            }
+            return discordUsers;
+        } catch (SQLException throwables) {
+            return new HashSet <>();
+        }
+    }
+
+    public HashSet <VerificationEntity> callRobloxUsersFromDatabaseAPI(Long discordId) {
+        try {
+            Collection linkedAccounts = Xeus.getInstance().getDatabase()
+                .newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME).where("id", discordId).get();
+            if (linkedAccounts.size() == 0) {
+                return new HashSet <>();
+            }
+
+            HashSet <VerificationEntity> discordUsers = new HashSet <>();
+            for (DataRow row : linkedAccounts) {
+                discordUsers.add(new VerificationEntity(row.getLong("robloxId"), Xeus.getInstance().getRobloxAPIManager().getUserAPI()
+                    .getUsername(row.getLong("robloxId")),
+                    row.getLong("id"), "pinewood", row.getBoolean("main")));
+            }
+            return discordUsers;
+        } catch (SQLException throwables) {
+            return new HashSet <>();
         }
     }
 
@@ -699,7 +740,7 @@ public class VerificationManager {
 
     private void errorMessage(String s, Message mess) {
         mess.editMessageEmbeds(
-            new PlaceholderMessage(new EmbedBuilder(), s).setColor(MessageType.ERROR.getColor()).setTitle("Error during verification!").setTimestamp(Instant.now()).buildEmbed())
+                new PlaceholderMessage(new EmbedBuilder(), s).setColor(MessageType.ERROR.getColor()).setTitle("Error during verification!").setTimestamp(Instant.now()).buildEmbed())
             .queue();
     }
 
@@ -713,4 +754,35 @@ public class VerificationManager {
         }
         return "https://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&userid=" + ve.getRobloxId();
     }
+
+    @Nullable
+    public VerificationEntity callUserFromRoWifiAPI(String discordUserId) {
+        Request.Builder request = new Request.Builder().addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
+            .url("https://api.rowifi.link/v1/users/" + discordUserId);
+
+        try (Response response = manager.getClient().newCall(request.build()).execute()) {
+            if (response.code() == 200 && response.body() != null) {
+                JSONObject json = new JSONObject(response.body().string());
+                if (!json.getBoolean("success")) {
+                    return null;
+                }
+
+                VerificationEntity verificationEntity = new VerificationEntity(json.getLong("roblox_id"),
+                    manager.getUserAPI().getUsername(json.getLong("roblox_id")), json.getLong("discord_id"), "rowifi", true);
+
+                cache.put(discordUserId, verificationEntity);
+                return verificationEntity;
+            } else if (response.code() == 404) {
+                return null;
+            } else {
+                throw new Exception("RoWifi API returned something else then 200, please retry.");
+            }
+        } catch (IOException e) {
+            Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

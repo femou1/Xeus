@@ -19,7 +19,7 @@
  *
  */
 
-package com.pinewoodbuilders.modlog.local.moderation;
+package com.pinewoodbuilders.modlog.local.shared;
 
 import net.dv8tion.jda.api.entities.User;
 

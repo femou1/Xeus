@@ -102,7 +102,7 @@ public class GlobalModlog {
 
         transformer.setGlobalModlogCase(transformer.getGlobalModlogCase() + 1);
 
-        String[] split = null;
+        String[] split;
         EmbedBuilder builder = MessageFactory.createEmbeddedBuilder()
             .setTitle(I18n.format("{0} {1} - {2} | Case #{3}",
                 action.getType().getName(transformer),
