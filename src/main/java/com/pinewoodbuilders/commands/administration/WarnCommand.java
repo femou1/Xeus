@@ -64,6 +64,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -194,9 +195,15 @@ public class WarnCommand extends Command {
             return sendErrorMessage(context, context.i18n("failedToLogWarning"));
         }
 
+        if (expiresAt != null) {
+            if (modlogAction.getMessage() != null) {
+                modlogAction.setMessage(modlogAction.getMessage().replace(expiresAt.toDayDateTimeString() + " (" + expiresAt.diffForHumans(true) + ")", ""));
+            }
+        }
+
         Modlog.notifyUser(user, context.getGuild(), modlogAction, caseId);
 
-        context.makeWarning(context.i18n("message"))
+        context.makeSuccess(context.i18n("message"))
             .set("target", user.getName() + "#" + user.getDiscriminator())
             .set("reason", reason)
             .setFooter("Case ID #" + caseId)
@@ -272,18 +279,16 @@ public class WarnCommand extends Command {
 
                 DataRow row = collection.first();
                 String reason = row.getString("reason");
-                Carbon warnDate = row.getTimestamp("created_at");
-                Carbon expireDate = warn.getExpiresAt();
 
                 sb.append("**").append(warnNumber).append("**").append("\n")
                     .append("```").append(reason).append("```").append("\n").append("\n");
                 warnNumber++;
             }
-            return new EmbedBuilder().setDescription(sb.toString()).setColor(new Color(1,1,1)).build();
+            return new EmbedBuilder().setDescription(sb.toString()).setColor(new Color(1, 1, 1)).build();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new EmbedBuilder().setDescription("Unable to retrieve warns...").setColor(new Color(255,0,0)).build();
+        return new EmbedBuilder().setDescription("Unable to retrieve warns...").setColor(new Color(255, 0, 0)).build();
     }
 
     private void listenForInteraction(Message messageExecute, CommandMessage context, User user, int size, WarningGrade grade) {
@@ -294,11 +299,20 @@ public class WarnCommand extends Command {
                     return messageExecute.equals(buttonClicker.getMessage());
                 } else {
                     buttonClicker.getInteraction().deferReply(true).flatMap(mes -> mes.sendMessage("You're not " + context.getMember().getAsMention())).queue();
-                } return false;
-        }, interaction -> interaction.getInteraction().deferEdit()
-            .flatMap(k -> messageExecute.editMessageEmbeds(new EmbedBuilder().setDescription("Checking pressed button...").build()).setActionRows(Collections.emptyList()))
-            .delay(Duration.ofSeconds(1))
-            .queue(edit -> punishUserDependingOnButton(interaction, context, user, edit, size, grade)));
+                }
+            return false;
+        }, interaction -> {
+            interaction.getInteraction().deferEdit()
+                .flatMap(k -> messageExecute.editMessageEmbeds(new EmbedBuilder().setDescription("Checking pressed button...").build()).setActionRows(Collections.emptyList()))
+                .delay(Duration.ofSeconds(1))
+                .queue(edit -> punishUserDependingOnButton(interaction, context, user, edit, size, grade));
+        }, 1, TimeUnit.MINUTES, () -> {
+            messageExecute.editMessageEmbeds(new EmbedBuilder()
+                    .setFooter("Deleting in 30 seconds.").setColor(new Color(255, 0, 0)).setDescription("No response gotten after 1 minute. No punishment is given.").build())
+                .delay(Duration.ofSeconds(30))
+                .flatMap(Message::delete)
+                .queue();
+        });
     }
 
     private void punishUserDependingOnButton(ButtonClickEvent interaction, CommandMessage context, User user, Message messageExecute, int size, WarningGrade grade) {
@@ -426,7 +440,7 @@ public class WarnCommand extends Command {
             }
         }
 
-        messageExecute.editMessageEmbeds(context.makeSuccess(
+        messageExecute.editMessage("<@&788316320747094046>").setEmbeds(context.makeSuccess(
                 "<@" + user.getId() + "> (" + user.getId() + ") has been banned from `:guilds` guilds : \n\n" + sb)
             .set("guilds", bannedGuilds).buildEmbed()).queue();
 
@@ -546,7 +560,6 @@ public class WarnCommand extends Command {
                 throwable -> edit.editMessageEmbeds(context.makeWarning("Failed to ban :targer with error `:error`")
                     .set("target", user.getName() + "#" + user.getDiscriminator())
                     .set("error", throwable.getMessage()).buildEmbed()).queue());
-        System.out.println("AAAAAAAAAAAAAAAAAAAAAAAA");
     }
 
     private void selectWatchOrMuteQueue(CommandMessage context, WarningGrade grade, User user, Message messageExecute, int size) {
