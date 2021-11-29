@@ -3,9 +3,8 @@ package com.pinewoodbuilders.contracts.verification;
 public enum VerificationProviders {
     ROVER ("rover", "<:rover:738065752866947194>"),
     BLOXLINK ("bloxlink", "<:bloxlink:863168888900812811>"),
-    ROWIFI("rowifi", "<:rowifi:914145206780190770> "),
-    PINEWOOD ("pinewood", "<:xeus:801483709592240160>"),
-    UNKOWN("UNKOWN", ":question:");
+    ROWIFI("rowifi", "<:rowifi:914145206780190770>"),
+    PINEWOOD ("pinewood", "<:xeus:801483709592240160>");
 
     public String provider;
     public String emoji;

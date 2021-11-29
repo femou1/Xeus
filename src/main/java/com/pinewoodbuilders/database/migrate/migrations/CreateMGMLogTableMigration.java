@@ -31,7 +31,7 @@ public class CreateMGMLogTableMigration implements Migration {
 
     @Override
     public String created_at() {
-        return "Mon, Sep 15, 2021 7:04PM";
+        return "Mon, Sep 15, 2021 7:04 PM";
     }
 
     @Override
