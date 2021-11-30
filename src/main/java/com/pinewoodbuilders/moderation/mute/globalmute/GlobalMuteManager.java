@@ -7,7 +7,7 @@ import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.moderation.mute.MuteContainer;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
-import com.pinewoodbuilders.modlog.local.moderation.ModlogType;
+import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.time.Carbon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

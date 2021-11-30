@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.commands.onwatch;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.SimplePaginator;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
@@ -31,7 +31,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.language.I18n;
-import com.pinewoodbuilders.modlog.local.watchlog.WatchType;
+import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
@@ -128,7 +128,7 @@ public class WatchlogHistoryCommand extends Command {
 
             List<String> records = new ArrayList<>();
             items.forEach(row -> {
-                WatchType type = WatchType.fromId(row.getInt("type", 0));
+                ModlogType type = ModlogType.fromId(row.getInt("type", 0));
                 String reason = row.getString("reason", context.i18n("noReasonGiven"));
 
                 Carbon time = row.getTimestamp("created_at");

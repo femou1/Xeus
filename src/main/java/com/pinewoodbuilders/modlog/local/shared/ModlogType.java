@@ -19,7 +19,7 @@
  *
  */
 
-package com.pinewoodbuilders.modlog.local.watchlog;
+package com.pinewoodbuilders.modlog.local.shared;
 
 import com.pinewoodbuilders.chat.MessageType;
 import com.pinewoodbuilders.language.I18n;
@@ -30,25 +30,79 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.*;
 
-public enum WatchType {
+public enum ModlogType {
+
+    /**
+     * Represents the action when a user is kicked from a server.
+     */
+    KICK(1, "\uD83D\uDC62", true, MessageType.WARNING.getColor()),
+
+    /**
+     * Represents the action when a user is kicked from a voice channel.
+     */
+    VOICE_KICK(2, "\uD83D\uDC62", false, MessageType.WARNING.getColor()),
+
+    /**
+     * Represents when a user is banned from a server and gets a unban after
+     * a certain amount of time. Specified in the ban.
+     */
+    TEMP_BAN(3, "\uD83D\uDD28", true, MessageType.ERROR.getColor()),
+
+    /**
+     * Represents when a user is banned from a server, including
+     * deleting any message they have sent in the last 7 days.
+     */
+    BAN(4, "\uD83D\uDD28", true, MessageType.ERROR.getColor()),
+
+    /**
+     * Represents when multiple messages are deleted from a channel.
+     */
+    PURGE(5, null, false, MessageType.INFO.getColor()),
+
+    /**
+     * Represents when a user is warned through Avas warn system.
+     */
+    WARN(6, "\uD83D\uDCE2", true, MessageType.WARNING.getColor()),
+
+    /**
+     * Represents when a user is unbanned from a server through Ava.
+     */
+    UNBAN(7, null, false, false, MessageType.SUCCESS.getColor()),
+
+    /**
+     * Represents when a user is pardoned for an old modlog case.
+     */
+    PARDON(8, null, true, false, MessageType.SUCCESS.getColor()),
 
     /**
      * Represents when a user is muted from a server.
      */
-    ON_WATCH(1, "\uD83D\uDC53", true, true, MessageType.ERROR.getColor()),
+    MUTE(9, "\uD83D\uDD07", true, true, MessageType.WARNING.getColor()),
 
     /**
      * Represents when a user is muted temporarily from a server.
      */
-    TEMP_ON_WATCH(2, "\uD83D\uDC53", true, true, MessageType.WARNING.getColor()),
+    TEMP_MUTE(10, "\uD83D\uDD07", true, true, MessageType.WARNING.getColor()),
 
     /**
      * Represents when a user is unmuted in a server.
      */
-    UN_ON_WATCH(3, "\uD83D\uDC53", true, false, MessageType.SUCCESS.getColor());
+    UNMUTE(11, "\uD83D\uDD0A", true, false, MessageType.SUCCESS.getColor()),
 
+    /**
+     * Represents when a user is watched on the server.
+     */
+    ON_WATCH(12, "\uD83D\uDC53", true, true, MessageType.ERROR.getColor()),
 
+    /**
+     * Represents when a user is muted temporarily from a server.
+     */
+    TEMP_ON_WATCH(13, "\uD83D\uDC53", true, true, MessageType.WARNING.getColor()),
 
+    /**
+     * Represents when a user is unmuted in a server.
+     */
+    UN_ON_WATCH(14, "\uD83D\uDC53", true, false, MessageType.SUCCESS.getColor());
 
     final int id;
     @Nullable
@@ -57,11 +111,11 @@ public enum WatchType {
     final boolean punishment;
     final Color color;
 
-    WatchType(int id, String emote, boolean notifyable, Color color) {
+    ModlogType(int id, String emote, boolean notifyable, Color color) {
         this(id, emote, notifyable, true, color);
     }
 
-    WatchType(int id, @Nullable String emote, boolean notifyable, boolean punishment, Color color) {
+    ModlogType(int id, @Nullable String emote, boolean notifyable, boolean punishment, Color color) {
         this.id = id;
         this.emote = emote;
         this.notifyable = notifyable;
@@ -76,8 +130,8 @@ public enum WatchType {
      * @param id The ID that the modlog type should have.
      * @return Possibly-null, the modlog tpe with the given ID.
      */
-    public static WatchType fromId(int id) {
-        for (WatchType type : values()) {
+    public static ModlogType fromId(int id) {
+        for (ModlogType type : values()) {
             if (type.getId() == id) {
                 return type;
             }
@@ -154,7 +208,7 @@ public enum WatchType {
     }
 
     private String loadNameProperty(Guild guild, String type) {
-        return I18n.getString(guild, String.format("on-watch-types.%s.%s",
+        return I18n.getString(guild, String.format("modlog-types.%s.%s",
             CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name()),
             type
         ));

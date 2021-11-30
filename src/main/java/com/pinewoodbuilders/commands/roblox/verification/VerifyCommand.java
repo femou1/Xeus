@@ -69,6 +69,7 @@ public class VerifyCommand extends VerificationCommandContract {
                 unverifiedMessage -> {
                     VerificationEntity rover = avaire.getRobloxAPIManager().getVerification().callUserFromRoverAPI(context.member.getId());
                     VerificationEntity bloxlink = avaire.getRobloxAPIManager().getVerification().callUserFromBloxlinkAPI(context.member.getId());
+                    VerificationEntity rowifi = avaire.getRobloxAPIManager().getVerification().callUserFromRoWifiAPI(context.member.getId());
 
                     List<VerificationEntity> verificationEntities = new ArrayList<>();
                     if (rover != null) {
@@ -76,6 +77,10 @@ public class VerifyCommand extends VerificationCommandContract {
                     }
                     if (bloxlink != null) {
                         verificationEntities.add(bloxlink);
+                    }
+
+                    if (rowifi != null) {
+                        verificationEntities.add(rowifi);
                     }
 
                     if (verificationEntities.size() < 1) {
@@ -129,6 +134,11 @@ public class VerifyCommand extends VerificationCommandContract {
                                             if (so.getValue().equals("bloxlink")) {
                                                 assert bloxlink != null;
                                                 addAccountToDatabase(context, bloxlink.getRobloxId(), unverifiedMessage);
+                                                return;
+                                            }
+                                            if (so.getValue().equals("rowifi")) {
+                                                assert bloxlink != null;
+                                                addAccountToDatabase(context, rowifi.getRobloxId(), unverifiedMessage);
                                                 return;
                                             }
                                         }

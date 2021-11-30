@@ -60,6 +60,7 @@ public class ReverifyCommand extends VerificationCommandContract {
                     VerificationEntity rover = avaire.getRobloxAPIManager().getVerification().callUserFromRoverAPI(context.member.getId());
                     VerificationEntity bloxlink = avaire.getRobloxAPIManager().getVerification().callUserFromBloxlinkAPI(context.member.getId());
                     VerificationEntity pinewood = avaire.getRobloxAPIManager().getVerification().callUserFromDatabaseAPI(context.member.getId());
+                    VerificationEntity rowifi = avaire.getRobloxAPIManager().getVerification().callUserFromRoWifiAPI(context.member.getId());
 
                     List<VerificationEntity> verificationEntities = new ArrayList<>();
                     if (rover != null) {
@@ -72,6 +73,9 @@ public class ReverifyCommand extends VerificationCommandContract {
                         verificationEntities.add(pinewood);
                     }
 
+                    if (rowifi != null) {
+                        verificationEntities.add(rowifi);
+                    }
 
                     if (verificationEntities.size() < 1) {
                         unverifiedMessage.editMessageEmbeds(context.makeWarning("An account could not be found that's linked to your discord id. Please enter your Roblox name:").requestedBy(context).buildEmbed()).queue(unused -> {
@@ -103,7 +107,7 @@ public class ReverifyCommand extends VerificationCommandContract {
                                 interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(unverifiedMessage),
                                 providerSelect -> {
                                     providerSelect.deferEdit().queue();
-                                    selectProvider(context, unverifiedMessage, rover, bloxlink, pinewood, providerSelect);
+                                    selectProvider(context, unverifiedMessage, rover, bloxlink, pinewood, rowifi, providerSelect);
                                 },
                                 5, TimeUnit.MINUTES, () -> unverifiedMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue());
                     });
@@ -113,7 +117,7 @@ public class ReverifyCommand extends VerificationCommandContract {
         return true;
     }
 
-    private void selectProvider(CommandMessage context, Message unverifiedMessage, VerificationEntity ve, VerificationEntity bloxlink, VerificationEntity pinewood, SelectionMenuEvent providerSelect) {
+    private void selectProvider(CommandMessage context, Message unverifiedMessage, VerificationEntity rover, VerificationEntity bloxlink, VerificationEntity pinewood, VerificationEntity rowifi, SelectionMenuEvent providerSelect) {
         if (providerSelect.getSelectedOptions() != null) {
             for (SelectOption so : providerSelect.getSelectedOptions()) {
                 if (so.getValue().equals("verify-new-account")) {
@@ -128,8 +132,8 @@ public class ReverifyCommand extends VerificationCommandContract {
                     return;
                 }
 
-                if (ve != null && so.getValue().equals("rover" + ":" + ve.getRobloxUsername())) {
-                    addAccountToDatabase(context, ve.getRobloxId(), unverifiedMessage);
+                if (rover != null && so.getValue().equals("rover" + ":" + rover.getRobloxUsername())) {
+                    addAccountToDatabase(context, rover.getRobloxId(), unverifiedMessage);
                     return;
                 }
                 if (bloxlink != null && so.getValue().equals("bloxlink" + ":" + bloxlink.getRobloxUsername())) {
@@ -138,6 +142,10 @@ public class ReverifyCommand extends VerificationCommandContract {
                 }
                 if (pinewood != null && so.getValue().equals("pinewood" + ":" + pinewood.getRobloxUsername())) {
                     addAccountToDatabase(context, pinewood.getRobloxId(), unverifiedMessage);
+                    return;
+                }
+                if (rowifi != null && so.getValue().equals("rowifi" + ":" + rowifi.getRobloxUsername())) {
+                    addAccountToDatabase(context, rowifi.getRobloxId(), unverifiedMessage);
                     return;
                 }
             }

@@ -21,12 +21,12 @@
 
 package com.pinewoodbuilders.moderation.watch;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.language.I18n;
-import com.pinewoodbuilders.modlog.local.watchlog.WatchType;
+import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.time.Carbon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -222,8 +222,8 @@ public class WatchManager {
             .andWhere(Constants.ON_WATCH_LOG_TABLE_NAME + ".target_id", userId)
             .andWhere(Constants.ON_WATCH_TABLE_NAME + ".guild_id", guildId)
             .andWhere(builder -> builder
-                .where(Constants.ON_WATCH_LOG_TABLE_NAME + ".type", WatchType.ON_WATCH.getId())
-                .orWhere(Constants.ON_WATCH_LOG_TABLE_NAME + ".type", WatchType.TEMP_ON_WATCH.getId())
+                .where(Constants.ON_WATCH_LOG_TABLE_NAME + ".type", ModlogType.ON_WATCH.getId())
+                .orWhere(Constants.ON_WATCH_LOG_TABLE_NAME + ".type", ModlogType.TEMP_ON_WATCH.getId())
             ).get();
 
         if (!collection.isEmpty()) {

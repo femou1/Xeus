@@ -32,6 +32,8 @@ import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.handlers.events.ModlogActionEvent;
 import com.pinewoodbuilders.language.I18n;
+import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
+import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.utilities.RestActionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;

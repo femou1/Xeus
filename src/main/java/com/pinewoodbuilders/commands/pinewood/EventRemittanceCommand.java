@@ -1,7 +1,9 @@
 package com.pinewoodbuilders.commands.pinewood;
 
-import com.pinewoodbuilders.Xeus;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.blacklist.features.FeatureScope;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
@@ -11,7 +13,6 @@ import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.Request;
 import com.pinewoodbuilders.requests.Response;
@@ -19,8 +20,6 @@ import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankServic
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -41,9 +40,14 @@ import static com.pinewoodbuilders.utils.JsonReader.readJsonFromUrl;
 
 public class EventRemittanceCommand extends Command {
 
-    public static final Cache <Long, Guild> cache = CacheBuilder.newBuilder()
+    public static final Cache <Long, Guild> defaultCache = CacheBuilder.newBuilder()
         .recordStats()
         .expireAfterWrite(24, TimeUnit.HOURS)
+        .build();
+
+    public static final Cache <Long, Guild> petcache = CacheBuilder.newBuilder()
+        .recordStats()
+        .expireAfterWrite(48, TimeUnit.HOURS)
         .build();
 
     public EventRemittanceCommand(Xeus avaire) {
@@ -246,9 +250,15 @@ public class EventRemittanceCommand extends Command {
                 return;
             }
 
-            boolean hasNotExpired = cache.getIfPresent(requestedId) == c.getGuild();
+            boolean hasNotExpired;
+            if (c.getGuild().getId().equals("436670173777362944")) {
+                hasNotExpired = petcache.getIfPresent(requestedId) == c.getGuild();
+            } else {
+                hasNotExpired = defaultCache.getIfPresent(requestedId) == c.getGuild();
+            }
+
             if (hasNotExpired) {
-                context.makeError("You've already submitted a remittance request for `:guildName`, please wait 24 hours after the last time you've submitted a remittance request.")
+                context.makeError("You've already submitted a remittance request for `:guildName`, please wait 24/48 hours after the last time you've submitted a remittance request.")
                     .set("guildName", c.getGuild().getName()).queue();
                 message.editMessage("ERROR. PLEASE CHECK BELOW").setEmbeds(Collections.emptyList()).queue();
                 removeAllUserMessages(messagesToRemove);
@@ -353,7 +363,13 @@ public class EventRemittanceCommand extends Command {
                                 data.set("requester_roblox_rank", groupInfo.map(value -> value.getRole().getName()).orElse(null));
                             });
 
-                            cache.put(getRobloxId(username), context.getGuild());
+                            boolean hasNotExpired;
+                            if (finalMessage.getGuild().getId().equals("436670173777362944")) {
+                                petcache.put(getRobloxId(username), context.getGuild());
+                            } else {
+                                defaultCache.put(getRobloxId(username), context.getGuild());
+                            }
+
                         } catch (SQLException throwables) {
                             Xeus.getLogger().error("ERROR: ", throwables);
                         }
