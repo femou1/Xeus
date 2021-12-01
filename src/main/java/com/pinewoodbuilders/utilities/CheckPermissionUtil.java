@@ -57,7 +57,7 @@ public class CheckPermissionUtil {
             return PermissionCheckType.EMBED;
         }
 
-        if (!member.hasPermission(textChannel, Permission.MESSAGE_WRITE)) {
+        if (!member.hasPermission(textChannel, Permission.MESSAGE_SEND)) {
             return PermissionCheckType.NONE;
         }
 

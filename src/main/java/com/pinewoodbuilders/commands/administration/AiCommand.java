@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.commands.administration;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.database.transformers.ChannelTransformer;
@@ -77,7 +77,7 @@ public class AiCommand extends Command {
         ChannelTransformer channelTransformer = guildTransformer.getChannel(context.getChannel().getId());
 
         if (channelTransformer == null) {
-            if (!guildTransformer.createChannelTransformer(context.getChannel())) {
+            if (!guildTransformer.createChannelTransformer(context.getGuildChannel())) {
                 context.makeError(context.i18nRaw("errors.errorOccurredWhileLoading", "channel transformer")).queue();
                 return false;
             }

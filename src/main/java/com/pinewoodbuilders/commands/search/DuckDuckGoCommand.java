@@ -88,10 +88,6 @@ public class DuckDuckGoCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        if (context.isGuildMessage() && !context.getChannel().isNSFW()) {
-            return sendErrorMessage(context, context.i18n("nsfwDisabled"));
-        }
-
         if (args.length == 0) {
             return sendErrorMessage(context, "errors.missingArgument", "query");
         }
@@ -175,6 +171,6 @@ public class DuckDuckGoCommand extends Command {
     }
 
     private boolean isNSFWEnabled(CommandMessage message) {
-        return !message.isGuildMessage() || message.getChannel().isNSFW();
+        return !message.isGuildMessage();
     }
 }

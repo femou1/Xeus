@@ -140,7 +140,7 @@ public class ServersCommand extends SystemCommand {
                 .addField("Roles", NumberUtil.formatNicely(guild.getRoles().size()), true)
                 .addField("Users", NumberUtil.formatNicely(guild.getMembers().size() - bots), true)
                 .addField("Bots", NumberUtil.formatNicely(bots), true)
-                .addField("Region", guild.getRegion().getName(), true)
+                //.addField("Region", guild.getRegion().getName(), true)
                 .addField("Created At", time.toDayDateTimeString() + "\n*About " + time.diffForHumans() + "*", true)
                 .queue();
         } catch (NumberFormatException e) {

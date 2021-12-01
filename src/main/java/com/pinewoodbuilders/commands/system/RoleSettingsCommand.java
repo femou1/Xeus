@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.commands.system;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.CommandPriority;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
@@ -40,7 +40,7 @@ import net.dv8tion.jda.annotations.ReplaceWith;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.internal.utils.PermissionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -170,7 +170,7 @@ public class RoleSettingsCommand extends SystemCommand {
         context.makeWarning("Would you like to prune `:count` members for archiving the server?").set("count", count).queue(countMessage -> {
             countMessage.addReaction("\uD83D\uDC4D").queue();
             countMessage.addReaction("\uD83D\uDC4E").queue();
-            avaire.getWaiter().waitForEvent(GuildMessageReactionAddEvent.class, check -> check.getMember().equals(context.member) && check.getMessageId().equals(countMessage.getId()), action -> {
+            avaire.getWaiter().waitForEvent(MessageReactionAddEvent.class, check -> check.getMember().equals(context.member) && check.getMessageId().equals(countMessage.getId()), action -> {
 
                     switch (action.getReactionEmote().getName()) {
                         case "\uD83D\uDC4D":

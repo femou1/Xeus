@@ -21,9 +21,6 @@
 
 package com.pinewoodbuilders;
 
-import net.dv8tion.jda.annotations.ForRemoval;
-import net.dv8tion.jda.annotations.ReplaceWith;
-
 import java.io.File;
 import java.util.ArrayList;
 
@@ -126,31 +123,5 @@ public class Constants {
         add("758057400635883580"); // PBOP
         add("853888061476438017"); // MegaRaidOrg Server
     }};
-
-    // BYPASS USERS    
-    @Deprecated
-    @ForRemoval
-    @ReplaceWith("Globalmod Check")
-    public static final ArrayList <String> piaMembers = new ArrayList<String>() {{
-        add("251818929226383361"); // CombatSwift
-        add("194517256389132288"); // Coasterteam
-        add("131917628800237570"); // Soppo
-        add("610591577961791500"); // C3N0
-        add("202926188522504192"); // Sparked
-        add("142083279309373440"); // Wickey
-        add("723151849640820759"); // Csdi
-        add("315231688290730005"); // LENEMAR
-        add("137235914924490761"); // ood
-        add("235086178309636096"); // RogueVader
-        add("252228224904331268"); // Supremo
-        add("148420768324124672"); // Diddleshot
-        add("314505421870333952"); // AnuCat
-        add("446775463441072130"); // Oak
-        add("622861054489395250"); // neonweld
-        add("283720560272211970"); // Phantom_FR
-        //add("257193596074065921"); // Omni - Not MGM Anymore.
-        //add("329668217515540482"); // TenX - Has left
-    }};
-
 
 }

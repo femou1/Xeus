@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.VoiceChannel;
-import net.dv8tion.jda.api.events.channel.voice.VoiceChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
@@ -27,14 +26,17 @@ public class VoiceChannelHandler extends EventAdapter {
 
 
     public void createPrivateChannelOnLobbyJoin(GuildVoiceJoinEvent event) {
-        createPrivateChannel(event.getGuild(), event.getChannelJoined(), event.getMember());
+        if (!(event.getChannelJoined() instanceof VoiceChannel)) {return;}
+        createPrivateChannel(event.getGuild(), (VoiceChannel) event.getChannelJoined(), event.getMember());
     }
 
     public void createPrivateChannelOnLobbyJoinFromMove(GuildVoiceMoveEvent event) {
+
+        if (!(event.getChannelJoined() instanceof VoiceChannel)) {return;}
         if (voiceChannels.contains(event.getChannelLeft().getId())) {
-            if (event.getChannelLeft().getMembers().size() < 1) {removeWhenEmpty(event.getChannelLeft());}
+            if (event.getChannelLeft().getMembers().size() < 1) {removeWhenEmpty((VoiceChannel) event.getChannelLeft());}
         }
-        createPrivateChannel(event.getGuild(), event.getChannelJoined(), event.getMember());
+        createPrivateChannel(event.getGuild(), (VoiceChannel) event.getChannelJoined(), event.getMember());
     }
 
 
@@ -43,8 +45,8 @@ public class VoiceChannelHandler extends EventAdapter {
         if (transformer == null) return;
         if (transformer.getAutoChannel() == null) return;
         if (!transformer.getAutoChannel().equals(channelJoined.getId())) return;
-        if (channelJoined.getParent() == null) return;
-        channelJoined.getParent()
+        if (channelJoined.getParentCategory() == null) return;
+        channelJoined.getParentCategory()
             .createVoiceChannel(channelJoined.getName() + " | " + member.getEffectiveName())
             .addMemberPermissionOverride(member.getIdLong(), owner, 0)
             .addMemberPermissionOverride(guild.getSelfMember().getIdLong(), owner, 0)
@@ -58,8 +60,9 @@ public class VoiceChannelHandler extends EventAdapter {
     }
 
     public void removePrivateChannelOn(GuildVoiceLeaveEvent event) {
+        if (!(event.getChannelJoined() instanceof VoiceChannel)) {return;}
         if (!voiceChannels.contains(event.getChannelLeft().getId())) return;
-        VoiceChannel vc = event.getChannelLeft();
+        VoiceChannel vc = (VoiceChannel) event.getChannelLeft();
         if (vc.getMembers().size() < 1) {
             removeWhenEmpty(vc);
         }
@@ -70,8 +73,8 @@ public class VoiceChannelHandler extends EventAdapter {
         vc.delete().queue();
     }
 
-    public void onVoiceDelete(VoiceChannelDeleteEvent event) {
-        if (!voiceChannels.contains(event.getChannel().getId())) return;
-        voiceChannels.remove(event.getChannel().getId());
+    public void onVoiceDelete(VoiceChannel channel) {
+        if (!voiceChannels.contains(channel.getId())) return;
+        voiceChannels.remove(channel.getId());
     }
 }

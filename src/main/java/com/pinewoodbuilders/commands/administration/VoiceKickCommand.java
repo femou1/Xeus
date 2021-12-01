@@ -106,7 +106,7 @@ public class VoiceKickCommand extends Command {
         }
 
         final Member member = context.getGuild().getMember(user);
-        if (!member.getVoiceState().inVoiceChannel()) {
+        if (!member.getVoiceState().inAudioChannel()) {
             return sendErrorMessage(context, context.i18n("notConnected"));
         }
 

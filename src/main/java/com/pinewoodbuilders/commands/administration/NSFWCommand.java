@@ -84,39 +84,44 @@ public class NSFWCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        if (args.length == 0) {
-            return sendChannelStatus(context, context.getChannel());
-        }
-
-        if (args.length == 1) {
-            switch (ComparatorUtil.getFuzzyType(args[0])) {
-                case TRUE:
-                    return updateChannelStatus(context, context.getChannel(), true);
-
-                case FALSE:
-                    return updateChannelStatus(context, context.getChannel(), false);
-
-                case UNKNOWN:
-                    GuildChannel channel = MentionableUtil.getChannel(context.getMessage(), args);
-
-                    if (channel != null && (channel instanceof TextChannel)) {
-                        return sendChannelStatus(context, (TextChannel) channel);
-                    }
-                    return sendErrorMessage(context, context.i18n("invalidChannelOrStatus"));
+        if (context.getChannel() instanceof TextChannel) {
+            TextChannel gChannel = (TextChannel) context.getChannel();
+            if (args.length == 0) {
+                return sendChannelStatus(context, gChannel);
             }
+
+            if (args.length == 1) {
+                switch (ComparatorUtil.getFuzzyType(args[0])) {
+                    case TRUE:
+                        return updateChannelStatus(context, gChannel, true);
+
+                    case FALSE:
+                        return updateChannelStatus(context, gChannel, false);
+
+                    case UNKNOWN:
+                        GuildChannel channel = MentionableUtil.getChannel(context.getMessage(), args);
+
+                        if ((channel instanceof TextChannel)) {
+                            return sendChannelStatus(context, (TextChannel) channel);
+                        }
+                        return sendErrorMessage(context, context.i18n("invalidChannelOrStatus"));
+                }
+            }
+
+            GuildChannel channel = MentionableUtil.getChannel(context.getMessage(), args);
+            if (!(channel instanceof TextChannel)) {
+                return sendErrorMessage(context, context.i18n("notValidChannel", args[0]));
+            }
+
+            ComparatorUtil.ComparatorType fuzzyType = ComparatorUtil.getFuzzyType(args[1]);
+            if (fuzzyType.equals(ComparatorUtil.ComparatorType.UNKNOWN)) {
+                return sendErrorMessage(context, context.i18n("notValidStatus", args[1]));
+            }
+
+            return updateChannelStatus(context, (TextChannel) channel, fuzzyType.getValue());
         }
 
-        GuildChannel channel = MentionableUtil.getChannel(context.getMessage(), args);
-        if (channel == null || !(channel instanceof TextChannel)) {
-            return sendErrorMessage(context, context.i18n("notValidChannel", args[0]));
-        }
-
-        ComparatorUtil.ComparatorType fuzzyType = ComparatorUtil.getFuzzyType(args[1]);
-        if (fuzzyType.equals(ComparatorUtil.ComparatorType.UNKNOWN)) {
-            return sendErrorMessage(context, context.i18n("notValidStatus", args[1]));
-        }
-
-        return updateChannelStatus(context, (TextChannel) channel, fuzzyType.getValue());
+        return sendErrorMessage(context, "This command only works in text channels.");
     }
 
     private boolean updateChannelStatus(CommandMessage context, TextChannel textChannel, boolean status) {

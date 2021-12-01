@@ -23,7 +23,6 @@ package com.pinewoodbuilders.commands;
 
 import com.pinewoodbuilders.config.YamlConfiguration;
 import com.pinewoodbuilders.contracts.commands.CommandContext;
-import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.database.transformers.PlayerTransformer;
@@ -54,12 +53,17 @@ public class FakeCommandMessage implements CommandContext {
     }
 
     @Override
-    public TextChannel getChannel() {
+    public MessageChannel getChannel() {
         return null;
     }
 
     @Override
     public MessageChannel getMessageChannel() {
+        return null;
+    }
+
+    @Override
+    public GuildChannel getGuildChannel() {
         return null;
     }
 

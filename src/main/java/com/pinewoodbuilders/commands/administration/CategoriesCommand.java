@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.commands.administration;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.Category;
 import com.pinewoodbuilders.commands.CategoryHandler;
 import com.pinewoodbuilders.commands.CommandMessage;
@@ -32,7 +32,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.transformers.ChannelTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.MessageChannel;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -89,7 +89,7 @@ public class CategoriesCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        TextChannel channel = context.getChannel();
+        MessageChannel channel = context.getChannel();
         if (!context.getMentionedChannels().isEmpty()) {
             channel = context.getMentionedChannels().get(0);
         }

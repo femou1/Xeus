@@ -7,7 +7,7 @@ import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import okhttp3.*;
 import org.json.JSONObject;
 
@@ -106,7 +106,7 @@ public class GroupShoutCommand extends Command {
 
 
         context.makeInfo("What would you like to shout? (This sends instantly after you type it). Say ``cancel`` to cancel sending the message.").queue(v -> {
-            avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, l ->
+            avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, l ->
                 l.getChannel().equals(context.getChannel()) && l.getMember().equals(context.getMember()),
                 k -> {
                 if (k.getMessage().getContentRaw().equalsIgnoreCase("cancel")) {
@@ -120,7 +120,7 @@ public class GroupShoutCommand extends Command {
         return false;
     }
 
-    private void sendMessage(CommandMessage context, GuildMessageReceivedEvent k) {
+    private void sendMessage(CommandMessage context, MessageReceivedEvent k) {
         String message = k.getMessage().getContentRaw();
         int charLimit = 255;
 

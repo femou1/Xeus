@@ -21,15 +21,15 @@
 
 package com.pinewoodbuilders.commands.utility;
 
-import com.pinewoodbuilders.Xeus;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.factories.MessageFactory;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -147,7 +147,7 @@ public class FeedbackCommand extends Command {
                 if (!collection.isEmpty()) {
                     String id = collection.first().getString("id");
 
-                    newMessage.editMessage(placeholderMessage
+                    newMessage.editMessageEmbeds(placeholderMessage
                         .setFooter("Author ID: " + context.getAuthor().getId() + " | ID: #" + id)
                         .buildEmbed()
                     ).queue();

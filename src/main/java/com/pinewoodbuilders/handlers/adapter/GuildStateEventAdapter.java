@@ -32,7 +32,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.events.channel.voice.update.VoiceChannelUpdateRegionEvent;
+import net.dv8tion.jda.api.events.channel.update.ChannelUpdateRegionEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateNameEvent;
@@ -63,9 +63,9 @@ public class GuildStateEventAdapter extends EventAdapter {
         }
     }
 
-    public void onGuildUpdateRegion(VoiceChannelUpdateRegionEvent event) {
-        Metrics.geoTracker.labels(event.getOldRegion().getName()).dec();
-        Metrics.geoTracker.labels(event.getNewRegion().getName()).inc();
+    public void onChannelUpdateRegion(ChannelUpdateRegionEvent event) {
+        Metrics.geoTracker.labels(event.getOldValue().getName()).dec();
+        Metrics.geoTracker.labels(event.getNewValue().getName()).inc();
     }
 
     public void onGuildJoin(GuildJoinEvent event) {
@@ -78,7 +78,7 @@ public class GuildStateEventAdapter extends EventAdapter {
         }
 
         Metrics.guilds.inc();
-        Metrics.geoTracker.labels(event.getGuild().getRegion().getName()).inc();
+        //Metrics.geoTracker.labels(event.getGuild().getRegion().getName()).inc();
 
         TextChannel channel = avaire.getShardManager().getTextChannelById(
             avaire.getConstants().getActivityLogChannelId()
@@ -132,7 +132,7 @@ public class GuildStateEventAdapter extends EventAdapter {
         }
 
         Metrics.guilds.dec();
-        Metrics.geoTracker.labels(guild.getRegion().getName()).dec();
+//        Metrics.geoTracker.labels(guild.getRegion().getName()).dec();
 
         TextChannel channel = avaire.getShardManager().getTextChannelById(
             avaire.getConstants().getActivityLogChannelId()

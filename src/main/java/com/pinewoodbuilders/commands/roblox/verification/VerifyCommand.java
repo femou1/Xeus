@@ -8,7 +8,7 @@ import com.pinewoodbuilders.contracts.verification.VerificationProviders;
 import net.dv8tion.jda.api.entities.Emoji;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 
@@ -85,7 +85,7 @@ public class VerifyCommand extends VerificationCommandContract {
 
                     if (verificationEntities.size() < 1) {
                         unverifiedMessage.editMessageEmbeds(context.makeWarning("An account could not be found that's linked to your discord id. Please enter your Roblox name:").requestedBy(context).buildEmbed()).queue(unused -> {
-                            avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class,
+                            avaire.getWaiter().waitForEvent(MessageReceivedEvent.class,
                                     message -> message.getMember() != null && message.getMember().equals(context.getMember()) && message.getChannel().equals(context.channel),
                                     usernameMessage -> {
                                         verifyNewAccount(context, usernameMessage.getMessage().getContentRaw(), unverifiedMessage);
@@ -117,7 +117,7 @@ public class VerifyCommand extends VerificationCommandContract {
                                         for (SelectOption so : providerSelect.getSelectedOptions()) {
                                             if (so.getValue().equals("verify-new-account")) {
                                                 unverifiedMessage.editMessageEmbeds(context.makeWarning("You selected the option to verify with a new account\n**Please enter the Roblox name of said account**:").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue(unused -> {
-                                                    avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class,
+                                                    avaire.getWaiter().waitForEvent(MessageReceivedEvent.class,
                                                             interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(unverifiedMessage),
                                                             usernameMessage -> {
                                                                 verifyNewAccount(context, usernameMessage.getMessage().getContentRaw(), unverifiedMessage);

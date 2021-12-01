@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.contracts.commands;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.database.transformers.ChannelTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
@@ -148,7 +148,7 @@ public abstract class ChannelModuleCommand extends Command {
             return true;
         }
 
-        context.getMessageChannel().sendMessage(
+        context.getMessageChannel().sendMessageEmbeds(
             MessageFactory.createEmbeddedBuilder()
                 .setDescription(message)
                 .setColor(Color.decode(embedColor))

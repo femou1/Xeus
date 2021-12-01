@@ -21,8 +21,10 @@
 
 package com.pinewoodbuilders.commands.utility;
 
-import com.pinewoodbuilders.Xeus;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.chat.SimplePaginator;
 import com.pinewoodbuilders.commands.CommandMessage;
@@ -35,8 +37,6 @@ import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.utilities.CacheUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import org.slf4j.Logger;
@@ -185,7 +185,7 @@ public class GlobalLeaderboardCommand extends Command {
         }
 
         if (loadingMessage != null) {
-            loadingMessage.editMessage(message.buildEmbed()).queue();
+            loadingMessage.editMessageEmbeds(message.buildEmbed()).queue();
         } else {
             message.queue();
         }

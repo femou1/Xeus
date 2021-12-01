@@ -21,18 +21,17 @@
 
 package com.pinewoodbuilders.commands.onwatch;
 
-import com.pinewoodbuilders.Xeus;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import net.dv8tion.jda.api.entities.Role;
 
 import javax.annotation.Nonnull;
@@ -229,7 +228,7 @@ public class WatchRoleCommand extends Command {
             .setName("Muted")
             .setColor(Color.decode("#e91b6a"))
             .setPermissions(
-                Permission.MESSAGE_READ,
+                Permission.VIEW_CHANNEL,
                 Permission.MESSAGE_HISTORY
             )
             .queue(role -> {

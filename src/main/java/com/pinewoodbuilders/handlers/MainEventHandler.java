@@ -33,20 +33,16 @@ import com.pinewoodbuilders.metrics.Metrics;
 import com.pinewoodbuilders.pinewood.adapter.WhitelistEventAdapter;
 import com.pinewoodbuilders.utilities.CacheUtil;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.ReconnectedEvent;
 import net.dv8tion.jda.api.events.ResumedEvent;
-import net.dv8tion.jda.api.events.channel.text.TextChannelCreateEvent;
-import net.dv8tion.jda.api.events.channel.text.TextChannelDeleteEvent;
-import net.dv8tion.jda.api.events.channel.text.update.TextChannelUpdateNameEvent;
-import net.dv8tion.jda.api.events.channel.text.update.TextChannelUpdatePositionEvent;
-import net.dv8tion.jda.api.events.channel.voice.VoiceChannelDeleteEvent;
-import net.dv8tion.jda.api.events.channel.voice.update.VoiceChannelUpdateRegionEvent;
+import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
+import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
+import net.dv8tion.jda.api.events.channel.update.ChannelUpdateNameEvent;
+import net.dv8tion.jda.api.events.channel.update.ChannelUpdatePositionEvent;
+import net.dv8tion.jda.api.events.channel.update.ChannelUpdateRegionEvent;
 import net.dv8tion.jda.api.events.emote.EmoteRemovedEvent;
 import net.dv8tion.jda.api.events.guild.*;
 import net.dv8tion.jda.api.events.guild.invite.GuildInviteCreateEvent;
@@ -59,13 +55,7 @@ import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
-import net.dv8tion.jda.api.events.message.GenericMessageEvent;
-import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageDeleteEvent;
-import net.dv8tion.jda.api.events.message.guild.react.GenericGuildMessageReactionEvent;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.*;
 import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
@@ -115,6 +105,7 @@ public class MainEventHandler extends EventHandler {
 
     private List <String> inviteCode = new LinkedList <>();
     private int invites = 0;
+
     /**
      * Instantiates the event handler and sets the avaire class instance.
      *
@@ -157,18 +148,18 @@ public class MainEventHandler extends EventHandler {
     }
 
     @Override
-    public void onResume(ResumedEvent event) {
+    public void onResumed(ResumedEvent event) {
         jdaStateEventAdapter.onConnectToShard(event.getJDA());
     }
 
     @Override
-    public void onReconnect(ReconnectedEvent event) {
+    public void onReconnected(ReconnectedEvent event) {
         jdaStateEventAdapter.onConnectToShard(event.getJDA());
     }
 
     @Override
-    public void onVoiceChannelUpdateRegion(VoiceChannelUpdateRegionEvent event) {
-        guildStateEvent.onGuildUpdateRegion(event);
+    public void onChannelUpdateRegion(ChannelUpdateRegionEvent event) {
+        guildStateEvent.onChannelUpdateRegion(event);
     }
 
     @Override
@@ -187,24 +178,50 @@ public class MainEventHandler extends EventHandler {
     }
 
     @Override
-    public void onTextChannelDelete(TextChannelDeleteEvent event) {
-        channelEvent.updateChannelData(event.getGuild());
-        channelEvent.onTextChannelDelete(event);
+    public void onChannelDelete(ChannelDeleteEvent event) {
+
+        if (event.getChannel() instanceof TextChannel) {
+            TextChannel channel = (TextChannel) event.getChannel();
+            channelEvent.updateChannelData(channel.getGuild(), channel);
+            channelEvent.onTextChannelDelete(event, channel);
+        }
+
+        if (event.getChannel() instanceof VoiceChannel) {
+            VoiceChannel channel = (VoiceChannel) event.getChannel();
+            voiceChannelHandler.onVoiceDelete(channel);
+        }
     }
 
     @Override
-    public void onTextChannelCreate(TextChannelCreateEvent event) {
-        channelEvent.updateChannelData(event.getGuild());
+    public void onChannelCreate(ChannelCreateEvent event) {
+        if (event.getChannel() instanceof TextChannel) {
+            TextChannel channel = (TextChannel) event.getChannel();
+            channelEvent.updateChannelData(channel.getGuild(), channel);
+        }
+
+        if (event.getChannel() instanceof ThreadChannel) {
+            ThreadChannel channel = (ThreadChannel) event.getChannel();
+            channel.join().queue();
+        }
     }
 
     @Override
-    public void onTextChannelUpdateName(TextChannelUpdateNameEvent event) {
-        channelEvent.updateChannelData(event.getGuild());
+    public void onChannelUpdateName(ChannelUpdateNameEvent event) {
+        if (event.getChannel() instanceof TextChannel) {
+            TextChannel channel = (TextChannel) event.getChannel();
+
+            channelEvent.updateChannelData(channel.getGuild(), channel);
+
+        }
     }
 
     @Override
-    public void onTextChannelUpdatePosition(TextChannelUpdatePositionEvent event) {
-        channelEvent.updateChannelData(event.getGuild());
+    public void onChannelUpdatePosition(ChannelUpdatePositionEvent event) {
+        if (event.getChannel() instanceof TextChannel) {
+            TextChannel channel = (TextChannel) event.getChannel();
+
+            channelEvent.updateChannelData(channel.getGuild(), channel);
+        }
     }
 
     @Override
@@ -222,11 +239,6 @@ public class MainEventHandler extends EventHandler {
     @Override
     public void onGuildVoiceLeave(@Nonnull GuildVoiceLeaveEvent event) {
         voiceChannelHandler.removePrivateChannelOn(event);
-    }
-
-    @Override
-    public void onVoiceChannelDelete(@Nonnull VoiceChannelDeleteEvent event) {
-        voiceChannelHandler.onVoiceDelete(event);
     }
 
     @Override
@@ -274,7 +286,8 @@ public class MainEventHandler extends EventHandler {
             if (retrievedInvites.size() > invites) return;
             List <Role> roles = event.getGuild().getRolesByName("Pizza Delivery", true);
             if (roles.size() == 0) {
-                System.out.println("Role does not exist");return;}
+                System.out.println("Role does not exist"); return;
+            }
             Role r = roles.get(0);
             event.getGuild().addRoleToMember(event.getMember(), r).queue();
             invites = retrievedInvites.size();
@@ -298,7 +311,7 @@ public class MainEventHandler extends EventHandler {
 
         guild.retrieveInvites().queue(retrievedInvites ->                                             // retrieve all guild's invites
         {
-                    invites = retrievedInvites.size();
+            invites = retrievedInvites.size();
         });
     }
 
@@ -364,7 +377,7 @@ public class MainEventHandler extends EventHandler {
     }
 
     @Override
-    public void onGuildMessageDelete(GuildMessageDeleteEvent event) {
+    public void onMessageDelete(MessageDeleteEvent event) {
         if (changelogEventAdapter.isChangelogMessage(event.getChannel())) {
             changelogEventAdapter.onMessageDelete(event);
         }
@@ -374,7 +387,12 @@ public class MainEventHandler extends EventHandler {
 
     @Override
     public void onMessageBulkDelete(MessageBulkDeleteEvent event) {
-        messageEvent.onMessageDelete(event.getChannel(), event.getMessageIds());
+        if (event.getChannel() instanceof TextChannel) {
+            TextChannel channel = (TextChannel) event.getChannel();
+            messageEvent.onMessageDelete(channel, event.getMessageIds());
+
+        }
+
     }
 
     @Override
@@ -447,24 +465,20 @@ public class MainEventHandler extends EventHandler {
     }
 
     @Override
-    public void onMessageReactionAdd(MessageReactionAddEvent event) {
+    public void onMessageReactionAdd(@Nonnull MessageReactionAddEvent event) {
+
         if (isValidMessageReactionEvent(event)) {
             reactionEmoteEventAdapter.onMessageReactionAdd(event);
-        }
-    }
+            if (event.isFromGuild()) {
+                if (event.getChannel().getId().equals(Constants.REWARD_REQUESTS_CHANNEL_ID)) {
+                    reactionEmoteEventAdapter.onPBSTRequestRewardMessageAddEvent(event);
+                }
 
-    @Override
-    public void onGuildMessageReactionAdd(@Nonnull GuildMessageReactionAddEvent event) {
-        if (isValidMessageReactionEvent(event)) {
-            if (event.getChannel().getId().equals(Constants.REWARD_REQUESTS_CHANNEL_ID)) {
-                reactionEmoteEventAdapter.onPBSTRequestRewardMessageAddEvent(event);
+                reactionEmoteEventAdapter.onGuildSuggestionValidation(event);
+                reactionEmoteEventAdapter.onReportsReactionAdd(event);
+                reactionEmoteEventAdapter.onFeedbackMessageEvent(event);
             }
-
-            reactionEmoteEventAdapter.onGuildSuggestionValidation(event);
-            reactionEmoteEventAdapter.onReportsReactionAdd(event);
-            reactionEmoteEventAdapter.onFeedbackMessageEvent(event);
         }
-
     }
 
     @Override
@@ -486,7 +500,7 @@ public class MainEventHandler extends EventHandler {
         return event.isFromGuild() && event.getReactionEmote().isEmote();
     }
 
-/*    private boolean isValidReportChannel(GuildMessageReactionAddEvent event) {
+/*    private boolean isValidReportChannel(MessageReactionAddEvent event) {
         return event.getChannel().getId().equals(Constants.PBST_REPORT_CHANNEL) || event.getChannel().getId().equals(Constants.PET_REPORT_CHANNEL)
                 || event.getChannel().getId().equals(Constants.TMS_REPORT_CHANNEL) || event.getChannel().getId().equals(Constants.PB_REPORT_CHANNEL) || event.getChannel().getName().equals("handbook-violator-reports");
     }*/
@@ -503,10 +517,6 @@ public class MainEventHandler extends EventHandler {
             GenericRoleEvent genericRoleEvent = (GenericRoleEvent) event;
 
             loadGuildMembers(genericRoleEvent.getGuild());
-        } else if (event instanceof GenericGuildMessageReactionEvent) {
-            GenericGuildMessageReactionEvent genericGuildMessageReactionEvent = (GenericGuildMessageReactionEvent) event;
-
-            loadGuildMembers(genericGuildMessageReactionEvent.getGuild());
         } else if (event instanceof GenericGuildEvent) {
             GenericGuildEvent genericGuildEvent = (GenericGuildEvent) event;
 
@@ -572,10 +582,6 @@ public class MainEventHandler extends EventHandler {
     private boolean isValidMessageReactionEvent(MessageReactionRemoveEvent event) {
         return event.isFromGuild()
             && event.getReactionEmote().isEmote();
-    }
-
-    private boolean isValidMessageReactionEvent(GuildMessageReactionAddEvent event) {
-        return !event.getUser().isBot();
     }
 
 }

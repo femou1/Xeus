@@ -106,7 +106,7 @@ public class SlowmodeCommand extends Command {
 
         GuildChannel channel = MentionableUtil.getChannel(context.getMessage(), args);
         if (channel == null) {
-            return handleSlowmode(context, context.getChannel(), args);
+            return handleSlowmode(context, (TextChannel) context.getChannel(), args);
         }
 
         if (!channel.getType().equals(ChannelType.TEXT)) {

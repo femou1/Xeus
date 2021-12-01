@@ -54,7 +54,7 @@ public class SyncJDAMetricsCounterTask implements Task {
 
         for (JDA shard : avaire.getShardManager().getShards()) {
             for (Guild guild : shard.getGuilds()) {
-                Metrics.geoTracker.labels(guild.getRegion().getName()).inc();
+                //Metrics.geoTracker.labels(guild.getRegion().getName()).inc();
             }
         }
     }

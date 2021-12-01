@@ -7,7 +7,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -115,7 +115,7 @@ public class EmbedGeneratorCommand extends Command {
 
     private String waitForResponse(CommandMessage context) {
         StringBuilder sb = new StringBuilder();
-        avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, event -> event.getAuthor().equals(context.getAuthor()) && event.getChannel().equals(context.getChannel()), p -> {
+        avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, event -> event.getAuthor().equals(context.getAuthor()) && event.getChannel().equals(context.getChannel()), p -> {
             sb.append(p.getMessage().getContentRaw());
         });
     return sb.toString();

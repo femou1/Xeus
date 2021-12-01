@@ -1,7 +1,7 @@
 package com.pinewoodbuilders.commands.pinewood;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.blacklist.features.FeatureScope;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
@@ -9,7 +9,6 @@ import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.query.QueryBuilder;
-import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.Request;
@@ -20,8 +19,8 @@ import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.json.JSONObject;
 
@@ -148,7 +147,7 @@ public class ReportUserCommand extends Command {
                 l.addReaction("❌").queue();
                 l.editMessageEmbeds(context.makeInfo("Welcome to the pinewood report system. With this feature, you can report any Pinewood member in any of the pinewood groups!\n\n" + sb.toString()).buildEmbed()).queue(
                     message -> {
-                        avaire.getWaiter().waitForEvent(GuildMessageReactionAddEvent.class, event -> {
+                        avaire.getWaiter().waitForEvent(MessageReactionAddEvent.class, event -> {
                             return event.getMember().equals(context.member) && event.getMessageId().equalsIgnoreCase(message.getId());
                         }, react -> {
                             try {
@@ -168,7 +167,7 @@ public class ReportUserCommand extends Command {
                                     message.editMessageEmbeds(context.makeInfo(d.getString("handbook_report_info_message", "A report message for ``:guild`` could not be found. Ask the HR's of ``:guild`` to set one.\n" +
                                         "If you'd like to report someone, say their name right now.")).set("guild", d.getString("name")).set(":user", context.member.getEffectiveName()).buildEmbed()).queue(
                                         nameMessage -> {
-                                            avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, m -> {
+                                            avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, m -> {
                                                     return m.getMember() != null && m.getMember().equals(context.member) && message.getChannel().equals(l.getChannel());
                                                 },
                                                 content -> {
@@ -219,7 +218,7 @@ public class ReportUserCommand extends Command {
         }
     }
 
-    private void goToStep2(CommandMessage context, Message message, GuildMessageReceivedEvent content, DataRow d, TextChannel c) {
+    private void goToStep2(CommandMessage context, Message message, MessageReceivedEvent content, DataRow d, TextChannel c) {
         {
             List<Message> messagesToRemove = new ArrayList<>();
             messagesToRemove.add(content.getMessage());
@@ -283,8 +282,8 @@ public class ReportUserCommand extends Command {
         }
     }
 
-    private void startDescriptionWaiter(CommandMessage context, Message message, Optional <RobloxUserGroupRankService.Data> b, DataRow d, Message getEvidence, GuildMessageReceivedEvent content, List <Message> messagesToRemove) {
-        avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, a ->
+    private void startDescriptionWaiter(CommandMessage context, Message message, Optional <RobloxUserGroupRankService.Data> b, DataRow d, Message getEvidence, MessageReceivedEvent content, List <Message> messagesToRemove) {
+        avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, a ->
                 context.getMember().equals(a.getMember()) && antiSpamInfo(context, a),
             r -> {
                 messagesToRemove.add(r.getMessage());
@@ -313,7 +312,7 @@ public class ReportUserCommand extends Command {
             "- [Gyazo Links](https://gyazo.com)\n" +
             "- [LightShot Links](https://app.prntscr.com/)\n" +
             "- [Streamable](https://streamable.com)\n" +
-            "If you want a link/video/image service added, please ask ``Stefano#7366``").buildEmbed()).queue(evi -> avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, pm ->
+            "If you want a link/video/image service added, please ask ``Stefano#7366``").buildEmbed()).queue(evi -> avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, pm ->
                 context.getMember().equals(pm.getMember()) && context.getChannel().equals(pm.getChannel()) && checkEvidenceAcceptance(context, pm),
             evidence -> {
                 messagesToRemove.add(evidence.getMessage());
@@ -343,7 +342,7 @@ public class ReportUserCommand extends Command {
                 "- [Gyazo Links](https://gyazo.com)\n" +
                 "- [LightShot Links](https://app.prntscr.com/)\n" +
                 "- [Streamable](https://streamable.com)\n" +
-                "If you want a link/video/image service added, please ask ``Stefano#7366``").buildEmbed()).queue(evi -> avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, pm ->
+                "If you want a link/video/image service added, please ask ``Stefano#7366``").buildEmbed()).queue(evi -> avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, pm ->
                     context.getMember().equals(pm.getMember()) && context.getChannel().equals(pm.getChannel()) && checkEvidenceAcceptance(context, pm),
                 explainedEvidence -> {
                     messagesToRemove.add(explainedEvidence.getMessage());
@@ -460,7 +459,7 @@ public class ReportUserCommand extends Command {
 
     private boolean runSetReportMessage(CommandMessage context) {
         context.makeInfo("Please tell me, what would you like as the guild report message?").queue(message -> {
-            avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, m -> m.getMember().equals(context.member) && message.getChannel().equals(m.getChannel()), reportMessage -> {
+            avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, m -> m.getMember().equals(context.member) && message.getChannel().equals(m.getChannel()), reportMessage -> {
                 QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
                 try {
                     qb.update(q -> {
@@ -489,7 +488,7 @@ public class ReportUserCommand extends Command {
         return false;
     }
 
-    private boolean checkEvidenceAcceptance(CommandMessage context, GuildMessageReceivedEvent pm) {
+    private boolean checkEvidenceAcceptance(CommandMessage context, MessageReceivedEvent pm) {
         String message = pm.getMessage().getContentRaw();
         if (!(message.startsWith("https://youtu.be") ||
             message.startsWith("http://youtu.be") ||
@@ -509,7 +508,7 @@ public class ReportUserCommand extends Command {
         return true;
     }
 
-    private boolean antiSpamInfo(CommandMessage context, GuildMessageReceivedEvent l) {
+    private boolean antiSpamInfo(CommandMessage context, MessageReceivedEvent l) {
         if (l.getMessage().getContentRaw().equalsIgnoreCase("cancel")) return true;
 
         int length = l.getMessage().getContentRaw().length();

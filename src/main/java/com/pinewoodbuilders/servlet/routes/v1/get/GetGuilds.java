@@ -47,7 +47,7 @@ public class GetGuilds extends SparkRoute {
 
                 guild.put("id", guildById.getId());
                 guild.put("name", guildById.getName());
-                guild.put("region", guildById.getRegion().getName());
+                //guild.put("region", guildById.getRegion().getName());
                 guild.put("icon", guildById.getIconUrl());
 
                 JSONObject owner = new JSONObject();

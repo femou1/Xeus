@@ -1,10 +1,10 @@
 package com.pinewoodbuilders.scheduler.tasks;
 
+import com.google.gson.reflect.TypeToken;
 import com.pinewoodbuilders.AppInfo;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.scheduler.Task;
 import com.pinewoodbuilders.factories.MessageFactory;
-import com.google.gson.reflect.TypeToken;
 import net.dv8tion.jda.api.entities.TextChannel;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -49,7 +49,7 @@ public class CheckUserOnlineStatus implements Task {
                             TextChannel tc = avaire.getShardManager().getTextChannelById("859670820724801566");
 
                             if (tc != null) {
-                                tc.sendMessage("@everyone").embed(MessageFactory.makeEmbeddedMessage(avaire.getShardManager().getTextChannelById("859670820724801566"), new Color(255, 0, 0), "[" + id + " just went online!](https://www.roblox.com/users/"+id+"/profile)").buildEmbed()).queue();
+                                tc.sendMessage("@everyone").setEmbeds(MessageFactory.makeEmbeddedMessage(avaire.getShardManager().getTextChannelById("859670820724801566"), new Color(255, 0, 0), "[" + id + " just went online!](https://www.roblox.com/users/"+id+"/profile)").buildEmbed()).queue();
                             }
                         }
                     }

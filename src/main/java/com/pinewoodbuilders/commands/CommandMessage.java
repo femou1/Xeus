@@ -25,8 +25,6 @@ import com.pinewoodbuilders.chat.MessageType;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.config.YamlConfiguration;
 import com.pinewoodbuilders.contracts.commands.CommandContext;
-import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
-import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.database.transformers.PlayerTransformer;
@@ -56,7 +54,8 @@ public class CommandMessage implements CommandContext {
 
     public final Guild guild;
     public final Member member;
-    public final TextChannel channel;
+    public final MessageChannel channel;
+    public final GuildChannel guildChannel;
     public final Message message;
 
     private final boolean mentionableCommand;
@@ -102,7 +101,8 @@ public class CommandMessage implements CommandContext {
 
         this.guild = isNull ? null : message.getGuild();
         this.member = isNull ? null : message.getMember();
-        this.channel = isNull ? null : message.getTextChannel();
+        this.channel = isNull ? null : message.getChannel();
+        this.guildChannel = isNull ? null : message.getGuildChannel();
         this.databaseEventHolder = databaseEventHolder;
         this.container = container;
 
@@ -112,9 +112,7 @@ public class CommandMessage implements CommandContext {
     }
 
     public boolean canDelete() {
-        return isGuildMessage() && getGuild().getSelfMember().hasPermission(
-            getChannel(), Permission.MESSAGE_MANAGE
-        );
+        return isGuildMessage() && getGuild().getSelfMember().hasPermission(Permission.MESSAGE_MANAGE);
     }
 
     public AuditableRestAction<Void> delete() {
@@ -172,13 +170,18 @@ public class CommandMessage implements CommandContext {
     }
 
     @Override
-    public TextChannel getChannel() {
+    public MessageChannel getChannel() {
         return channel;
     }
 
     @Override
     public MessageChannel getMessageChannel() {
         return message.getChannel();
+    }
+
+    @Override
+    public GuildChannel getGuildChannel() {
+        return guildChannel;
     }
 
     @Override
@@ -253,7 +256,7 @@ public class CommandMessage implements CommandContext {
         }
 
         return message.getGuild().getSelfMember().hasPermission(message.getTextChannel(),
-            Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_EMBED_LINKS
+            Permission.MESSAGE_SEND, Permission.VIEW_CHANNEL, Permission.MESSAGE_EMBED_LINKS
         );
     }
 

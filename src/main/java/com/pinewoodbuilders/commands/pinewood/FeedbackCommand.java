@@ -14,8 +14,8 @@ import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.EventWaiter;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 
@@ -148,7 +148,7 @@ public class FeedbackCommand extends Command {
     }
 
     private void startEmojiWaiter(CommandMessage context, Message message, EventWaiter waiter, QueryBuilder qb) {
-        waiter.waitForEvent(GuildMessageReactionAddEvent.class, l -> l.getMember().equals(context.member) && message.getId().equals(l.getMessageId()), emote -> {
+        waiter.waitForEvent(MessageReactionAddEvent.class, l -> l.getMember().equals(context.member) && message.getId().equals(l.getMessageId()), emote -> {
             try {
                 DataRow d = qb.where("emoji_id", emote.getReactionEmote().getId()).get().get(0);
 
@@ -164,7 +164,7 @@ public class FeedbackCommand extends Command {
                     message.clearReactions().queue();
 
 
-                    waiter.waitForEvent(GuildMessageReceivedEvent.class, l -> {
+                    waiter.waitForEvent(MessageReceivedEvent.class, l -> {
                         Member m = l.getMember();
                         return m != null && m.equals(context.member) && message.getChannel().equals(l.getChannel()) && antiSpamInfo(context, l);
                     }, p -> {
@@ -219,7 +219,7 @@ public class FeedbackCommand extends Command {
         });
     }
 
-    private boolean antiSpamInfo(CommandMessage context, GuildMessageReceivedEvent l) {
+    private boolean antiSpamInfo(CommandMessage context, MessageReceivedEvent l) {
         if (l.getMessage().getContentRaw().equalsIgnoreCase("cancel")) return true;
 
         if (l.getMessage().getContentRaw().length() <= 25) {

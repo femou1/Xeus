@@ -32,7 +32,7 @@ class DefaultPlaceholders {
                 if (object instanceof Message && ((Message) object).getChannelType().isGuild()) {
                     Message jdaMessage = (Message) object;
 
-                    return parseGuild(jdaMessage.getGuild(), parseChannel(jdaMessage.getTextChannel(), parseUser(jdaMessage.getAuthor(), message)));
+                    return parseGuild(jdaMessage.getGuild(), parseChannel(jdaMessage.getChannel(), parseUser(jdaMessage.getAuthor(), message)));
                 }
 
             case GUILD:
@@ -50,9 +50,14 @@ class DefaultPlaceholders {
                     return parseChannel((TextChannel) object, message);
                 }
 
+                if (object instanceof ThreadChannel) {
+                    return parseChannel((ThreadChannel) object, message);
+                }
+
                 if (object instanceof Message && ((Message) object).getChannelType().equals(ChannelType.TEXT)) {
                     return parseChannel(((Message) object).getTextChannel(), message);
                 }
+
                 break;
 
             case USER:
@@ -60,7 +65,7 @@ class DefaultPlaceholders {
                     return parseUser((User) object, message);
                 }
 
-                if (object instanceof Message && ((Message) object).getAuthor() != null) {
+                if (object instanceof Message) {
                     return parseUser(((Message) object).getAuthor(), message);
                 }
                 break;
@@ -85,11 +90,11 @@ class DefaultPlaceholders {
     }
 
     static String toChannel(Message message, String string) {
-        if (message.getTextChannel() == null || string == null) return string;
-        return parseChannel(message.getTextChannel(), string);
+        if (string == null) return null;
+        return parseChannel(message.getChannel(), string);
     }
 
-    private static String parseChannel(TextChannel channel, String message) {
+    private static String parseChannel(MessageChannel channel, String message) {
         message = StringReplacementUtil.replaceAll(message, ":channelname", channel.getName());
         message = StringReplacementUtil.replaceAll(message, ":channelid", channel.getId());
         message = StringReplacementUtil.replaceAll(message, ":channel", channel.getAsMention());

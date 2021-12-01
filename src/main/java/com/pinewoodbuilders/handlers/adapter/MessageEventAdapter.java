@@ -118,7 +118,7 @@ public class MessageEventAdapter extends EventAdapter {
             return;
         }
 
-        if (event.getChannelType().isGuild() && !event.getTextChannel().canTalk()) {
+        if (!event.getChannelType().isGuild()) {
             return;
         }
 
@@ -201,7 +201,7 @@ public class MessageEventAdapter extends EventAdapter {
 
         for (String word : badWordsList) {
             if (words.contains(word)) {
-                warnUserColor(messageId, settings, "**GLOBAL AUTOMOD**: Global Filter was activated!\n**Type**: " + "``WILDCARD``\n**Sentence Filtered**: " + contentStripped, new Color(0, 0, 0), messageId.getTextChannel());
+                warnUserColor(messageId, settings, "**GLOBAL AUTOMOD**: Global Filter was activated!\n**Type**: " + "``WILDCARD``\n**Sentence Filtered**: " + contentStripped, new Color(0, 0, 0), messageId.getChannel());
                 return true;
             }
         }
@@ -244,94 +244,79 @@ public class MessageEventAdapter extends EventAdapter {
 
 
     public void onLocalFilterMessageReceived(MessageReceivedEvent event) {
-        loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder -> {
-            if (Constants.guilds.contains(event.getGuild().getId())) {
-                checkFilters(event, databaseEventHolder);
-            }
-        });
+        loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder -> checkFilters(event, databaseEventHolder));
     }
 
 
     public void onLocalFilterEditReceived(MessageUpdateEvent event) {
-        loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder -> {
-            if (Constants.guilds.contains(event.getGuild().getId())) {
-                checkFilters(event, databaseEventHolder);
-            }
-        });
+        loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder -> checkFilters(event, databaseEventHolder));
     }
 
     public void onGlobalFilterMessageReceived(MessageReceivedEvent event) {
         if (Constants.guilds.contains(event.getGuild().getId())) {
-            loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder -> {
-                    checkPublicFilter(event, databaseEventHolder);
-                }
-            );
+            loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder ->
+                checkPublicFilter(event, databaseEventHolder));
         }
     }
 
     public void onGlobalFilterEditReceived(MessageUpdateEvent event) {
-        if (Constants.guilds.contains(event.getGuild().getId())) {
-            loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder -> {
-                checkPublicFilter(event, databaseEventHolder);
-            });
-        }
+        loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder -> {
+            checkPublicFilter(event, databaseEventHolder);
+        });
     }
 
     private void checkPublicFilter(GenericMessageEvent genericMessageEvent, DatabaseEventHolder databaseEventHolder) {
-        Message event = getActualMessage(genericMessageEvent);
+        Message actualMessage = getActualMessage(genericMessageEvent);
 
-        if (!event.getChannelType().equals(ChannelType.TEXT)) {
+        if (!actualMessage.isFromGuild()) {
             return;
         }
 
-        
 
         GuildSettingsTransformer guild = databaseEventHolder.getGuildSettings();
-        if (guild != null) {
-            GlobalSettingsTransformer settings = guild.getGlobalSettings();
-            if (!guild.getGlobalFilter()) {
-                return;
-            }
-            if (!event.getContentRaw().startsWith("debug:") && CheckPermissionUtil.getPermissionLevel(guild, genericMessageEvent.getGuild(), event.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
-                return;
-            }
+        if (guild == null) {return;}
 
-            if (checkLinkFilter(event.getContentRaw())) {
-                if (guild.getOnWatchRole() != 0) {
-                    Role watchRole = event.getGuild().getRoleById(guild.getOnWatchRole());
-                    if (event.getMember().getRoles().contains(watchRole)) {
-                        event.delete().queue();
-                    }
+        GlobalSettingsTransformer settings = guild.getGlobalSettings();
+        if (!settings.getGlobalFilter()) {
+            return;
+        }
+        if (!actualMessage.getContentRaw().startsWith("debug:") && CheckPermissionUtil.getPermissionLevel(guild, genericMessageEvent.getGuild(), actualMessage.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
+            return;
+        }
+
+        if (checkLinkFilter(actualMessage.getContentRaw())) {
+            if (guild.getOnWatchRole() != 0) {
+                Role watchRole = actualMessage.getGuild().getRoleById(guild.getOnWatchRole());
+                if (actualMessage.getMember().getRoles().contains(watchRole)) {
+                    actualMessage.delete().queue();
                 }
             }
-
-            String message = event.getContentStripped().replaceAll("[!@#$%^&*()\\[\\]\\-=';/\\\\{}:\"><?|+_`~]", "");
-
-            if (checkGlobalExactFilter(message, settings, event, guild)) {
-                System.out.println("Exact Filter removed: `" + message + "` in "+ event.getGuild().getName() + " (<#" + event.getTextChannel().getId() + ">)");
-                event.delete().queue();
-                MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, event.getAuthor().getIdLong(), event);
-                return;
-            } else if (checkGlobalWildcardFilter(message, settings, event, guild)) {
-                System.out.println("Wildcard Filter removed: `" + message + "` in "+ event.getGuild().getName() + " (<#" + event.getTextChannel().getId() + ">)");
-                event.delete().queue();
-                MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, event.getAuthor().getIdLong(), event);
-                return;
-            } else if (checkAutomodFilters(event, guild)) {
-                event.getTextChannel().retrieveMessageById(event.getId()).queue(l -> {
-                    l.delete().reason("Auto-Mod Violation").queue();
-                    System.out.println("AutoMod removed in " + event.getGuild().getName() + " (<#" + event.getTextChannel().getId() + ">): " + event.getContentRaw());
-                }, failure -> {
-                    System.out.println("AutoMod failed to remove in " + event.getGuild().getName() + " (<#" + event.getTextChannel().getId() + ">): " + event.getContentRaw());
-                });
-                MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, event.getAuthor().getIdLong(), event);
-                return;
-            }
-            checkPIAInviteFilter(event, databaseEventHolder);
-            
-        } else {
-            System.out.println("Guild is null");
         }
+
+        String message = actualMessage.getContentStripped().replaceAll("[!@#$%^&*()\\[\\]\\-=';/\\\\{}:\"><?|+_`~]", "");
+        if (checkGlobalExactFilter(message, settings, actualMessage, guild)) {
+            System.out.println("Exact Filter removed: `" + message + "` in " + actualMessage.getGuild().getName() + " (<#" + actualMessage.getChannel().getId() + ">)");
+            actualMessage.delete().queue();
+            MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, actualMessage.getAuthor().getIdLong(), actualMessage);
+            return;
+        } else if (checkGlobalWildcardFilter(message, settings, actualMessage, guild)) {
+            System.out.println("Wildcard Filter removed: `" + message + "` in " + actualMessage.getGuild().getName() + " (<#" + actualMessage.getChannel().getId() + ">)");
+            actualMessage.delete().queue();
+            MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, actualMessage.getAuthor().getIdLong(), actualMessage);
+            return;
+        } else if (checkAutomodFilters(actualMessage, guild)) {
+            actualMessage.getTextChannel().retrieveMessageById(actualMessage.getId()).queue(l -> {
+                l.delete().reason("Auto-Mod Violation").queue();
+                System.out.println("AutoMod removed in " + actualMessage.getGuild().getName() + " (<#" + actualMessage.getTextChannel().getId() + ">): " + actualMessage.getContentRaw());
+            }, failure -> {
+                System.out.println("AutoMod failed to remove in " + actualMessage.getGuild().getName() + " (<#" + actualMessage.getTextChannel().getId() + ">): " + actualMessage.getContentRaw());
+            });
+            MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, actualMessage.getAuthor().getIdLong(), actualMessage);
+            return;
+        }
+        checkPIAInviteFilter(actualMessage, databaseEventHolder);
+
+
     }
 
 
@@ -503,7 +488,7 @@ public class MessageEventAdapter extends EventAdapter {
         Modlog.notifyUser(m.getAuthor(), m.getGuild(), modlogAction, "FILTER");
     }
 
-    private boolean warnUserColor(Message m, GuildSettingsTransformer databaseEventHolder, String reason, Color color, TextChannel c) {
+    private boolean warnUserColor(Message m, GuildSettingsTransformer databaseEventHolder, String reason, Color color, MessageChannel c) {
         /*if (databaseEventHolder.getFilterLog() == null) {
             return;
         }*/
@@ -547,6 +532,7 @@ public class MessageEventAdapter extends EventAdapter {
     }
 
     private boolean canExecuteCommand(MessageReceivedEvent event, CommandContainer container) {
+        if (event.getChannel() instanceof ThreadChannel) return true;
         if (!container.getCommand().isAllowedInDM() && !event.getChannelType().isGuild()) {
             MessageFactory.makeWarning(event.getMessage(), "<a:alerta:729735220319748117> You can not use this command in direct messages!").queue();
             return false;
@@ -598,13 +584,13 @@ public class MessageEventAdapter extends EventAdapter {
         }
 
         MessageFactory.makeEmbeddedMessage(event.getMessage().getChannel(), Color.decode("#E91E63"), String.format(mentionMessage,
-            avaire.getSelfUser().getName(),
-            author,
+                avaire.getSelfUser().getName(),
+                author,
 
-            CommandHandler.getLazyCommand("help").getCommand().generateCommandTrigger(event.getMessage()),
-            editor,
-            AppInfo.getAppInfo().version
-        ))
+                CommandHandler.getLazyCommand("help").getCommand().generateCommandTrigger(event.getMessage()),
+                editor,
+                AppInfo.getAppInfo().version
+            ))
             .setFooter("This message will be automatically deleted in one minute.")
             .queue(message -> message.delete().queueAfter(1, TimeUnit.MINUTES, null, RestActionUtil.ignore));
     }
@@ -692,11 +678,13 @@ public class MessageEventAdapter extends EventAdapter {
                 return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), settings);
             }
 
-            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));});
+            return new DatabaseEventHolder(guild, PlayerController.fetchPlayer(avaire, event.getMessage()), VerificationController.fetchGuild(avaire, event.getMessage()), GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()));
+        });
     }
 
-    public void onMessageDelete(TextChannel channel, List <String> messageIds) {
-        Collection reactions = ReactionController.fetchReactions(avaire, channel.getGuild());
+    public void onMessageDelete(MessageChannel channel, List <String> messageIds) {
+        Guild guild = getGuildFromMessageChannel(channel);
+        Collection reactions = ReactionController.fetchReactions(avaire, guild);
         if (reactions == null || reactions.isEmpty()) {
             return;
         }
@@ -723,13 +711,23 @@ public class MessageEventAdapter extends EventAdapter {
             builder.delete();
 
             ReactionController.forgetCache(
-                channel.getGuild().getIdLong()
+                guild.getIdLong()
             );
         } catch (SQLException e) {
             log.error("Failed to delete {} reaction messages for the guild with an ID of {}",
-                removedReactionMessageIds.size(), channel.getGuild().getId(), e
+                removedReactionMessageIds.size(), guild.getId(), e
             );
         }
+    }
+
+    private Guild getGuildFromMessageChannel(MessageChannel channel) {
+        if (channel instanceof TextChannel) {
+            return ((TextChannel) channel).getGuild();
+        }
+        if (channel instanceof ThreadChannel) {
+            return ((ThreadChannel) channel).getGuild();
+        }
+        return null;
     }
 
     public void onMessageUpdate(MessageUpdateEvent event) {
@@ -847,9 +845,9 @@ public class MessageEventAdapter extends EventAdapter {
         event.getMessage().addReaction("tmsabstain:873681310881837106").queue();
         event.getMessage().addReaction("tmsnay:873681430054588456").queue();
         if (event.getMessage().getMentionedRoles().stream().anyMatch(role -> role.getName().equals("PIA"))) {
-        event.getMessage().addReaction("piaaye:900484641037881405").queue();
-        event.getMessage().addReaction("piaabstain:900484610771812352").queue();
-        event.getMessage().addReaction("pianay:900484582032420955").queue();
+            event.getMessage().addReaction("piaaye:900484641037881405").queue();
+            event.getMessage().addReaction("piaabstain:900484610771812352").queue();
+            event.getMessage().addReaction("pianay:900484582032420955").queue();
         }
     }
 }

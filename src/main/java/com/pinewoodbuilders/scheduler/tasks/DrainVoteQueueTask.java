@@ -165,7 +165,7 @@ public class DrainVoteQueueTask implements Task {
             return;
         }
 
-        textChannel.sendMessage(
+        textChannel.sendMessageEmbeds(
             avaire.getVoteManager().getMessenger().buildThanksForVotingMessage(
                 "Your vote has been registered!", voteEntity.getVotePoints()
             )

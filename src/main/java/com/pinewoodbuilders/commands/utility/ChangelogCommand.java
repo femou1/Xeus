@@ -185,7 +185,7 @@ public class ChangelogCommand extends Command {
     private boolean canReadChangelog(TextChannel changelogChannel) {
         return changelogChannel.getGuild().getSelfMember().hasPermission(
             changelogChannel,
-            Permission.MESSAGE_READ,
+            Permission.VIEW_CHANNEL,
             Permission.MESSAGE_HISTORY
         );
     }

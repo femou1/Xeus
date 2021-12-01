@@ -25,8 +25,6 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandContainer;
 import com.pinewoodbuilders.config.YamlConfiguration;
 import com.pinewoodbuilders.database.controllers.PlayerController;
-import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
-import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.database.transformers.PlayerTransformer;
@@ -86,7 +84,7 @@ public interface CommandContext {
      * @return The TextChannel this message was sent in, or {@code null} if it was not sent from a TextChannel.
      * @throws java.lang.UnsupportedOperationException If this is not a Received Message from {@link net.dv8tion.jda.api.entities.MessageType#DEFAULT MessageType.DEFAULT}
      */
-    TextChannel getChannel();
+    MessageChannel getChannel();
 
     /**
      * Returns the {@link net.dv8tion.jda.api.entities.MessageChannel MessageChannel} that this message was sent in.
@@ -95,6 +93,8 @@ public interface CommandContext {
      * @throws java.lang.UnsupportedOperationException If this is not a Received Message from {@link net.dv8tion.jda.api.entities.MessageType#DEFAULT MessageType.DEFAULT}
      */
     MessageChannel getMessageChannel();
+
+    GuildChannel getGuildChannel();
 
     /**
      * The received {@link net.dv8tion.jda.api.entities.Message Message} object.
@@ -221,8 +221,8 @@ public interface CommandContext {
      * This is an overload of {@link TextChannel#canTalk(Member)} with the SelfMember, if
      * the command was invoked in a DM, it will always return true.
      * <p>
-     * Checks for both {@link net.dv8tion.jda.api.Permission#MESSAGE_READ Permission.MESSAGE_READ},
-     * {@link net.dv8tion.jda.api.Permission#MESSAGE_WRITE Permission.MESSAGE_WRITE}, and
+     * Checks for both {@link net.dv8tion.jda.api.Permission#VIEW_CHANNEL Permission.VIEW_CHANNEL},
+     * {@link net.dv8tion.jda.api.Permission#MESSAGE_SEND Permission.MESSAGE_SEND}, and
      * {@link net.dv8tion.jda.api.Permission#MESSAGE_EMBED_LINKS Permission#MESSAGE_EMBED_LINKS}.
      *
      * @return True, if we are able to read and send messages in this channel.

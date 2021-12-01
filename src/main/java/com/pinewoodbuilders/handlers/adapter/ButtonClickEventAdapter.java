@@ -22,8 +22,8 @@
 package com.pinewoodbuilders.handlers.adapter;
 
 import com.pinewoodbuilders.AppInfo;
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.contracts.cache.CacheAdapter;
 import com.pinewoodbuilders.contracts.handlers.EventAdapter;
@@ -48,7 +48,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.Button;
 import okhttp3.MediaType;
@@ -127,7 +127,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                             e.getChannel().sendMessage(e.getMember().getAsMention()).setEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(100, 200, 200),
                                                                 "You've chosen to approve this report, may I know the amount of points I have to remove? (This user currently has ``BROKEN`` points)")
                                                                 .requestedBy(e.getMember())/*.set("points", points)*/.buildEmbed()).queue(z -> {
-                                                                avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class,
+                                                                avaire.getWaiter().waitForEvent(MessageReceivedEvent.class,
                                                                     p -> p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel()) && NumberUtil.isNumeric(p.getMessage().getContentStripped()), run -> {
                                                                         v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
                                                                             .setAuthor("Report created for: " + username, null, getImageByName(tc.getGuild(), username))
@@ -188,7 +188,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                         MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(100, 200, 200),
                                                             "You've chosen to approve a report, may I know the punishment you're giving to the user?")
                                                             .requestedBy(e.getMember()).buildEmbed()).queue(z -> {
-                                                        avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
+                                                        avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, p -> {
                                                             return p.getMember() != null && p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel());
                                                         }, run -> {
                                                             v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
@@ -233,7 +233,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     return;
 
                                                 e.getChannel().sendMessage(e.getMember().getAsMention()).setEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(100, 200, 200), "You've chosen to reject a report, may I know the reason you're giving for this?").requestedBy(e.getMember()).buildEmbed()).queue(z -> {
-                                                    avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
+                                                    avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, p -> {
                                                         return p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel());
                                                     }, run -> {
                                                         v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 0, 0))
@@ -333,7 +333,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                         return;
 
                                                     e.getChannel().sendMessage(e.getMember().getAsMention()).setEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(100, 200, 200), "You've chosen to approve a remittance, how many points you want to give to the user?").buildEmbed()).queue(z -> {
-                                                        avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
+                                                        avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, p -> {
                                                             return p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel()) && NumberUtil.isNumeric(p.getMessage().getContentRaw());
                                                         }, run -> {
                                                             v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
@@ -385,7 +385,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                         return;
 
                                                     e.getChannel().sendMessage(e.getMember().getAsMention()).setEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(100, 200, 200), "You've chosen to approve a remittance request, may I know the reward you're giving to the user?").buildEmbed()).queue(z -> {
-                                                        avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
+                                                        avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, p -> {
                                                             return p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel());
                                                         }, run -> {
                                                             v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(0, 255, 0))
@@ -430,7 +430,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     return;
 
                                                 e.getChannel().sendMessage(e.getMember().getAsMention()).setEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(100, 200, 200), "You've chosen to reject a report, may I know the reason you're giving for this?").buildEmbed()).queue(z -> {
-                                                    avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, p -> {
+                                                    avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, p -> {
                                                         return p.getMember() != null && p.getMember().equals(e.getMember()) && e.getChannel().equals(p.getChannel());
                                                     }, run -> {
                                                         v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 0, 0))
@@ -616,7 +616,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
 
                                         if (isValidReportManager(e, 1)) {
                                             msg.getTextChannel().sendMessage(e.getMember().getAsMention() + "\nWhat is your comment?").queue(
-                                                v -> avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, c -> c.getChannel().equals(e.getChannel()) && c.getMember().equals(e.getMember()), c -> {
+                                                v -> avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, c -> c.getChannel().equals(e.getChannel()) && c.getMember().equals(e.getMember()), c -> {
                                                     v.delete().queue();
                                                     msg.editMessageEmbeds(new EmbedBuilder()
                                                         .setColor(msg.getEmbeds().get(0).getColor())
@@ -879,7 +879,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
         return false;
     }
 
-    private String getRole(GuildMessageReceivedEvent c) {
+    private String getRole(MessageReceivedEvent c) {
         return getString(c.getMember());
     }
 

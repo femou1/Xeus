@@ -1,7 +1,9 @@
 package com.pinewoodbuilders.commands.pinewood;
 
-import com.pinewoodbuilders.Xeus;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.blacklist.features.FeatureScope;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
@@ -16,13 +18,10 @@ import com.pinewoodbuilders.requests.Response;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
-import com.pinewoodbuilders.utilities.NumberUtil;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.json.JSONObject;
 
@@ -150,7 +149,7 @@ public class RequestRewardCommand extends Command {
                 l.addReaction("❌").queue();
                 l.editMessageEmbeds(context.makeInfo("Welcome to the recorded remittance system. With this feature, you can record your patrolling/raiding for groups that have this enabled!\n\n" + sb.toString()).buildEmbed()).queue(
                     message -> {
-                        avaire.getWaiter().waitForEvent(GuildMessageReactionAddEvent.class, event -> {
+                        avaire.getWaiter().waitForEvent(MessageReactionAddEvent.class, event -> {
                                 return event.getMember().equals(context.member) && event.getMessageId().equalsIgnoreCase(message.getId());
                             }, react -> {
                                 try {
@@ -175,7 +174,7 @@ public class RequestRewardCommand extends Command {
                                             "- [Streamable](https://streamable.com)\n" +
                                             "If you want a link/video service added, please ask ``Stefano#7366``")).set("guild", d.getString("name")).set(":user", context.member.getEffectiveName()).buildEmbed()).queue(
                                             nameMessage -> {
-                                                avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, m -> m.getMember().equals(context.member) && message.getChannel().equals(l.getChannel()) && checkEvidenceAcceptance(context, m),
+                                                avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, m -> m.getMember().equals(context.member) && message.getChannel().equals(l.getChannel()) && checkEvidenceAcceptance(context, m),
                                                     content -> {
                                                         goToStep2(context, message, content, d, c);
                                                     },
@@ -222,7 +221,7 @@ public class RequestRewardCommand extends Command {
         }
     }
 
-    private void goToStep2(CommandMessage context, Message message, GuildMessageReceivedEvent content, DataRow d, TextChannel c) {
+    private void goToStep2(CommandMessage context, Message message, MessageReceivedEvent content, DataRow d, TextChannel c) {
         {
             List<Message> messagesToRemove = new ArrayList <>();
             messagesToRemove.add(content.getMessage());
@@ -277,7 +276,7 @@ public class RequestRewardCommand extends Command {
         }
     }
 
-    private void startConfirmationWaiter(CommandMessage context, Message message, Optional<RobloxUserGroupRankService.Data> b, DataRow d, GuildMessageReceivedEvent content, List<Message> messagesToRemove) {
+    private void startConfirmationWaiter(CommandMessage context, Message message, Optional<RobloxUserGroupRankService.Data> b, DataRow d, MessageReceivedEvent content, List<Message> messagesToRemove) {
         Button b1 = Button.success("yes:" + message.getId(), "Yes").withEmoji(Emoji.fromUnicode("✅"));
         Button b2 = Button.danger("no:" + message.getId(), "No").withEmoji(Emoji.fromUnicode("❌"));
 
@@ -383,7 +382,7 @@ public class RequestRewardCommand extends Command {
         return false;
     }
 
-    private boolean checkEvidenceAcceptance(CommandMessage context, GuildMessageReceivedEvent pm) {
+    private boolean checkEvidenceAcceptance(CommandMessage context, MessageReceivedEvent pm) {
         String message = pm.getMessage().getContentRaw();
         if (!(message.startsWith("https://youtu.be") ||
             message.startsWith("http://youtu.be") ||

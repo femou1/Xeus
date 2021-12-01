@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.commands.system;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.SystemCommand;
 import com.pinewoodbuilders.database.collection.Collection;
@@ -88,13 +88,13 @@ public class PartnerCommand extends SystemCommand {
             return sendErrorMessage(context, "The bot does not share any server with an ID of `{0}`", args[0]);
         }
 
-        if (guild.getRegion().isVip()) {
-            context.makeInfo("The **:server** server is a Discord partner, they will always be partnered with the bot because of that.")
-                .set("server", guild.getName())
-                .queue();
-
-            return true;
-        }
+//        if (guild.getRegion().isVip()) {
+//            context.makeInfo("The **:server** server is a Discord partner, they will always be partnered with the bot because of that.")
+//                .set("server", guild.getName())
+//                .queue();
+//
+//            return true;
+//        }
 
         try {
             Collection row = avaire.getDatabase()

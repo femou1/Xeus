@@ -33,6 +33,7 @@ import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.ThreadChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 
 import javax.annotation.Nonnull;
@@ -87,7 +88,7 @@ public class ChannelInfoCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        GuildChannel channel = context.getChannel();
+        GuildChannel channel = context.getGuildChannel();
         if (args.length > 0) {
             channel = MentionableUtil.getChannel(context.getMessage(), args);
 
@@ -102,8 +103,6 @@ public class ChannelInfoCommand extends Command {
             .setColor(MessageType.INFO.getColor())
             .setTitle("#" + channel.getName())
             .addField(context.i18n("fields.id"), channel.getId(), true)
-            .addField(context.i18n("fields.position"), "" + channel.getPosition(), true)
-            .addField(context.i18n("fields.users"), "" + channel.getMembers().size(), true)
             .addField(context.i18n("fields.category"), getCategoryFor(channel), true);
 
         if (channel instanceof TextChannel) {
@@ -116,6 +115,8 @@ public class ChannelInfoCommand extends Command {
 
             placeholder
                 .setDescription(topic)
+                .addField(context.i18n("fields.position"), "" + textChannel.getPosition(), true)
+                .addField(context.i18n("fields.users"), "" + textChannel.getMembers().size(), true)
                 .addField(context.i18n("fields.nsfw"), textChannel.isNSFW() ? "ON" : "OFF", true);
         }
 
@@ -125,6 +126,13 @@ public class ChannelInfoCommand extends Command {
 
             placeholder
                 .addField(context.i18n("fields.bitRate"), bitRate + " kbps", true);
+        }
+
+        if (channel instanceof ThreadChannel) {
+            ThreadChannel threadChannel = (ThreadChannel) channel;
+
+            placeholder
+                .addField("Channel Owner", threadChannel.getOwner().getEffectiveName(), true);
         }
 
         placeholder
@@ -141,10 +149,31 @@ public class ChannelInfoCommand extends Command {
     }
 
     private String getCategoryFor(GuildChannel channel) {
-        if (channel.getParent() == null) {
-            return "*No Category*";
+        if (channel instanceof VoiceChannel) {
+            VoiceChannel voiceChannel = (VoiceChannel) channel;
+
+            if (voiceChannel.getParentCategory() == null) {
+                return "*No Category*";
+            }
+            return voiceChannel.getParentCategory().getName();
         }
-        return channel.getParent().getName();
+
+        if (channel instanceof ThreadChannel) {
+            ThreadChannel threadChannel = (ThreadChannel) channel;
+            return threadChannel.getParentChannel().getName();
+        }
+
+        if (channel instanceof TextChannel) {
+            TextChannel textChannel = (TextChannel) channel;
+            if (textChannel.getParentCategory() == null) {
+                return "*No Category*";
+            }
+
+            return textChannel.getParentCategory().getName();
+        }
+
+
+        return "*No Category*";
     }
 
     private String shortenDiffForHumans(Carbon carbon) {

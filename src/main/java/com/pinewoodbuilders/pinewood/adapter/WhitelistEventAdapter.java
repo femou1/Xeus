@@ -4,7 +4,7 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.pinewood.VoiceWhitelistManager;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.AudioChannel;
 import net.dv8tion.jda.api.events.guild.voice.GenericGuildVoiceEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
@@ -19,7 +19,7 @@ public class WhitelistEventAdapter {
     }
 
     public void whitelistCheckEvent(GenericGuildVoiceEvent event) {
-        VoiceChannel newVc = getNewVC(event);
+        AudioChannel newVc = getNewVC(event);
 
         if (whitelistManager.hasWhitelist(newVc)) {
             int lvl = CheckPermissionUtil.getPermissionLevel(GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), event.getGuild(), event.getMember()).getLevel();
@@ -37,7 +37,7 @@ public class WhitelistEventAdapter {
 
     }
 
-    private VoiceChannel getNewVC(GenericGuildVoiceEvent event) {
+    private AudioChannel getNewVC(GenericGuildVoiceEvent event) {
         if (event instanceof GuildVoiceJoinEvent) {
             return ((GuildVoiceJoinEvent) event).getChannelJoined();
         } else if (event instanceof GuildVoiceMoveEvent) {

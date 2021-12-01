@@ -72,7 +72,7 @@ public class VoteMessenger {
      * @param points The amounts of points that should be displayed in the message.
      */
     public void SendThanksForVotingMessageInDM(@Nonnull User user, int points) {
-        user.openPrivateChannel().queue(message -> message.sendMessage(
+        user.openPrivateChannel().queue(message -> message.sendMessageEmbeds(
             buildThanksForVotingMessage(points)
         ).queue(null, RestActionUtil.ignore), RestActionUtil.ignore);
     }

@@ -28,11 +28,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.PermissionOverride;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.dv8tion.jda.api.entities.*;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -139,28 +135,32 @@ public class LockChannelsCommand extends Command {
 
     private boolean handleChannelLock(CommandMessage context, List <Role> r) {
         StringBuilder sb = new StringBuilder();
-        TextChannel tc = context.getMentionedChannels().size() == 1 ? context.getMentionedChannels().get(0) : context.channel;
+        MessageChannel tc = context.getMentionedChannels().size() == 1 ? context.getMentionedChannels().get(0) : context.channel;
         changePermissions(r, sb, tc, context);
         context.makeSuccess("Succesfully modified the current channel!\n" + sb).queue();
         return true;
     }
 
-    EnumSet <Permission> allow_see = EnumSet.of(Permission.MESSAGE_READ);
-    EnumSet <Permission> deny_write = EnumSet.of(Permission.MESSAGE_WRITE);
+    EnumSet <Permission> allow_see = EnumSet.of(Permission.VIEW_CHANNEL);
+    EnumSet <Permission> deny_write = EnumSet.of(Permission.MESSAGE_SEND);
 
-    private void changePermissions(List <Role> r, StringBuilder sb, TextChannel tc, CommandMessage context) {
-        for (Role role : r) {
-            PermissionOverride permissionOverride = tc.getPermissionOverride(role);
-            if (permissionOverride != null) {
-                if (permissionOverride.getRole().hasPermission(tc, Permission.MESSAGE_WRITE)) {
-                    permissionOverride.getManager().setPermissions(allow_see, deny_write).queue();
-                    sb.append(":x: ").append(tc.getAsMention()).append(": ").append(role.getAsMention()).append("\n");
-                } else {
-                    permissionOverride.getManager().clear(Permission.MESSAGE_WRITE).setAllow(Permission.MESSAGE_READ).queue();
-                    sb.append(":white_check_mark: ").append(tc.getAsMention()).append(": ").append(role.getAsMention()).append("\n");
+    private void changePermissions(List <Role> r, StringBuilder sb, MessageChannel tc, CommandMessage context) {
+        if (tc instanceof GuildChannel) {
+            GuildChannel guildChannel = (GuildChannel) tc;
+            for (Role role : r) {
+                PermissionOverride permissionOverride = guildChannel.getPermissionContainer().getPermissionOverride(role);
+                if (permissionOverride != null) {
+                    if (permissionOverride.getRole().hasPermission(guildChannel, Permission.MESSAGE_SEND)) {
+                        permissionOverride.getManager().setPermissions(allow_see, deny_write).queue();
+                        sb.append(":x: ").append(tc.getAsMention()).append(": ").append(role.getAsMention()).append("\n");
+                    } else {
+                        permissionOverride.getManager().clear(Permission.MESSAGE_SEND).setAllow(Permission.VIEW_CHANNEL).queue();
+                        sb.append(":white_check_mark: ").append(tc.getAsMention()).append(": ").append(role.getAsMention()).append("\n");
+                    }
                 }
             }
         }
+
     }
 
 }

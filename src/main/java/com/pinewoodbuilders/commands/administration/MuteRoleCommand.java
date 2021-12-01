@@ -21,8 +21,10 @@
 
 package com.pinewoodbuilders.commands.administration;
 
-import com.pinewoodbuilders.Xeus;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
@@ -30,8 +32,6 @@ import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.GuildChannel;
@@ -232,7 +232,7 @@ public class MuteRoleCommand extends Command {
             .setName("Muted")
             .setColor(Color.decode("#e91b6a"))
             .setPermissions(
-                Permission.MESSAGE_READ,
+                Permission.VIEW_CHANNEL,
                 Permission.MESSAGE_HISTORY
             )
             .queue(role -> {
@@ -243,7 +243,7 @@ public class MuteRoleCommand extends Command {
                         continue;
                     }
 
-                    channel.putPermissionOverride(role).setDeny(
+                    channel.getPermissionContainer().putPermissionOverride(role).setDeny(
                         Permission.CREATE_INSTANT_INVITE.getRawValue() + (
                             channel.getType().equals(ChannelType.TEXT)
                                 ? Permission.ALL_TEXT_PERMISSIONS
@@ -323,14 +323,14 @@ public class MuteRoleCommand extends Command {
                 continue;
             }
 
-            PermissionOverride permissionOverride = channel.getPermissionOverride(role);
+            PermissionOverride permissionOverride = channel.getPermissionContainer().getPermissionOverride(role);
             if (permissionOverride != null && permissionOverride.getDeniedRaw() == rawPermissions) {
                 channelsNotModified++;
                 continue;
             }
 
             channelsModified++;
-            channel.putPermissionOverride(role).setDeny(rawPermissions).queue();
+            channel.getPermissionContainer().putPermissionOverride(role).setDeny(rawPermissions).queue();
         }
 
         context.makeSuccess("The override permissions have been setup for the :role role.\n**:modified** channels has been modified, **:notModified** channels were already setup, and **:skipped** channels where skipped due to missing permissions.")

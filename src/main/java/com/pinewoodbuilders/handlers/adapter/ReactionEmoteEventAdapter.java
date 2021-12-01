@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.handlers.adapter;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.contracts.handlers.EventAdapter;
 import com.pinewoodbuilders.database.collection.Collection;
@@ -43,8 +43,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.emote.EmoteRemovedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -210,7 +209,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
      */
 
 
-    public void onGuildSuggestionValidation(GuildMessageReactionAddEvent e) {
+    public void onGuildSuggestionValidation(MessageReactionAddEvent e) {
         loadDatabasePropertiesIntoMemory(e).thenAccept(databaseEventHolder -> {
             if (databaseEventHolder.getGuildSettings().getVoteValidationChannelId() != 0) {
                 if (e.getChannel().getIdLong() == databaseEventHolder.getGuildSettings().getVoteValidationChannelId()) {
@@ -272,11 +271,11 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
         });
     }
 
-    private String getRole(GuildMessageReceivedEvent c) {
+    private String getRole(MessageReceivedEvent c) {
         return getString(c.getMember());
     }
 
-    private String getRole(GuildMessageReactionAddEvent c) {
+    private String getRole(MessageReactionAddEvent c) {
         return getString(c.getMember());
     }
 
@@ -285,7 +284,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
         return member.getRoles().size() > 0 ? member.getRoles().get(0).getAsMention() : "";
     }
 
-    public void onReportsReactionAdd(GuildMessageReactionAddEvent e) {
+    public void onReportsReactionAdd(MessageReactionAddEvent e) {
         loadDatabasePropertiesIntoMemory(e).thenAccept(databaseEventHolder -> {
             if (databaseEventHolder.getGuildSettings().getHandbookReportChannel() != 0) {
                 TextChannel tc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuildSettings().getHandbookReportChannel());
@@ -340,7 +339,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
         });
     }
 
-    public void onFeedbackMessageEvent(GuildMessageReactionAddEvent e) {
+    public void onFeedbackMessageEvent(MessageReactionAddEvent e) {
         if (e.getMember().getUser().isBot()) {
             return;
         }
@@ -563,7 +562,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
                                     if (isValidReportManager(e, 1)) {
                                         msg.getTextChannel().sendMessage(e.getMember().getAsMention() + "\nWhat is your comment?").queue(
-                                            v -> avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, c -> c.getChannel().equals(e.getChannel()) && c.getMember().equals(e.getMember()), c -> {
+                                            v -> avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, c -> c.getChannel().equals(e.getChannel()) && c.getMember().equals(e.getMember()), c -> {
                                                 v.delete().queue();
                                                 msg.editMessageEmbeds(new EmbedBuilder()
                                                     .setColor(msg.getEmbeds().get(0).getColor())
@@ -655,7 +654,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
         else return members.get(0).getUser().getEffectiveAvatarUrl();
     }
 
-    private void count(GuildMessageReactionAddEvent event, Message m, Message v, GuildMessageReceivedEvent c) {
+    private void count(MessageReactionAddEvent event, Message m, Message v, MessageReceivedEvent c) {
         int likes = 0, dislikes = 0;
         for (MessageReaction reaction : m.getReactions()) {
             if (reaction.getReactionEmote().getName().equals("\uD83D\uDC4D")) {
@@ -679,7 +678,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
         m.clearReactions().queue();
     }
 
-    public void onPBSTRequestRewardMessageAddEvent(GuildMessageReactionAddEvent event) {
+    public void onPBSTRequestRewardMessageAddEvent(MessageReactionAddEvent event) {
         MessageReaction.ReactionEmote emote = event.getReactionEmote();
         event.getChannel().retrieveMessageById(event.getMessageId()).queue(m -> {
             if (emote.getName().equals("\uD83D\uDC4D") | emote.getName().equals("\uD83D\uDC4E")) {
@@ -700,7 +699,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                     event.getReaction().removeReaction(event.getUser()).queueAfter(1, TimeUnit.SECONDS);
                     event.getChannel().sendMessage(event.getMember().getAsMention() + "\n" +
                         "You've chosen to approve this reward request, what reward will you give?").queue(v ->
-                        avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, c -> c.getChannel().equals(event.getChannel()) && c.getMember().equals(event.getMember()), c -> {
+                        avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, c -> c.getChannel().equals(event.getChannel()) && c.getMember().equals(event.getMember()), c -> {
                             int likes = 0, dislikes = 0;
                             for (MessageReaction reaction : m.getReactions()) {
                                 if (reaction.getReactionEmote().getName().equals("\uD83D\uDC4D")) {
@@ -743,7 +742,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                     event.getReaction().removeReaction(event.getUser()).queueAfter(1, TimeUnit.SECONDS);
 
                     event.getChannel().sendMessage(event.getMember().getAsMention() + "\n" +
-                        "You've chosen to deny this reward request, what reason will you give?").queue(v -> avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, c -> c.getChannel().equals(event.getChannel()) && c.getMember().equals(event.getMember()), c -> {
+                        "You've chosen to deny this reward request, what reason will you give?").queue(v -> avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, c -> c.getChannel().equals(event.getChannel()) && c.getMember().equals(event.getMember()), c -> {
                         count(event, m, v, c);
                         if (event.getGuild().getMembersByEffectiveName(m.getEmbeds().get(0).getFooter().getText(), true).size() > 0) {
                             for (Member u : event.getGuild().getMembersByEffectiveName(m.getEmbeds().get(0).getFooter().getText(), true)) {
@@ -789,7 +788,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
         });
     }
     
-    private boolean isValidReportManager(GuildMessageReactionAddEvent e, Integer i) {
+    private boolean isValidReportManager(MessageReactionAddEvent e, Integer i) {
         
         GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire,e.getGuild());
         if (i == 1) {
@@ -806,7 +805,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
 
     private CompletableFuture<DatabaseEventHolder> loadDatabasePropertiesIntoMemory(
-        final GuildMessageReactionAddEvent event) {
+        final MessageReactionAddEvent event) {
         return CompletableFuture.supplyAsync(() -> {
             if (!event.getChannel().getType().isGuild()) {
                 return new DatabaseEventHolder(null, null, null, null);

@@ -97,7 +97,7 @@ public class WhitelistCommand extends Command {
             return false;
         }
 
-        if (!state.inVoiceChannel()) {
+        if (!state.inAudioChannel()) {
             context.makeError("You are not in a voice channel, please join one to enable the whitelist in it.").queue();
             return false;
         }
@@ -113,7 +113,7 @@ public class WhitelistCommand extends Command {
             return false;
         }
 
-        if (!state.inVoiceChannel()) {
+        if (!state.inAudioChannel()) {
             context.makeError("You are not in a voice channel, please join one to enable the whitelist in it.").queue();
             return false;
         }
@@ -128,7 +128,7 @@ public class WhitelistCommand extends Command {
             return false;
         }
 
-        if (!state.inVoiceChannel()) {
+        if (!state.inAudioChannel()) {
             context.makeError("You are not in a voice channel, please join one to enable the whitelist and add every person in it to the whitelist.").queue();
             return false;
         }

@@ -2,9 +2,9 @@ package com.pinewoodbuilders.pinewood;
 
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
+import net.dv8tion.jda.api.entities.AudioChannel;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.VoiceChannel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,17 +12,17 @@ import java.util.HashMap;
 public class VoiceWhitelistManager {
 
     private final Xeus avaire;
-    private final HashMap<VoiceChannel, ArrayList<Member>> whitelists = new HashMap<>();
+    private final HashMap<AudioChannel, ArrayList<Member>> whitelists = new HashMap<>();
 
     public VoiceWhitelistManager(Xeus avaire) {
         this.avaire = avaire;
     }
 
-    public HashMap<VoiceChannel, ArrayList<Member>> getWhitelists() {
+    public HashMap<AudioChannel, ArrayList<Member>> getWhitelists() {
         return whitelists;
     }
 
-    public ArrayList<Member> getWhitelist(VoiceChannel vc) {
+    public ArrayList<Member> getWhitelist(AudioChannel vc) {
         return whitelists.getOrDefault(vc, null);
     }
 
@@ -40,14 +40,14 @@ public class VoiceWhitelistManager {
             return false;
         }
 
-        if (!voiceState.inVoiceChannel()) {
+        if (!voiceState.inAudioChannel()) {
             context.makeError("Sorry, but :whitelister is not in a (valid) voice channel.")
                 .set("whitelister", whitelister.getEffectiveName()).queue();
             return false;
         }
 
 
-        VoiceChannel vc = voiceState.getChannel();
+        AudioChannel vc = voiceState.getChannel();
         if (getWhitelist(vc) == null) {
             context.makeError("Your voice channel ``:vc`` does not have a whitelist enabled.").set("vc", vc.getName()).queue();
             return false;
@@ -76,14 +76,14 @@ public class VoiceWhitelistManager {
             return false;
         }
 
-        if (!voiceState.inVoiceChannel()) {
+        if (!voiceState.inAudioChannel()) {
             context.makeError("Sorry, but :whitelister is not in a (valid) voice channel.")
                 .set("whitelister", whitelister.getEffectiveName()).queue();
             return false;
         }
 
 
-        VoiceChannel vc = voiceState.getChannel();
+        AudioChannel vc = voiceState.getChannel();
         if (getWhitelist(vc) == null) {
             context.makeError("Your voice channel ``:vc`` does not have a whitelist enabled.").set("vc", vc.getName()).queue();
             return false;
@@ -108,14 +108,14 @@ public class VoiceWhitelistManager {
             return false;
         }
 
-        if (!voiceState.inVoiceChannel()) {
+        if (!voiceState.inAudioChannel()) {
             context.makeError("Sorry, but ``:whitelister`` (You) are not in a (valid) voice channel.")
                 .set("whitelister", whitelister.getEffectiveName()).queue();
             return false;
         }
 
 
-        VoiceChannel vc = voiceState.getChannel();
+        AudioChannel vc = voiceState.getChannel();
         if (getWhitelist(vc) == null) {
             context.makeError("Your voice channel ``:vc`` does not have a whitelist enabled. However, it will now be enabled.").set("vc", vc.getName()).queue();
             addVoiceChannelToWhitelists(vc);
@@ -133,7 +133,7 @@ public class VoiceWhitelistManager {
         return false;
     }
 
-    public boolean isInWhitelist(VoiceChannel vc, Member joiner) {
+    public boolean isInWhitelist(AudioChannel vc, Member joiner) {
         ArrayList<Member> whitelist = getWhitelist(vc);
         if (whitelist == null) {
             return false;
@@ -142,16 +142,16 @@ public class VoiceWhitelistManager {
         return whitelist.contains(joiner);
     }
 
-    public boolean hasWhitelist(VoiceChannel vc) {
+    public boolean hasWhitelist(AudioChannel vc) {
         return whitelists.containsKey(vc);
     }
 
-    public boolean addVoiceChannelToWhitelists(VoiceChannel vc) {
+    public boolean addVoiceChannelToWhitelists(AudioChannel vc) {
         whitelists.put(vc, new ArrayList<>());
         return true;
     }
 
-    public boolean removeVoiceChannelFromWhitelists(VoiceChannel vc) {
+    public boolean removeVoiceChannelFromWhitelists(AudioChannel vc) {
         whitelists.remove(vc);
         return true;
     }

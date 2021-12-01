@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.commands.system;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.CommandPriority;
@@ -106,7 +106,7 @@ public class FeedbackResponseCommand extends SystemCommand {
             response.addField("Original Feedback By", buildAuthorString(originalAuthor), false);
         }
 
-        channel.sendMessage(response.buildEmbed()).queue(responseMessage -> {
+        channel.sendMessageEmbeds(response.buildEmbed()).queue(responseMessage -> {
             context.makeSuccess("Successfully sent response to the feedback with an ID of #:id :emote")
                 .set("id", feedback.getInt("id"))
                 .set("emote", "<:tickYes:319985232306765825>")

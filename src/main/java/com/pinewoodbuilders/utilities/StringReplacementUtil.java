@@ -21,7 +21,10 @@
 
 package com.pinewoodbuilders.utilities;
 
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.User;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -61,7 +64,7 @@ public class StringReplacementUtil {
      * @param message The original string that should be parsed with all the placeholders.
      * @return The parsed string after all the placeholders was replaced with the actual values.
      */
-    public static String parse(@Nonnull Guild guild, @Nonnull TextChannel channel, @Nonnull User user, @Nonnull String message) {
+    public static String parse(@Nonnull Guild guild, @Nonnull MessageChannel channel, @Nonnull User user, @Nonnull String message) {
         return StringReplacementUtil.parseChannel(channel,
             StringReplacementUtil.parseUser(user,
                 StringReplacementUtil.parseGuild(guild, message)
@@ -122,7 +125,7 @@ public class StringReplacementUtil {
 
     /**
      * Converts the message object to a channel object and parses the channel
-     * and string to the {@link #parseChannel(Channel, String)} method.
+     * and string to the {@link #parseChannel(MessageChannel, String)} method.
      *
      * @param message The message that the channel should be retrieved from.
      * @param string  The original string that should be parsed.
@@ -141,7 +144,7 @@ public class StringReplacementUtil {
      * @param string  The original string that should be parsed.
      * @return The parsed string after all the channel placeholders was parsed.
      */
-    public static String parseChannel(@Nonnull GuildChannel channel, @Nonnull String string) {
+    public static String parseChannel(@Nonnull MessageChannel channel, @Nonnull String string) {
         string = string.replaceAll("%channel%", "<#" + channel.getId() + ">");
         string = string.replaceAll("%channelname%", Matcher.quoteReplacement(channel.getName()));
         string = string.replaceAll("%channelid%", channel.getId());

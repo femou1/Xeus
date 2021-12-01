@@ -5,7 +5,7 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
@@ -61,7 +61,7 @@ public class GetGroupMemberCountsCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        TextChannel tc = context.channel;
+        MessageChannel tc = context.channel;
         int PB = getMemberCount(159511);
         int PBST = getMemberCount(645836);
         int PET = getMemberCount(2593707);

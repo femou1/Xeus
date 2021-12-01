@@ -21,14 +21,14 @@
 
 package com.pinewoodbuilders.database.transformers;
 
+import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.reflect.TypeToken;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.database.transformers.Transformer;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.utilities.NumberUtil;
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.reflect.TypeToken;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 
 import javax.annotation.CheckReturnValue;
@@ -46,7 +46,7 @@ public class GuildTransformer extends Transformer {
     private final Map <String, Map <String, String>> modules = new HashMap <>();
 
     private final List <ChannelTransformer> channels = new ArrayList <>();
-    
+
     private final Set <Long> levelExemptChannels = new HashSet <>();
     private final Set <Long> levelExemptRoles = new HashSet <>();
 
@@ -86,7 +86,7 @@ public class GuildTransformer extends Transformer {
         guildType = partner ? partnerTypeTransformer : new GuildTypeTransformer(data);
     }
 
-    private boolean getVipStatus(List<VoiceChannel> voiceChannels) {
+    private boolean getVipStatus(List <VoiceChannel> voiceChannels) {
         for (VoiceChannel vc : voiceChannels) {
             if (!vc.getRegion().isVip()) {
                 continue;
@@ -119,7 +119,7 @@ public class GuildTransformer extends Transformer {
             modlogCase = data.getInt("modlog_case");
             onWatchCase = data.getInt("on_watch_case");
             autoChannel = data.getString("auto_channel");
-           
+
             // Sets the discord partner value if the guild isn't already a Discord partner.
             if (!partner) {
                 partner = data.getBoolean("partner", false);
@@ -239,9 +239,9 @@ public class GuildTransformer extends Transformer {
 
             if (data.getString("modules", null) != null) {
                 HashMap <String, Map <String, String>> dbModules = Xeus.gson.fromJson(
-                        data.getString("modules"),
-                        new TypeToken <HashMap <String, Map <String, String>>>() {
-                        }.getType());
+                    data.getString("modules"),
+                    new TypeToken <HashMap <String, Map <String, String>>>() {
+                    }.getType());
 
                 for (Map.Entry <String, Map <String, String>> item : dbModules.entrySet()) {
                     modules.put(item.getKey(), item.getValue());
@@ -464,8 +464,9 @@ public class GuildTransformer extends Transformer {
         return true;
     }
 
-    public boolean createChannelTransformer(TextChannel channel) {
+    public boolean createChannelTransformer(GuildChannel channel) {
         return createChannelTransformer(channel.getGuild().getId(), channel.getId());
+
     }
 
     public String channelsToJson() {

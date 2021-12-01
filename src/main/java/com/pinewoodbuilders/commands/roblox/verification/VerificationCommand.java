@@ -1,7 +1,7 @@
 package com.pinewoodbuilders.commands.roblox.verification;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.VerificationCommandContract;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
@@ -17,7 +17,7 @@ import com.pinewoodbuilders.utilities.RoleUtil;
 import com.pinewoodbuilders.utilities.menu.Paginator;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.internal.utils.PermissionUtil;
@@ -176,7 +176,7 @@ public class VerificationCommand extends VerificationCommandContract {
             builder.setItems(members.stream().map(member -> "\n- `"+member.getEffectiveName() + "`").collect(Collectors.toList()));
             builder.setItemsPerPage(10).build().paginate(context.getChannel(), 0);
 
-            avaire.getWaiter().waitForEvent(GuildMessageReactionAddEvent.class, check -> check.getMember().equals(context.member) && check.getMessageId().equals(countMessage.getId()), action -> {
+            avaire.getWaiter().waitForEvent(MessageReactionAddEvent.class, check -> check.getMember().equals(context.member) && check.getMessageId().equals(countMessage.getId()), action -> {
 
                     switch (action.getReactionEmote().getName()) {
                         case "\uD83D\uDC4D":
@@ -529,11 +529,11 @@ public class VerificationCommand extends VerificationCommandContract {
 
     public RestAction <Message> createVerificationCategory(Guild guild) {
         return guild.createCategory("Verification")
-            .addPermissionOverride(guild.getSelfMember(), EnumSet.of(Permission.MESSAGE_WRITE, Permission.MESSAGE_READ), null)
+            .addPermissionOverride(guild.getSelfMember(), EnumSet.of(Permission.MESSAGE_SEND, Permission.VIEW_CHANNEL), null)
             .flatMap((category) -> category.createTextChannel("verify"))
             .flatMap((channel) -> channel.sendMessage("Hello! In this channel, all verification commands are being posted. All messages (eventually) get deleted!"))
             .flatMap((channel) -> channel.getCategory().createTextChannel("verify-instructions")
-                .addPermissionOverride(guild.getPublicRole(), EnumSet.of(Permission.MESSAGE_READ), EnumSet.of(Permission.MESSAGE_WRITE)))
+                .addPermissionOverride(guild.getPublicRole(), EnumSet.of(Permission.VIEW_CHANNEL), EnumSet.of(Permission.MESSAGE_SEND)))
             .flatMap((channel) -> channel.sendMessage("This server uses a Roblox verification system. In order to unlock all the features of this server, you'll need to verify your Roblox account with your Discord account!\n" +
                 "\n" +
                 "Visit https://verify.eryn.io/ and follow the instructions. Then, say !verify in #verify and it will update you accordingly."));

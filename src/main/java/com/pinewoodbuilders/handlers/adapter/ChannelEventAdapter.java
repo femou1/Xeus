@@ -28,8 +28,10 @@ import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.controllers.GuildController;
 import com.pinewoodbuilders.database.controllers.ReactionController;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.events.channel.text.TextChannelDeleteEvent;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,29 +50,31 @@ public class ChannelEventAdapter extends EventAdapter {
         super(avaire);
     }
 
-    public void onTextChannelDelete(TextChannelDeleteEvent event) {
-        handleTextChannelDeleteReactionsRoles(event);
-        handleTextChannelDeleteGuildSettings(event);
+    public void onTextChannelDelete(ChannelDeleteEvent event, TextChannel channel) {
+        if (event.getChannelType() == ChannelType.TEXT) {
+            handleTextChannelDeleteReactionsRoles(event, channel);
+            handleTextChannelDeleteGuildSettings(event, channel);
+        }
     }
 
-    private void handleTextChannelDeleteGuildSettings(TextChannelDeleteEvent event) {
-        GuildTransformer transformer = GuildController.fetchGuild(avaire, event.getGuild());
+    private void handleTextChannelDeleteGuildSettings(ChannelDeleteEvent event, TextChannel channel) {
+        GuildTransformer transformer = GuildController.fetchGuild(avaire, channel.getGuild());
         if (transformer == null) {
             return;
         }
 
         if (transformer.getModlog() != null && transformer.getModlog().equalsIgnoreCase(event.getChannel().getId())) {
-            setDatabaseColumnToNull(event.getGuild().getId(), "modlog");
+            setDatabaseColumnToNull(channel.getGuild().getId(), "modlog");
         }
 
         if (transformer.getLevelChannel() != null && transformer.getLevelChannel().equals(event.getChannel().getId())) {
-            setDatabaseColumnToNull(event.getGuild().getId(), "level_channel");
+            setDatabaseColumnToNull(channel.getGuild().getId(), "level_channel");
         }
 
     }
 
-    private void handleTextChannelDeleteReactionsRoles(TextChannelDeleteEvent event) {
-        Collection collection = ReactionController.fetchReactions(avaire, event.getGuild());
+    private void handleTextChannelDeleteReactionsRoles(ChannelDeleteEvent event, TextChannel channel) {
+        Collection collection = ReactionController.fetchReactions(avaire, channel.getGuild());
         if (collection == null || collection.isEmpty()) {
             return;
         }
@@ -84,16 +88,16 @@ public class ChannelEventAdapter extends EventAdapter {
                 .where("channel_id", event.getChannel().getId())
                 .delete();
 
-            ReactionController.forgetCache(event.getGuild().getIdLong());
+            ReactionController.forgetCache(channel.getGuild().getIdLong());
         } catch (SQLException e) {
             log.error("Failed to delete reaction roles from {} for channel ID {}, error: {}",
-                event.getGuild().getId(), event.getChannel().getId(), e.getMessage(), e
+                channel.getGuild().getId(), event.getChannel().getId(), e.getMessage(), e
             );
         }
     }
 
 
-    public void updateChannelData(Guild guild) {
+    public void updateChannelData(Guild guild, TextChannel channel) {
         try {
             avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
                 .useAsync(true)

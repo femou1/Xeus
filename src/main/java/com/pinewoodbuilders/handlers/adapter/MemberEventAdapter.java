@@ -74,7 +74,7 @@ public class MemberEventAdapter extends EventAdapter {
                     continue;
                 }
 
-                if (!event.getGuild().getSelfMember().hasPermission(textChannel, Permission.MESSAGE_READ, Permission.MESSAGE_WRITE)) {
+                if (!event.getGuild().getSelfMember().hasPermission(textChannel, Permission.MESSAGE_SEND)) {
                     continue;
                 }
 
@@ -189,7 +189,7 @@ public class MemberEventAdapter extends EventAdapter {
                     continue;
                 }
 
-                if (!event.getGuild().getSelfMember().hasPermission(textChannel, Permission.MESSAGE_READ, Permission.MESSAGE_WRITE)) {
+                if (!event.getGuild().getSelfMember().hasPermission(textChannel, Permission.MESSAGE_SEND)) {
                     continue;
                 }
 
@@ -206,7 +206,7 @@ public class MemberEventAdapter extends EventAdapter {
                     continue;
                 }
 
-                textChannel.sendMessage(
+                textChannel.sendMessageEmbeds(
                     MessageFactory.createEmbeddedBuilder()
                         .setDescription(message)
                         .setColor(Color.decode(embedColor))
