@@ -319,7 +319,7 @@ public class WarnCommand extends Command {
 
         switch (punishment) {
             case "gmute":
-                muteUserQueue(context, grade.getTime(), user, messageExecute);
+                muteUserQueue(context, Carbon.now().addSecond().addDays(3), user, messageExecute);
                 return;
             case "gwatchmute":
                 selectWatchOrMuteQueue(context, grade, user, messageExecute, size);

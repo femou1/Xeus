@@ -99,8 +99,8 @@ public class ModlogPardonCommand extends Command {
     public List <String> getMiddleware() {
         return Arrays.asList(
             "throttle:user,1,4",
-            "isGuildHROrHigher"
-            //"requireOne:user,text.manage_messages,general.kick_members,general.ban_members"
+            "isGuildHROrHigher",
+            "requireOne:user,text.manage_messages,general.kick_members,general.ban_members"
         );
     }
 
@@ -184,14 +184,14 @@ public class ModlogPardonCommand extends Command {
                 if (globalSettings == null) return true;
                 if (!globalSettings.getNewWarnSystem()) return true;
 
-                User u = avaire.getShardManager().getUserById(row.getString("target_id"));
-                if (u == null) return false;
-
-                for (WarnContainer c : avaire.getWarningsManager().getWarns(context.getGuild().getIdLong(), u.getIdLong()))
+                for (WarnContainer c : avaire.getWarningsManager().getWarns(context.getGuild().getIdLong(), row.getLong("target_id")))
                     if (c.getCaseId().equals(String.valueOf(caseId))) {
                         try {
-                            avaire.getWarningsManager().unregisterWarn(context.guild.getIdLong(), u.getIdLong(), String.valueOf(caseId));
-                            Modlog.notifyUser(u, context.guild, modlogAction, "Warn has been removed from the database, your warn total has now lessened.");
+                            avaire.getWarningsManager().unregisterWarn(context.guild.getIdLong(), row.getLong("target_id"), String.valueOf(caseId));
+                            User u = avaire.getShardManager().getUserById(row.getLong("target_id"));
+                            if (u != null) {
+                                Modlog.notifyUser(u, context.guild, modlogAction, "Warn has been removed from the database, your warn total has now lessened.");
+                            }
                         } catch (SQLException e) {
                             context.makeError("Failed to remove the warn in the database, this warn may not expire... Please check with the developer.").queue();
                         }

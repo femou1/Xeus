@@ -153,4 +153,8 @@ public class GlobalSettingsTransformer extends Transformer {
     public void setNewWarnSystem(boolean newWarnSystem) {
         this.newWarnSystem = newWarnSystem;
     }
+
+    public boolean getGlobalFilter() {
+        return globalFilterExact.size() > 0 || globalFilterWildcard.size() > 0;
+    }
 }

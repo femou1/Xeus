@@ -6,7 +6,6 @@ import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.moderation.mute.MuteContainer;
-import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
 import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.time.Carbon;
 import org.slf4j.Logger;
@@ -70,7 +69,7 @@ public class GlobalMuteManager {
         final boolean[] removedEntities = { false };
         synchronized (globalMutes) {
             globalMutes.get(mainGroupId).removeIf(next -> {
-                if (!next.isSame(mainGroupId, userId)) {
+                if (!next.isGlobalSame(mainGroupId, userId)) {
                     return false;
                 }
 
@@ -159,17 +158,6 @@ public class GlobalMuteManager {
             .andWhere(builder -> builder.where(Constants.MGM_LOG_TABLE_NAME + ".type", ModlogType.MUTE.getId())
                 .orWhere(Constants.MGM_LOG_TABLE_NAME + ".type", ModlogType.TEMP_MUTE.getId()))
             .get();
-
-        String query2 = avaire.getDatabase().newQueryBuilder(Constants.MUTE_TABLE_NAME)
-            .select(Constants.MUTE_TABLE_NAME + ".modlog_id as ml_id")
-            .innerJoin(Constants.MGM_LOG_TABLE_NAME, Constants.MUTE_TABLE_NAME + ".modlog_id",
-                Constants.MGM_LOG_TABLE_NAME + ".modlogCase")
-            .where(Constants.MGM_LOG_TABLE_NAME + ".mgi", mainGroupId)
-            .andWhere(Constants.MGM_LOG_TABLE_NAME + ".target_id", userId)
-            .andWhere(Constants.MUTE_TABLE_NAME + ".main_group_id", mainGroupId)
-            .andWhere(builder -> builder.where(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_MUTE.getId())
-                .orWhere(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_TEMP_MUTE.getId())).toSQL();
-        System.out.println(query2);
 
         if (!collection.isEmpty()) {
             String query = String.format("DELETE FROM `%s` WHERE `guild_id` = ? AND `main_group_id` = ? AND `modlog_id` = ?",

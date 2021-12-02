@@ -634,7 +634,7 @@ public class VerificationManager {
     public VerificationEntity callUserFromDatabaseAPI(String discordUserId) {
         try {
             Collection linkedAccounts = avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME)
-                .where("id", discordUserId).andWhere("main", "1").get();
+                .where("id", discordUserId)/*.andWhere("main", "1")*/.get();
             if (linkedAccounts.size() == 0) {
                 return null;
             } else {
@@ -680,7 +680,7 @@ public class VerificationManager {
         try {
             Collection linkedAccounts = Xeus.getInstance().getDatabase()
                 .newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME).where("robloxId", robloxId)
-                .andWhere("main", "1").get();
+                /*.andWhere("main", "1")*/.get();
             if (linkedAccounts.size() == 0) {
                 return null;
             } else {
