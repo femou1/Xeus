@@ -167,7 +167,7 @@ public class GlobalMuteManager {
                 for (DataRow row : collection) {
                     statement.setLong(1, 0);
                     statement.setLong(2, mainGroupId);
-                    statement.setString(3, row.getString("ml_id"));
+                    statement.setString(3, row.getString("id"));
                     statement.addBatch();
                 }
             });
