@@ -119,7 +119,7 @@ public class UpdateCommand extends Command {
 
     boolean globalVerificationRunning;
     boolean verificationRunning;
-    private final Bandwidth limit = Bandwidth.simple(240, Duration.ofSeconds(60));
+    private final Bandwidth limit = Bandwidth.simple(60, Duration.ofSeconds(60));
     private final Bucket bucket = Bucket.builder().addLimit(limit).build();
 
     private boolean updateEveryone(CommandMessage context) {
