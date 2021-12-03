@@ -279,7 +279,7 @@ public class MessageEventAdapter extends EventAdapter {
 
     private void checkPublicFilter(GenericMessageEvent genericMessageEvent, DatabaseEventHolder databaseEventHolder) {
         Message event = getActualMessage(genericMessageEvent);
-        if (genericMessageEvent.isFromGuild()) {return;}
+        if (!genericMessageEvent.isFromGuild()) {return;}
 
 
         GuildSettingsTransformer guild = databaseEventHolder.getGuildSettings();
