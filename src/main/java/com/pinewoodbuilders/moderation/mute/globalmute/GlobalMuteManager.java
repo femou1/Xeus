@@ -6,7 +6,7 @@ import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.moderation.mute.MuteContainer;
-import com.pinewoodbuilders.modlog.local.shared.ModlogType;
+import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
 import com.pinewoodbuilders.time.Carbon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,19 +154,18 @@ public class GlobalMuteManager {
             .where(Constants.MGM_LOG_TABLE_NAME + ".mgi", mainGroupId)
             .andWhere(Constants.MGM_LOG_TABLE_NAME + ".target_id", userId)
             .andWhere(Constants.MUTE_TABLE_NAME + ".main_group_id", mainGroupId)
-            .andWhere(builder -> builder.where(Constants.MGM_LOG_TABLE_NAME + ".type", ModlogType.MUTE.getId())
-                .orWhere(Constants.MGM_LOG_TABLE_NAME + ".type", ModlogType.TEMP_MUTE.getId()))
+            .andWhere(builder -> builder.where(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_MUTE.getId())
+                .orWhere(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_TEMP_MUTE.getId()))
             .get();
 
         if (!collection.isEmpty()) {
-            String query = String.format("DELETE FROM `%s` WHERE `guild_id` = ? AND `main_group_id` = ? AND `modlog_id` = ?",
+            String query = String.format("DELETE FROM `%s` WHERE `main_group_id` = ? AND `modlog_id` = ?",
                 Constants.MUTE_TABLE_NAME);
 
             avaire.getDatabase().queryBatch(query, statement -> {
                 for (DataRow row : collection) {
-                    statement.setLong(1, 0);
-                    statement.setLong(2, mainGroupId);
-                    statement.setString(3, row.getString("id"));
+                    statement.setLong(1, mainGroupId);
+                    statement.setString(2, row.getString("id"));
                     statement.addBatch();
                 }
             });
