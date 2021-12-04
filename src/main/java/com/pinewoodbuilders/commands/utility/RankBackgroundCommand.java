@@ -35,7 +35,7 @@ import com.pinewoodbuilders.imagegen.RankBackground;
 import com.pinewoodbuilders.imagegen.RankBackgroundHandler;
 import com.pinewoodbuilders.imagegen.renders.RankBackgroundRender;
 import com.avairebot.shared.DiscordConstants;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RandomUtil;
@@ -273,12 +273,12 @@ public class RankBackgroundCommand extends Command {
             return false;
         }
 
-        int permissionLevel = CheckPermissionUtil.getPermissionLevel(context).getLevel();
+        int permissionLevel = XeusPermissionUtil.getPermissionLevel(context).getLevel();
 
         VoteCacheEntity voteEntity = avaire.getVoteManager().getVoteEntity(context.getAuthor());
         int votePoints = voteEntity == null ? 0 : voteEntity.getVotePoints();
 
-        if (background.getCost() > votePoints && !(permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel())) {
+        if (background.getCost() > votePoints && !(permissionLevel >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel())) {
             return sendErrorMessage(context, context.i18n("doesntHaveEnoughPoints",
                 NumberUtil.formatNicely(background.getCost()), NumberUtil.formatNicely(votePoints)
             ));

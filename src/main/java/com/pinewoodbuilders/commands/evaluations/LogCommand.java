@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.pinewoodbuilders.utils.JsonReader.readJsonFromUrl;
+import static com.pinewoodbuilders.utilities.JsonReader.readJsonFromUrl;
 
 public class LogCommand extends Command {
 

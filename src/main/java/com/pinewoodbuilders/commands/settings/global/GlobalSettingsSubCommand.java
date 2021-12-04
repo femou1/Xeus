@@ -7,7 +7,7 @@ import com.pinewoodbuilders.commands.settings.GuildAndGlobalSettingsCommand;
 import com.pinewoodbuilders.contracts.commands.settings.SettingsSubCommand;
 import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -25,8 +25,8 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
         GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
-        int permission = CheckPermissionUtil.getPermissionLevel(guildTransformer, context.guild, context.member).getLevel();
-        if (permission < CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
+        int permission = XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, context.member).getLevel();
+        if (permission < XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
             return command.sendErrorMessage(context, "Sorry, but you do not have the permissions required to run this command.");
         }
 

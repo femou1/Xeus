@@ -17,7 +17,7 @@ import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.Request;
 import com.pinewoodbuilders.requests.Response;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.*;
@@ -36,7 +36,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static com.pinewoodbuilders.utils.JsonReader.readJsonFromUrl;
+import static com.pinewoodbuilders.utilities.JsonReader.readJsonFromUrl;
 
 public class EventRemittanceCommand extends Command {
 
@@ -109,7 +109,7 @@ public class EventRemittanceCommand extends Command {
             return false;
         }
         if (args.length > 0) {
-            if (CheckPermissionUtil.getPermissionLevel(context).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+            if (XeusPermissionUtil.getPermissionLevel(context).getLevel() >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
                 switch (args[0].toLowerCase()) {
                     case "sc":
                     case "set-channel": {

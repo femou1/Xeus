@@ -49,7 +49,7 @@ import com.pinewoodbuilders.modlog.local.moderation.Modlog;
 import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
 import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.utilities.ArrayUtil;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
 import com.vdurmont.emoji.EmojiParser;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -292,7 +292,7 @@ public class MessageEventAdapter extends EventAdapter {
         if (!settings.getGlobalFilter()) {
             return;
         }
-        if (!event.getContentRaw().startsWith("debug:") && CheckPermissionUtil.getPermissionLevel(guild, genericMessageEvent.getGuild(), event.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
+        if (!event.getContentRaw().startsWith("debug:") && XeusPermissionUtil.getPermissionLevel(guild, genericMessageEvent.getGuild(), event.getMember()).getLevel() >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
             return;
         }
 
@@ -436,8 +436,8 @@ public class MessageEventAdapter extends EventAdapter {
                 return;
             }
 
-            int permissionLevel = CheckPermissionUtil.getPermissionLevel(databaseEventHolder.getGuildSettings(), event.getGuild(), messageId.getMember()).getLevel();
-            if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
+            int permissionLevel = XeusPermissionUtil.getPermissionLevel(databaseEventHolder.getGuildSettings(), event.getGuild(), messageId.getMember()).getLevel();
+            if (permissionLevel >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
                 return;
             }
 

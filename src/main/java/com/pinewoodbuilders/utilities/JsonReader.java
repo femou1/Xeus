@@ -1,4 +1,4 @@
-package com.pinewoodbuilders.utils;
+package com.pinewoodbuilders.utilities;
 
 import org.json.JSONArray;
 import org.json.JSONException;

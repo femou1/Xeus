@@ -10,12 +10,11 @@ import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.Request;
 import com.pinewoodbuilders.requests.Response;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.*;
@@ -34,7 +33,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static com.pinewoodbuilders.utils.JsonReader.readJsonFromUrl;
+import static com.pinewoodbuilders.utilities.JsonReader.readJsonFromUrl;
 
 
 public class ReportUserCommand extends Command {
@@ -93,8 +92,8 @@ public class ReportUserCommand extends Command {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
 
-        int permissionLevel = CheckPermissionUtil.getPermissionLevel(context).getLevel();
-        if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+        int permissionLevel = XeusPermissionUtil.getPermissionLevel(context).getLevel();
+        if (permissionLevel >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             if (args.length > 0) {
                 switch (args[0].toLowerCase()) {
                     case "sr":
@@ -115,8 +114,8 @@ public class ReportUserCommand extends Command {
             }
         }
 
-        /*if (!(permissionLevel == CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel())) {
-            context.makeError("This command is still disabled for normal users, only Permission Level ``" + CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel() + "`` can use this.").queue();
+        /*if (!(permissionLevel == XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel())) {
+            context.makeError("This command is still disabled for normal users, only Permission Level ``" + XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel() + "`` can use this.").queue();
             return true;
         }*/
 

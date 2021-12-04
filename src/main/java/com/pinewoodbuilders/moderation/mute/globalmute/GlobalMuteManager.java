@@ -127,7 +127,6 @@ public class GlobalMuteManager {
             "SELECT `{1}`.`mgi`, `{1}`.`target_id`, `{0}`.`expires_in` FROM `{0}` INNER JOIN `{1}` ON `{0}`.`modlog_id` = `{1}`.`modlogCase` WHERE `{0}`.`modlog_id` = `{1}`.`modlogCase` AND `{0}`.`main_group_id` = `{1}`.`mgi` AND `{0}`.`global` = 1;",
             Constants.MUTE_TABLE_NAME, Constants.MGM_LOG_TABLE_NAME);
 
-        System.out.println(query);
         try {
             int size = getTotalAmountOfMutes();
             for (DataRow row : avaire.getDatabase().query(query)) {

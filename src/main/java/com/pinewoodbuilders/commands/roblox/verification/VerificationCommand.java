@@ -10,7 +10,7 @@ import com.pinewoodbuilders.database.transformers.VerificationTransformer;
 import com.pinewoodbuilders.requests.service.group.GroupRanksService;
 import com.pinewoodbuilders.requests.service.group.GuildRobloxRanksService;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RoleUtil;
@@ -140,7 +140,7 @@ public class VerificationCommand extends VerificationCommandContract {
     }
 
     private boolean kickUnranked(CommandMessage context, RobloxAPIManager manager) {
-        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+        if (XeusPermissionUtil.getPermissionLevel(context).getLevel() < XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             context.makeError("You're required to be an server admin or above to run this command").queue();
             return false;
         }
@@ -198,7 +198,7 @@ public class VerificationCommand extends VerificationCommandContract {
     }
 
     private boolean getUserIds(CommandMessage context, RobloxAPIManager manager) {
-        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
+        if (XeusPermissionUtil.getPermissionLevel(context).getLevel() < XeusPermissionUtil.GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
             context.makeError("You're required to be an facilitator, bot admin or above to run this command").queue();
             return false;
         }
@@ -215,7 +215,7 @@ public class VerificationCommand extends VerificationCommandContract {
     }
 
     private boolean massUnbindUsers(CommandMessage context, RobloxAPIManager manager) {
-        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
+        if (XeusPermissionUtil.getPermissionLevel(context).getLevel() < XeusPermissionUtil.GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
             context.makeError("You're required to be an facilitator, bot admin or above to run this command").queue();
             return false;
         }

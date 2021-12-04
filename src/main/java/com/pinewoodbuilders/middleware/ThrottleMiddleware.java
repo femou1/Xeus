@@ -30,7 +30,7 @@ import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.metrics.Metrics;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.CacheUtil;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
 import com.google.common.cache.Cache;
@@ -67,8 +67,8 @@ public class ThrottleMiddleware extends Middleware {
             return stack.next();
         }
         if (message.getChannelType().isGuild()) {
-            int permissionLevel = CheckPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuildSettings(), message.getGuild(), message.getMember()).getLevel();
-            if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
+            int permissionLevel = XeusPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuildSettings(), message.getGuild(), message.getMember()).getLevel();
+            if (permissionLevel >= XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
                 return stack.next();
             }
         }

@@ -30,7 +30,7 @@ import com.pinewoodbuilders.database.transformers.ChannelTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.middleware.MiddlewareStack;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
 import net.dv8tion.jda.api.entities.Message;
 
@@ -118,8 +118,8 @@ public class IsCategoryEnabled extends Middleware {
     }
 
     private boolean isModOrHigher(MiddlewareStack stack, Message message) {
-        int permissionLevel = CheckPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuildSettings(), message.getGuild(), message.getMember()).getLevel();
-        return permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel();
+        int permissionLevel = XeusPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuildSettings(), message.getGuild(), message.getMember()).getLevel();
+        return permissionLevel >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel();
     }
 
     private boolean isCategoryCommands(MiddlewareStack stack) {

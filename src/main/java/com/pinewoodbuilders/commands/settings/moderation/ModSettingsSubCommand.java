@@ -12,7 +12,7 @@ import com.pinewoodbuilders.contracts.commands.settings.SettingsSubCommand;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -29,8 +29,8 @@ public class ModSettingsSubCommand extends SettingsSubCommand {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        int permissionLevel = CheckPermissionUtil.getPermissionLevel(context).getLevel();
-        if (permissionLevel < CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_LEADERSHIP.getLevel()) {
+        int permissionLevel = XeusPermissionUtil.getPermissionLevel(context).getLevel();
+        if (permissionLevel < XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_LEADERSHIP.getLevel()) {
             context.makeError("You are not a MGL (Main Group Leadership). Access is rejected.").queue();
             return true;
         }
@@ -65,7 +65,7 @@ public class ModSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean addModeratorToList(CommandMessage context, String[] args) {
-        int permissionLevel = CheckPermissionUtil.getPermissionLevel(context).getLevel();
+        int permissionLevel = XeusPermissionUtil.getPermissionLevel(context).getLevel();
         if (args.length < 1) {
             context.makeInfo("Please run the command correctly, the prefix is:\n"
                     + " **->** `!settings mod add <discord-id> <roblox-id> (isLeadership (true/false)) (isGlobalMod (true/false))`")
@@ -164,7 +164,7 @@ public class ModSettingsSubCommand extends SettingsSubCommand {
                 }
             }
         }
-        if (permissionLevel < CheckPermissionUtil.GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
+        if (permissionLevel < XeusPermissionUtil.GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
             context.makeError("You are not a BOT Admin. Due to the sensitivity of these specific subcommands. Access is rejected.").queue();
             return true;
         } else {

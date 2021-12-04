@@ -26,7 +26,7 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.PermissionOverride;
 import net.dv8tion.jda.api.entities.Role;
@@ -111,7 +111,7 @@ public class LockChannelsCommand extends Command {
 
         if (args.length > 0 && context.getMentionedChannels().size() < 1) {
             if (args[0].equals("all")) {
-                if (!(CheckPermissionUtil.getPermissionLevel(context).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel())) {
+                if (!(XeusPermissionUtil.getPermissionLevel(context).getLevel() >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel())) {
                     context.makeError("Sorry, but you have to be a MGM member, or a Admin+ to use this command!").queue();
                     return false;
                 }

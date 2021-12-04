@@ -36,7 +36,7 @@ import com.pinewoodbuilders.moderation.warn.WarnContainer;
 import com.pinewoodbuilders.modlog.local.moderation.Modlog;
 import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
 import com.pinewoodbuilders.modlog.local.shared.ModlogType;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.User;
@@ -145,7 +145,7 @@ public class ModlogPardonCommand extends Command {
             }
 
             DataRow row = collection.first();
-            int permissionLevel = CheckPermissionUtil.getPermissionLevel(context).getLevel();
+            int permissionLevel = XeusPermissionUtil.getPermissionLevel(context).getLevel();
             if (!canEditModlogCase(context, row, permissionLevel)) {
                 return sendErrorMessage(context, context.i18n("couldntFindCaseWithId", caseId));
             }
@@ -207,6 +207,6 @@ public class ModlogPardonCommand extends Command {
 
     private boolean canEditModlogCase(CommandMessage context, DataRow collection, int permissionLevel) {
         return context.getMember().hasPermission(Permission.ADMINISTRATOR)
-            || collection.getString("user_id", "").equals(context.getAuthor().getId()) || permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel();
+            || collection.getString("user_id", "").equals(context.getAuthor().getId()) || permissionLevel >= XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel();
     }
 }

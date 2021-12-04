@@ -28,7 +28,7 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.CommandPriority;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.language.I18n;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
@@ -166,12 +166,12 @@ public class FeatureBlacklistCommand extends Command {
         if (s.getId() != 0) {
             guildId = context.guild.getIdLong();
         } else {
-            if (!(CheckPermissionUtil.getPermissionLevel(context)
-                    .getLevel() > CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel())) {
+            if (!(XeusPermissionUtil.getPermissionLevel(context)
+                    .getLevel() > XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel())) {
                 return sendErrorMessage(context,
                         "You're required to be level "
-                                + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel() + " (``"
-                                + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getRankName()
+                                + XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel() + " (``"
+                                + XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getRankName()
                                 + "``) or higher to *globally* blacklist someone on all guilds!");
             }
             guildId = 1L;
@@ -221,12 +221,12 @@ public class FeatureBlacklistCommand extends Command {
 
         long guildId;
         if (featureScope.getId() == 0) {
-            if (!(CheckPermissionUtil.getPermissionLevel(context)
-                    .getLevel() > CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel())) {
+            if (!(XeusPermissionUtil.getPermissionLevel(context)
+                    .getLevel() > XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel())) {
                 return sendErrorMessage(context,
                         "You're required to be level "
-                                + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel() + " (`"
-                                + CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getRankName()
+                                + XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel() + " (`"
+                                + XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getRankName()
                                 + "`) or higher to *globally* blacklist someone on all guilds!");
             }
             guildId = 1L;

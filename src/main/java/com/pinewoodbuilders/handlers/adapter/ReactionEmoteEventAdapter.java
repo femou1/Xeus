@@ -37,7 +37,7 @@ import com.pinewoodbuilders.database.transformers.ReactionTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.handlers.DatabaseEventHolder;
 import com.pinewoodbuilders.scheduler.tasks.DrainReactionRoleQueueTask;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.RoleUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -793,13 +793,13 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
         
         GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire,e.getGuild());
         if (i == 1) {
-            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel();
+            return XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel();
         }
         if (i == 2) {
-            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
+            return XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
         }
         if (i == 3) {
-            return CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
+            return XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
         }
         return false;
     }
