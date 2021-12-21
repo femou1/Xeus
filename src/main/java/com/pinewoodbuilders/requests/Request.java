@@ -26,10 +26,10 @@ import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -78,10 +78,8 @@ public class Request extends Future {
                 builder.addHeader(entry.getKey(), entry.getValue());
             }
 
-            switch (type) {
-                case GET:
-                    builder.get();
-                    break;
+            if (type == RequestType.GET) {
+                builder.get();
             }
 
             success.accept(new Response(client.newCall(builder.build()).execute()));
@@ -99,15 +97,9 @@ public class Request extends Future {
     }
 
     private String buildUrlParameters() {
-        return parameters.entrySet().stream().map(item -> {
-            try {
-                return String.format("%s=%s", item.getKey(), URLEncoder.encode(
-                    item.getValue().toString(), "UTF-8"
-                ));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-                return String.format("%s=%s", item.getKey(), "invalid-format");
-            }
-        }).collect(Collectors.joining("&"));
+        return parameters.entrySet().stream().map(item ->
+            String.format("%s=%s", item.getKey(), URLEncoder.encode(
+            item.getValue().toString(), StandardCharsets.UTF_8
+        ))).collect(Collectors.joining("&"));
     }
 }
