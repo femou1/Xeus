@@ -63,6 +63,7 @@ import com.pinewoodbuilders.metrics.Metrics;
 import com.pinewoodbuilders.middleware.*;
 import com.pinewoodbuilders.middleware.global.IsCategoryEnabled;
 import com.pinewoodbuilders.moderation.ban.BanManager;
+import com.pinewoodbuilders.moderation.filter.LinkFilterManager;
 import com.pinewoodbuilders.moderation.mute.MuteManager;
 import com.pinewoodbuilders.moderation.mute.globalmute.GlobalMuteManager;
 import com.pinewoodbuilders.moderation.punishments.GlobalPunishmentManager;
@@ -99,7 +100,6 @@ import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.SessionControllerAdapter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -156,6 +156,8 @@ public class Xeus {
     private final VoiceWhitelistManager voiceWhitelistManager;
     private final GlobalPunishmentManager globalPunishmentManager;
     private final GlobalWatchManager globalWatchManager;
+    private final LinkFilterManager linkFilterManager;
+
     private Carbon shutdownTime = null;
     private int shutdownCode = ExitCodes.EXIT_CODE_RESTART;
     private ShardManager shardManager = null;
@@ -172,7 +174,6 @@ public class Xeus {
         log.debug("====================================================\n");
 
         log.info("Bootstrapping Xeus v" + AppInfo.getAppInfo().version);
-        Reflections.log = null;
 
         this.eventEmitter = new EventEmitter(this);
         this.cache = new CacheManager(this);
@@ -456,6 +457,9 @@ public class Xeus {
         log.info("Preparing mute manager");
         muteManger = new MuteManager(this);
 
+        log.info("Preparing link filter manager");
+        linkFilterManager = new LinkFilterManager(this);
+
         log.info("Preparing global mute manager");
         globalMuteManager = new GlobalMuteManager(this);
 
@@ -503,13 +507,15 @@ public class Xeus {
 
     static String getVersionInfo(@Nullable Settings settings) {
         return ConsoleColor.format("%red\n\n" +
-            "     ___   ____    ____  ___       __  .______       _______ \n" +
-            "    /   \\  \\   \\  /   / /   \\     |  | |   _  \\     |   ____|\n" +
-            "   /  ^  \\  \\   \\/   / /  ^  \\    |  | |  |_)  |    |  |__   \n" +
-            "  /  /_\\  \\  \\      / /  /_\\  \\   |  | |      /     |   __|  \n" +
-            " /  _____  \\  \\    / /  _____  \\  |  | |  |\\  \\----.|  |____ \n" +
-            "/__/     \\__\\  \\__/ /__/     \\__\\ |__| | _| `._____||_______|\n" +
-            ""
+            "\n" +
+            " __   __  ______   _    _    _____ \n" +
+            " \\ \\ / / |  ____| | |  | |  / ____|\n" +
+            "  \\ V /  | |__    | |  | | | (___  \n" +
+            "   > <   |  __|   | |  | |  \\___ \\ \n" +
+            "  / . \\  | |____  | |__| |  ____) |\n" +
+            " /_/ \\_\\ |______|  \\____/  |_____/ \n" +
+            "                                   \n" +
+            "                                   \n"
             + "%reset"
             + "\n\tVersion:          " + AppInfo.getAppInfo().version
             + "\n\tJVM:              " + System.getProperty("java.version")
@@ -765,5 +771,9 @@ public class Xeus {
 
     public WarnsManager getWarningsManager() {
         return warnsManager;
+    }
+
+    public LinkFilterManager getLinkFilterManager() {
+        return linkFilterManager;
     }
 }

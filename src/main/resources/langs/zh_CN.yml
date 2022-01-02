@@ -592,7 +592,7 @@ music:
     playlistIsAlreadyEmpty: '这个 `:playlist` 播放列表已为空，没有要删除的内容.'
     songHasBeenRemovedFromPlaylist: ':song 已成功从播放列表删除 `:playlist` '
     playlistTitle: ':musical_note: 音乐播放列表 {0}'
-    playlistSize: '[ {0} 离开 {1} ]'
+    playlistSize: '[{0} 离开 {1} ]'
     playlistLine: "{0}\n       播放列表有 **{1}** 歌(s)"
     playlistSongLine: '`{0}` [{1}]({2}) [{3}]'
   RemoveSongFromQueueCommand:

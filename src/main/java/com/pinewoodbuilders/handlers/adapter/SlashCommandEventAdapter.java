@@ -3,6 +3,7 @@ package com.pinewoodbuilders.handlers.adapter;
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.handlers.EventAdapter;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
@@ -10,6 +11,7 @@ import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -179,7 +181,7 @@ public class SlashCommandEventAdapter extends EventAdapter {
                 l.sendMessage("GuildTransformer is empty.").queue();
                 return;
             }
-            if (XeusPermissionUtil.getPermissionLevel(guildTransformer, event.getGuild(), event.getOption("member").getAsMember()).getLevel() < XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel())
+            if (XeusPermissionUtil.getPermissionLevel(guildTransformer, event.getGuild(), event.getOption("member").getAsMember()).getLevel() < GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel())
                 avaire.getRobloxAPIManager().getVerification().getVerificationMethodsManager().slashCommandVerify(event.getOption("member").getAsMember(), g, l);
         });
         return false;

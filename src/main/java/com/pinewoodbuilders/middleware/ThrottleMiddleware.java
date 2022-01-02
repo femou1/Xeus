@@ -21,20 +21,21 @@
 
 package com.pinewoodbuilders.middleware;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.CacheFingerprint;
 import com.pinewoodbuilders.contracts.middleware.Middleware;
 import com.pinewoodbuilders.contracts.middleware.ThrottleMessage;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.metrics.Metrics;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.CacheUtil;
-import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.Message;
 
 import javax.annotation.Nonnull;
@@ -68,7 +69,7 @@ public class ThrottleMiddleware extends Middleware {
         }
         if (message.getChannelType().isGuild()) {
             int permissionLevel = XeusPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuildSettings(), message.getGuild(), message.getMember()).getLevel();
-            if (permissionLevel >= XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
+            if (permissionLevel >= GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
                 return stack.next();
             }
         }

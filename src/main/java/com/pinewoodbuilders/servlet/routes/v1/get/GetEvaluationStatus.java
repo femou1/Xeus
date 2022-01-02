@@ -1,15 +1,13 @@
 package com.pinewoodbuilders.servlet.routes.v1.get;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.cache.CacheAdapter;
 import com.pinewoodbuilders.contracts.metrics.SparkRoute;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
-import com.pinewoodbuilders.database.controllers.GuildController;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
 import net.dv8tion.jda.api.entities.Guild;
 import org.json.JSONObject;
@@ -86,6 +84,7 @@ public class GetEvaluationStatus extends SparkRoute {
         root.put("rankLocked", Xeus.getInstance().getRobloxAPIManager().getKronosManager().isRanklocked(robloxId));
         root.put("onCooldown", getCooldownFromCache(robloxId));
         root.put("isEvalRank", isEvalRank(guildId, robloxId));
+        root.put("message", row.getString("message"));
         return root;
     }
 

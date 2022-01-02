@@ -10,6 +10,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.EventWaiter;
 import com.pinewoodbuilders.utilities.MentionableUtil;
@@ -87,7 +88,7 @@ public class FeedbackCommand extends Command {
         }
 
         int permissionLevel = XeusPermissionUtil.getPermissionLevel(context).getLevel();
-        if (permissionLevel >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+        if (permissionLevel >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             if (args.length > 0) {
                 switch (args[0].toLowerCase()) {
                     case "ss":

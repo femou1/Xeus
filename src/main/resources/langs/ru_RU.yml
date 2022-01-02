@@ -592,7 +592,7 @@ music:
     playlistIsAlreadyEmpty: 'Плейлист `:playlist` пуст, в нем нечего удалять.'
     songHasBeenRemovedFromPlaylist: ':song успешно удален из `:playlist` плейлиста'
     playlistTitle: ':musical_note: Список музыкальных плейлистов {0}'
-    playlistSize: '[ {0} из {1} ]'
+    playlistSize: '[{0} из {1} ]'
     playlistLine: "{0}\n       Количество песен в плейлисте **{1}**"
     playlistSongLine: '`{0}` [{1}]({2}) [{3}]'
   RemoveSongFromQueueCommand:

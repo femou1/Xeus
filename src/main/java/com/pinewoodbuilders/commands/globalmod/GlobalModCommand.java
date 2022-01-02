@@ -38,7 +38,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.pinewoodbuilders.utilities.XeusPermissionUtil.GuildPermissionCheckType.GLOBAL_ADMIN;
+import static com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType.GLOBAL_ADMIN;
 
 
 public class GlobalModCommand extends Command {

@@ -5,9 +5,11 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.settings.GuildAndGlobalSettingsCommand;
 import com.pinewoodbuilders.contracts.commands.settings.SettingsSubCommand;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -26,7 +28,7 @@ public class OtherSettingsSubCommand extends SettingsSubCommand {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
         int permissionLevel = XeusPermissionUtil.getPermissionLevel(context).getLevel();
-        if (permissionLevel < XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_LEADERSHIP.getLevel()) {
+        if (permissionLevel < GuildPermissionCheckType.MAIN_GLOBAL_LEADERSHIP.getLevel()) {
             context.makeError("You are not a MGL (Main Group Leadership). Access to this command is rejected.").queue();
             return true;
         }

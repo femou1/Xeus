@@ -1,24 +1,19 @@
 package com.pinewoodbuilders.commands.settings.moderation;
 
-import java.awt.Color;
-import java.sql.SQLException;
-import java.util.Arrays;
-
-import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.settings.GuildAndGlobalSettingsCommand;
 import com.pinewoodbuilders.contracts.commands.settings.SettingsSubCommand;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
-
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Emoji;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.interactions.components.Button;
+
+import java.sql.SQLException;
+import java.util.Arrays;
 
 public class ModSettingsSubCommand extends SettingsSubCommand {
 
@@ -30,14 +25,17 @@ public class ModSettingsSubCommand extends SettingsSubCommand {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
         int permissionLevel = XeusPermissionUtil.getPermissionLevel(context).getLevel();
-        if (permissionLevel < XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_LEADERSHIP.getLevel()) {
+        if (permissionLevel < GuildPermissionCheckType.MAIN_GLOBAL_LEADERSHIP.getLevel()) {
             context.makeError("You are not a MGL (Main Group Leadership). Access is rejected.").queue();
             return true;
         }
         if (args.length < 1) {
-            context.makeWarning("I'm missing the arguments for this command.\nYou noob, get it right.\n"
-                    + " - `add` - Add a moderator to the list of approved mods.\n"
-                    + " - `remove` - Remove a moderator from the list of approved mods\n"
+            context.makeWarning("""
+                    I'm missing the arguments for this command.
+                    You noob, get it right.
+                     - `add` - Add a moderator to the list of approved mods.
+                     - `remove` - Remove a moderator from the list of approved mods
+                    """
                     //+ " - `change` - Modify a moderator's permissions."
                     ).queue();
             return false;
@@ -51,13 +49,13 @@ public class ModSettingsSubCommand extends SettingsSubCommand {
             case "r":
             case "remove":
                 return removeModeratorFromList(context, arguments);
-           // case "c":
-            //case "change":
-             //   return changeModeratorPermissionFromList(context, arguments);
             default:
-                context.makeError("I'm missing the arguments for this command.\nYou noob, get it right.\n"
-                        + " - `add` - Add a moderator to the list of approved mods.\n"
-                        + " - `remove` - Remove a moderator from the list of approved mods\n"
+                context.makeError("""
+                        I'm missing the arguments for this command.
+                        You noob, get it right.
+                         - `add` - Add a moderator to the list of approved mods.
+                         - `remove` - Remove a moderator from the list of approved mods
+                        """
                         //+ " - `change` - Modify a moderator's permissions."
                         ).queue();
                 return false;
@@ -164,7 +162,7 @@ public class ModSettingsSubCommand extends SettingsSubCommand {
                 }
             }
         }
-        if (permissionLevel < XeusPermissionUtil.GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
+        if (permissionLevel < GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
             context.makeError("You are not a BOT Admin. Due to the sensitivity of these specific subcommands. Access is rejected.").queue();
             return true;
         } else {

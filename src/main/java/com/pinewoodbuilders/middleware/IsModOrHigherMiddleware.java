@@ -3,9 +3,11 @@ package com.pinewoodbuilders.middleware;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.middleware.Middleware;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.factories.MessageFactory;
-import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.Message;
 
 import javax.annotation.Nonnull;
@@ -17,7 +19,7 @@ public class IsModOrHigherMiddleware extends Middleware {
         super(avaire);
     }
 
-    String rankName = XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getRankName();
+    String rankName = GuildPermissionCheckType.LOCAL_GROUP_HR.getRankName();
 
     @Override
     public String buildHelpDescription(@Nonnull CommandMessage context, @Nonnull String[] arguments) {
@@ -35,7 +37,7 @@ public class IsModOrHigherMiddleware extends Middleware {
         }
 
         int permissionLevel = XeusPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuildSettings(), message.getGuild(), message.getMember()).getLevel();
-        if (permissionLevel >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
+        if (permissionLevel >= GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
             return stack.next();
         }
 

@@ -22,11 +22,12 @@
 package com.pinewoodbuilders.handlers.adapter;
 
 import com.pinewoodbuilders.AppInfo;
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.contracts.cache.CacheAdapter;
 import com.pinewoodbuilders.contracts.handlers.EventAdapter;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
@@ -41,9 +42,10 @@ import com.pinewoodbuilders.handlers.DatabaseEventHolder;
 import com.pinewoodbuilders.requests.Response;
 import com.pinewoodbuilders.requests.service.kronos.database.GetUsersPoints;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
-import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -110,7 +112,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                 switch (e.getButton().getEmoji().getName()) {
                                     case "✅":
                                         if (permissionLevel >=
-                                            XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+                                            GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
                                             if (e.getGuild().getId().equals("438134543837560832")) {
                                                 RequestFactory.makeGET("https://www.pb-kronos.dev/api/v2/database/pbst")
                                                     .addParameter("userids", reportedRobloxId)
@@ -226,7 +228,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                         break;
                                     case "❌":
                                         if (permissionLevel >=
-                                            XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+                                            GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
 
                                             tc.retrieveMessageById(c.getLong("report_message_id")).queue(v -> {
                                                 if (v.getEmbeds().get(0).getColor().equals(new Color(255, 0, 0)))
@@ -269,7 +271,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                         break;
                                     case "🚫":
                                         if (permissionLevel >=
-                                            XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+                                            GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
 
 
                                             tc.retrieveMessageById(c.getLong("report_message_id")).queue(v -> {
@@ -325,7 +327,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                 switch (e.getButton().getEmoji().getName()) {
                                     case "✅":
                                         if (permissionLevel >=
-                                            XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+                                            GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
 
                                             if (e.getGuild().getId().equals("438134543837560832")) {
                                                 tc.retrieveMessageById(c.getLong("request_message_id")).queue(v -> {
@@ -421,7 +423,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                         break;
                                     case "❌":
                                         if (permissionLevel >=
-                                            XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+                                            GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
                                             //e.getReaction().removeReaction(e.getUser()).queue();
 
 
@@ -463,7 +465,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                         break;
                                     case "🚫":
                                         if (permissionLevel >=
-                                            XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+                                            GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
 
 
                                             tc.retrieveMessageById(c.getLong("request_message_id")).queue(v -> {
@@ -868,13 +870,13 @@ public class ButtonClickEventAdapter extends EventAdapter {
     private boolean isValidReportManager(ButtonClickEvent e, Integer i) {
         GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, e.getGuild());
         if (i == 1) {
-            return XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel();
+            return XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel();
         }
         if (i == 2) {
-            return XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
+            return XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
         }
         if (i == 3) {
-            return XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
+            return XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
         }
         return false;
     }

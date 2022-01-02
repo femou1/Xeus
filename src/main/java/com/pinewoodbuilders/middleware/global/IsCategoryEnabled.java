@@ -26,12 +26,14 @@ import com.pinewoodbuilders.commands.Category;
 import com.pinewoodbuilders.commands.CommandHandler;
 import com.pinewoodbuilders.commands.administration.ToggleCategoryCommand;
 import com.pinewoodbuilders.contracts.middleware.Middleware;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.transformers.ChannelTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.middleware.MiddlewareStack;
-import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.Message;
 
 import javax.annotation.Nonnull;
@@ -119,7 +121,7 @@ public class IsCategoryEnabled extends Middleware {
 
     private boolean isModOrHigher(MiddlewareStack stack, Message message) {
         int permissionLevel = XeusPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuildSettings(), message.getGuild(), message.getMember()).getLevel();
-        return permissionLevel >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel();
+        return permissionLevel >= GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel();
     }
 
     private boolean isCategoryCommands(MiddlewareStack stack) {

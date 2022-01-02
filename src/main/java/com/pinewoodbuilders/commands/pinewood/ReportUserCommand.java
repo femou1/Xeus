@@ -14,6 +14,7 @@ import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.Request;
 import com.pinewoodbuilders.requests.Response;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
@@ -93,7 +94,7 @@ public class ReportUserCommand extends Command {
     public boolean onCommand(CommandMessage context, String[] args) {
 
         int permissionLevel = XeusPermissionUtil.getPermissionLevel(context).getLevel();
-        if (permissionLevel >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+        if (permissionLevel >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             if (args.length > 0) {
                 switch (args[0].toLowerCase()) {
                     case "sr":
@@ -114,8 +115,8 @@ public class ReportUserCommand extends Command {
             }
         }
 
-        /*if (!(permissionLevel == XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel())) {
-            context.makeError("This command is still disabled for normal users, only Permission Level ``" + XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel() + "`` can use this.").queue();
+        /*if (!(permissionLevel == GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel())) {
+            context.makeError("This command is still disabled for normal users, only Permission Level ``" + GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel() + "`` can use this.").queue();
             return true;
         }*/
 

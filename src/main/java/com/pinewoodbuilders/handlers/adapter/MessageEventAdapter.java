@@ -27,10 +27,13 @@ import com.pinewoodbuilders.AppInfo;
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.cache.MessageCache;
+import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.commands.CommandContainer;
 import com.pinewoodbuilders.commands.CommandHandler;
 import com.pinewoodbuilders.contracts.cache.CachedMessage;
 import com.pinewoodbuilders.contracts.handlers.EventAdapter;
+import com.pinewoodbuilders.contracts.moderation.LinkLevel;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.controllers.*;
@@ -44,13 +47,14 @@ import com.pinewoodbuilders.handlers.DatabaseEventHolder;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.middleware.MiddlewareStack;
 import com.pinewoodbuilders.middleware.ThrottleMiddleware;
+import com.pinewoodbuilders.moderation.filter.filter.LinkContainer;
 import com.pinewoodbuilders.moderation.mute.automute.MuteRatelimit;
 import com.pinewoodbuilders.modlog.local.moderation.Modlog;
 import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
 import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.utilities.ArrayUtil;
-import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.vdurmont.emoji.EmojiParser;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -59,10 +63,17 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.GenericMessageEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
+import okhttp3.HttpUrl;
+import org.nibor.autolink.LinkExtractor;
+import org.nibor.autolink.LinkSpan;
+import org.nibor.autolink.LinkType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
@@ -261,26 +272,22 @@ public class MessageEventAdapter extends EventAdapter {
     }
 
     public void onGlobalFilterMessageReceived(MessageReceivedEvent event) {
-        if (Constants.guilds.contains(event.getGuild().getId())) {
-            loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder -> {
-                    checkPublicFilter(event, databaseEventHolder);
-                }
-            );
-        }
+        loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder -> {
+                checkPublicFilter(event, databaseEventHolder);
+            }
+        );
     }
 
     public void onGlobalFilterEditReceived(MessageUpdateEvent event) {
-        if (Constants.guilds.contains(event.getGuild().getId())) {
-            loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder -> {
-                checkPublicFilter(event, databaseEventHolder);
-            });
-        }
+        loadDatabasePropertiesIntoMemory(event).thenAccept(databaseEventHolder -> {
+            checkPublicFilter(event, databaseEventHolder);
+        });
+
     }
 
     private void checkPublicFilter(GenericMessageEvent genericMessageEvent, DatabaseEventHolder databaseEventHolder) {
         Message event = getActualMessage(genericMessageEvent);
         if (!genericMessageEvent.isFromGuild()) {return;}
-
 
         GuildSettingsTransformer guild = databaseEventHolder.getGuildSettings();
         if (guild == null) {
@@ -292,18 +299,10 @@ public class MessageEventAdapter extends EventAdapter {
         if (!settings.getGlobalFilter()) {
             return;
         }
-        if (!event.getContentRaw().startsWith("debug:") && XeusPermissionUtil.getPermissionLevel(guild, genericMessageEvent.getGuild(), event.getMember()).getLevel() >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
+        if (!event.getContentRaw().startsWith("debug:") && XeusPermissionUtil.getPermissionLevel(guild, genericMessageEvent.getGuild(), event.getMember()).getLevel() >= GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
             return;
         }
 
-        if (checkLinkFilter(event.getContentRaw())) {
-            if (guild.getOnWatchRole() != 0) {
-                Role watchRole = event.getGuild().getRoleById(guild.getOnWatchRole());
-                if (event.getMember().getRoles().contains(watchRole)) {
-                    event.delete().queue();
-                }
-            }
-        }
 
         String message = event.getContentStripped().replaceAll("[!@#$%^&*()\\[\\]\\-=';/\\\\{}:\"><?|+_`~]", "");
 
@@ -328,10 +327,106 @@ public class MessageEventAdapter extends EventAdapter {
             return;
         }
         checkPIAInviteFilter(event, databaseEventHolder);
+        checkAutoLinkFilter(event, databaseEventHolder);
 
+        if (checkLinkFilter(event.getContentRaw())) {
+            if (guild.getOnWatchRole() != 0) {
+                Role watchRole = event.getGuild().getRoleById(guild.getOnWatchRole());
+                if (event.getMember().getRoles().contains(watchRole)) {
+                    event.delete().queue();
+                }
+            }
+        }
 
     }
 
+    private void checkAutoLinkFilter(Message message, DatabaseEventHolder databaseEventHolder) {
+        if (databaseEventHolder.getGuildSettings().getMainGroupId() == 0) {return;}
+
+        String input = message.getContentRaw();
+        LinkExtractor linkExtractor = LinkExtractor.builder()
+            .linkTypes(EnumSet.of(LinkType.URL, LinkType.WWW)) // limit to URLs
+            .build();
+
+        Iterable <LinkSpan> links = linkExtractor.extractLinks(input);
+
+        for (LinkSpan link : links) {
+            String validLink = input.substring(link.getBeginIndex(), link.getEndIndex());
+            HttpUrl url = HttpUrl.parse(validLink);
+            if (url != null) {
+                LinkContainer lc = avaire.getLinkFilterManager().getLinkContainer(databaseEventHolder.getGuildSettings().getMainGroupId(), url.topPrivateDomain());
+                if (lc != null) {
+                    LinkLevel level = LinkLevel.getLinkLevelFromId(lc.getAction());
+
+                    if (level.isWarn()) {
+                        if (databaseEventHolder.getGuildSettings().getLinkFilterLog() == 0) {continue;}
+                        if (message.getGuild().getTextChannelById(databaseEventHolder.getGuildSettings().getLinkFilterLog()) == null) {continue;}
+
+                        List<MessageEmbed> lme = new ArrayList <>();
+
+                        PlaceholderMessage phm = MessageFactory.makeEmbeddedMessage(message.getGuild().getTextChannelById(databaseEventHolder.getGuildSettings().getLinkFilterLog()))
+                            .setTitle("Link Found - Level " + level.name())
+                            .setDescription("""
+                                **• Offender**: :offender in :channel
+                                **• Deleted**: :hasDeleted
+                                **Original Message**:
+                                ```:message```
+                                **Link**:
+                                :link
+                                """)
+                            .set("offender", message.getAuthor().getAsTag() + " " + message.getAuthor().getAsMention())
+                            .set("channel", message.getTextChannel().getAsMention())
+                            .set("hasDeleted", level.isDelete() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
+                            .set("message", message.getContentRaw())
+                            .set("link", validLink)
+                            .setFooter("Offender ID: " + message.getAuthor().getId())
+                            .setTimestamp(Instant.now())
+                            .setColor(level.getColor());
+
+                        lme.add(phm.buildEmbed());
+
+                        if (level.isCheckRedirect()) {
+                            try {
+                                List <String> redirects = fetchRedirect(validLink, new ArrayList <>());
+                                if (redirects.size() > 1) {
+                                    lme.add(new EmbedBuilder()
+                                        .setDescription(redirects.stream().map(l -> " - " + l + "\n" ).collect(Collectors.joining())).setColor(level.getColor()).build());
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        message.getGuild()
+                            .getTextChannelById(databaseEventHolder.getGuildSettings().getLinkFilterLog())
+                            .sendMessageEmbeds(lme)
+                            .queue();
+                    }
+
+                    if (level.isDelete()) {
+                        message.delete().queue();
+                    }
+
+                    return;
+                }
+            }
+        }
+    }
+
+    private List<String> fetchRedirect(String url, List<String> redirects) throws IOException {
+        redirects.add(url);
+
+        HttpURLConnection con = (HttpURLConnection) (new URL(url).openConnection());
+        con.setRequestMethod("GET");
+        con.setRequestProperty("User-Agent", "Mozilla/5.0");
+        con.setInstanceFollowRedirects(false);
+        con.connect();
+
+        if (con.getHeaderField("Location") == null) {
+            return redirects;
+        }
+        return fetchRedirect(con.getHeaderField("Location"), redirects);
+    }
 
     private boolean checkAutomodFilters(Message message, GuildSettingsTransformer guild) {
         if (guild.getMassMention() > 0) {
@@ -437,7 +532,7 @@ public class MessageEventAdapter extends EventAdapter {
             }
 
             int permissionLevel = XeusPermissionUtil.getPermissionLevel(databaseEventHolder.getGuildSettings(), event.getGuild(), messageId.getMember()).getLevel();
-            if (permissionLevel >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
+            if (permissionLevel >= GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
                 return;
             }
 
@@ -620,8 +715,7 @@ public class MessageEventAdapter extends EventAdapter {
         hasReceivedInfoMessageInTheLastMinute.add(event.getAuthor().getIdLong());
 
         try {
-            ArrayList <String> strings = new ArrayList <>();
-            strings.addAll(Arrays.asList(
+            ArrayList <String> strings = new ArrayList <>(Arrays.asList(
                 "To invite me to your server, use this link:",
                 "*:oauth*",
                 "",
@@ -661,11 +755,7 @@ public class MessageEventAdapter extends EventAdapter {
             GuildTransformer guild = GuildController.fetchGuild(avaire, event.getMessage());
             GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild());
 
-            if ((guild == null || !guild.isLevels() || event.getAuthor().isBot()) && settings == null) {
-                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), settings);
-            }
-
-            if (settings == null || settings.getMainGroupId() == 0) {
+            if (settings.getMainGroupId() == 0) {
                 return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), settings);
             }
 
@@ -682,11 +772,7 @@ public class MessageEventAdapter extends EventAdapter {
             GuildTransformer guild = GuildController.fetchGuild(avaire, event.getMessage());
             GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild());
 
-            if ((guild == null || !guild.isLevels() || event.getAuthor().isBot()) && settings == null) {
-                return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), settings);
-            }
-
-            if (settings == null || settings.getMainGroupId() == 0) {
+            if (settings.getMainGroupId() == 0) {
                 return new DatabaseEventHolder(guild, null, VerificationController.fetchGuild(avaire, event.getMessage()), settings);
             }
 
@@ -696,7 +782,7 @@ public class MessageEventAdapter extends EventAdapter {
 
     public void onMessageDelete(TextChannel channel, List <String> messageIds) {
         Collection reactions = ReactionController.fetchReactions(avaire, channel.getGuild());
-        if (reactions == null || reactions.isEmpty()) {
+        if (reactions.isEmpty()) {
             return;
         }
 

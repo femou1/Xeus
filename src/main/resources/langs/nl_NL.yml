@@ -592,7 +592,7 @@ music:
     playlistIsAlreadyEmpty: 'De `:playlist` afspeellijst is al leeg, er is niks om te verwijderen.'
     songHasBeenRemovedFromPlaylist: ':song is succesvol verwijderd van de `:playlist` afspeellijst'
     playlistTitle: ':musical_note: Afspeellijst {0}'
-    playlistSize: '[ {0} van de {1} ]'
+    playlistSize: '[{0} van de {1} ]'
     playlistLine: "{0}\n       Afspeellijst heeft **{1}** nummer(s)"
     playlistSongLine: '`{0}` [{1}]({2}) [{3}]'
   RemoveSongFromQueueCommand:

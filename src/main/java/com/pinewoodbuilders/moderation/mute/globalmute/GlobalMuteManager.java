@@ -136,7 +136,7 @@ public class GlobalMuteManager {
                     globalMutes.put(mgi, new HashSet<>());
                 }
 
-                globalMutes.get(mgi).add(new MuteContainer(row.getLong("guild_id"), row.getLong("target_id"),
+                globalMutes.get(mgi).add(new MuteContainer(0, row.getLong("target_id"),
                     row.getTimestamp("expires_in"), row.getBoolean("global"), row.getLong("mgi")));
             }
 

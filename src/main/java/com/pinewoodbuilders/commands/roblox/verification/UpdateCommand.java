@@ -13,6 +13,7 @@ import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.requests.service.group.GuildRobloxRanksService;
 import com.pinewoodbuilders.requests.service.user.inventory.RobloxGamePassService;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.RoleUtil;
@@ -124,7 +125,7 @@ public class UpdateCommand extends Command {
 
     private boolean updateEveryone(CommandMessage context) {
         int level = XeusPermissionUtil.getPermissionLevel(context).getLevel();
-        if (level < XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
+        if (level < GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
             context.makeError("You got to be MGM or above to run this command.").queue();
             return false;
         }

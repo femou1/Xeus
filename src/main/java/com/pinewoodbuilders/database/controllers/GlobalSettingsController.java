@@ -96,7 +96,6 @@ public class GlobalSettingsController {
             return transformer;
         } catch (Exception ex) {
             log.error("Failed to fetch guild transformer from the database, error: {}", ex.getMessage(), ex);
-
             return null;
         }
     }

@@ -1,19 +1,21 @@
 package com.pinewoodbuilders.commands.roblox.verification;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.VerificationCommandContract;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.controllers.VerificationController;
 import com.pinewoodbuilders.database.transformers.VerificationTransformer;
 import com.pinewoodbuilders.requests.service.group.GroupRanksService;
 import com.pinewoodbuilders.requests.service.group.GuildRobloxRanksService;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
-import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RoleUtil;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.menu.Paginator;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -140,7 +142,7 @@ public class VerificationCommand extends VerificationCommandContract {
     }
 
     private boolean kickUnranked(CommandMessage context, RobloxAPIManager manager) {
-        if (XeusPermissionUtil.getPermissionLevel(context).getLevel() < XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+        if (XeusPermissionUtil.getPermissionLevel(context).getLevel() < GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             context.makeError("You're required to be an server admin or above to run this command").queue();
             return false;
         }
@@ -198,7 +200,7 @@ public class VerificationCommand extends VerificationCommandContract {
     }
 
     private boolean getUserIds(CommandMessage context, RobloxAPIManager manager) {
-        if (XeusPermissionUtil.getPermissionLevel(context).getLevel() < XeusPermissionUtil.GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
+        if (XeusPermissionUtil.getPermissionLevel(context).getLevel() < GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
             context.makeError("You're required to be an facilitator, bot admin or above to run this command").queue();
             return false;
         }
@@ -215,7 +217,7 @@ public class VerificationCommand extends VerificationCommandContract {
     }
 
     private boolean massUnbindUsers(CommandMessage context, RobloxAPIManager manager) {
-        if (XeusPermissionUtil.getPermissionLevel(context).getLevel() < XeusPermissionUtil.GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
+        if (XeusPermissionUtil.getPermissionLevel(context).getLevel() < GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
             context.makeError("You're required to be an facilitator, bot admin or above to run this command").queue();
             return false;
         }

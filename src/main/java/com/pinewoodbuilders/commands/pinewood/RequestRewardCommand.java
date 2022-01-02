@@ -14,6 +14,7 @@ import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.Request;
 import com.pinewoodbuilders.requests.Response;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.google.common.cache.Cache;
@@ -101,7 +102,7 @@ public class RequestRewardCommand extends Command {
             return false;
         }
         if (args.length > 0) {
-            if (XeusPermissionUtil.getPermissionLevel(context).getLevel() >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+            if (XeusPermissionUtil.getPermissionLevel(context).getLevel() >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
                 switch (args[0].toLowerCase()) {
                     case "sc":
                     case "set-channel": {

@@ -5,69 +5,204 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.settings.GuildAndGlobalSettingsCommand;
 import com.pinewoodbuilders.contracts.commands.settings.SettingsSubCommand;
+import com.pinewoodbuilders.contracts.moderation.LinkLevel;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.moderation.filter.filter.LinkContainer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
+import com.pinewoodbuilders.utilities.menu.Paginator;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 
+import java.awt.*;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class ServerSettingsSubCommand extends SettingsSubCommand {
+    private final Paginator.Builder builder;
 
     public ServerSettingsSubCommand(Xeus avaire, GuildAndGlobalSettingsCommand command) {
         super(avaire, command);
+        builder = new Paginator.Builder()
+            .setColumns(3)
+            .setFinalAction(m -> {try {m.clearReactions().queue();} catch (PermissionException ignore) {}})
+            .setItemsPerPage(50)
+            .waitOnSinglePage(false)
+            .useNumberedItems(false)
+            .showPageNumbers(true)
+            .wrapPageEnds(true)
+            .setEventWaiter(avaire.getWaiter())
+            .setTimeout(1, TimeUnit.MINUTES);
     }
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
         GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
 
+        int permission = XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, context.member).getLevel();
+        if (permission < GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+            return command.sendErrorMessage(context, "Sorry, but you do not have the permissions required to run this command.");
+        }
+
         if (guildTransformer == null) {
             context.makeError("Server settings could not be gathered").queue();
             return false;
         }
 
-        switch (args[0].toLowerCase()) {
-            case "smhrr":
-            case "s-mhr-r":
-            case "set-mhr-rank":
-                return runSetMinimalHrRank(context, args);
-            case "smlr":
-            case "s-l-r":
-            case "set-ml-rank":
-                return runSetMinimalLeadRank(context, args);
+        return switch (args[0].toLowerCase()) {
+            case "link-filter", "links", "l", "lf" -> runLinkFilter(context, guildTransformer, Arrays.copyOfRange(args, 1, args.length));
+            case "smhrr", "s-mhr-r", "set-mhr-rank" -> runSetMinimalHrRank(context, args);
+            case "smlr", "s-l-r", "set-ml-rank" -> runSetMinimalLeadRank(context, args);
+            case "main-group-id", "smgi", "set-main-group-id" -> runSetMainGroupId(context, args);
+            case "permissions", "modify-permissions", "roles", "setup" -> handleRoleSetupArguments(context, Arrays.copyOfRange(args, 1, args.length));
+            case "group-id", "sgi", "set-group-id" -> runSetGroupId(context, args);
+            case "uac", "user-alerts-channel", "alerts-channel" -> runYoungWarningChannelUpdateCommand(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
+            case "young-warning-channel" -> runYoungWarningChannelUpdateCommand(context, args, context.getGuildSettingsTransformer());
+            default -> command.sendErrorMessage(context, "I'm unable to find the argument you're looking for, ya twat. Try again. Lemme remind you of the possible commands.", 5, TimeUnit.MINUTES);
+        };
+    }
 
-            case "main-group-id":
-            case "smgi":
-            case "set-main-group-id":
-                return runSetMainGroupId(context, args);
-
-            case "permissions":
-            case "modify-permissions":
-            case "roles":
-            case "setup":
-                return handleRoleSetupArguments(context, Arrays.copyOfRange(args, 1, args.length));
-            case "group-id":
-            case "sgi":
-            case "set-group-id":
-                return runSetGroupId(context, args);
-            case "uac":
-            case "user-alerts-channel":
-            case "alerts-channel":
-                return runYoungWarningChannelUpdateCommand(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
-            case "young-warning-channel":
-                return runYoungWarningChannelUpdateCommand(context, args, context.getGuildSettingsTransformer());
-            default:
-                return command.sendErrorMessage(context, "I'm unable to find the argument you're looking for, ya twat. Try again. Lemme remind you of the possible commands.", 5, TimeUnit.MINUTES);
-                
+    private boolean runLinkFilter(CommandMessage context, GuildSettingsTransformer guildTransformer, String[] args) {
+        if (guildTransformer.getMainGroupId() == 0) {
+            return command.sendErrorMessage(context, "Main group ID is not set, this feature is disabled.");
         }
+
+        if (args.length == 0) {
+            return command.sendErrorMessage(context, """
+                I'm unable to find the argument you're looking for, ya twat. Try again. Lemme remind you of the possible commands:
+                 - `add <domain> <level>`: **Add a domain to the filter**
+                 - `remove <domain>`: **Remove a domain to the filter**
+                 - `list`: **See all domains and their level**.
+                """, 5, TimeUnit.MINUTES);
+        }
+
+
+        return switch (args[0].toLowerCase()) {
+            case "add", "a" -> linkFilterAdd(context, guildTransformer, Arrays.copyOfRange(args, 1, args.length));
+            case "remove", "r" -> linkFilterRemove(context, guildTransformer, Arrays.copyOfRange(args, 1, args.length));
+            case "list", "l" -> linkFilterList(context, guildTransformer, Arrays.copyOfRange(args, 1, args.length));
+            case "set-channel", "sc" -> setLinkFilterLogChannel(context, guildTransformer, Arrays.copyOfRange(args, 1, args.length));
+            default -> command.sendErrorMessage(context, """
+                I'm unable to find the argument you're looking for, ya twat. Try again. Lemme remind you of the possible commands:
+                 - `add <domain> <level>`: **Add a domain to the filter**
+                 - `remove <domain>`: **Remove a domain to the filter**
+                 - `list`: **See all domains and their level**.
+                """, 5, TimeUnit.MINUTES);
+        };
+    }
+
+    private boolean setLinkFilterLogChannel(CommandMessage context, GuildSettingsTransformer guildTransformer, String[] args) {
+        if (args.length == 0) {
+            return command.sendErrorMessage(context, "Uhhh, I'm missing the channel or ID you want to set the channel on.");
+        }
+
+        if (args[0].equals("remove") || args[0].equals("0")) {
+            try {
+                avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.getGuild().getId())
+                    .update(statement -> {statement.set("link_filter_log", 0);});
+                context.makeSuccess("Disabled the link filter ***log***.").queue();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+
+        GuildChannel gc = MentionableUtil.getChannel(context.getMessage(), Arrays.copyOfRange(args, 0, args.length));
+        if (gc == null) {
+            return command.sendErrorMessage(context, "Channel does not exist.");
+        }
+
+        guildTransformer.setLinkFilterLog(gc.getIdLong());
+
+        try {
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.getGuild().getId())
+                .update(statement -> {statement.set("link_filter_log", gc.getIdLong());});
+            context.makeSuccess("Updated link filter channel to " + gc.getAsMention()).queue();
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+            return command.sendErrorMessage(context, "Something went wrong when modifying the database record.");
+        }
+        return true;
+    }
+
+    private boolean linkFilterList(CommandMessage context, GuildSettingsTransformer guildTransformer, String[] args) {
+        HashSet <LinkContainer> s = avaire.getLinkFilterManager().getLinks().get(guildTransformer.getMainGroupId());
+
+        if (s != null) {
+            for (LinkContainer linkContainer : s) {
+                LinkLevel level = LinkLevel.getLinkLevelFromId(linkContainer.getAction());
+                builder.addItems(linkContainer.getTopLevelDomain() + " (`" + level.name() + "`)");
+            }
+
+            builder.setText("Current whitelisted links").setColor(new Color(119, 255, 138, 161));
+            builder.build().display(context.getChannel());
+        }
+        return false;
+    }
+
+    private boolean linkFilterRemove(CommandMessage context, GuildSettingsTransformer guildTransformer, String[] args) {
+        if (args.length == 0) {
+            return command.sendErrorMessage(context, "Uhhh, I'm missing the domain in the link. Please, give me the link.");
+        }
+
+        if (!avaire.getLinkFilterManager().hasLink(guildTransformer.getMainGroupId(), args[0])) {
+            return command.sendErrorMessage(context, "Link doesn't exist in the database. Hence, I cannot remove it.");
+        }
+
+        try {
+            avaire.getLinkFilterManager().removeLink(guildTransformer.getMainGroupId(), args[0]);
+            context.makeSuccess("Removed `" + args[0] + "` from the link filter database of `" + guildTransformer.getMainGroupId() + "`").queue();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return command.sendErrorMessage(context, "Something went wrong when removing this link from the database.");
+        }
+
+        return true;
+    }
+
+    private boolean linkFilterAdd(CommandMessage context, GuildSettingsTransformer guildTransformer, String[] args) {
+        if (args.length == 0) {
+            return command.sendErrorMessage(context, "Uhhh, I'm missing the domain in the link. Please, give me the link.");
+        }
+        if (args.length == 1 || !NumberUtil.isNumeric(args[1])) {
+            StringBuilder message = new StringBuilder();
+            for (LinkLevel level : LinkLevel.values()) {
+                message.append(" - `").append(level.getLevel()).append("` (**").append(level.name()).append("**)\n");
+            }
+            return command.sendErrorMessage(context, "Do you have the action ID for me? This way I know what to do once I detect a link.\n\n" + message);
+        }
+
+        LinkLevel level = LinkLevel.getLinkLevelFromId(Integer.parseInt(args[1]));
+        if (level == LinkLevel.DELETE) {
+            context.makeError("Link will already get deleted by default, link has not been added to the database. Make sure you choose the correct ID, since this command will revert to DELETE if it didn't get a valid LinkLevel.").queue();
+            return false;
+        }
+
+        if (avaire.getLinkFilterManager().hasLink(guildTransformer.getMainGroupId(), args[0])) {
+            context.makeInfo("Link already exists in database, overwriting link.").queue();
+        }
+
+        try {
+            avaire.getLinkFilterManager().registerLink(guildTransformer.getMainGroupId(), args[0], level.getLevel());
+            context.makeSuccess("Added `" + args[0] + "` to the link filter database of `" + guildTransformer.getMainGroupId() + "` with level: `" + level.getLevel() + "`").setColor(level.getColor()).queue();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return command.sendErrorMessage(context, "Something went wrong when adding this link to the database.");
+        }
+
     }
 
     private boolean runYoungWarningChannelUpdateCommand(CommandMessage context, String[] args, GuildSettingsTransformer transformer) {
@@ -81,13 +216,14 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             return false;
         }
     }
+
     private boolean updateLocalRecordInDatabase(CommandMessage context,
                                                 long memberToYoungChannelId) {
         try {
             avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
-                    .where("id", context.getGuild().getId()).update(p -> {
-                        p.set("user_alerts_channel_id", memberToYoungChannelId);
-                    });
+                .where("id", context.getGuild().getId()).update(p -> {
+                    p.set("user_alerts_channel_id", memberToYoungChannelId);
+                });
             context.makeSuccess("Channel was set!").queue();
         } catch (SQLException exception) {
             Xeus.getLogger().error("ERROR: ", exception);
@@ -113,15 +249,15 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             return updateMinimalLeadRank(transformer, context);
         } else {
             return command.sendErrorMessage(context,
-                    "Something went wrong, please check if you ran the command correctly.");
+                "Something went wrong, please check if you ran the command correctly.");
         }
     }
 
     private boolean sendEnabledRoles(CommandMessage context, GuildSettingsTransformer transformer) {
-        Set<Long> mod = transformer.getHRRoles();
-        Set<Long> admins = transformer.getLeadRoles();
-        Set<Long> noLinks = transformer.getNoLinksRoles();
-        Set<Long> groupShouts = transformer.getGroupShoutRoles();
+        Set <Long> mod = transformer.getHRRoles();
+        Set <Long> admins = transformer.getLeadRoles();
+        Set <Long> noLinks = transformer.getNoLinksRoles();
+        Set <Long> groupShouts = transformer.getGroupShoutRoles();
         Long groupId = transformer.getRobloxGroupId();
         Long mainRoleId = transformer.getMainDiscordRole();
 
@@ -134,11 +270,11 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
         runMainRoleIdCheck(context, sb, mainRoleId);
 
         context.makeInfo(context.i18n("listRoles")).set("roles", sb.toString())
-                .setTitle(
-                        context.i18n("listRolesTitle",
-                                transformer.getHRRoles().size() + transformer.getLeadRoles().size()
-                                        + transformer.getLeadRoles().size() + transformer.getNoLinksRoles().size()))
-                .queue();
+            .setTitle(
+                context.i18n("listRolesTitle",
+                    transformer.getHRRoles().size() + transformer.getLeadRoles().size()
+                        + transformer.getLeadRoles().size() + transformer.getNoLinksRoles().size()))
+            .queue();
 
         return true;
     }
@@ -158,7 +294,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             return updateMinimalHrRank(transformer, context);
         } else {
             return command.sendErrorMessage(context,
-                    "Something went wrong, please check if you ran the command correctly.");
+                "Something went wrong, please check if you ran the command correctly.");
         }
     }
 
@@ -177,12 +313,13 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             return updateGroupId(transformer, context);
         } else {
             return command.sendErrorMessage(context,
-                    "Something went wrong, please check if you ran the command correctly.");
+                "Something went wrong, please check if you ran the command correctly.");
         }
     }
+
     private boolean handleFirstSetupRoles(CommandMessage context, GuildSettingsTransformer transformer) {
-        Set<Long> admins = transformer.getLeadRoles();
-        Set<Long> mods = transformer.getHRRoles();
+        Set <Long> admins = transformer.getLeadRoles();
+        Set <Long> mods = transformer.getHRRoles();
 
         admins.clear();
         mods.clear();
@@ -195,16 +332,16 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
                 admins.add(r.getIdLong());
             }
             if (r.hasPermission(Permission.MESSAGE_MANAGE) && !r.hasPermission(Permission.ADMINISTRATOR)
-                    && !r.hasPermission(Permission.MANAGE_SERVER)) {
+                && !r.hasPermission(Permission.MANAGE_SERVER)) {
                 mods.add(r.getIdLong());
             }
         }
         try {
             avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.getGuild().getId())
-                    .update(statement -> {
-                        statement.set("admin_roles", Xeus.gson.toJson(admins), true);
-                        statement.set("moderator_roles", Xeus.gson.toJson(mods), true);
-                    });
+                .update(statement -> {
+                    statement.set("admin_roles", Xeus.gson.toJson(admins), true);
+                    statement.set("moderator_roles", Xeus.gson.toJson(mods), true);
+                });
             StringBuilder sb = new StringBuilder();
 
             runAdminRolesCheck(context, admins.size() > 0, sb, admins);
@@ -218,65 +355,65 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
         }
 
     }
-    
+
     private boolean updateMinimalLeadRank(GuildSettingsTransformer transformer, CommandMessage context) {
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id",
-                context.guild.getId());
+            context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("minimum_lead_rank", transformer.getMinimumHrRank());
             });
 
             context.makeSuccess("Set the minimal lead rank for `:guild`'s configured group (`:groupId`) to ``:id``")
-                    .set("groupId", transformer.getRobloxGroupId() != 0 ? transformer.getRobloxGroupId() : "ID NOT SET")
-                    .set("guild", context.getGuild().getName()).set("id", transformer.getMinimumLeadRank()).queue();
+                .set("groupId", transformer.getRobloxGroupId() != 0 ? transformer.getRobloxGroupId() : "ID NOT SET")
+                .set("guild", context.getGuild().getName()).set("id", transformer.getMinimumLeadRank()).queue();
             return true;
         } catch (SQLException throwables) {
             context.makeError("Something went wrong in the database, please check with the developer. (Stefano#7366)")
-                    .queue();
+                .queue();
             return false;
         }
     }
 
     private boolean updateMinimalHrRank(GuildSettingsTransformer transformer, CommandMessage context) {
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id",
-                context.guild.getId());
+            context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("minimum_hr_rank", transformer.getMinimumHrRank());
             });
 
             context.makeSuccess("Set the minimal hr rank for `:guild`'s configured group (`:groupId`) to ``:id``")
-                    .set("groupId", transformer.getRobloxGroupId() != 0 ? transformer.getRobloxGroupId() : "ID NOT SET")
-                    .set("guild", context.getGuild().getName()).set("id", transformer.getMinimumHrRank())
-                    .queue();
+                .set("groupId", transformer.getRobloxGroupId() != 0 ? transformer.getRobloxGroupId() : "ID NOT SET")
+                .set("guild", context.getGuild().getName()).set("id", transformer.getMinimumHrRank())
+                .queue();
             return true;
         } catch (SQLException throwables) {
             context.makeError("Something went wrong in the database, please check with the developer. (Stefano#7366)")
-                    .queue();
+                .queue();
             return false;
         }
     }
 
     private boolean updateGroupId(GuildSettingsTransformer transformer, CommandMessage context) {
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id",
-                context.guild.getId());
+            context.guild.getId());
         try {
             qb.update(q -> {
                 q.set("roblox_group_id", transformer.getRobloxGroupId());
             });
 
             context.makeSuccess("Set the ID for ``:guild`` to ``:id``").set("guild", context.getGuild().getName())
-                    .set("id", transformer.getRobloxGroupId()).queue();
+                .set("id", transformer.getRobloxGroupId()).queue();
             return true;
         } catch (SQLException throwables) {
             context.makeError("Something went wrong in the database, please check with the developer. (Stefano#7366)")
-                    .queue();
+                .queue();
             return false;
         }
     }
 
-    private void runModRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set<Long> mods) {
+    private void runModRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set <Long> mods) {
         if (b) {
             sb.append("\n\n**Moderator roles**:");
             for (Long s : mods) {
@@ -290,7 +427,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
         }
     }
 
-    private void runGroupShoutRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set<Long> groupShouts) {
+    private void runGroupShoutRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set <Long> groupShouts) {
         if (b) {
             sb.append("\n\n**Group Shout roles**:");
             for (Long s : groupShouts) {
@@ -323,7 +460,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
     }
 
     private boolean handleRoles(CommandMessage context, String[] args) {
-        Role role = MentionableUtil.getRole(context.getMessage(), new String[] { args[0] });
+        Role role = MentionableUtil.getRole(context.getMessage(), new String[]{args[0]});
         if (role == null) {
             return command.sendErrorMessage(context, context.i18n("invalidRole", args[0]));
         }
@@ -348,7 +485,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
         return handleToggleRole(context, role, "mod", ComparatorUtil.ComparatorType.UNKNOWN);
     }
 
-    private void runAdminRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set<Long> admins) {
+    private void runAdminRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set <Long> admins) {
         if (b) {
             sb.append("\n\n**Admin roles**:");
             for (Long s : admins) {
@@ -361,9 +498,10 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             sb.append("\n\n**Admin roles**:\n" + "" + "No roles have been found!");
         }
     }
+
     @SuppressWarnings("ConstantConditions")
     private boolean handleToggleRole(CommandMessage context, Role role, String rank,
-            ComparatorUtil.ComparatorType value) {
+                                     ComparatorUtil.ComparatorType value) {
         GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
 
         switch (value) {
@@ -371,7 +509,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
                 if (rank.equals("admin")) {
                     guildTransformer.getLeadRoles().remove(role.getIdLong());
                 }
-                
+
                 if (rank.equals("mod")) {
                     guildTransformer.getHRRoles().remove(role.getIdLong());
                 }
@@ -387,7 +525,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
                 if (rank.equals("admin")) {
                     guildTransformer.getLeadRoles().add(role.getIdLong());
                 }
-                
+
                 if (rank.equals("mod")) {
                     guildTransformer.getHRRoles().add(role.getIdLong());
                 }
@@ -437,47 +575,47 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
         }
 
         boolean isEnabled = guildTransformer.getHRRoles().contains(role.getIdLong())
-                || guildTransformer.getLeadRoles().contains(role.getIdLong())
-                || guildTransformer.getLeadRoles().contains(role.getIdLong())
-                || guildTransformer.getNoLinksRoles().contains(role.getIdLong())
-                || guildTransformer.getGroupShoutRoles().contains(role.getIdLong());
+            || guildTransformer.getLeadRoles().contains(role.getIdLong())
+            || guildTransformer.getLeadRoles().contains(role.getIdLong())
+            || guildTransformer.getNoLinksRoles().contains(role.getIdLong())
+            || guildTransformer.getGroupShoutRoles().contains(role.getIdLong());
 
         try {
             if (rank.equals("admin")) {
                 avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
-                        .where("id", context.getGuild().getId()).update(statement -> {
-                            statement.set("admin_roles", Xeus.gson.toJson(guildTransformer.getLeadRoles()), true);
-                        });
+                    .where("id", context.getGuild().getId()).update(statement -> {
+                        statement.set("admin_roles", Xeus.gson.toJson(guildTransformer.getLeadRoles()), true);
+                    });
             }
             if (rank.equals("manager")) {
                 avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
-                        .where("id", context.getGuild().getId()).update(statement -> {
-                            statement.set("manager_roles", Xeus.gson.toJson(guildTransformer.getLeadRoles()), true);
-                        });
+                    .where("id", context.getGuild().getId()).update(statement -> {
+                        statement.set("manager_roles", Xeus.gson.toJson(guildTransformer.getLeadRoles()), true);
+                    });
             }
             if (rank.equals("mod")) {
                 avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
-                        .where("id", context.getGuild().getId()).update(statement -> {
-                            statement.set("moderator_roles", Xeus.gson.toJson(guildTransformer.getHRRoles()), true);
-                        });
+                    .where("id", context.getGuild().getId()).update(statement -> {
+                        statement.set("moderator_roles", Xeus.gson.toJson(guildTransformer.getHRRoles()), true);
+                    });
             }
             if (rank.equals("no-links")) {
                 avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
-                        .where("id", context.getGuild().getId()).update(statement -> {
-                            statement.set("no_links_roles", Xeus.gson.toJson(guildTransformer.getNoLinksRoles()), true);
-                        });
+                    .where("id", context.getGuild().getId()).update(statement -> {
+                        statement.set("no_links_roles", Xeus.gson.toJson(guildTransformer.getNoLinksRoles()), true);
+                    });
             }
             if (rank.equals("group-shout")) {
                 avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
-                        .where("id", context.getGuild().getId()).update(statement -> {
-                            statement.set("group_shout_roles", Xeus.gson.toJson(guildTransformer.getGroupShoutRoles()),
-                                    true);
-                        });
+                    .where("id", context.getGuild().getId()).update(statement -> {
+                        statement.set("group_shout_roles", Xeus.gson.toJson(guildTransformer.getGroupShoutRoles()),
+                            true);
+                    });
             }
 
             context.makeSuccess(context.i18n("success")).set("role", role.getAsMention())
-                    .set("status", context.i18n(isEnabled ? "status.enabled" : "status.disabled")).set("rank", rank)
-                    .queue();
+                .set("status", context.i18n(isEnabled ? "status.enabled" : "status.disabled")).set("rank", rank)
+                .queue();
 
             return true;
         } catch (SQLException e) {
@@ -486,13 +624,13 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
 
             context.makeError(
                     "Failed to save the changes to the database, please try again. If the issue persists, please contact one of my developers.")
-                    .queue();
+                .queue();
 
             return false;
         }
     }
 
-    private void runNoLinksRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set<Long> admins) {
+    private void runNoLinksRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set <Long> admins) {
         if (b) {
             sb.append("\n\n**No-Link roles** (Roles that can't send any links):");
             for (Long s : admins) {
@@ -506,7 +644,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
         }
     }
 
-    
+
     private void runRobloxGroupIdCheck(CommandMessage context, StringBuilder sb, Long groupId) {
         if (groupId != 0) {
             sb.append("\n\n**Roblox Group ID**: ``").append(groupId).append("``");
@@ -562,6 +700,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
         }
 
     }
+
     private boolean updateMainRole(GuildSettingsTransformer transformer, CommandMessage context) {
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id",
             context.guild.getId());

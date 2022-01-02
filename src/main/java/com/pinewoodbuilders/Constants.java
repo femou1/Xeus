@@ -59,6 +59,8 @@ public class Constants {
     public static final String ROLE_PERSISTENCE_TABLE_NAME = "role_persistence";
     public static final String MGM_LOG_TABLE_NAME = "mgm_logs";
     public static final String MGM_LOG_TYPES_TABLE_NAME = "mgm_logs_types";
+    public static final String LINK_FILTER_TABLE_NAME = "link_filter";
+
 
     // Pinewood Specific Tables
     public static final String GLOBAL_SETTINGS_TABLE = "global_settings";

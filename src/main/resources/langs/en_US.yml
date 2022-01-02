@@ -825,7 +825,7 @@ music:
         playlistIsAlreadyEmpty: 'The `:playlist` playlist is already empty, there is nothing to remove.'
         songHasBeenRemovedFromPlaylist: ':song has been successfully removed from the `:playlist` playlist'
         playlistTitle: ':musical_note: Music Playlist {0}'
-        playlistSize: '[ {0} out of {1} ]'
+        playlistSize: '[{0} out of {1} ]'
         playlistLine: '{0}\n       Playlist has **{1}** song(s)'
         playlistSongLine: '`{0}` [{1}]({2}) [{3}]'
 

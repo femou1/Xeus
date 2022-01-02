@@ -592,7 +592,7 @@ music:
     playlistIsAlreadyEmpty: 'A `:playlist` lejátszási lista már üres, ezért nincs mit eltávolítani.'
     songHasBeenRemovedFromPlaylist: ':song sikeresen eltávolítva a `:playlist` lejátszási listából.'
     playlistTitle: ':musical_note: Lejátszási Lista {0}'
-    playlistSize: '[ {0} out of {1} ]'
+    playlistSize: '[{0} out of {1} ]'
     playlistLine: "{0}\n       Lejátszási listában **{1}** szám(ok) vannak"
     playlistSongLine: '`{0}` [{1}]({2}) [{3}]'
   RemoveSongFromQueueCommand:

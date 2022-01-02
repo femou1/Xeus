@@ -30,6 +30,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.contracts.commands.SystemCommand;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
@@ -145,7 +146,7 @@ public class RoleSettingsCommand extends SystemCommand {
 
     private boolean kickNonMods(CommandMessage context) {
         int level = XeusPermissionUtil.getPermissionLevel(context).getLevel();
-        if (level < XeusPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
+        if (level < GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
             context.makeError("You got to be MGM or above to run this command.").queue();
             return false;
         }
@@ -157,7 +158,7 @@ public class RoleSettingsCommand extends SystemCommand {
             }
 
             int kickedLevel = XeusPermissionUtil.getPermissionLevel(context.getGuildSettingsTransformer(), context.guild, m).getLevel();
-            if (kickedLevel >= XeusPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+            if (kickedLevel >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
                 continue;
             }
 
