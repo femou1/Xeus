@@ -32,9 +32,9 @@ import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.middleware.MiddlewareStack;
 import com.pinewoodbuilders.utilities.RestActionUtil;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.ThreadChannel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -101,7 +101,7 @@ public class IsCategoryEnabled extends Middleware {
             return stack.next();
         }
 
-        ChannelTransformer channel = transformer.getChannel(message.getChannel().getId());
+        ChannelTransformer channel = (message.getChannel() instanceof ThreadChannel threadChannel) ? transformer.getChannel(threadChannel.getParentChannel().getId()) : transformer.getChannel(message.getChannel().getId());
         if (channel == null) {
             return stack.next();
         }

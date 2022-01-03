@@ -31,7 +31,7 @@ import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.moderation.punishments.globalban.GlobalBanContainer;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.TargetType;
@@ -62,6 +62,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR;
 
 public class GuildEventAdapter extends EventAdapter {
 
@@ -108,7 +110,7 @@ public class GuildEventAdapter extends EventAdapter {
                     if (tc != null) {
                         if (logs.get(0).getUser().equals(e.getJDA().getSelfUser()))
                             return;
-                        if (CheckPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getGuild().getMemberById(logs.get(0).getUser().getId())).getLevel() >= CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
+                        if (XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getGuild().getMemberById(logs.get(0).getUser().getId())).getLevel() >= MAIN_GLOBAL_MODERATOR.getLevel()) {
                             tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
                                 .setDescription("**" + e.getUser().getName() + e.getUser().getDiscriminator()
                                     + "**" + " has been unbanned from **" + e.getGuild().getName()

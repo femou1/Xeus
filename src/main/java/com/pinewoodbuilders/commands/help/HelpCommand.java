@@ -37,6 +37,7 @@ import com.pinewoodbuilders.utilities.StringReplacementUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.ThreadChannel;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -265,7 +266,7 @@ public class HelpCommand extends Command {
         List<Category> categories = CategoryHandler.getValues().stream()
             .filter(category -> !category.isGlobal())
             .filter(Category::hasCommands)
-            .collect(Collectors.toList());
+            .toList();
 
         if (context.getGuild() == null) {
             return formatCategoriesStream(categories.stream(), adminUser);
@@ -276,7 +277,7 @@ public class HelpCommand extends Command {
             return formatCategoriesStream(categories.stream(), adminUser);
         }
 
-        ChannelTransformer channel = transformer.getChannel(context.getChannel().getId());
+        ChannelTransformer channel = (context.getChannel() instanceof ThreadChannel threadChannel) ? transformer.getChannel(threadChannel.getParentChannel().getId()) : transformer.getChannel(context.getChannel().getId());
         if (channel == null) {
             return formatCategoriesStream(categories.stream(), adminUser);
         }
@@ -284,7 +285,7 @@ public class HelpCommand extends Command {
         long before = categories.size();
         List<Category> filteredCategories = categories.stream()
             .filter(category -> context.getMember().hasPermission(Permission.MESSAGE_MANAGE) || !channel.isCategoryDisabled(category))
-            .collect(Collectors.toList());
+            .toList();
 
         long disabled = before - filteredCategories.size();
 

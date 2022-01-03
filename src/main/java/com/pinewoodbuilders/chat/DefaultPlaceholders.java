@@ -29,15 +29,13 @@ class DefaultPlaceholders {
     static String parse(PlaceholderType type, Object object, String message) {
         switch (type) {
             case ALL:
-                if (object instanceof Message && ((Message) object).getChannelType().isGuild()) {
-                    Message jdaMessage = (Message) object;
-
+                if (object instanceof Message jdaMessage && jdaMessage.getChannelType().isGuild()) {
                     return parseGuild(jdaMessage.getGuild(), parseChannel(jdaMessage.getChannel(), parseUser(jdaMessage.getAuthor(), message)));
                 }
 
             case GUILD:
-                if (object instanceof Guild) {
-                    return parseGuild((Guild) object, message);
+                if (object instanceof Guild guild) {
+                    return parseGuild(guild, message);
                 }
 
                 if (object instanceof Message && ((Message) object).getChannelType().isGuild()) {
@@ -46,12 +44,12 @@ class DefaultPlaceholders {
                 break;
 
             case CHANNEL:
-                if (object instanceof TextChannel) {
-                    return parseChannel((TextChannel) object, message);
+                if (object instanceof TextChannel textChannel) {
+                    return parseChannel(textChannel, message);
                 }
 
-                if (object instanceof ThreadChannel) {
-                    return parseChannel((ThreadChannel) object, message);
+                if (object instanceof ThreadChannel threadChannel) {
+                    return parseChannel(threadChannel, message);
                 }
 
                 if (object instanceof Message && ((Message) object).getChannelType().equals(ChannelType.TEXT)) {

@@ -773,8 +773,10 @@ public class MessageEventAdapter extends EventAdapter {
         });
     }
 
-    public void onMessageDelete(TextChannel channel, List <String> messageIds) {
-        Collection reactions = ReactionController.fetchReactions(avaire, channel.getGuild());
+    public void onMessageDelete(MessageChannel messageChannel, List <String> messageIds) {
+        if (!(messageChannel instanceof GuildChannel)) {return;}
+
+        Collection reactions = ReactionController.fetchReactions(avaire, ((GuildChannel) messageChannel).getGuild());
         if (reactions.isEmpty()) {
             return;
         }
@@ -801,11 +803,11 @@ public class MessageEventAdapter extends EventAdapter {
             builder.delete();
 
             ReactionController.forgetCache(
-                guild.getIdLong()
+                ((GuildChannel) messageChannel).getGuild().getIdLong()
             );
         } catch (SQLException e) {
             log.error("Failed to delete {} reaction messages for the guild with an ID of {}",
-                removedReactionMessageIds.size(), guild.getId(), e
+                removedReactionMessageIds.size(), ((GuildChannel) messageChannel).getGuild().getId(), e
             );
         }
     }

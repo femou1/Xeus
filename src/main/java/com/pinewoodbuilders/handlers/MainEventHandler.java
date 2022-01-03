@@ -387,12 +387,9 @@ public class MainEventHandler extends EventHandler {
 
     @Override
     public void onMessageBulkDelete(MessageBulkDeleteEvent event) {
-        if (event.getChannel() instanceof TextChannel) {
-            TextChannel channel = (TextChannel) event.getChannel();
+        if (event.getChannel() instanceof TextChannel channel) {
             messageEvent.onMessageDelete(channel, event.getMessageIds());
-
         }
-
     }
 
     @Override

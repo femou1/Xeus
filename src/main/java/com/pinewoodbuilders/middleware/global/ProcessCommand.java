@@ -93,9 +93,7 @@ public class ProcessCommand extends Middleware {
         );
 
         String[] commandArguments = Arrays.copyOfRange(arguments, stack.isMentionableCommand() ? 2 : 1, arguments.length);
-        if (stack.getCommandContainer() instanceof AliasCommandContainer) {
-            AliasCommandContainer container = (AliasCommandContainer) stack.getCommandContainer();
-
+        if (stack.getCommandContainer() instanceof AliasCommandContainer container) {
             return runCommand(stack,
                 new CommandMessage(
                     stack.getCommandContainer(),

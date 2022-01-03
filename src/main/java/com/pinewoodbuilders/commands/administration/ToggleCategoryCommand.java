@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.commands.administration;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.Category;
 import com.pinewoodbuilders.commands.CategoryHandler;
 import com.pinewoodbuilders.commands.CommandMessage;
@@ -34,6 +34,7 @@ import com.pinewoodbuilders.database.transformers.ChannelTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.ThreadChannel;
 
 import javax.annotation.Nonnull;
 import java.sql.SQLException;
@@ -130,7 +131,9 @@ public class ToggleCategoryCommand extends Command {
             return sendErrorMessage(context, "errors.errorOccurredWhileLoading", "server settings");
         }
 
-        ChannelTransformer channel = transformer.getChannel(channelId);
+
+        ChannelTransformer channel = (context.getMessage().getMentionedChannels().get(0) instanceof ThreadChannel threadChannel) ? transformer.getChannel(threadChannel.getParentChannel().getId()) : transformer.getChannel(channelId);
+        //ChannelTransformer channel = transformer.getChannel(channelId);
 
         boolean status = channel.isCategoryDisabled(category);
         if (args.length > 2) {

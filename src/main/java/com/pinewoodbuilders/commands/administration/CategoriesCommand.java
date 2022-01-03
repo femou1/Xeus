@@ -33,6 +33,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.transformers.ChannelTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.ThreadChannel;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -99,7 +100,7 @@ public class CategoriesCommand extends Command {
             return sendErrorMessage(context, "errors.errorOccurredWhileLoading", "server settings");
         }
 
-        ChannelTransformer transformer = guildTransformer.getChannel(channel.getId());
+        ChannelTransformer transformer = (channel instanceof ThreadChannel threadChannel) ? guildTransformer.getChannel(threadChannel.getParentChannel().getId()) : guildTransformer.getChannel(channel.getId());
 
         List<String> items = new ArrayList<>();
         for (Category category : CategoryHandler.getValues()) {

@@ -42,7 +42,7 @@ public class PlaceholderMessage extends Restable {
 
     private final Map<String, String> placeholders = new HashMap<>();
 
-    private EmbedBuilder builder;
+    private final EmbedBuilder builder;
     private String message;
 
     private PlaceholderType globalPlaceholder;

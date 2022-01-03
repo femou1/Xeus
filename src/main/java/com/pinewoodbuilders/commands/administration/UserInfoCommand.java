@@ -36,6 +36,7 @@ import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -160,15 +161,13 @@ public class UserInfoCommand extends Command {
     private MessageEmbed buildVerificationEmbed(CommandMessage context, Member member) {
         VerificationEntity verifiedRobloxUser;
         if (member != null) {
-            Member u = member;
-            verifiedRobloxUser = avaire.getRobloxAPIManager().getVerification().fetchVerification(u.getId(), true);
+            verifiedRobloxUser = avaire.getRobloxAPIManager().getVerification().fetchVerification(member.getId(), true);
         } else {
             verifiedRobloxUser = avaire.getRobloxAPIManager().getVerification().fetchVerification(context.getMember().getId(), true);
         }
 
         if (verifiedRobloxUser == null) {
-            context.makeError("No account found on any API. Please verify yourself by running `!verify`").requestedBy(context).queue();
-            return null;
+            return new EmbedBuilder().setDescription("No account found on any API. Please verify yourself by running `!verify`").build();
         }
 
         try {

@@ -90,9 +90,9 @@ public class MiddlewareStack {
             return;
         }
 
-        ListIterator middlewareIterator = middleware.listIterator(middleware.size());
+        ListIterator <String> middlewareIterator = middleware.listIterator(middleware.size());
         while (middlewareIterator.hasPrevious()) {
-            String previous = (String) middlewareIterator.previous();
+            String previous = middlewareIterator.previous();
             String[] split = previous.split(":");
 
             Middleware middlewareReference = MiddlewareHandler.getMiddleware(split[0]);
