@@ -77,6 +77,10 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             return command.sendErrorMessage(context, "Main group ID is not set, this feature is disabled.");
         }
 
+        if (!guildTransformer.isOfficialSubGroup()) {
+            return command.sendErrorMessage(context, "You are not an official subgroup or subgroup server, you are not allowed to use this command because of that.");
+        }
+
         if (args.length == 0) {
             return command.sendErrorMessage(context, """
                 I'm unable to find the argument you're looking for, ya twat. Try again. Lemme remind you of the possible commands:

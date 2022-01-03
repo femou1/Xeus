@@ -7,17 +7,13 @@ import javax.annotation.Nonnull;
 public record LinkContainer(long mainGroupId, String topLevelDomain, int action) {
 
     public boolean isSame(@Nonnull LinkContainer container) {
-        return isSame(container.getMainGroupId(), container.getTopLevelDomain(), container.getAction());
+        return isSame(container.getMainGroupId(), container.getTopLevelDomain());
     }
+
 
     public boolean isSame(long mainGroupId, String topLevelDomain) {
-        return isSame(mainGroupId, topLevelDomain, 0);
-    }
-
-    public boolean isSame(long mainGroupId, String topLevelDomain, int action) {
         return getMainGroupId() == mainGroupId
-            && getTopLevelDomain().equals(topLevelDomain)
-            && getAction() == action;
+            && getTopLevelDomain().equals(topLevelDomain);
     }
 
     public long getMainGroupId() {
