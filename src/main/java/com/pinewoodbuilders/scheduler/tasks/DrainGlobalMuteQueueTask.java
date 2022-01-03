@@ -34,6 +34,9 @@ import com.pinewoodbuilders.moderation.mute.MuteContainer;
 import com.pinewoodbuilders.modlog.global.moderation.GlobalModlog;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogAction;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
+import com.pinewoodbuilders.modlog.local.moderation.Modlog;
+import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
+import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.scheduler.ScheduleHandler;
 import com.pinewoodbuilders.time.Carbon;
 import net.dv8tion.jda.api.entities.Guild;
@@ -137,6 +140,12 @@ public class DrainGlobalMuteQueueTask implements Task {
                         container.getUserId(), container.getGuildId(), throwable.getMessage(), throwable
                     );
                 });
+
+                ModlogAction modlogAction = new ModlogAction(
+                    ModlogType.UNMUTE, avaire.getSelfUser(), u,
+                    "*Automatic global-unmute after the set time has elapsed*");
+                Modlog.log(avaire, g, modlogAction);
+
             }
 
 
@@ -144,7 +153,7 @@ public class DrainGlobalMuteQueueTask implements Task {
 
             GlobalModlogAction modlogAction = new GlobalModlogAction(
                 GlobalModlogType.GLOBAL_UNMUTE, avaire.getSelfUser(), u,
-                "*Automatic unmute after the set time has elapsed*");
+                "*Automatic global-unmute after the set time has elapsed*");
 
             String caseId = GlobalModlog.log(avaire, globalSettings, modlogAction);
             GlobalModlog.notifyUser(u, globalSettings, modlogAction, caseId);

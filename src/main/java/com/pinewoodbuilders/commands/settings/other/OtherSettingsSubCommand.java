@@ -1,14 +1,21 @@
 package com.pinewoodbuilders.commands.settings.other;
 
+import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.settings.GuildAndGlobalSettingsCommand;
 import com.pinewoodbuilders.contracts.commands.settings.SettingsSubCommand;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
+import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,8 +27,8 @@ public class OtherSettingsSubCommand extends SettingsSubCommand {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        int permissionLevel = CheckPermissionUtil.getPermissionLevel(context).getLevel();
-        if (permissionLevel < CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_LEADERSHIP.getLevel()) {
+        int permissionLevel = XeusPermissionUtil.getPermissionLevel(context).getLevel();
+        if (permissionLevel < GuildPermissionCheckType.MAIN_GLOBAL_LEADERSHIP.getLevel()) {
             context.makeError("You are not a MGL (Main Group Leadership). Access to this command is rejected.").queue();
             return true;
         }
@@ -58,7 +65,30 @@ public class OtherSettingsSubCommand extends SettingsSubCommand {
             return false;
         }
 
+        GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, context.getGuild());
+        if (settings == null) return command.sendErrorMessage(context, "Settings Transformer could not be pulled, nothing has changed");
+
+        settings.setPermissionBypass(!settings.getPermissionBypass());
+        try {
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.getGuild().getId())
+                .update(l -> {
+                    l.set("permission_bypass", true);
+                });
+            context.makeSuccess((settings.getPermissionBypass() ? "Enabled" : "Disabled") + " the new moderation system in " + context.guild.getName()).queue();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         context.makeSuccess("Command bypass has been enabled, MGM (Main Global Leadership) or higher can now bypass certain permissions and is now allowed to use the permission override feature.`");
+        return false;
+    }
+
+    private boolean newModerationSystem(CommandMessage context, GuildSettingsTransformer guildTransformer) {
+        GlobalSettingsTransformer settings = guildTransformer.getGlobalSettings();
+        if (settings == null) return command.sendErrorMessage(context, "Global settings have not been set.");
+
+
         return false;
     }
 
@@ -66,7 +96,7 @@ public class OtherSettingsSubCommand extends SettingsSubCommand {
         if (!context.guild.getSelfMember().hasPermission(Permission.ADMINISTRATOR)) {
             return noPermissionError(context);
         }
-        List<Role> r = context.getGuild().getRolesByName("XEUSBYPASS", true);
+        List<Role> r = context.getGuild().getRolesByName("XEUS-BYPASS", true);
         if (r.size() < 1) {
             context.guild.createRole().setHoisted(false).setMentionable(false).setName("XEUS-BYPASS")
                     .setPermissions(Permission.ADMINISTRATOR).queue(role -> {

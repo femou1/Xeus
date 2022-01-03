@@ -25,10 +25,7 @@ import com.pinewoodbuilders.modlog.global.shared.GlobalModlogAction;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
 import com.pinewoodbuilders.modlog.global.watch.GlobalWatchlog;
 import com.pinewoodbuilders.time.Carbon;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
-import com.pinewoodbuilders.utilities.ComparatorUtil;
-import com.pinewoodbuilders.utilities.MentionableUtil;
-import com.pinewoodbuilders.utilities.NumberUtil;
+import com.pinewoodbuilders.utilities.*;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 
@@ -41,7 +38,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.pinewoodbuilders.utilities.CheckPermissionUtil.GuildPermissionCheckType.GLOBAL_ADMIN;
+import static com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType.GLOBAL_ADMIN;
+
 
 public class GlobalModCommand extends Command {
 
@@ -759,7 +757,7 @@ public class GlobalModCommand extends Command {
             return false;
         }
 
-        boolean isGlobalMod = CheckPermissionUtil.getPermissionLevel(context).getLevel() < GLOBAL_ADMIN.getLevel();
+        boolean isGlobalMod = XeusPermissionUtil.getPermissionLevel(context).getLevel() < GLOBAL_ADMIN.getLevel();
         if (context.getGuildSettingsTransformer().getGlobalSettings() == null && !isGlobalMod) {
             context.makeError(
                     "The global settings could not be loaded, please try again later. Otherwise if this issue still persists, contact the developer!")

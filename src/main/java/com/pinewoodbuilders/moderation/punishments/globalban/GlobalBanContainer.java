@@ -11,12 +11,12 @@ public class GlobalBanContainer {
     private final String punisherId;
 
     public GlobalBanContainer(DataRow data) {
-        userId = data.getString("userId");
-        punisherId = data.getString("punisherId");
-        mgi = data.getLong("main_group_id");
-        reason = data.getString("reason");
-        robloxId = data.getLong("roblox_user_id");
-        robloxUsername = data.getString("roblox_username");
+        this.userId = data.getString("userId");
+        this.punisherId = data.getString("punisherId");
+        this.mgi = data.getLong("main_group_id");
+        this.reason = data.getString("reason");
+        this.robloxId = data.getLong("roblox_user_id");
+        this.robloxUsername = data.getString("roblox_username");
     }
 
     public GlobalBanContainer(String reason, long robloxId, String robloxUsername, long mgi, String userId, String punisherId) {

@@ -1,20 +1,19 @@
 package com.pinewoodbuilders.commands.settings;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.settings.global.GlobalSettingsSubCommand;
 import com.pinewoodbuilders.commands.settings.moderation.ModSettingsSubCommand;
-import com.pinewoodbuilders.commands.settings.server.ServerSettingsSubCommand;
 import com.pinewoodbuilders.commands.settings.other.OtherSettingsSubCommand;
+import com.pinewoodbuilders.commands.settings.server.ServerSettingsSubCommand;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
-
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.Member;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class GuildAndGlobalSettingsCommand extends Command {
 
@@ -54,7 +53,7 @@ public class GuildAndGlobalSettingsCommand extends Command {
 
     @Override
     public List<String> getTriggers() {
-        return Arrays.asList("settings", "configure", "gmanage");
+        return Arrays.asList("settings", "configure", "gmanage", "rmanage");
     }
 
     @Override
@@ -65,54 +64,44 @@ public class GuildAndGlobalSettingsCommand extends Command {
             "- `global` - Modify settings specific to the servers connected to the main group of this server " + (context.getGuildSettingsTransformer() != null ? "(:mainGroupId)\n" : "\n") + 
             "- `mod` - Modify the assigned global/local/main group mods within Xeus." + 
             "- `get-level` - Get the permission level of a user within the bot." + 
-            "- `other` - These are special commands that won't work out of the box, and require the knowladge of using the bot."
-            ).set("mainGroupId", context.getGuildSettingsTransformer().getMainGroupId() != 0 ? "(`:mainGroupId`)" : "**Group ID has not been set**").queue();
+            "- `other` - These are special commands that won't work out of the box, and require the knowledge of using the bot."
+            ).set("mainGroupId", context.getGuildSettingsTransformer().getMainGroupId() != 0 ? context.getGuildSettingsTransformer().getMainGroupId() : "**Group ID has not been set**").queue();
             return false;
         }
 
-        switch (args[0].toLowerCase()) {
-            case "server":
-            case "s":
-                return server.onCommand(context, Arrays.copyOfRange(args, 1, args.length));
-            case "mod":
-            case "moderator":
-            case "m":
-                return mod.onCommand(context, Arrays.copyOfRange(args, 1, args.length));
-            case "global":
-            case "g": 
-                return global.onCommand(context, Arrays.copyOfRange(args, 1, args.length));
-            case "o":
-            case "other":
-                return other.onCommand(context, Arrays.copyOfRange(args, 1, args.length));
-            case "get-level":
-                return getUserLevel(context, context.getGuildSettingsTransformer());
-        }
-        return false;
+        return switch (args[0].toLowerCase()) {
+            case "server", "s" -> server.onCommand(context, Arrays.copyOfRange(args, 1, args.length));
+            case "mod", "moderator", "m" -> mod.onCommand(context, Arrays.copyOfRange(args, 1, args.length));
+            case "global", "g" -> global.onCommand(context, Arrays.copyOfRange(args, 1, args.length));
+            case "o", "other" -> other.onCommand(context, Arrays.copyOfRange(args, 1, args.length));
+            case "get-level" -> getUserLevel(context, context.getGuildSettingsTransformer());
+            default -> false;
+        };
     }
 
     private boolean getUserLevel(CommandMessage context, GuildSettingsTransformer guildTransformer) {
         if (context.getMessage().getMentionedMembers().size() == 1) {
             Member m = context.getMessage().getMentionedMembers().get(0);
             context.makeInfo(m.getAsMention() + " has permission level ``"
-                    + CheckPermissionUtil.getPermissionLevel(guildTransformer, context.guild, m).getLevel()
+                    + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, m).getLevel()
                     + "`` and is classified as a **"
-                    + CheckPermissionUtil.getPermissionLevel(guildTransformer, context.guild, m).getRankName() + "**")
+                    + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, m).getRankName() + "**")
                     .queue();
             return true;
         }
         if (context.getMessage().getMentionedMembers().size() > 1) {
             context.getMessage().getMentionedMembers().forEach(member -> {
                 context.makeInfo(member.getAsMention() + " has permission level ``"
-                    + CheckPermissionUtil.getPermissionLevel(guildTransformer, context.guild, member).getLevel()
+                    + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, member).getLevel()
                     + "`` and is classified as a **"
-                    + CheckPermissionUtil.getPermissionLevel(guildTransformer, context.guild, member).getRankName() + "**")
+                    + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, member).getRankName() + "**")
                     .queue();
             });
             return true;
         }
         context.makeInfo(context.member.getAsMention() + " has permission level ``"
-                + CheckPermissionUtil.getPermissionLevel(context).getLevel() + "`` and is classified as a **"
-                + CheckPermissionUtil.getPermissionLevel(context).getRankName() + "**").queue();
+                + XeusPermissionUtil.getPermissionLevel(context).getLevel() + "`` and is classified as a **"
+                + XeusPermissionUtil.getPermissionLevel(context).getRankName() + "**").queue();
         return true;
     }
     

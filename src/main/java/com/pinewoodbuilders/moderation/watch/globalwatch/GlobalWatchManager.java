@@ -69,7 +69,7 @@ public class GlobalWatchManager {
         final boolean[] removedEntities = { false };
         synchronized (globalWatches) {
             globalWatches.get(mainGroupId).removeIf(next -> {
-                if (!next.isSame(mainGroupId, userId)) {
+                if (!next.isGlobalSame(mainGroupId, userId)) {
                     return false;
                 }
 
@@ -150,7 +150,7 @@ public class GlobalWatchManager {
     }
     private void cleanupGlobalWatches(long mainGroupId, long userId) throws SQLException {
         Collection collection = avaire.getDatabase().newQueryBuilder(Constants.ON_WATCH_TABLE_NAME)
-            .select(Constants.ON_WATCH_TABLE_NAME + ".modlog_id as ml_id")
+            .select(Constants.ON_WATCH_TABLE_NAME + ".modlog_id as id")
             .innerJoin(Constants.MGM_LOG_TABLE_NAME, Constants.ON_WATCH_TABLE_NAME + ".modlog_id",
                 Constants.MGM_LOG_TABLE_NAME + ".modlogCase")
             .where(Constants.MGM_LOG_TABLE_NAME + ".mgi", mainGroupId)
@@ -160,16 +160,6 @@ public class GlobalWatchManager {
                 .orWhere(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_TEMP_WATCH.getId()))
             .get();
 
-/*        String query2 = avaire.getDatabase().newQueryBuilder(Constants.ON_WATCH_TABLE_NAME)
-            .select(Constants.ON_WATCH_TABLE_NAME + ".modlog_id as ml_id")
-            .innerJoin(Constants.MGM_LOG_TABLE_NAME, Constants.ON_WATCH_TABLE_NAME + ".modlog_id",
-                Constants.MGM_LOG_TABLE_NAME + ".modlogCase")
-            .where(Constants.MGM_LOG_TABLE_NAME + ".mgi", mainGroupId)
-            .andWhere(Constants.MGM_LOG_TABLE_NAME + ".target_id", userId)
-            .andWhere(Constants.ON_WATCH_TABLE_NAME + ".main_group_id", mainGroupId)
-            .andWhere(builder -> builder.where(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_MUTE.getId())
-                .orWhere(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_TEMP_MUTE.getId())).toSQL();
-        System.out.println(query2);*/
 
         if (!collection.isEmpty()) {
             String query = String.format("DELETE FROM `%s` WHERE `guild_id` = ? AND `main_group_id` = ? AND `modlog_id` = ?",
@@ -179,7 +169,7 @@ public class GlobalWatchManager {
                 for (DataRow row : collection) {
                     statement.setLong(1, 0);
                     statement.setLong(2, mainGroupId);
-                    statement.setString(3, row.getString("ml_id"));
+                    statement.setString(3, row.getString("id"));
                     statement.addBatch();
                 }
             });

@@ -3,10 +3,8 @@ package com.pinewoodbuilders.servlet.routes.v1.post;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.metrics.SparkRoute;
 import com.pinewoodbuilders.contracts.roblox.evaluations.PassedEvals;
-import com.pinewoodbuilders.database.controllers.GuildController;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Emoji;
@@ -47,7 +45,7 @@ public class PostEvalAnswers extends SparkRoute {
         }
 
         GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(Xeus.getInstance(), guild);
-                
+
         if (transformer == null) {
             response.status(500);
             root.put("error", "XEUS_GUILD_MISSING_TRANSFORMER");
@@ -148,11 +146,12 @@ public class PostEvalAnswers extends SparkRoute {
             messageList.add(buildQuestionAndAnswerEmbed(question, answer, messageList, username, post.has("points") ? post.getLong("points") : null, questionsWithAnswers.length()));
         }
 
-
+ 
         TextChannel tc = guild.getTextChannelById(transformer.getEvaluationEvalChannel());
-        tc.sendMessageEmbeds(messageList).setActionRow(Button.success("approve", Emoji.fromUnicode("\uD83D\uDC4D")), Button.danger("reject", Emoji.fromUnicode("⛔"))).queue(
-            message -> manager.getEvaluationManager().addQuizToDatabase(userId, guild.getIdLong(), message.getIdLong()));
-
+        if (tc != null) {
+            tc.sendMessageEmbeds(messageList).setActionRow(Button.success("approve", Emoji.fromUnicode("\uD83D\uDC4D")), Button.danger("reject", Emoji.fromUnicode("⛔"))).queue(
+                message -> manager.getEvaluationManager().addQuizToDatabase(userId, guild.getIdLong(), message.getIdLong()));
+        }
         root.put("success", true);
 
         return root;

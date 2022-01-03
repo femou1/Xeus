@@ -7,7 +7,6 @@ import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.moderation.mute.MuteContainer;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
-import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.time.Carbon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +69,7 @@ public class GlobalMuteManager {
         final boolean[] removedEntities = { false };
         synchronized (globalMutes) {
             globalMutes.get(mainGroupId).removeIf(next -> {
-                if (!next.isSame(mainGroupId, userId)) {
+                if (!next.isGlobalSame(mainGroupId, userId)) {
                     return false;
                 }
 
@@ -128,7 +127,6 @@ public class GlobalMuteManager {
             "SELECT `{1}`.`mgi`, `{1}`.`target_id`, `{0}`.`expires_in` FROM `{0}` INNER JOIN `{1}` ON `{0}`.`modlog_id` = `{1}`.`modlogCase` WHERE `{0}`.`modlog_id` = `{1}`.`modlogCase` AND `{0}`.`main_group_id` = `{1}`.`mgi` AND `{0}`.`global` = 1;",
             Constants.MUTE_TABLE_NAME, Constants.MGM_LOG_TABLE_NAME);
 
-        System.out.println(query);
         try {
             int size = getTotalAmountOfMutes();
             for (DataRow row : avaire.getDatabase().query(query)) {
@@ -138,7 +136,7 @@ public class GlobalMuteManager {
                     globalMutes.put(mgi, new HashSet<>());
                 }
 
-                globalMutes.get(mgi).add(new MuteContainer(row.getLong("guild_id"), row.getLong("target_id"),
+                globalMutes.get(mgi).add(new MuteContainer(0, row.getLong("target_id"),
                     row.getTimestamp("expires_in"), row.getBoolean("global"), row.getLong("mgi")));
             }
 
@@ -156,30 +154,18 @@ public class GlobalMuteManager {
             .where(Constants.MGM_LOG_TABLE_NAME + ".mgi", mainGroupId)
             .andWhere(Constants.MGM_LOG_TABLE_NAME + ".target_id", userId)
             .andWhere(Constants.MUTE_TABLE_NAME + ".main_group_id", mainGroupId)
-            .andWhere(builder -> builder.where(Constants.MGM_LOG_TABLE_NAME + ".type", ModlogType.MUTE.getId())
-                .orWhere(Constants.MGM_LOG_TABLE_NAME + ".type", ModlogType.TEMP_MUTE.getId()))
+            .andWhere(builder -> builder.where(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_MUTE.getId())
+                .orWhere(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_TEMP_MUTE.getId()))
             .get();
 
-        String query2 = avaire.getDatabase().newQueryBuilder(Constants.MUTE_TABLE_NAME)
-            .select(Constants.MUTE_TABLE_NAME + ".modlog_id as ml_id")
-            .innerJoin(Constants.MGM_LOG_TABLE_NAME, Constants.MUTE_TABLE_NAME + ".modlog_id",
-                Constants.MGM_LOG_TABLE_NAME + ".modlogCase")
-            .where(Constants.MGM_LOG_TABLE_NAME + ".mgi", mainGroupId)
-            .andWhere(Constants.MGM_LOG_TABLE_NAME + ".target_id", userId)
-            .andWhere(Constants.MUTE_TABLE_NAME + ".main_group_id", mainGroupId)
-            .andWhere(builder -> builder.where(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_MUTE.getId())
-                .orWhere(Constants.MGM_LOG_TABLE_NAME + ".type", GlobalModlogType.GLOBAL_TEMP_MUTE.getId())).toSQL();
-        System.out.println(query2);
-
         if (!collection.isEmpty()) {
-            String query = String.format("DELETE FROM `%s` WHERE `guild_id` = ? AND `main_group_id` = ? AND `modlog_id` = ?",
+            String query = String.format("DELETE FROM `%s` WHERE `main_group_id` = ? AND `modlog_id` = ?",
                 Constants.MUTE_TABLE_NAME);
 
             avaire.getDatabase().queryBatch(query, statement -> {
                 for (DataRow row : collection) {
-                    statement.setLong(1, 0);
-                    statement.setLong(2, mainGroupId);
-                    statement.setString(3, row.getString("ml_id"));
+                    statement.setLong(1, mainGroupId);
+                    statement.setString(2, row.getString("id"));
                     statement.addBatch();
                 }
             });

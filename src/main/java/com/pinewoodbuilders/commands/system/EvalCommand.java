@@ -21,18 +21,19 @@
 
 package com.pinewoodbuilders.commands.system;
 
+import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.SystemCommand;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.ChannelType;
-
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,8 +51,16 @@ public class EvalCommand extends SystemCommand {
     public EvalCommand(Xeus avaire) {
         super(avaire);
 
-        engine = new ScriptEngineManager()
-            .getEngineByName("nashorn");
+
+        engine = GraalJSScriptEngine.create(null,
+            Context.newBuilder("js")
+                .allowHostAccess(HostAccess.ALL)
+                .allowHostClassLookup(s -> true)
+                .allowExperimentalOptions(true)
+                .option("js.nashorn-compat", "true"));
+
+//        engine = new ScriptEngineManager().getEngineByName("graal.js");
+
 
         try {
             engine.eval("var imports = new JavaImporter(" +

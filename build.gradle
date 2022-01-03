@@ -1,20 +1,20 @@
 plugins {
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '6.1.0'
-    id "com.gorylenko.gradle-git-properties" version "2.3.1"
-    id "com.github.ben-manes.versions" version "0.39.0"
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id "com.gorylenko.gradle-git-properties" version "2.4.0-rc2"
+    id "com.github.ben-manes.versions" version "0.40.0"
 }
 
 apply plugin: 'java'
 apply plugin: 'idea'
 
-version = '3.3.2'
+version = '3.4.0'
 group = 'com.pinewoodbuilders'
 description = 'Xeus Discord Bot'
 mainClassName = 'com.pinewoodbuilders.Main'
 
-sourceCompatibility = 11
-targetCompatibility = 11
+sourceCompatibility = 16
+targetCompatibility = 16
 
 ext {
     moduleName = 'Xeus'
@@ -38,11 +38,11 @@ tasks.withType(JavaCompile) {
 }
 
 task fatJar(type: Jar) {
-    manifest {
-        attributes 'Implementation-Title': 'Xeus: Pinewood Discord Bot',
+    manifest = {
+        manifest.attributes 'Implementation-Title': 'Xeus: Pinewood Discord Bot',
             'Implementation-Version': getArchiveVersion(),
             'Main-Class': 'com.pinewoodbuilders.Main'
-    }
+    } as Manifest
 
     getArchiveBaseName().set(project.name)
 
@@ -70,63 +70,65 @@ repositories {
 }
 
 dependencies {
-    compile group: 'com.avairebot', name: 'Shared', version: '80809049d2'
-    compile group: 'net.dv8tion', name: 'JDA', version: '5.0.0-alpha.2'
+    implementation group: 'com.avairebot', name: 'Shared', version: '80809049d2'
+    implementation group: 'net.dv8tion', name: 'JDA', version: '5.0.0-alpha.3'
 
-    compile group: 'commons-cli', name: 'commons-cli', version: '1.3.1'
-    compile group: 'org.apache.commons', name: 'commons-text', version: '1.9'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
-    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
-    compile group: 'org.yaml', name: 'snakeyaml', version: '1.29'
-    compile group: 'org.jsoup', name: 'jsoup', version: '1.14.1'
-    compile group: 'com.google.code.gson', name: 'gson', version: '2.8.7'
-    compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.26'
-    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.36.0.1'
+    implementation group: 'commons-cli', name: 'commons-cli', version: '1.5.0'
+    implementation group: 'org.apache.commons', name: 'commons-text', version: '1.9'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
+    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+    implementation group: 'org.yaml', name: 'snakeyaml', version: '1.30'
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.14.3'
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.9'
+    implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.27'
+    implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.36.0.3'
 
-    compile group: 'com.sparkjava', name: 'spark-core', version: '2.9.3'
-    compile group: 'io.prometheus', name: 'simpleclient', version: '0.11.0'
-    compile group: 'io.prometheus', name: 'simpleclient_servlet', version: '0.11.0'
-    compile group: 'io.prometheus', name: 'simpleclient_logback', version: '0.11.0'
-    compile group: 'io.prometheus', name: 'simpleclient_hotspot', version: '0.11.0'
-    compile group: 'io.prometheus', name: 'simpleclient_guava', version: '0.11.0'
+    implementation group: 'com.sparkjava', name: 'spark-core', version: '2.9.3'
+    implementation group: 'io.prometheus', name: 'simpleclient', version: '0.14.1'
+    implementation group: 'io.prometheus', name: 'simpleclient_servlet', version: '0.14.1'
+    implementation group: 'io.prometheus', name: 'simpleclient_logback', version: '0.14.1'
+    implementation group: 'io.prometheus', name: 'simpleclient_hotspot', version: '0.14.1'
+    implementation group: 'io.prometheus', name: 'simpleclient_guava', version: '0.14.1'
 
-    compile group: 'com.udojava', name: 'EvalEx', version: '2.6'
-    compile group: 'com.vdurmont', name: 'emoji-java', version: '4.0.0'
-    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.3.0-alpha9'
-    compile group: 'io.sentry', name: 'sentry-logback', version: '5.1.0-beta.9'
-    compile group: 'org.reflections', name: 'reflections', version: '0.9.12'
+    implementation group: 'com.udojava', name: 'EvalEx', version: '2.7'
+    implementation group: 'com.vdurmont', name: 'emoji-java', version: '4.0.0'
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.3.0-alpha12'
+    implementation group: 'io.sentry', name: 'sentry-logback', version: '5.5.2'
+    implementation group: 'org.reflections', name: 'reflections', version: '0.10.2'
 
     // JDA Util
-    compile 'com.github.JDA-Applications.JDA-Utilities:jda-utilities:master-SNAPSHOT'
+    implementation 'com.github.JDA-Applications.JDA-Utilities:jda-utilities:master-SNAPSHOT'
 
     // Gitlab API
-    compile group: 'org.gitlab4j', name: 'gitlab4j-api', version: '4.17.0'
-    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
+    implementation group: 'org.gitlab4j', name: 'gitlab4j-api', version: '4.19.0'
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
 
     // Emoji API
-    compile group: 'com.vdurmont', name: 'emoji-java', version: '5.1.1'
+    implementation group: 'com.vdurmont', name: 'emoji-java', version: '5.1.1'
 
     // Expiring Map API
-    // https://mvnrepository.com/artifact/net.jodah/expiringmap
-    compile group: 'net.jodah', name: 'expiringmap', version: '0.5.10'
+    implementation group: 'net.jodah', name: 'expiringmap', version: '0.5.10'
 
     // Java Link Scanner
-    compile group: 'org.nibor.autolink', name: 'autolink', version: '0.10.0'
+    implementation group: 'org.nibor.autolink', name: 'autolink', version: '0.10.0'
 
     // Guava
-    compile group: 'com.google.guava', name: 'guava', version: '30.1.1-jre'
+    implementation group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
 
     // Bucket4J
-    compile group: 'com.github.vladimir-bukhtoyarov', name: 'bucket4j-core', version: '7.0.0-beta-2020-04-18'
+    implementation group: 'com.github.vladimir-bukhtoyarov', name: 'bucket4j-core', version: '7.0.0'
 
     //HikariCP
-    compile group: 'com.zaxxer', name: 'HikariCP', version: '5.0.0'
+    implementation group: 'com.zaxxer', name: 'HikariCP', version: '5.0.0'
+
+    implementation 'org.graalvm.js:js:21.3.0'
+    implementation 'org.graalvm.js:js-scriptengine:21.3.0'
 
     // Tests
     // Only needed to run tests in a version of IntelliJ IDEA that bundles older versions
-    compile("org.junit.platform:junit-platform-launcher:1.8.0-M1")
-    compile("org.junit.jupiter:junit-jupiter-engine:5.8.0-M1")
-    compile("org.junit.vintage:junit-vintage-engine:5.8.0-M1")
+    implementation('org.junit.platform:junit-platform-launcher:1.8.2')
+    implementation('org.junit.jupiter:junit-jupiter-engine:5.8.2')
+    implementation('org.junit.vintage:junit-vintage-engine:5.8.2')
 }
 
 import org.apache.tools.ant.filters.ReplaceTokens

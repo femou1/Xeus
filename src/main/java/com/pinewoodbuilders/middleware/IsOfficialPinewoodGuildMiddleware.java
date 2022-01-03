@@ -1,12 +1,14 @@
 package com.pinewoodbuilders.middleware;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.middleware.Middleware;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.factories.MessageFactory;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.Message;
 
 import javax.annotation.Nonnull;
@@ -31,8 +33,8 @@ public class IsOfficialPinewoodGuildMiddleware extends Middleware {
             return stack.next();
         }
 
-        int permissionLevel = CheckPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuildSettings(), message.getGuild(), message.getMember()).getLevel();
-        if (permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
+        int permissionLevel = XeusPermissionUtil.getPermissionLevel(stack.getDatabaseEventHolder().getGuildSettings(), message.getGuild(), message.getMember()).getLevel();
+        if (permissionLevel >= GuildPermissionCheckType.BOT_ADMIN.getLevel()) {
             return stack.next();
         }
 

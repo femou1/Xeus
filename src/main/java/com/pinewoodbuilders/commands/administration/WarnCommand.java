@@ -319,7 +319,7 @@ public class WarnCommand extends Command {
 
         switch (punishment) {
             case "gmute":
-                muteUserQueue(context, grade.getTime(), user, messageExecute);
+                muteUserQueue(context, Carbon.now().addSecond().addDays(3), user, messageExecute);
                 return;
             case "gwatchmute":
                 selectWatchOrMuteQueue(context, grade, user, messageExecute, size);
@@ -364,10 +364,7 @@ public class WarnCommand extends Command {
             return;
         }
 
-        Guild g = null;
-        if (context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId() != 0) {
-            g = avaire.getShardManager().getGuildById(context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId());
-        }
+        long g = context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId();
 
         StringBuilder sb = new StringBuilder();
         String reason = "User has been global-banned due to reaching 15 warnings in " + context.getGuild().getName();
@@ -376,12 +373,10 @@ public class WarnCommand extends Command {
 
         int bannedGuilds = 0;
         for (Guild guild : guilds) {
-            if (g != null) {
-                if (g.getId().equals(guild.getId())) {
-
+            if (g != 0) {
+                if (g == guild.getIdLong()) {
                     sb.append("``").append(guild.getName()).append("`` - :x:\n");
                     continue;
-
                 }
             }
             if (guild == null)

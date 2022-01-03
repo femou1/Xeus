@@ -91,6 +91,7 @@ public class GuildSettingsTransformer extends Transformer {
     private long auditLogsChannelId = 0;
     private long voteValidationChannelId = 0;
     private long userAlertsChannelId = 0;
+    private long linkFilterLog = 0;
     private long evaluationEvalChannel = 0;
 
     public GuildSettingsTransformer(Guild guild, DataRow data) {
@@ -144,6 +145,7 @@ public class GuildSettingsTransformer extends Transformer {
             voteValidationChannelId = data.getLong("vote_validation_channel_id");
             userAlertsChannelId = data.getLong("user_alerts_channel_id");
             evaluationEvalChannel = data.getLong("evaluation_answer_channel");
+            linkFilterLog = data.getLong("link_filter_log");
             isOfficialSubGroup = data.getBoolean("official_sub_group");
 
             if (data.getString("moderator_roles", null) != null) {
@@ -384,6 +386,22 @@ public class GuildSettingsTransformer extends Transformer {
 
     public List<String> getEvalQuestions() {
         return this.evalQuestions;
+    }
+
+    public void setMinimumLeadRank(int minimumLeadRank) {
+        this.minimumLeadRank = minimumLeadRank;
+    }
+
+    public void setOfficialSubGroup(boolean officialSubGroup) {
+        isOfficialSubGroup = officialSubGroup;
+    }
+
+    public long getLinkFilterLog() {
+        return linkFilterLog;
+    }
+
+    public void setLinkFilterLog(long linkFilterLog) {
+        this.linkFilterLog = linkFilterLog;
     }
 
     public long getEmojiId() {

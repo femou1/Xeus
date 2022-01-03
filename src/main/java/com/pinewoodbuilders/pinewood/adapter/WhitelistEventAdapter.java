@@ -1,9 +1,11 @@
 package com.pinewoodbuilders.pinewood.adapter;
 
 import com.pinewoodbuilders.Xeus;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.pinewood.VoiceWhitelistManager;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.AudioChannel;
 import net.dv8tion.jda.api.events.guild.voice.GenericGuildVoiceEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
@@ -22,8 +24,8 @@ public class WhitelistEventAdapter {
         AudioChannel newVc = getNewVC(event);
 
         if (whitelistManager.hasWhitelist(newVc)) {
-            int lvl = CheckPermissionUtil.getPermissionLevel(GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), event.getGuild(), event.getMember()).getLevel();
-            if (!(lvl >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel())) {
+            int lvl = XeusPermissionUtil.getPermissionLevel(GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild()), event.getGuild(), event.getMember()).getLevel();
+            if (!(lvl >= GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel())) {
                 if (!whitelistManager.isInWhitelist(newVc, event.getMember())) {
                     event.getGuild().kickVoiceMember(event.getMember()).queue();
                     event.getMember().getUser().openPrivateChannel().queue(l -> {

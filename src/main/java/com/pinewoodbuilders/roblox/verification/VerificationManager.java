@@ -14,7 +14,6 @@ import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.contracts.verification.VerificationResult;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
-import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.controllers.VerificationController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.VerificationTransformer;
@@ -30,15 +29,14 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.internal.utils.PermissionUtil;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
-import java.awt.*;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.Instant;
-import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -109,211 +107,126 @@ public class VerificationManager {
             return new VerificationResult(false, "Xeus coudn't get the settings of this guild, please try again later.");
         }
 
-        if (transformer.getPbVerificationTrelloban()) {
-            HashMap <Long, List <TrellobanLabels>> trellobans = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans();
-            if (trellobans != null && runTrelloBan(transformer, member, guild, verificationEntity))
-                return new VerificationResult(false, "User is Trellobanned...");
-        }
-
-        try {
-            Collection accounts = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME)
-                .where("roblox_user_id", verificationEntity.getRobloxId())
-                .orWhere("roblox_username", verificationEntity.getRobloxUsername())
-                .andWhere("main_group_id", transformer.getMainGroupId()).get();
-
-            if (accounts.size() > 0) {
-                if (transformer.getGlobalSettings() == null) {
-                    return new VerificationResult(false, "Global settings cannot be read for the ANTI UNBAN Table, user is global-banned on this group ID. But global settings can't be loaded. Please contact the developer if this issue still persists");
-                }
-
-
-                if (avaire.getShardManager().getUserById(member.getId()) != null) {
-                    String invite = getFirstInvite(guild);
-                    avaire.getShardManager().getUserById(member.getId()).openPrivateChannel().flatMap(p -> p.sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder(),
-                        "*You have been **global-banned** from all discord that are connected to [this group](:groupLink) by an MGM Moderator. "
-                            + "For the reason: *```" + accounts.get(0).getString("reason") + "```\n\n"
-                            + "If you feel that your ban was unjustified please appeal at the group in question;"
-                            + invite)
-                        .setColor(Color.BLACK)
-                        .set("groupLink",
-                            "https://roblox.com/groups/" + transformer.getGlobalSettings().getMainGroupId())
-                        .buildEmbed())).queue();
-                }
-
-
-                List <Guild> guilds = getGuildsByMainGroupId(avaire, transformer.getMainGroupId());
-
-                int time = 0;
-                String reason = "User has been global-banned from the MGM Bans database.";
-                int bannedGuilds = 0;
-                for (Guild guilde : guilds) {
-                    if (guilde == null)
-                        continue;
-                    if (!guilde.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
-                        continue;
-
-                    GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guilde);
-                    if (settings.getGlobalBan()) {
-                        if (settings.isOfficialSubGroup()) {
-                            guild
-                                .ban(member.getId(), time,
-                                    "Banned by: " + member.getEffectiveName() + "\n" + "For: " + reason
-                                        + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE"
-                                        + "MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM"
-                                        + "APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
-                                .reason(
-                                    "Global Ban, executed by " + member.getEffectiveName() + "." + "For: \n" + reason)
-                                .queue();
-                        } else {
-                            guild.ban(member.getId(), time, "This is a global-ban that has been executed from"
-                                + "the global ban list of the guild you're subscribed to... ").queue();
-                        }
-                        bannedGuilds++;
-                    }
-                }
-
-
-                long mgmLogs = transformer.getGlobalSettings().getMgmLogsId();
-                if (mgmLogs != 0) {
-                    TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
-                    if (tc != null) {
-                        tc.sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder(), "[``:global-unbanned-id`` was auto-global-banned from all discords by :user for](:link):\n" + "```:reason```")
-                            .set("global-unbanned-id", verificationEntity.getRobloxId())
-                            .set("reason", accounts.get(0).getString("reason")).set("user", "XEUS AUTO BAN").buildEmbed()).queue();
-                    }
-                }
-
-                if (transformer.getUserAlertsChannelId() != 0
-                    && guild.getTextChannelById(transformer.getUserAlertsChannelId()) != null) {
-                    MessageFactory
-                        .makeEmbeddedMessage(guild.getTextChannelById(transformer.getUserAlertsChannelId()),
-                            new Color(255, 0, 0))
-                        .setThumbnail(member.getUser().getEffectiveAvatarUrl())
-                        .setDescription(
-                            "A global-banned user just tried to verify within this guild, user has been banned from all guilds and has been sent a message in DM's.")
-                        .requestedBy(member).queue();
-
-                }
-
-
-                avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME)
-                    .where("roblox_user_id", verificationEntity.getRobloxId())
-                    .orWhere("roblox_username", verificationEntity.getRobloxUsername())
-                    .update(p -> p.set("userId", member.getUser().getId()));
-                long appealsDiscord = transformer.getGlobalSettings().getAppealsDiscordId();
-                if (appealsDiscord != 0) {
-                    if (!(guild.getIdLong() == appealsDiscord))
-                        return new VerificationResult(false, "User has been global banned. Verification cancelled.");
-                }
-            }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-            return new VerificationResult(false, "Something went wrong checking the MGM Anti-Unban table. Please check with the developer (`Stefano#7366`)");
-        }
-
-        if (isBlacklisted(guild, verificationEntity))
-            return new VerificationResult(false, "Blacklisted on " + guild.getName());
-
         VerificationTransformer verificationTransformer = VerificationController.fetchVerificationFromGuild(avaire, guild);
         if (verificationTransformer == null) {
             return new VerificationResult(false,
                 "The VerificationTransformer seems to have broken, please consult the developer of the bot.");
         }
 
+        if (transformer.getPbVerificationTrelloban()) {
+            HashMap <Long, List <TrellobanLabels>> trellobans = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans();
+            if (trellobans != null && isTrelloBanned(trellobans, member)) {
+                boolean isAppealsVerification = checkTrelloBan(transformer, member, guild, verificationEntity);
+                if (isAppealsVerification) {
+                    return verifyRoles(member, guild, verificationEntity, verificationTransformer);
+                }
+            }
+        }
+
+        if (isBlacklisted(guild, verificationEntity)) {return new VerificationResult(false, "Blacklisted on " + guild.getName());}
+
+        return verifyRoles(member, guild, verificationEntity, verificationTransformer);
+    }
+
+    @NotNull
+    private VerificationResult verifyRoles(Member member, Guild guild, VerificationEntity verificationEntity, VerificationTransformer verificationTransformer) {
         if (verificationTransformer.getNicknameFormat() == null) {
             return new VerificationResult(false, "The nickname format is not set (Wierd, it's the default but ok).");
-
         }
 
         if (verificationTransformer.getRanks() == null || verificationTransformer.getRanks().length() < 2) {
             return new VerificationResult(false, "Ranks have not been setup on this guild yet. Please ask the admins to setup the roles on this server.");
-
         }
 
         List <RobloxUserGroupRankService.Data> robloxRanks = manager.getUserAPI()
             .getUserRanks(verificationEntity.getRobloxId());
-        if (robloxRanks == null || robloxRanks.size() == 0) {
-            return new VerificationResult(false, verificationEntity.getRobloxUsername() + " does not have any ranks or groups on his name.");
-        }
 
-        GuildRobloxRanksService guildRanks = (GuildRobloxRanksService) manager
-            .toService(verificationTransformer.getRanks(), GuildRobloxRanksService.class);
-
-        Map <GuildRobloxRanksService.GroupRankBinding, Role> bindingRoleMap = guildRanks.getGroupRankBindings()
-            .stream()
-            .collect(Collectors.toMap(Function.identity(),
-                groupRankBinding -> guild.getRoleById(groupRankBinding.getRole()))),
-            bindingRoleAddMap = new HashMap <>();
-
-        // Loop through all the group-rank bindings
-        bindingRoleMap.forEach((groupRankBinding, role) -> {
-            List <String> robloxGroups = robloxRanks.stream()
-                .map(data -> data.getGroup().getId() + ":" + data.getRole().getRank()).collect(Collectors.toList());
-
-            for (String groupRank : robloxGroups) {
-                String[] rank = groupRank.split(":");
-                String groupId = rank[0];
-                String rankId = rank[1];
-
-                if (groupRankBinding.getGroups().stream().filter(group -> !group.getId().equals("GamePass")).anyMatch(
-                    group -> group.getId().equals(groupId) && group.getRanks().contains(Integer.valueOf(rankId)))) {
-                    bindingRoleAddMap.put(groupRankBinding, role);
-                }
-
-            }
-        });
-
-        bindingRoleMap.forEach((groupRankBinding, role) -> groupRankBinding.getGroups().stream().filter(data -> data.getId().equals("GamePass"))
-            .map(pass -> avaire.getRobloxAPIManager().getUserAPI().getUserGamePass(verificationEntity.getRobloxId(),
-                Long.parseLong(pass.getRanks().get(0).toString())))
-            .filter(Objects::nonNull).forEach(pass -> bindingRoleAddMap.put(groupRankBinding, role)));
-
-        // Collect the toAdd and toRemove roles from the previous maps
-        java.util.Collection <Role> rolesToAdd = bindingRoleAddMap.values().stream()
-            .filter(role -> PermissionUtil.canInteract(guild.getSelfMember(), role)).collect(Collectors.toList()),
-            rolesToRemove = bindingRoleMap.values().stream().filter(role -> !bindingRoleAddMap.containsValue(role)
-                && PermissionUtil.canInteract(guild.getSelfMember(), role)).collect(Collectors.toList());
-
-        if (verificationTransformer.getVerifiedRole() != 0) {
-            Role r = guild.getRoleById(verificationTransformer.getVerifiedRole());
-            if (r != null) {
-                rolesToAdd.add(r);
-            }
-        }
 
         StringBuilder stringBuilder = new StringBuilder();
-        // Modify the roles of the member
-        guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove).queue(unused -> {
-            stringBuilder.append("\n\n**Succesfully changed roles!**\n");
-        }, throwable -> new VerificationResult(false, throwable.getMessage()));
+        if (robloxRanks != null && robloxRanks.size() > 0) {
+            GuildRobloxRanksService guildRanks = (GuildRobloxRanksService) manager
+                .toService(verificationTransformer.getRanks(), GuildRobloxRanksService.class);
 
-        String rolesToAddAsString = "__**`" + member.getEffectiveName() + "`**__\nRoles to add:\n"
-            + (rolesToAdd.size() > 0 ? (rolesToAdd.stream().map(role -> {
-            if (role.hasPermission(Permission.BAN_MEMBERS)) {
-                return "- **" + role.getName() + "**";
-            } else {
-                return "- " + role.getName();
+            Map <GuildRobloxRanksService.GroupRankBinding, Role> bindingRoleMap = guildRanks.getGroupRankBindings()
+                .stream()
+                .collect(Collectors.toMap(Function.identity(),
+                    groupRankBinding -> guild.getRoleById(groupRankBinding.getRole()))),
+                bindingRoleAddMap = new HashMap <>();
+
+            // Loop through all the group-rank bindings
+            bindingRoleMap.forEach((groupRankBinding, role) -> {
+                List <String> robloxGroups = robloxRanks.stream()
+                    .map(data -> data.getGroup().getId() + ":" + data.getRole().getRank()).collect(Collectors.toList());
+
+                for (String groupRank : robloxGroups) {
+                    String[] rank = groupRank.split(":");
+                    String groupId = rank[0];
+                    String rankId = rank[1];
+
+                    if (groupRankBinding.getGroups().stream().filter(group -> !group.getId().equals("GamePass")).anyMatch(
+                        group -> group.getId().equals(groupId) && group.getRanks().contains(Integer.valueOf(rankId)))) {
+                        bindingRoleAddMap.put(groupRankBinding, role);
+                    }
+
+                }
+            });
+
+            bindingRoleMap.forEach((groupRankBinding, role) -> groupRankBinding.getGroups().stream().filter(data -> data.getId().equals("GamePass"))
+                .map(pass -> avaire.getRobloxAPIManager().getUserAPI().getUserGamePass(verificationEntity.getRobloxId(),
+                    Long.parseLong(pass.getRanks().get(0).toString())))
+                .filter(Objects::nonNull).forEach(pass -> bindingRoleAddMap.put(groupRankBinding, role)));
+
+            // Collect the toAdd and toRemove roles from the previous maps
+            java.util.Collection <Role> rolesToAdd = bindingRoleAddMap.values().stream()
+                .filter(role -> PermissionUtil.canInteract(guild.getSelfMember(), role)).collect(Collectors.toList()),
+                rolesToRemove = bindingRoleMap.values().stream().filter(role -> !bindingRoleAddMap.containsValue(role)
+                    && PermissionUtil.canInteract(guild.getSelfMember(), role)).collect(Collectors.toList());
+
+            if (verificationTransformer.getVerifiedRole() != 0) {
+                Role r = guild.getRoleById(verificationTransformer.getVerifiedRole());
+                if (r != null) {
+                    rolesToAdd.add(r);
+                }
             }
-        }).collect(Collectors.joining("\n"))) : "No roles have been added");
-        stringBuilder.append(rolesToAddAsString);
 
-        String rolesToRemoveAsString = "\nRoles to remove:\n" + (bindingRoleMap.size() > 0
-            ? (rolesToRemove.stream().map(role -> "- `" + role.getName() + "`").collect(Collectors.joining("\n")))
-            : "No roles have been removed");
-        // stringBuilder.append(rolesToRemoveAsString);
+            // Modify the roles of the member
+            guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove).queue(unused -> {
+                stringBuilder.append("\n\n**Succesfully changed roles!**\n");
+            }, throwable -> new VerificationResult(false, "Something is wrong with the permissions of the bot, it's unable to give a specific role.\n```" + throwable.getMessage() + "```"));
+
+            String rolesToAddAsString = "__**`" + member.getEffectiveName() + "`**__\nRoles to add:\n"
+                + (rolesToAdd.size() > 0 ? (rolesToAdd.stream().map(role -> {
+                if (role.hasPermission(Permission.BAN_MEMBERS)) {
+                    return "- **" + role.getName() + "**";
+                } else {
+                    return "- " + role.getName();
+                }
+            }).collect(Collectors.joining("\n"))) : "No roles have been added");
+            stringBuilder.append(rolesToAddAsString);
+
+            String rolesToRemoveAsString = "\nRoles to remove:\n" + (bindingRoleMap.size() > 0
+                ? (rolesToRemove.stream().map(role -> "- `" + role.getName() + "`").collect(Collectors.joining("\n")))
+                : "No roles have been removed");
+            // stringBuilder.append(rolesToRemoveAsString);
+
+        }
+
 
         if (!verificationEntity.getRobloxUsername().equals(member.getEffectiveName())) {
             if (PermissionUtil.canInteract(guild.getSelfMember(), member)) {
                 guild.modifyNickname(member, verificationTransformer.getNicknameFormat()
                     .replace("%USERNAME%", verificationEntity.getRobloxUsername())).queue();
+
                 stringBuilder.append("\n\nNickname has been set to `").append(verificationEntity.getRobloxUsername())
                     .append("`");
-            } else {
-                return new VerificationResult(false, "I do not have the permission to modify your nickname, or your highest rank is above mine.");
             }
         }
 
         return new VerificationResult(true, verificationEntity, stringBuilder.toString());
+    }
+
+    private boolean isTrelloBanned(HashMap <Long, List <TrellobanLabels>> trellobans, Member member) {
+        return trellobans.containsKey(member.getIdLong());
     }
 
     public List <Guild> getGuildsByMainGroupId(Xeus avaire, Long mainGroupId) throws SQLException {
@@ -345,7 +258,8 @@ public class VerificationManager {
     }
 
     private String getFirstInvite(Guild g) {
-        List <Invite> invites = g.retrieveInvites().submit().getNow(null);
+
+        List <Invite> invites = g.retrieveInvites().submit().getNow(new LinkedList <>());
         if (invites == null || invites.size() < 1)
             return null;
         for (Invite i : invites) {
@@ -379,19 +293,18 @@ public class VerificationManager {
         return new VerificationResult(false, "Not blacklisted, continue...");
     }
 
-    private boolean runTrelloBan(GuildSettingsTransformer transformer, Member member, Guild guild, VerificationEntity verificationEntity) {
-        if (!avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().containsKey(verificationEntity.getRobloxId())) {
-            return false;
-        }
+    private boolean checkTrelloBan(GuildSettingsTransformer transformer, Member member, Guild guild, VerificationEntity verificationEntity) {
 
         List <TrellobanLabels> banLabels = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans()
             .get(verificationEntity.getRobloxId());
-        if (banLabels.size() <= 0) {return false;}
+        if (banLabels.size() <= 0) {banLabels.add(TrellobanLabels.UNKNOWN);}
 
         String canAppealRoleId = "834326360628658187";
         String trellobanRoleId = "875251061638701086";
+
         boolean canAppeal = true;
         boolean isPermenant = false;
+
         for (TrellobanLabels banLabel : banLabels) {
             if (banLabel.isPermban()) {
                 isPermenant = true;
@@ -403,93 +316,101 @@ public class VerificationManager {
 
         long appealsDiscord = transformer.getGlobalSettings().getAppealsDiscordId();
 
-        if (!(guild.getIdLong() == appealsDiscord)) {
-            if (canAppeal && isPermenant) {
-                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message..."))
-                    .flatMap(m -> m.editMessage(member.getAsMention())
-                        .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned forever within `"
-                                + transformer.getGlobalSettings().getMainGroupName()
-                                + "` however you are still allowed to appeal within the "
-                                + (appealsDiscord != 0 ? guild.getName() : "Appeals guild not set") + ".\n\n"
-                                + "Your trello-ban has the following labels, I'd suggest sharing these with your appeals handler:)"
-                                + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
-                            .buildEmbed()))
-                    .queue();
-            }
-
-            if (canAppeal && !isPermenant) {
-                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message..."))
-                    .flatMap(m -> m.editMessage(member.getAsMention())
-                        .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned within`"
-                                + transformer.getGlobalSettings().getMainGroupName()
-                                + "` however you are still allowed to appeal within the "
-                                + (appealsDiscord != 0 ? guild.getName() : "Appeals guild not set.\n\n")
-                                + "Your trello-ban has the following labels, I'd suggest sharing these with your appeals handler:"
-                                + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
-                            .buildEmbed()))
-                    .queue();
-
-            }
-
-            if (!canAppeal && isPermenant) {
-                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Loading ban message..."))
-                    .flatMap(m -> m.editMessage(member.getAsMention())
-                        .setEmbeds(MessageFactory.makeSuccess(m, "[You have been trello-banned forever within "
-                                + transformer.getGlobalSettings().getMainGroupName()
-                                + ", this ban is permanent, so you're not allowed to appeal it. We wish you a very good day sir/madam, and goodbye.](https://www.youtube.com/watch?v=BXUhfoUJjuQ)")
-                            .buildEmbed()))
-                    .queue();
-                avaire.getShardManager().getTextChannelById("778853992704507945").sendMessage("Loading...")
-                    .flatMap(mess -> mess.editMessage("Shuted the fuck up.")
-                        .setEmbeds(MessageFactory.makeInfo(mess, member.getAsMention()
-                                + " tried to verify in `" + guild.getName()
-                                + "`. However, this person has a permenant trelloban to his name. He has been sent the STFU video (If his DM's are on) and have been global-banned.")
-                            .buildEmbed()))
-                    .queue();
-            }
-            long mgmLogs = transformer.getGlobalSettings().getMgmLogsId();
-            if (mgmLogs != 0) {
-                TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
-                if (tc != null) {
-                    tc.sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder(), "[``:global-unbanned-id`` has tried to verify in " + guild.getName()
-                            + " but was trello banned, and has been global-banned. His labels are:](:link):\n"
-                            + "```:reason```")
-                            .set("global-unbanned-id", verificationEntity.getRobloxId())
-                            .set("reason",
-                                banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
-                            .set("user", "XEUS AUTO BAN").buildEmbed())
-                        .queue();
-                }
-            }
-            return true;
+        if (guild.getIdLong() == appealsDiscord) {
+            return roleUserInAppealsServer(transformer, member, guild, banLabels, canAppealRoleId, trellobanRoleId, canAppeal, isPermenant);
         } else {
-            if (canAppeal) {
-                guild.modifyMemberRoles(member, guild.getRoleById(canAppealRoleId))
-                    .queue();
-                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message..."))
-                    .flatMap(m -> m.editMessage(member.getAsMention())
-                        .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned within "
-                                + transformer.getGlobalSettings().getMainGroupName()
-                                + ", [however you are still allowed to appeal within the " + guild.getName() + "]().\n\n"
-                                + "Your trello-ban has the following labels, I'd suggest sharing these with your ticket handler:"
-                                + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
-                            .buildEmbed()))
-                    .queue();
-            }
+            return banTrelloBannedFromServer(transformer, member, guild, verificationEntity, banLabels, canAppeal, isPermenant, appealsDiscord);
+        }
+    }
 
-            if (!canAppeal && isPermenant) {
-                guild.modifyMemberRoles(member, guild.getRoleById(trellobanRoleId))
-                    .queue();
-                member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Loading ban message..."))
-                    .flatMap(m -> m.editMessage(member.getAsMention()).setEmbeds(MessageFactory.makeSuccess(m,
-                            "[You have been trello-banned forever within Pinewood, this ban is permenant, so you're not allowed to appeal it. We wish you a very good day sir, and goodbye.](https://www.youtube.com/watch?v=BXUhfoUJjuQ)")
+    private boolean roleUserInAppealsServer(GuildSettingsTransformer transformer, Member member, Guild guild, List <TrellobanLabels> banLabels, String canAppealRoleId, String trellobanRoleId, boolean canAppeal, boolean isPermenant) {
+        if (canAppeal) {
+            guild.modifyMemberRoles(member, guild.getRoleById(canAppealRoleId))
+                .queue();
+            member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message..."))
+                .flatMap(m -> m.editMessage(member.getAsMention())
+                    .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned within "
+                            + transformer.getGlobalSettings().getMainGroupName()
+                            + ", [however you are still allowed to appeal within the " + guild.getName() + "]().\n\n"
+                            + "Your trello-ban has the following labels, I'd suggest sharing these with your ticket handler:"
+                            + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
                         .buildEmbed()))
-                    .queue();
-                avaire.getShardManager().getTextChannelById("778853992704507945").sendMessage("Loading...")
-                    .flatMap(mess -> mess.editMessage("Shut the fuck up.")
-                        .setEmbeds(new PlaceholderMessage(new EmbedBuilder(), member.getAsMention()
-                            + " has a permanent trelloban. They have been sent the STFU video (if their DMs are on).")
-                            .buildEmbed()))
+                .queue();
+        }
+
+        if (!canAppeal && isPermenant) {
+            guild.modifyMemberRoles(member, guild.getRoleById(trellobanRoleId))
+                .queue();
+            member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Loading ban message..."))
+                .flatMap(m -> m.editMessage(member.getAsMention()).setEmbeds(MessageFactory.makeSuccess(m,
+                        "[You have been trello-banned forever within Pinewood, this ban is permenant, so you're not allowed to appeal it. We wish you a very good day sir, and goodbye.](https://www.youtube.com/watch?v=BXUhfoUJjuQ)")
+                    .buildEmbed()))
+                .queue();
+            avaire.getShardManager().getTextChannelById("778853992704507945").sendMessage("Loading...")
+                .flatMap(mess -> mess.editMessage("Shut the fuck up.")
+                    .setEmbeds(new PlaceholderMessage(new EmbedBuilder(), member.getAsMention()
+                        + " has a permanent trelloban. They have been sent the STFU video (if their DMs are on).")
+                        .buildEmbed()))
+                .queue();
+        }
+        return true;
+    }
+
+    private boolean banTrelloBannedFromServer(GuildSettingsTransformer transformer, Member member, Guild guild, VerificationEntity verificationEntity, List <TrellobanLabels> banLabels, boolean canAppeal, boolean isPermenant, long appealsDiscord) {
+        if (canAppeal && isPermenant) {
+            member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message..."))
+                .flatMap(m -> m.editMessage(member.getAsMention())
+                    .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned forever within `"
+                            + transformer.getGlobalSettings().getMainGroupName()
+                            + "` however you are still allowed to appeal within the "
+                            + (appealsDiscord != 0 ? guild.getName() : "Appeals guild not set") + ".\n\n"
+                            + "Your trello-ban has the following labels, I'd suggest sharing these with your appeals handler:)"
+                            + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
+                        .buildEmbed()))
+                .queue();
+        }
+
+        if (canAppeal && !isPermenant) {
+            member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message..."))
+                .flatMap(m -> m.editMessage(member.getAsMention())
+                    .setEmbeds(MessageFactory.makeSuccess(m, "You have been trello-banned within`"
+                            + transformer.getGlobalSettings().getMainGroupName()
+                            + "` however you are still allowed to appeal within the "
+                            + (appealsDiscord != 0 ? guild.getName() : "Appeals guild not set.\n\n")
+                            + "Your trello-ban has the following labels, I'd suggest sharing these with your appeals handler:"
+                            + banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
+                        .buildEmbed()))
+                .queue();
+
+        }
+
+        if (!canAppeal && isPermenant) {
+            member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Loading ban message..."))
+                .flatMap(m -> m.editMessage(member.getAsMention())
+                    .setEmbeds(MessageFactory.makeSuccess(m, "[You have been trello-banned forever within "
+                            + transformer.getGlobalSettings().getMainGroupName()
+                            + ", this ban is permanent, so you're not allowed to appeal it. We wish you a very good day sir/madam, and goodbye.](https://www.youtube.com/watch?v=BXUhfoUJjuQ)")
+                        .buildEmbed()))
+                .queue();
+            avaire.getShardManager().getTextChannelById("778853992704507945").sendMessage("Loading...")
+                .flatMap(mess -> mess.editMessage("Shuted the fuck up.")
+                    .setEmbeds(MessageFactory.makeInfo(mess, member.getAsMention()
+                            + " tried to verify in `" + guild.getName()
+                            + "`. However, this person has a permenant trelloban to his name. He has been sent the STFU video (If his DM's are on) and have been global-banned.")
+                        .buildEmbed()))
+                .queue();
+        }
+        long mgmLogs = transformer.getGlobalSettings().getMgmLogsId();
+        if (mgmLogs != 0) {
+            TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
+            if (tc != null) {
+                tc.sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder(), "[``:global-unbanned-id`` has tried to verify in " + guild.getName()
+                        + " but was trello banned, and has been global-banned. His labels are:](:link):\n"
+                        + "```:reason```")
+                        .set("global-unbanned-id", verificationEntity.getRobloxId())
+                        .set("reason",
+                            banLabels.stream().map(c -> "\n - " + c.getName()).collect(Collectors.joining()))
+                        .set("user", "XEUS AUTO BAN").buildEmbed())
                     .queue();
             }
         }
@@ -634,7 +555,7 @@ public class VerificationManager {
     public VerificationEntity callUserFromDatabaseAPI(String discordUserId) {
         try {
             Collection linkedAccounts = avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME)
-                .where("id", discordUserId).andWhere("main", "1").get();
+                .where("id", discordUserId)/*.andWhere("main", "1")*/.get();
             if (linkedAccounts.size() == 0) {
                 return null;
             } else {
@@ -680,7 +601,7 @@ public class VerificationManager {
         try {
             Collection linkedAccounts = Xeus.getInstance().getDatabase()
                 .newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME).where("robloxId", robloxId)
-                .andWhere("main", "1").get();
+                /*.andWhere("main", "1")*/.get();
             if (linkedAccounts.size() == 0) {
                 return null;
             } else {

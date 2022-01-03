@@ -1,13 +1,12 @@
 package com.pinewoodbuilders.roblox.api.user;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.pinewoodbuilders.AppInfo;
 import com.pinewoodbuilders.Xeus;
-import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.requests.service.user.inventory.RobloxGamePassService;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.json.JSONObject;
@@ -20,6 +19,9 @@ public class RobloxUserAPIRoutes {
 
     private final Xeus avaire;
     private final RobloxAPIManager manager;
+    private final Request.Builder request = new Request.Builder()
+        .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version);
+
     public RobloxUserAPIRoutes(Xeus avaire, RobloxAPIManager robloxAPIManager) {this.avaire = avaire; this.manager = robloxAPIManager;}
 
     public static final Cache <String, String> cache = CacheBuilder.newBuilder()
@@ -28,9 +30,7 @@ public class RobloxUserAPIRoutes {
         .build();
 
     public List<RobloxUserGroupRankService.Data> getUserRanks(Long botAccount) {
-        Request.Builder request = new Request.Builder()
-            .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
-            .url("https://groups.roblox.com/v2/users/{userId}/groups/roles".replace("{userId}", botAccount.toString()));
+        request.url("https://groups.roblox.com/v2/users/{userId}/groups/roles".replace("{userId}", botAccount.toString()));
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
@@ -46,9 +46,7 @@ public class RobloxUserAPIRoutes {
     }
 
     public String getUserStatus(Long botAccount) {
-        Request.Builder request = new Request.Builder()
-                .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
-                .url("https://users.roblox.com/v1/users/{userId}".replace("{userId}", botAccount.toString()));
+        request.url("https://users.roblox.com/v1/users/{userId}".replace("{userId}", botAccount.toString()));
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
@@ -67,9 +65,7 @@ public class RobloxUserAPIRoutes {
             return username;
         }
 
-        Request.Builder request = new Request.Builder()
-                .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
-                .url("https://users.roblox.com/v1/users/{userId}".replace("{userId}", botAccount.toString()));
+        request.url("https://users.roblox.com/v1/users/{userId}".replace("{userId}", botAccount));
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
@@ -89,9 +85,7 @@ public class RobloxUserAPIRoutes {
             return Long.valueOf(userId);
         }
 
-        Request.Builder request = new Request.Builder()
-                .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
-                .url("https://api.roblox.com/users/get-by-username?username={userId}".replace("{userId}", username));
+        request.url("https://api.roblox.com/users/get-by-username?username={userId}".replace("{userId}", username));
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
@@ -107,9 +101,7 @@ public class RobloxUserAPIRoutes {
 
 
     public List<RobloxGamePassService.Datum> getUserGamePass(Long userId, Long gamepassId) {
-        Request.Builder request = new Request.Builder()
-                .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
-                .url("https://inventory.roblox.com/v1/users/{userId}/items/GamePass/{gamepassId}"
+        request.url("https://inventory.roblox.com/v1/users/{userId}/items/GamePass/{gamepassId}"
                         .replace("{userId}", userId.toString())
                         .replace("{gamepassId}", gamepassId.toString()));
 

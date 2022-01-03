@@ -30,7 +30,8 @@ import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.contracts.commands.SystemCommand;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
@@ -144,8 +145,8 @@ public class RoleSettingsCommand extends SystemCommand {
     }
 
     private boolean kickNonMods(CommandMessage context) {
-        int level = CheckPermissionUtil.getPermissionLevel(context).getLevel();
-        if (level < CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
+        int level = XeusPermissionUtil.getPermissionLevel(context).getLevel();
+        if (level < GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
             context.makeError("You got to be MGM or above to run this command.").queue();
             return false;
         }
@@ -156,8 +157,8 @@ public class RoleSettingsCommand extends SystemCommand {
                 continue;
             }
 
-            int kickedLevel = CheckPermissionUtil.getPermissionLevel(context.getGuildSettingsTransformer(), context.guild, m).getLevel();
-            if (kickedLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+            int kickedLevel = XeusPermissionUtil.getPermissionLevel(context.getGuildSettingsTransformer(), context.guild, m).getLevel();
+            if (kickedLevel >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
                 continue;
             }
 
@@ -361,14 +362,14 @@ public class RoleSettingsCommand extends SystemCommand {
         if (context.getMessage().getMentionedMembers().size() == 1) {
             Member m = context.getMessage().getMentionedMembers().get(0);
             context.makeInfo(m.getAsMention() + " has permission level ``"
-                + CheckPermissionUtil.getPermissionLevel(guildTransformer, context.guild, m).getLevel() +
-                "`` and is classified as a **" + CheckPermissionUtil.getPermissionLevel(guildTransformer, context.guild, m).getRankName()
+                + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, m).getLevel() +
+                "`` and is classified as a **" + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, m).getRankName()
                 + "**").queue();
             return true;
         }
         context.makeInfo(context.member.getAsMention() + " has permission level ``" +
-            CheckPermissionUtil.getPermissionLevel(context).getLevel() + "`` and is classified as a **" +
-            CheckPermissionUtil.getPermissionLevel(context).getRankName() + "**").queue();
+            XeusPermissionUtil.getPermissionLevel(context).getLevel() + "`` and is classified as a **" +
+            XeusPermissionUtil.getPermissionLevel(context).getRankName() + "**").queue();
         return true;
     }
 

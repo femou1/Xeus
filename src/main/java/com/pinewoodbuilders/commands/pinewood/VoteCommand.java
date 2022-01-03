@@ -13,7 +13,8 @@ import com.pinewoodbuilders.database.controllers.GuildController;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.RandomString;
@@ -88,7 +89,7 @@ public class VoteCommand extends Command {
             return runDMArguments(context, args);
         }
 
-        if (CheckPermissionUtil.getPermissionLevel(context).getLevel() < CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+        if (XeusPermissionUtil.getPermissionLevel(context).getLevel() < GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             return sendErrorMessage(context, "You don't have the required permission to run the settings of these commands.\n" +
                 "If you're trying to vote on a current vote, then please send the vote message in the DMs of the bot.");
         }

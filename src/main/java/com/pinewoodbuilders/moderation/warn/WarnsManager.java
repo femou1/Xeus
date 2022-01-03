@@ -124,6 +124,7 @@ public class WarnsManager {
             } else {
                 removedEntities.set(false);
             }
+
             return removedEntities.get();
         });
 
@@ -226,15 +227,14 @@ public class WarnsManager {
             .andWhere(Constants.LOG_TABLE_NAME + ".type", ModlogType.WARN.getId())
             .andWhere(Constants.WARNINGS_TABLE_NAME + ".modlog_id", caseId)
             .get();
-
         if (!collection.isEmpty()) {
             String query = String.format("DELETE FROM `%s` WHERE `guild_id` = ? AND `modlog_id` = ?",
                 Constants.WARNINGS_TABLE_NAME
             );
 
-            String query2 = String.format("UPDATE `%s` SET `pardon` = 1 WHERE `guild_id` = ? AND `modlogCase` = ? AND `pardon` = ?",
-                Constants.LOG_TABLE_NAME
-            );
+//            String query2 = String.format("UPDATE `%s` SET `pardon` = 1 WHERE `guild_id` = ? AND `modlogCase` = ? AND `pardon` = ?",
+//                Constants.LOG_TABLE_NAME
+//            );
 
             avaire.getDatabase().queryBatch(query, statement -> {
                 statement.setLong(1, guildId);
@@ -242,12 +242,13 @@ public class WarnsManager {
                 statement.addBatch();
             });
 
-            avaire.getDatabase().queryBatch(query2, statement -> {
-                statement.setLong(1, guildId);
-                statement.setString(2, caseId);
-                statement.setInt(3, 0);
-                statement.addBatch();
-            });
+//            avaire.getDatabase().queryBatch(query2, statement -> {
+//                statement.setLong(1, guildId);
+//                statement.setString(2, caseId);
+//                statement.setInt(3, 0);
+//                statement.addBatch();
+//            });
         }
+
     }
 }

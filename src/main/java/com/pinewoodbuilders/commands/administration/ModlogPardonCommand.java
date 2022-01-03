@@ -36,7 +36,8 @@ import com.pinewoodbuilders.moderation.warn.WarnContainer;
 import com.pinewoodbuilders.modlog.local.moderation.Modlog;
 import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
 import com.pinewoodbuilders.modlog.local.shared.ModlogType;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.User;
@@ -99,8 +100,8 @@ public class ModlogPardonCommand extends Command {
     public List <String> getMiddleware() {
         return Arrays.asList(
             "throttle:user,1,4",
-            "isGuildHROrHigher"
-            //"requireOne:user,text.manage_messages,general.kick_members,general.ban_members"
+            "isGuildHROrHigher",
+            "requireOne:user,text.manage_messages,general.kick_members,general.ban_members"
         );
     }
 
@@ -145,7 +146,7 @@ public class ModlogPardonCommand extends Command {
             }
 
             DataRow row = collection.first();
-            int permissionLevel = CheckPermissionUtil.getPermissionLevel(context).getLevel();
+            int permissionLevel = XeusPermissionUtil.getPermissionLevel(context).getLevel();
             if (!canEditModlogCase(context, row, permissionLevel)) {
                 return sendErrorMessage(context, context.i18n("couldntFindCaseWithId", caseId));
             }
@@ -184,14 +185,14 @@ public class ModlogPardonCommand extends Command {
                 if (globalSettings == null) return true;
                 if (!globalSettings.getNewWarnSystem()) return true;
 
-                User u = avaire.getShardManager().getUserById(row.getString("target_id"));
-                if (u == null) return false;
-
-                for (WarnContainer c : avaire.getWarningsManager().getWarns(context.getGuild().getIdLong(), u.getIdLong()))
+                for (WarnContainer c : avaire.getWarningsManager().getWarns(context.getGuild().getIdLong(), row.getLong("target_id")))
                     if (c.getCaseId().equals(String.valueOf(caseId))) {
                         try {
-                            avaire.getWarningsManager().unregisterWarn(context.guild.getIdLong(), u.getIdLong(), String.valueOf(caseId));
-                            Modlog.notifyUser(u, context.guild, modlogAction, "Warn has been removed from the database, your warn total has now lessened.");
+                            avaire.getWarningsManager().unregisterWarn(context.guild.getIdLong(), row.getLong("target_id"), String.valueOf(caseId));
+                            User u = avaire.getShardManager().getUserById(row.getLong("target_id"));
+                            if (u != null) {
+                                Modlog.notifyUser(u, context.guild, modlogAction, "Warn has been removed from the database, your warn total has now lessened.");
+                            }
                         } catch (SQLException e) {
                             context.makeError("Failed to remove the warn in the database, this warn may not expire... Please check with the developer.").queue();
                         }
@@ -207,6 +208,6 @@ public class ModlogPardonCommand extends Command {
 
     private boolean canEditModlogCase(CommandMessage context, DataRow collection, int permissionLevel) {
         return context.getMember().hasPermission(Permission.ADMINISTRATOR)
-            || collection.getString("user_id", "").equals(context.getAuthor().getId()) || permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel();
+            || collection.getString("user_id", "").equals(context.getAuthor().getId()) || permissionLevel >= GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel();
     }
 }

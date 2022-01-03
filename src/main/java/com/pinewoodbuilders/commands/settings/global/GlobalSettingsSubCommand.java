@@ -5,10 +5,11 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.settings.GuildAndGlobalSettingsCommand;
 import com.pinewoodbuilders.contracts.commands.settings.SettingsSubCommand;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 
@@ -25,8 +26,8 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
         GuildSettingsTransformer guildTransformer = context.getGuildSettingsTransformer();
-        int permission = CheckPermissionUtil.getPermissionLevel(guildTransformer, context.guild, context.member).getLevel();
-        if (permission < CheckPermissionUtil.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
+        int permission = XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, context.member).getLevel();
+        if (permission < GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR.getLevel()) {
             return command.sendErrorMessage(context, "Sorry, but you do not have the permissions required to run this command.");
         }
 
@@ -39,29 +40,13 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
             return sendEnabledRoles(context, guildTransformer);
         }
 
-        switch (args[0].toLowerCase()) {
-            case "al":
-            case "audit-logs":
-                return runAuditLogsCommand(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
-            case "gfilter":
-            case "global-filter":
-            case "gf":
-            case "f":
-            case "filter":
-            case "globalf":
-                return runGlobalFilterCommand(context, Arrays.copyOfRange(args, 1, args.length));
-            case "tnms":
-            case "toggle-new-moderation-system":
-            case "nms":
-            case "new-moderation-system":
-                return newModerationSystem(context, guildTransformer);
-            default:
-                context.makeInfo(
-                        "God damn, please get this command right.\n\n- `tnms` -> Toggle the new moderation system\n - `al` -> Set the audit log in all connected guilds.\n - `filter` -> Set the filter across the servers\n")
-                    .queue();
-                return false;
-        }
 
+        return switch (args[0].toLowerCase()) {
+            case "al", "audit-logs" -> runAuditLogsCommand(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
+            case "gfilter", "global-filter", "gf", "f", "filter", "globalf" -> runGlobalFilterCommand(context, Arrays.copyOfRange(args, 1, args.length));
+            case "tnms", "toggle-new-moderation-system", "nms", "new-moderation-system" -> newModerationSystem(context, guildTransformer);
+            default -> command.sendErrorMessage(context, "God damn, please get this command right.\n\n- `tnms` -> Toggle the new moderation system\n - `al` -> Set the audit log in all connected guilds.\n - `filter` -> Set the filter across the servers\n");
+        };
     }
 
     private boolean newModerationSystem(CommandMessage context, GuildSettingsTransformer guildTransformer) {
@@ -81,7 +66,6 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
         }
         return false;
     }
-
 
 
     private boolean runGlobalFilterCommand(CommandMessage context, String[] args) {

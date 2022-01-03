@@ -592,7 +592,7 @@ music:
     playlistIsAlreadyEmpty: 'La lista de reproducción `:playlist` está vacía, no hay nada que eliminar.'
     songHasBeenRemovedFromPlaylist: 'Se ha eliminado :song de la lista de reproducción `:playlist`.'
     playlistTitle: ':musical_note: Lista de reproducción {0}'
-    playlistSize: '[ {0} de {1} ]'
+    playlistSize: '[{0} de {1} ]'
     playlistLine: "{0}\n       Canciones en la lista de reproducción: **{1}**"
     playlistSongLine: '`{0}` [{1}]({2}) [{3}]'
   RemoveSongFromQueueCommand:

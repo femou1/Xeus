@@ -592,7 +592,7 @@ music:
     playlistIsAlreadyEmpty: '`:playlist` spillelisten er allerede tom, det er intet her og fjerne.'
     songHasBeenRemovedFromPlaylist: ':song har blitt suksessfult fjernet fra `:playlist` spillelisten'
     playlistTitle: ':musical_note: Musikk spillelister {0}'
-    playlistSize: '[ {0} ut av {1} ]'
+    playlistSize: '[{0} ut av {1} ]'
     playlistLine: "{0}\n       Spillelisten har **{1}** sang(er)"
     playlistSongLine: '`{0}` [{1}]({2}) [{3}]'
   RemoveSongFromQueueCommand:

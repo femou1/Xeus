@@ -21,24 +21,26 @@
 
 package com.pinewoodbuilders.commands.utility;
 
-import com.pinewoodbuilders.Xeus;
+import com.avairebot.shared.DiscordConstants;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.SimplePaginator;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandContext;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.controllers.PurchaseController;
 import com.pinewoodbuilders.database.transformers.PlayerTransformer;
 import com.pinewoodbuilders.imagegen.RankBackground;
 import com.pinewoodbuilders.imagegen.RankBackgroundHandler;
 import com.pinewoodbuilders.imagegen.renders.RankBackgroundRender;
-import com.avairebot.shared.DiscordConstants;
-import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RandomUtil;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.vote.VoteCacheEntity;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
@@ -273,12 +275,12 @@ public class RankBackgroundCommand extends Command {
             return false;
         }
 
-        int permissionLevel = CheckPermissionUtil.getPermissionLevel(context).getLevel();
+        int permissionLevel = XeusPermissionUtil.getPermissionLevel(context).getLevel();
 
         VoteCacheEntity voteEntity = avaire.getVoteManager().getVoteEntity(context.getAuthor());
         int votePoints = voteEntity == null ? 0 : voteEntity.getVotePoints();
 
-        if (background.getCost() > votePoints && !(permissionLevel >= CheckPermissionUtil.GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel())) {
+        if (background.getCost() > votePoints && !(permissionLevel >= GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel())) {
             return sendErrorMessage(context, context.i18n("doesntHaveEnoughPoints",
                 NumberUtil.formatNicely(background.getCost()), NumberUtil.formatNicely(votePoints)
             ));

@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.pinewoodbuilders.utils.JsonReader.readJsonFromUrl;
+import static com.pinewoodbuilders.utilities.JsonReader.readJsonFromUrl;
 
 public class EvaluationCommand extends Command {
     private final Paginator.Builder builder;
