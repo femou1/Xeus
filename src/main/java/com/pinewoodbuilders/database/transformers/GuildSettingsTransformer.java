@@ -26,7 +26,6 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.database.transformers.Transformer;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.controllers.GlobalSettingsController;
-import net.dv8tion.jda.api.entities.Guild;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -93,8 +92,9 @@ public class GuildSettingsTransformer extends Transformer {
     private long userAlertsChannelId = 0;
     private long linkFilterLog = 0;
     private long evaluationEvalChannel = 0;
+    private long rewardRequestChannelId;
 
-    public GuildSettingsTransformer(Guild guild, DataRow data) {
+    public GuildSettingsTransformer(DataRow data) {
         super(data);
 
         if (hasData()) {
@@ -147,6 +147,8 @@ public class GuildSettingsTransformer extends Transformer {
             evaluationEvalChannel = data.getLong("evaluation_answer_channel");
             linkFilterLog = data.getLong("link_filter_log");
             isOfficialSubGroup = data.getBoolean("official_sub_group");
+
+            rewardRequestChannelId = data.getLong("reward_request_channel_id");
 
             if (data.getString("moderator_roles", null) != null) {
                 List <String> moderatorRoles = Xeus.gson.fromJson(
@@ -430,6 +432,10 @@ public class GuildSettingsTransformer extends Transformer {
 
     public long getPatrolRemittanceChannel() {
         return this.patrolRemittanceChannel;
+    }
+
+    public long getRewardRequestChannelId() {
+        return this.rewardRequestChannelId;
     }
 
     public String getPatrolRemittance() {

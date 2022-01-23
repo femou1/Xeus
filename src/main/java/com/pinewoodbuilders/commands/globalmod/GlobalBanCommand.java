@@ -57,6 +57,12 @@ public class GlobalBanCommand extends Command {
         return Arrays.asList("global-ban");
     }
 
+
+    @Override
+    public List<String> getMiddleware() {
+        return Arrays.asList("isValidMGMMember");
+    }
+
     @Nonnull
     @Override
     public List<CommandGroup> getGroups() {

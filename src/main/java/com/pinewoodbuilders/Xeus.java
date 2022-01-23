@@ -62,14 +62,14 @@ import com.pinewoodbuilders.level.LevelManager;
 import com.pinewoodbuilders.metrics.Metrics;
 import com.pinewoodbuilders.middleware.*;
 import com.pinewoodbuilders.middleware.global.IsCategoryEnabled;
-import com.pinewoodbuilders.moderation.ban.BanManager;
-import com.pinewoodbuilders.moderation.filter.LinkFilterManager;
-import com.pinewoodbuilders.moderation.mute.MuteManager;
-import com.pinewoodbuilders.moderation.mute.globalmute.GlobalMuteManager;
-import com.pinewoodbuilders.moderation.punishments.GlobalPunishmentManager;
-import com.pinewoodbuilders.moderation.warn.WarnsManager;
-import com.pinewoodbuilders.moderation.watch.WatchManager;
-import com.pinewoodbuilders.moderation.watch.globalwatch.GlobalWatchManager;
+import com.pinewoodbuilders.moderation.local.ban.BanManager;
+import com.pinewoodbuilders.moderation.global.filter.LinkFilterManager;
+import com.pinewoodbuilders.moderation.local.mute.MuteManager;
+import com.pinewoodbuilders.moderation.global.globalmute.GlobalMuteManager;
+import com.pinewoodbuilders.moderation.global.punishments.GlobalPunishmentManager;
+import com.pinewoodbuilders.moderation.local.warn.WarnsManager;
+import com.pinewoodbuilders.moderation.local.watch.WatchManager;
+import com.pinewoodbuilders.moderation.global.globalwatch.GlobalWatchManager;
 import com.pinewoodbuilders.pinewood.VoiceWhitelistManager;
 import com.pinewoodbuilders.plugin.PluginLoader;
 import com.pinewoodbuilders.plugin.PluginManager;
@@ -255,6 +255,7 @@ public class Xeus {
         MiddlewareHandler.register("isGuildLeadership", new IsManagerOrHigherMiddleware(this));
         MiddlewareHandler.register("isGuildHROrHigher", new IsModOrHigherMiddleware(this));
         MiddlewareHandler.register("isGroupShoutOrHigher", new IsGroupShoutOrHigherMiddleware(this));
+        MiddlewareHandler.register("usedInAdminChannel", new IsAdminCommandChannelMiddleware(this));
 
         String defaultPrefix = getConfig().getString("default-prefix", DiscordConstants.DEFAULT_COMMAND_PREFIX);
         if (getConfig().getString("system-prefix", DiscordConstants.DEFAULT_SYSTEM_PREFIX).equals(defaultPrefix)) {

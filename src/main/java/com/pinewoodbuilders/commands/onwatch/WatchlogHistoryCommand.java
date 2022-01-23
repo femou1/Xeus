@@ -90,8 +90,8 @@ public class WatchlogHistoryCommand extends Command {
     @Override
     public List<String> getMiddleware() {
         return Arrays.asList(
-            "isPinewoodGuild",
             "isGuildHROrHigher",
+            "usedInAdminChannel",
             "throttle:channel,1,5"
         );
     }

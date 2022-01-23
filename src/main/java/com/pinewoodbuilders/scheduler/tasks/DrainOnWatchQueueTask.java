@@ -28,7 +28,7 @@ import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.language.I18n;
-import com.pinewoodbuilders.moderation.watch.WatchContainer;
+import com.pinewoodbuilders.moderation.local.watch.WatchContainer;
 import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
 import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.modlog.local.watchlog.Watchlog;

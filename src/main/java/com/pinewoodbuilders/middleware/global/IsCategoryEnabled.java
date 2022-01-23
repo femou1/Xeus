@@ -126,7 +126,8 @@ public class IsCategoryEnabled extends Middleware {
 
     private boolean isCategoryCommands(MiddlewareStack stack) {
         return stack.getCommand().getClass().getTypeName().equals("com.pinewoodbuilders.commands.administration.ToggleCategoryCommand") ||
-            stack.getCommand().getClass().getTypeName().equals("com.pinewoodbuilders.commands.administration.CategoriesCommand");
+            stack.getCommand().getClass().getTypeName().equals("com.pinewoodbuilders.commands.administration.CategoriesCommand") ||
+            stack.getCommand().getClass().getTypeName().equals("com.pinewoodbuilders.commands.administration.ModifyAdminCommandsChannelCommand");
     }
 
     private boolean isHelpCommand(MiddlewareStack stack) {

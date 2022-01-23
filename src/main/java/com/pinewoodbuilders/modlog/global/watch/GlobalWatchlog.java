@@ -129,43 +129,38 @@ public class GlobalWatchlog {
             .setTimestamp(Instant.now());
 
         switch (action.getType()) {
-            case GLOBAL_UN_WATCH:
-                builder
-                    .addField("User", action.getStringifiedTarget(), true)
-                    //.addField("Moderator", action.getStringifiedModerator(), true)
-                    .addField("Reason", formatReason(transformer, action.getMessage()), false);
-                break;
-
-            case GLOBAL_WATCH:
-            case GLOBAL_TEMP_WATCH:
+            case GLOBAL_UN_WATCH -> builder
+                .addField("User", action.getStringifiedTarget(), true)
+                //.addField("Moderator", action.getStringifiedModerator(), true)
+                .addField("Reason", formatReason(transformer, action.getMessage()), false);
+            case GLOBAL_WATCH, GLOBAL_TEMP_WATCH -> {
                 //noinspection ConstantConditions
                 split = action.getMessage().split("\n");
                 builder
                     .addField("User", action.getStringifiedTarget(), true)
-                    //.addField("Moderator", action.getStringifiedModerator(), true);
-                    ;
+                //.addField("Moderator", action.getStringifiedModerator(), true);
+                ;
                 if (split[0].length() > 0) {
                     builder.addField("Expires At", split[0], true);
                 }
-
                 builder.addField("Reason", formatReason(transformer, String.join("\n",
                     Arrays.copyOfRange(split, 1, split.length)
                 )), false);
-                break;
-
+            }
         }
+
 
         channel.sendMessageEmbeds(builder.build()).queue(success -> {
             try {
-                avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+                avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE)
                     .where("main_group_id", transformer.getMainGroupId())
                     .update(statement -> {
-                        statement.set("global_watch_case", transformer.getGlobalModlogCase());
+                        statement.set("global_modlog_case", transformer.getGlobalModlogCase());
                     });
 
                 logActionToTheDatabase(avaire, transformer.getMainGroupId(), action, success, transformer.getGlobalModlogCase());
             } catch (SQLException ignored) {
-                //
+                ignored.printStackTrace();
             }
         }, RestActionUtil.ignore);
 
@@ -218,7 +213,6 @@ public class GlobalWatchlog {
                     statement.set("modlogCase", modlogCase);
                     statement.set("type", action.getType().getId());
                     statement.set("mgi", mgi);
-                    statement.set("global", 1);
                     statement.set("user_id", action.getModerator().getId());
 
                     if (action.getTarget() != null) {

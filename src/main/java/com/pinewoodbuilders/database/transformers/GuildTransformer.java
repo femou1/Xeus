@@ -53,6 +53,8 @@ public class GuildTransformer extends Transformer {
     private final Set <Long> lockableChannels = new HashSet <>();
     private final Set <Long> lockableChannelsRoles = new HashSet <>();
 
+    private final Set<Long> adminCommandChannels = new HashSet <>();
+
     private final GuildTypeTransformer guildType;
     private boolean partner;
 
@@ -73,6 +75,7 @@ public class GuildTransformer extends Transformer {
     private int modlogCase = 0;
     private int onWatchCase = 0;
     private double levelModifier = -1;
+
 
     public GuildTransformer(Guild guild) {
         super(null);
@@ -237,15 +240,30 @@ public class GuildTransformer extends Transformer {
                 }
             }
 
+            if (data.getString("command_admin_channels", null) != null) {
+                List <String> dbAdminChannels = Xeus.gson.fromJson(
+                    data.getString("command_admin_channels"),
+                    new TypeToken <List <String>>() {
+                    }.getType());
+
+                for (String channelId : dbAdminChannels) {
+                    try {
+                        adminCommandChannels.add(
+                            Long.parseLong(channelId)
+                        );
+                    } catch (NumberFormatException ignored) {
+                        //
+                    }
+                }
+            }
+
             if (data.getString("modules", null) != null) {
                 HashMap <String, Map <String, String>> dbModules = Xeus.gson.fromJson(
                     data.getString("modules"),
                     new TypeToken <HashMap <String, Map <String, String>>>() {
                     }.getType());
 
-                for (Map.Entry <String, Map <String, String>> item : dbModules.entrySet()) {
-                    modules.put(item.getKey(), item.getValue());
-                }
+                modules.putAll(dbModules);
             }
 
             if (data.getString("channels", null) != null) {
@@ -480,5 +498,9 @@ public class GuildTransformer extends Transformer {
         }
 
         return Xeus.gson.toJson(objects);
+    }
+
+    public Set<Long> getAdminCommandChannels() {
+        return adminCommandChannels;
     }
 }

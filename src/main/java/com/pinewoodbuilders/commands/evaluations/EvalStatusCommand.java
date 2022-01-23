@@ -1,17 +1,16 @@
 package com.pinewoodbuilders.commands.evaluations;
 
 import com.pinewoodbuilders.Xeus;
-import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.chat.MessageType;
+import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
-import com.pinewoodbuilders.database.collection.Collection;
-import com.pinewoodbuilders.database.collection.DataRow;
+import com.pinewoodbuilders.contracts.roblox.evaluations.EvaluationStatus;
+import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 
 import javax.annotation.Nonnull;
-import java.awt.*;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -70,56 +69,40 @@ public class EvalStatusCommand extends Command {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
 
-        String name = context.member.getEffectiveName();
-
-        try {
-        if (!(isValidRobloxUser(name))){
-            context.makeError("Your discord name is not a valid roblox name and/or is not in the PBST Group...\nPlease do ``!verify`` to re-verify yourself. (``v!verify`` if the prefix isn't changed").queue();
-            return true;
+        VerificationEntity verificationEntity = avaire.getRobloxAPIManager().getVerification().fetchVerificationWithBackup(context.getAuthor().getId(), true);
+        if (verificationEntity == null) {
+            return sendErrorMessage(context, "You are not verified. Please verify yourself with `!verify`.");
         }
 
-        Collection collection = avaire.getDatabase().newQueryBuilder(Constants.EVALS_DATABASE_TABLE_NAME).where("roblox_id", getRobloxId(name)).get();
-
-        if (args.length < 2) {
-            if (collection.size() < 1) {
-                context.makeEmbeddedMessage(new Color(255, 0, 0)).setDescription("You have not yet passed anything:\n\n" +
-                    "**Passed Quiz**: <:no:694270050257076304>\n" +
-                    "**Passed Patrol**: <:no:694270050257076304>\n" +
-                    "**Passed Combat**: <:no:694270050257076304>\n\n" +
-                    "**Last Evaluator**: ``No evaluation has been given yet.``").queue();
-                return true;
-            }
-
-            if (collection.size() > 2) {
-                context.makeError("Something is wrong in the database, there are records with multiple usernames, but the same user id. Please check if this is correct.").queue();
-                return false;
-            }
-            if (collection.size() == 1) {
-                DataRow row = collection.get(0);
-                Boolean pq = row.getBoolean("passed_quiz");
-                Boolean pp = row.getBoolean("passed_patrol");
-                Boolean pc = row.getBoolean("passed_combat");
-
-                String passed_quiz = pq ? "<:yes:694268114803621908>" : "<:no:694270050257076304>";
-                String passed_patrol = pp ? "<:yes:694268114803621908>" : "<:no:694270050257076304>";
-                String passed_combat = pc ? "<:yes:694268114803621908>" : "<:no:694270050257076304>";
-                String evaluator = row.getString("evaluator") != null ? row.getString("evaluator") : "Unkown Evaluator";
-
-                context.makeEmbeddedMessage().setDescription("This user has this information in the database:\n\n" +
-                    "**Passed Quiz**: " + passed_quiz + "\n" +
-                    "**Passed Patrol**: " + passed_patrol + "\n" +
-                    "**Passed Combat**: " + passed_combat + "\n"
-                    + (row.getBoolean("passed_combat") && row.getBoolean("passed_patrol") ? "**You have passed all evaluations!**\n\n" : "\n") +
-                    "**Last Evaluator**: " + evaluator)
-                    .setColor((pq && pp && pc ? new Color(26, 255, 0) : new Color(255, 170, 0))).queue();
-                return true;
-            }
-
+        EvaluationStatus status = avaire.getRobloxAPIManager().getEvaluationManager().getEvaluationStatus(verificationEntity.getRobloxId());
+        if (status == null) {
+            return sendErrorMessage(context, "You have not gotten an evaluation yet, this seems to be an error with the API.");
         }
-        } catch (SQLException e) {
-            Xeus.getLogger().error("ERROR: ", e);
+
+        PlaceholderMessage builder = context.makeEmbeddedMessage();
+        builder.setTitle("Evaluation Status for " + verificationEntity.getRobloxUsername());
+        builder.setDescription("""
+            **Passed Quiz**: :quizPassed
+            **Passed Patrol**: :patrolPassed
+            **Passed Combat**: :combatPassed
+            **Passed Consensus**: :consensusPassed
+            **Evaluator**: :evaluator
+            """)
+            .set("quizPassed", status.passedQuiz() ? "<:yes:694268114803621908>": "<:no:694270050257076304>")
+            .set("patrolPassed", status.passedPatrol() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
+            .set("combatPassed", status.passedCombat() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
+            .set("consensusPassed", status.passedConsensus() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
+            .set("evaluator", status.getLastEdit() != null ? status.getLastEvaluator() : "None")
+            .set("evaluationDate", status.getFirstEvaluation() != null ? status.getFirstEvaluation().diffForHumans(true) : "None")
+            .setFooter("Last modification: " + (status.getLastEdit() != null ? status.getLastEdit().diffForHumans(true) : "None"))
+            .setColor(status.isPassed() ? MessageType.SUCCESS.getColor() : MessageType.ERROR.getColor())
+            .queue();
+
+        if (status.isPassed()) {
+            context.makeSuccess("***Congratulations!*** You have passed all evaluations! If you're not yet promoted, an Leadership+ will soon promote you!").queue();
         }
-            return false;
+
+        return false;
     }
 
     public Long getRobloxId(String un) {
@@ -130,12 +113,5 @@ public class EvalStatusCommand extends Command {
         }
     }
 
-    public boolean isValidRobloxUser(String un) {
-        try {
-            return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un) != null;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 
 }

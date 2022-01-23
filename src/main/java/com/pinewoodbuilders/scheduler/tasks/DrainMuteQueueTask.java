@@ -26,7 +26,7 @@ import com.pinewoodbuilders.contracts.scheduler.Task;
 import com.pinewoodbuilders.database.controllers.GuildController;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.language.I18n;
-import com.pinewoodbuilders.moderation.mute.MuteContainer;
+import com.pinewoodbuilders.moderation.local.mute.MuteContainer;
 import com.pinewoodbuilders.modlog.local.moderation.Modlog;
 import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
 import com.pinewoodbuilders.modlog.local.shared.ModlogType;

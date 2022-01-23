@@ -471,10 +471,14 @@ public class MainEventHandler extends EventHandler {
                     reactionEmoteEventAdapter.onPBSTRequestRewardMessageAddEvent(event);
                 }
 
-                reactionEmoteEventAdapter.onGuildSuggestionValidation(event);
-                reactionEmoteEventAdapter.onReportsReactionAdd(event);
-                reactionEmoteEventAdapter.onFeedbackMessageEvent(event);
-            }
+    @Override
+    public void onGuildMessageReactionAdd(@Nonnull GuildMessageReactionAddEvent event) {
+        if (isValidMessageReactionEvent(event)) {
+
+            reactionEmoteEventAdapter.onPBSTRequestRewardMessageAddEvent(event);
+            reactionEmoteEventAdapter.onGuildSuggestionValidation(event);
+            reactionEmoteEventAdapter.onReportsReactionAdd(event);
+            reactionEmoteEventAdapter.onFeedbackMessageEvent(event);
         }
     }
 

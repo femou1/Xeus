@@ -2,10 +2,13 @@ package com.pinewoodbuilders.commands.evaluations;
 
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.chat.MessageType;
+import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
+import com.pinewoodbuilders.contracts.roblox.evaluations.EvaluationStatus;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
@@ -120,24 +123,26 @@ public class EvaluationCommand extends Command {
     }
 
     private boolean runKronosSync(CommandMessage context) {
-        
+
         try {
             Collection collection = avaire.getDatabase().newQueryBuilder(Constants.EVALS_DATABASE_TABLE_NAME).get();
-        
             context.makeInfo("Syncing `" + collection.size() + "`eval records to Kronos").queue();
             for (DataRow dr : collection) {
-                if (dr.getBoolean("passed_quiz") && dr.getBoolean("passed_combat") && dr.getBoolean("passed_patrol")) {
-                    avaire.getRobloxAPIManager().getKronosManager().modifyEvalStatus(dr.getLong("roblox_id"), "pbst", true);    
-                } else {
-                    avaire.getRobloxAPIManager().getKronosManager().modifyEvalStatus(dr.getLong("roblox_id"), "pbst", false);
+                Long robloxId = dr.getLong("roblox_id");
+                EvaluationStatus status = avaire.getRobloxAPIManager().getEvaluationManager().getEvaluationStatus(robloxId);
+
+                if (status == null) {
+                    continue;
                 }
+
+                avaire.getRobloxAPIManager().getKronosManager().modifyEvalStatus(dr.getLong("roblox_id"), "pbst", status.isPassed());
             }
             context.makeSuccess("Synced data with Kronos!").queue();
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-                return false;
+        return false;
     }
 
     private boolean questionSubMenu(CommandMessage context, String[] args) {
@@ -284,46 +289,45 @@ public class EvaluationCommand extends Command {
                 "roblox_id", getRobloxId(args[0])).get();
 
             if (args.length < 2) {
+                String username = args[0];
 
-                if (collection.size() < 1) {
-                    context.makeEmbeddedMessage(new Color(255, 21, 21)).setDescription("This user has this " +
-                        "information in the database:\n\n" +
-                        "**Passed Quiz**: <:no:694270050257076304>\n" +
-                        "**Passed Patrol**: <:no:694270050257076304>\n" +
-                        "**Passed Combat**: <:no:694270050257076304>\n\n" +
-                        "**Last Evaluator**: No evaluation has been given yet.").queue();
-                    return true;
-                }
-
-                if (collection.size() > 2) {
-                    context.makeError("Something is wrong in the database, there are records with multiple usernames," +
-                        " but the same user id. Please check if this is correct.").queue();
+                long robloxId = avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(username);
+                if (robloxId == 0) {
+                    context.makeError("User not found.").queue();
                     return false;
                 }
-                if (collection.size() == 1) {
-                    DataRow row = collection.get(0);
-                    Boolean pq = row.getBoolean("passed_quiz");
-                    Boolean pp = row.getBoolean("passed_patrol");
-                    Boolean pc = row.getBoolean("passed_combat");
 
-
-                    String passed_quiz = pq ? "<:yes:694268114803621908>" : "<:no:694270050257076304>";
-                    String passed_patrol = pp ? "<:yes:694268114803621908>" : "<:no:694270050257076304>";
-                    String passed_combat = pc ? "<:yes:694268114803621908>" : "<:no:694270050257076304>";
-                    String evaluator = row.getString("evaluator") != null ? row.getString("evaluator") : "Unkown " +
-                        "Evaluator";
-
-                    context.makeEmbeddedMessage().setDescription("This user has this information in the database:\n\n" +
-                        "**Passed Quiz**: " + passed_quiz + "\n" +
-                        "**Passed Patrol**: " + passed_patrol + "\n" +
-                        "**Passed Combat**: " + passed_combat + "\n"
-                        + (row.getBoolean("passed_quiz") && row.getBoolean("passed_patrol") && row.getBoolean(
-                        "passed_combat") ? "**User has passed all evaluations!**\n\n" : "\n") +
-                        "**Last Evaluator**: " + evaluator)
-                        .setColor((pq && pp && pc ? new Color(26, 255, 0) : new Color(255, 170, 0))).queue();
-                    return true;
+                EvaluationStatus status = avaire.getRobloxAPIManager().getEvaluationManager().getEvaluationStatus(robloxId);
+                if (status == null) {
+                    context.makeError("Something went wrong with the database.").queue();
+                    return false;
                 }
 
+                PlaceholderMessage builder = context.makeEmbeddedMessage();
+                builder.setTitle("Evaluation Status for " + username);
+                builder.setDescription("""
+                        **Passed Quiz**: :quizPassed
+                        **Passed Patrol**: :patrolPassed
+                        **Passed Combat**: :combatPassed
+                        **Passed Consensus**: :consensusPassed
+                        **Passed Everything**: :allPassed
+                        
+                        **First Eval**: :evaluationDate
+                        **Latest Eval**: :lastEvaluation
+                        **Evaluator**: :evaluator
+                        """)
+
+                    .set("quizPassed", status.passedQuiz() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
+                    .set("patrolPassed", status.passedPatrol() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
+                    .set("combatPassed", status.passedCombat() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
+                    .set("consensusPassed", status.passedConsensus() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
+                    .set("allPassed", status.isPassed() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
+                    .set("evaluator", status.getLastEdit() != null ? status.getLastEvaluator() : "None")
+                    .set("evaluationDate", status.getFirstEvaluation() != null ? status.getFirstEvaluation().toDateTimeString() + " ("+status.getFirstEvaluation().diffForHumans(false)+")" : "None")
+                    .set("lastEvaluation", (status.getLastEdit() != null ? status.getLastEdit().toDateTimeString() + " ("+status.getFirstEvaluation().diffForHumans(false)+")" : "None"))
+                    .setColor(status.isPassed() ? MessageType.SUCCESS.getColor() : MessageType.ERROR.getColor())
+                    .queue();
+                return true;
             }
 
             switch (args[1]) {
@@ -336,7 +340,7 @@ public class EvaluationCommand extends Command {
                         return false;
                     }
                     if (args.length == 3) {
-                        if (args[2].equalsIgnoreCase("patrol") || args[2].equalsIgnoreCase("quiz") || args[2].equalsIgnoreCase("combat")) {
+                        if (args[2].equalsIgnoreCase("patrol") || args[2].equalsIgnoreCase("quiz") || args[2].equalsIgnoreCase("combat") || args[2].equalsIgnoreCase("consensus")) {
                             if (collection.size() < 1) {
                                 Long roblox_id = getRobloxId(args[0]);
                                 avaire.getDatabase()
@@ -346,17 +350,19 @@ public class EvaluationCommand extends Command {
                                         statement
                                             .set("roblox_username", getRobloxUsernameFromId(roblox_id))
                                             .set("roblox_id", roblox_id).set("evaluator",
-                                            context.getMember().getEffectiveName());
+                                                context.getMember().getEffectiveName());
                                         if (args[2].equalsIgnoreCase("patrol")) {
                                             statement.set("passed_patrol", true);
                                         } else if (args[2].equalsIgnoreCase("quiz")) {
                                             statement.set("passed_quiz", true);
                                         } else if (args[2].equalsIgnoreCase("combat")) {
                                             statement.set("passed_combat", true);
+                                        } else if (args[2].equalsIgnoreCase("consensus")) {
+                                            statement.set("passed_consensus", true);
                                         }
                                     });
                                 context.makeSuccess("Successfully added the record to the database").queue();
-                                avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`"+args[0] + "` has passed the `"+args[2]+"` eval.").buildEmbed()).queue();
+                                avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`" + args[0] + "` has passed the `" + args[2] + "` eval.").buildEmbed()).queue();
 
                                 return true;
                             }
@@ -377,23 +383,27 @@ public class EvaluationCommand extends Command {
                                             statement.set("passed_quiz", true);
                                         } else if (args[2].equalsIgnoreCase("combat")) {
                                             statement.set("passed_combat", true);
+                                        } else if (args[2].equalsIgnoreCase("consensus")) {
+                                            statement.set("passed_consensus", true);
                                         }
                                         statement.set("evaluator", context.getMember().getEffectiveName());
                                     });
                                 context.makeSuccess("Successfully updated the record in the database").queue();
-                                avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`"+args[0] + "` has passed the `"+args[2]+"` eval.").requestedBy(context.getMember()).buildEmbed()).queue();
+                                avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`" + args[0] + "` has passed the `" + args[2] + "` eval.").requestedBy(context.getMember()).buildEmbed()).queue();
                                 try {
-                                if (avaire.getRobloxAPIManager().getEvaluationManager().getPassedEvals(roblox_id).size() == 3) {
-                                    avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`"+args[0] + "` has now passed all evaluations!").setColor(new Color(255, 215, 0)).requestedBy(context).buildEmbed()).queue();   
-                                    
+
+                                    EvaluationStatus status = avaire.getRobloxAPIManager().getEvaluationManager().getEvaluationStatus(roblox_id);
+                                    if (status.isPassed()) {
+                                        avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`" + args[0] + "` has now passed all evaluations!").setColor(new Color(255, 215, 0)).requestedBy(context).buildEmbed()).queue();
+
                                         avaire.getRobloxAPIManager().getKronosManager().modifyEvalStatus(roblox_id, "pbst", true);
-                                    
-                                    return true;
+
+                                        return true;
+                                    }
+                                } catch (Exception e) {
+                                    context.makeError("Something went wrong: ```" + e.getMessage() + "```").queue();
+                                    return false;
                                 }
-                            } catch (Exception e) {
-                                context.makeError("Something went wrong: ```" + e.getMessage() + "```").queue();
-                                return false;
-                            }
                             }
 
                             return true;
@@ -415,7 +425,7 @@ public class EvaluationCommand extends Command {
                         return false;
                     }
                     if (args.length == 3) {
-                        if (args[2].equalsIgnoreCase("patrol") || args[2].equalsIgnoreCase("quiz") || args[2].equalsIgnoreCase("combat")) {
+                        if (args[2].equalsIgnoreCase("patrol") || args[2].equalsIgnoreCase("quiz") || args[2].equalsIgnoreCase("combat") || args[2].equalsIgnoreCase("consensus")) {
                             if (collection.size() < 1) {
                                 Long roblox_id = getRobloxId(args[0]);
                                 avaire.getDatabase()
@@ -425,13 +435,15 @@ public class EvaluationCommand extends Command {
                                         statement
                                             .set("roblox_username", getRobloxUsernameFromId(roblox_id))
                                             .set("roblox_id", roblox_id).set("evaluator",
-                                            context.getMember().getEffectiveName());
+                                                context.getMember().getEffectiveName());
                                         if (args[2].equalsIgnoreCase("patrol")) {
                                             statement.set("passed_patrol", false);
                                         } else if (args[2].equalsIgnoreCase("quiz")) {
                                             statement.set("passed_quiz", false);
                                         } else if (args[2].equalsIgnoreCase("combat")) {
                                             statement.set("passed_combat", false);
+                                        } else if (args[2].equalsIgnoreCase("consensus")) {
+                                            statement.set("passed_consensus", false);
                                         }
                                         statement.set("evaluator", context.getMember().getEffectiveName());
                                     });
@@ -455,11 +467,14 @@ public class EvaluationCommand extends Command {
                                             statement.set("passed_quiz", false);
                                         } else if (args[2].equalsIgnoreCase("combat")) {
                                             statement.set("passed_combat", false);
+                                        } else if (args[2].equalsIgnoreCase("consensus")) {
+                                            statement.set("passed_consensus", false);
                                         }
                                     });
                                 context.makeSuccess("Successfully updated the record in the database").queue();
 
-                                if (avaire.getRobloxAPIManager().getEvaluationManager().getPassedEvals(roblox_id).size() < 3){
+                                EvaluationStatus status = avaire.getRobloxAPIManager().getEvaluationManager().getEvaluationStatus(roblox_id);
+                                if (status.isPassed()) {
                                     avaire.getRobloxAPIManager().getKronosManager().modifyEvalStatus(roblox_id, "pbst", false);
                                     return false;
                                 }
@@ -559,7 +574,7 @@ public class EvaluationCommand extends Command {
 
     private static String getRobloxUsernameFromId(Long id) {
         try {
-            JSONObject json = readJsonFromUrl("http://api.roblox.com/users/" + id);
+            JSONObject json = readJsonFromUrl("https://api.roblox.com/users/" + id);
             return json.getString("Username");
         } catch (Exception e) {
             return "Unknown";
@@ -576,7 +591,7 @@ public class EvaluationCommand extends Command {
 
     public boolean isValidRobloxUser(String un) {
         try {
-            return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un) != null;
+            return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un) != 0;
         } catch (Exception e) {
             return false;
         }

@@ -36,7 +36,7 @@ import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
-import com.pinewoodbuilders.moderation.warn.WarnContainer;
+import com.pinewoodbuilders.moderation.local.warn.WarnContainer;
 import com.pinewoodbuilders.modlog.global.moderation.GlobalModlog;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogAction;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
@@ -478,19 +478,19 @@ public class WarnCommand extends Command {
         GlobalSettingsTransformer mainGroupSettings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, context.guild)
             .getGlobalSettings();
         List <Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId(), true);
-        String reason = "Automod, moderative action from " + context.getGuild().getName() + " by " + context.getMember().getEffectiveName();
+
         GlobalModlogType type = GlobalModlogType.GLOBAL_WATCH;
 
         try {
             GlobalModlogAction modlogAction = new GlobalModlogAction(
                 type, context.getAuthor(), user,
-                "\n" + reason
+                "\n" + "Automod, moderative action from " + context.getGuild().getName()
             );
 
             String caseId = GlobalModlog.log(avaire, context, modlogAction);
             GlobalModlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
 
-            avaire.getGlobalWatchManager().registerGlobalWatch(caseId, mainGroupSettings.getMainGroupId(), user.getIdLong(), null);
+            avaire.getGlobalWatchManager().registerGlobalWatch(context.getGuild().getIdLong(), caseId, mainGroupSettings.getMainGroupId(), user.getIdLong(), null);
 
             for (Guild g : guilds) {
                 if (g.getId().equals(context.getGuild().getId())) {
@@ -499,7 +499,7 @@ public class WarnCommand extends Command {
                 }
 
                 GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
-                if (transformer == null || transformer.getOnWatchRole() == 0) {
+                if (transformer.getOnWatchRole() == 0) {
                     continue;
                 }
 
@@ -520,7 +520,7 @@ public class WarnCommand extends Command {
                 if (transformer.getOnWatchChannel() != 0) {
                     ModlogAction localAction = new ModlogAction(
                         ModlogType.ON_WATCH, context.getAuthor(), user,
-                        "\n" + reason
+                        "\n" + "Automod, moderative action from " + context.getGuild().getName()
                     );
 
                     Watchlog.log(avaire, g, localAction);
@@ -585,7 +585,7 @@ public class WarnCommand extends Command {
         GlobalSettingsTransformer mainGroupSettings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, context.guild)
             .getGlobalSettings();
         List <Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId(), true);
-        String reason = "Automod, moderative action from " + context.getGuild().getName() + " by " + context.getMember().getEffectiveName();
+        String reason = "Automod, moderative action from " + context.getGuild().getName();
         GlobalModlogType type = expiresAt == null ? GlobalModlogType.GLOBAL_MUTE : GlobalModlogType.GLOBAL_TEMP_MUTE;
 
         try {
@@ -599,7 +599,7 @@ public class WarnCommand extends Command {
             String caseId = GlobalModlog.log(avaire, context, modlogAction);
             GlobalModlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
 
-            avaire.getGlobalMuteManager().registerGlobalMute(caseId, mainGroupSettings.getMainGroupId(), user.getIdLong(), expiresAt);
+            avaire.getGlobalMuteManager().registerGlobalMute(context.getGuild().getIdLong(), caseId, mainGroupSettings.getMainGroupId(), user.getIdLong(), expiresAt);
 
             for (Guild g : guilds) {
                 GuildTransformer transformer = GuildController.fetchGuild(avaire, g);
@@ -649,7 +649,7 @@ public class WarnCommand extends Command {
         GlobalSettingsTransformer mainGroupSettings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, context.guild)
             .getGlobalSettings();
         List <Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId(), true);
-        String reason = "Automod, moderative action from " + context.getGuild().getName() + " by " + context.getMember().getEffectiveName();
+        String reason = "Automod, moderative action from " + context.getGuild().getName();
         GlobalModlogType type = expiresAt == null ? GlobalModlogType.GLOBAL_WATCH : GlobalModlogType.GLOBAL_TEMP_WATCH;
 
         try {
@@ -663,11 +663,11 @@ public class WarnCommand extends Command {
             String caseId = GlobalModlog.log(avaire, context, modlogAction);
             GlobalModlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
 
-            avaire.getGlobalWatchManager().registerGlobalWatch(caseId, mainGroupSettings.getMainGroupId(), user.getIdLong(), expiresAt);
+            avaire.getGlobalWatchManager().registerGlobalWatch(context.getGuild().getIdLong(), caseId, mainGroupSettings.getMainGroupId(), user.getIdLong(), expiresAt);
 
             for (Guild g : guilds) {
                 GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
-                if (transformer == null || transformer.getOnWatchRole() == 0) {
+                if (transformer.getOnWatchRole() == 0) {
                     continue;
                 }
 

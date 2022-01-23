@@ -108,6 +108,10 @@ public class UserInfoCommand extends Command {
             member = context.getGuild().getMember(user);
         }
 
+        if (member == null) {
+            return sendErrorMessage(context, "errors.noUsersWithNameOrId", args[0]);
+        }
+
         Carbon joinedDate = Carbon.createFromOffsetDateTime(member.getTimeJoined());
         Carbon createdDate = Carbon.createFromOffsetDateTime(member.getUser().getTimeCreated());
 
@@ -139,7 +143,7 @@ public class UserInfoCommand extends Command {
         String memberRoles = context.i18n("noRoles");
         if (!member.getRoles().isEmpty()) {
             memberRoles = member.getRoles().stream()
-                .map(role -> role.getName())
+                .map(Role::getName)
                 .collect(Collectors.joining("\n"));
         }
 
@@ -200,10 +204,11 @@ public class UserInfoCommand extends Command {
             }
 
             return context.makeInfo(
-                "**Roblox Username**: :rusername\n" +
-                    "**Roblox ID**: :userId\n" +
-                    "**Ranks**:\n" +
-                    ":userRanks")
+                    """
+                        **Roblox Username**: :rusername
+                        **Roblox ID**: :userId
+                        **Ranks**:
+                        :userRanks""")
                 .set("rusername", verifiedRobloxUser.getRobloxUsername())
                 .set("userId", verifiedRobloxUser.getRobloxId())
                 .set("userRanks", sb.toString())

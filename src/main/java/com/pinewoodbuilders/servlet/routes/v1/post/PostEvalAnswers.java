@@ -2,7 +2,7 @@ package com.pinewoodbuilders.servlet.routes.v1.post;
 
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.metrics.SparkRoute;
-import com.pinewoodbuilders.contracts.roblox.evaluations.PassedEvals;
+import com.pinewoodbuilders.contracts.roblox.evaluations.EvaluationStatus;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
@@ -77,8 +77,7 @@ public class PostEvalAnswers extends SparkRoute {
             return root;
         }
 
-
-        List <PassedEvals> evals = manager.getEvaluationManager().getPassedEvals(userId);
+        EvaluationStatus evals = manager.getEvaluationManager().getEvaluationStatus(userId);
         if (evals == null) {
             response.status(500);
             root.put("error", "XEUS_NO_EVAL_LIST");
@@ -86,7 +85,7 @@ public class PostEvalAnswers extends SparkRoute {
             return root;
         }
 
-        if (evals.contains(PassedEvals.QUIZ)) {
+        if (evals.passedQuiz()) {
             response.status(401);
             root.put("error", "XEUS_ALREADY_PASSED_QUIZ");
             root.put("message", "This user has already passed the quiz. Questions cannot be submitted for this user.");

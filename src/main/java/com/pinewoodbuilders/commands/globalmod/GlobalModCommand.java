@@ -24,6 +24,9 @@ import com.pinewoodbuilders.modlog.global.moderation.GlobalModlog;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogAction;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
 import com.pinewoodbuilders.modlog.global.watch.GlobalWatchlog;
+import com.pinewoodbuilders.modlog.local.moderation.Modlog;
+import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
+import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.*;
 import net.dv8tion.jda.api.Permission;
@@ -164,7 +167,7 @@ public class GlobalModCommand extends Command {
         if (user == null) {
             return sendErrorMessage(context, context.i18n("invalidUserMentioned"));
         }
-        if (!avaire.getGlobalWatchManager().isGlobalWatched(mainGroupSettings.getMainGroupId(), user.getIdLong())) {
+        if (!avaire.getGlobalWatchManager().isGlobalWatched(mainGroupSettings.getMainGroupId(), user.getIdLong(), context.getGuild().getIdLong())) {
             return sendErrorMessage(context, "This user is **not** global muted, check if they are locally muted.");
         }
 
@@ -181,7 +184,7 @@ public class GlobalModCommand extends Command {
 
                 String caseId = GlobalWatchlog.log(avaire, context, modlogAction);
                 GlobalWatchlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
-                avaire.getGlobalWatchManager().unregisterGlobalWatch(mainGroupSettings.getMainGroupId(), user.getIdLong());
+                avaire.getGlobalWatchManager().unregisterGlobalWatch(mainGroupSettings.getMainGroupId(), user.getIdLong(), context.getGuild().getIdLong());
                 context.makeSuccess(context.i18n("userHasBeenUnmuted"))
                     .set("target", user.getAsMention())
                     .queue();
@@ -189,13 +192,21 @@ public class GlobalModCommand extends Command {
 
                 for (Guild g : guilds) {
                     GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
-                    if (transformer == null) continue;
                     if (transformer.getOnWatchRole() == 0) continue;
 
                     Role muteRole = g.getRoleById(transformer.getOnWatchRole());
                     if (muteRole == null) continue;
                     if (!g.getSelfMember().canInteract(muteRole)) continue;
                     if (args.length == 0) return sendErrorMessage(context, "errors.missingArgument", "user");
+
+                    GuildTransformer guildTransformer = GuildController.fetchGuild(avaire, g);
+                    if (guildTransformer.getModlog() != null) {
+                        ModlogAction localAction = new ModlogAction(
+                            ModlogType.UN_ON_WATCH, context.getAuthor(), user, reason
+                        );
+
+                        Modlog.log(avaire, g, localAction);
+                    }
 
                     g.removeRoleFromMember(g.getMember(user), muteRole).reason("PIA Global Unwatch").queue();
                 }
@@ -233,7 +244,7 @@ public class GlobalModCommand extends Command {
         if (user == null) {
             return sendErrorMessage(context, context.i18n("invalidUserMentioned"));
         }
-        if (!avaire.getGlobalMuteManager().isGlobalMuted(mainGroupSettings.getMainGroupId(), user.getIdLong())) {
+        if (!avaire.getGlobalMuteManager().isGlobalMuted(mainGroupSettings.getMainGroupId(), user.getIdLong(), context.getGuild().getIdLong())) {
             return sendErrorMessage(context, "This user is **not** global muted, check if they are locally muted.");
         }
 
@@ -250,7 +261,7 @@ public class GlobalModCommand extends Command {
 
                 String caseId = GlobalModlog.log(avaire, context, modlogAction);
                 GlobalModlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
-                avaire.getGlobalMuteManager().unregisterGlobalMute(mainGroupSettings.getMainGroupId(), user.getIdLong());
+                avaire.getGlobalMuteManager().unregisterGlobalMute(mainGroupSettings.getMainGroupId(), user.getIdLong(), context.getGuild().getIdLong());
                 context.makeSuccess(context.i18n("userHasBeenUnmuted"))
                     .set("target", user.getAsMention())
                     .queue();
@@ -273,6 +284,15 @@ public class GlobalModCommand extends Command {
 
                     if (args.length == 0) {
                         return sendErrorMessage(context, "errors.missingArgument", "user");
+                    }
+
+                    GuildTransformer guildTransformer = GuildController.fetchGuild(avaire, g);
+                    if (guildTransformer.getModlog() != null) {
+                        ModlogAction localAction = new ModlogAction(
+                            ModlogType.UNMUTE, context.getAuthor(), user, reason
+                        );
+
+                        Modlog.log(avaire, g, localAction);
                     }
 
                     g.removeRoleFromMember(g.getMember(user), muteRole).reason("PIA Global Unmute").queue();
@@ -339,7 +359,7 @@ public class GlobalModCommand extends Command {
                 String caseId = GlobalWatchlog.log(avaire, context, modlogAction);
                 GlobalWatchlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
 
-                avaire.getGlobalWatchManager().registerGlobalWatch(caseId, localGuildSettings.getMainGroupId(), user.getIdLong(), finalExpiresAt);
+                avaire.getGlobalWatchManager().registerGlobalWatch(context.getGuild().getIdLong(), caseId, localGuildSettings.getMainGroupId(), user.getIdLong(), finalExpiresAt);
 
                 context.makeSuccess(context.i18n("userHasBeenMuted"))
                     .set("target", user.getAsMention())
@@ -364,6 +384,18 @@ public class GlobalModCommand extends Command {
                     if (!g.getSelfMember().canInteract(muteRole)) continue;
 
                     if (args.length == 0) return sendErrorMessage(context, "errors.missingArgument", "user");
+
+                    GuildTransformer guildTransformer = GuildController.fetchGuild(avaire, g);
+                    if (guildTransformer.getModlog() != null) {
+                        ModlogAction localAction = new ModlogAction(
+                            ModlogType.ON_WATCH, context.getAuthor(), user,
+                            expiresAt != null
+                                ? expiresAt.toDayDateTimeString() + " (" + expiresAt.diffForHumans(true) + ")" + "\n"
+                                + reason : "\n" + reason
+                        );
+
+                        Modlog.log(avaire, g, localAction);
+                    }
 
                     g.addRoleToMember(m, muteRole).queue();
                 }
@@ -430,7 +462,7 @@ public class GlobalModCommand extends Command {
                 String caseId = GlobalModlog.log(avaire, context, modlogAction);
                 GlobalModlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
 
-                avaire.getGlobalMuteManager().registerGlobalMute(caseId, mainGroupSettings.getMainGroupId(), user.getIdLong(), finalExpiresAt);
+                avaire.getGlobalMuteManager().registerGlobalMute(context.getGuild().getIdLong(), caseId, mainGroupSettings.getMainGroupId(), user.getIdLong(), finalExpiresAt);
 
                 context.makeSuccess(context.i18n("userHasBeenMuted"))
                     .set("target", user.getAsMention())
@@ -462,6 +494,18 @@ public class GlobalModCommand extends Command {
 
                     if (args.length == 0) {
                         return sendErrorMessage(context, "errors.missingArgument", "user");
+                    }
+
+                    GuildTransformer guildTransformer = GuildController.fetchGuild(avaire, g);
+                    if (guildTransformer.getModlog() != null) {
+                        ModlogAction localAction = new ModlogAction(
+                            ModlogType.ON_WATCH, context.getAuthor(), user,
+                            expiresAt != null
+                                ? expiresAt.toDayDateTimeString() + " (" + expiresAt.diffForHumans(true) + ")" + "\n"
+                                + reason : "\n" + reason
+                        );
+
+                        Modlog.log(avaire, g, localAction);
                     }
 
                     g.addRoleToMember(m, muteRole).queue();

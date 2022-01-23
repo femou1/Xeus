@@ -153,7 +153,7 @@ public class MemberEventAdapter extends EventAdapter {
         // and the user is still registered as WATCHED for the server.
         if (settings.getOnWatchRole() != 0) {
             Role watch = event.getGuild().getRoleById(settings.getOnWatchRole());
-            if (canGiveRole(event, watch) && (avaire.getOnWatchManger().isOnWatchd(event.getGuild().getIdLong(), event.getUser().getIdLong()) || avaire.getGlobalWatchManager().isGlobalWatched(settings.getMainGroupId(), event.getMember().getIdLong()))) {
+            if (canGiveRole(event, watch) && (avaire.getOnWatchManger().isOnWatchd(event.getGuild().getIdLong(), event.getUser().getIdLong()) || avaire.getGlobalWatchManager().isGlobalWatched(settings.getMainGroupId(), event.getMember().getIdLong(), event.getGuild().getIdLong()))) {
                 event.getGuild().addRoleToMember(
                     event.getMember(), watch
                 ).queue();
@@ -164,7 +164,7 @@ public class MemberEventAdapter extends EventAdapter {
         // and the user is still registered as muted for the server.
         if (transformer.getMuteRole() != null) {
             Role mutedRole = event.getGuild().getRoleById(transformer.getMuteRole());
-            if (canGiveRole(event, mutedRole) && avaire.getGlobalMuteManager().isGlobalMuted(settings.getMainGroupId(), event.getMember().getIdLong())) {
+            if (canGiveRole(event, mutedRole) && avaire.getGlobalMuteManager().isGlobalMuted(settings.getMainGroupId(), event.getMember().getIdLong(), event.getGuild().getIdLong())) {
                 event.getGuild().addRoleToMember(
                     event.getMember(), mutedRole
                 ).queue();

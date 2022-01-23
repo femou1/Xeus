@@ -30,7 +30,7 @@ import com.pinewoodbuilders.database.controllers.GlobalSettingsController;
 import com.pinewoodbuilders.database.controllers.GuildController;
 import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
-import com.pinewoodbuilders.moderation.mute.MuteContainer;
+import com.pinewoodbuilders.moderation.global.globalmute.GlobalMuteContainer;
 import com.pinewoodbuilders.modlog.global.moderation.GlobalModlog;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogAction;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
@@ -63,8 +63,8 @@ public class DrainGlobalMuteQueueTask implements Task {
             return;
         }
 
-        for (Map.Entry<Long, HashSet<MuteContainer>> entry : avaire.getGlobalMuteManager().getGlobalMutes().entrySet()) {
-            for (MuteContainer container : entry.getValue()) {
+        for (Map.Entry<Long, HashSet<GlobalMuteContainer>> entry : avaire.getGlobalMuteManager().getGlobalMutes().entrySet()) {
+            for (GlobalMuteContainer container : entry.getValue()) {
                 if (container.isPermanent() || container.getSchedule() != null) {
                     continue;
                 }
@@ -78,7 +78,7 @@ public class DrainGlobalMuteQueueTask implements Task {
                     }
 
                     log.debug("Unmute task started for guildId:{}, userId:{}, time:{}",
-                        container.getGuildId(), container.getUserId(), differenceInSeconds
+                        container.getRanGuildId(), container.getUserId(), differenceInSeconds
                     );
 
                     container.setSchedule(ScheduleHandler.getScheduler().schedule(
@@ -95,9 +95,9 @@ public class DrainGlobalMuteQueueTask implements Task {
         return System.currentTimeMillis() / 1000L;
     }
 
-    private void handleAutomaticUnmute(Xeus avaire, MuteContainer container) {
+    private void handleAutomaticUnmute(Xeus avaire, GlobalMuteContainer container) {
         try {
-            List<Guild> guilds = getGuildsByMainGroupId(avaire, container.getMgi());
+            List<Guild> guilds = getGuildsByMainGroupId(avaire, container.getMainGroupId());
             if (guilds == null) {
                 container.cancelSchedule();
                 return;
@@ -107,9 +107,9 @@ public class DrainGlobalMuteQueueTask implements Task {
 
             User u = avaire.getShardManager().getUserById(container.getUserId());
             if (u == null) return;
-            if (container.getMgi() == 0) return;
+            if (container.getMainGroupId() == 0) return;
 
-            GlobalSettingsTransformer globalSettings = GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(avaire, container.getMgi());
+            GlobalSettingsTransformer globalSettings = GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(avaire, container.getMainGroupId());
             if (globalSettings == null) return;
 
 
@@ -137,7 +137,7 @@ public class DrainGlobalMuteQueueTask implements Task {
                     );
                 }, throwable -> {
                     log.debug("Failed to remove role from {} on the {} guild, error: {}",
-                        container.getUserId(), container.getGuildId(), throwable.getMessage(), throwable
+                        container.getUserId(), container.getRanGuildId(), throwable.getMessage(), throwable
                     );
                 });
 
@@ -162,12 +162,12 @@ public class DrainGlobalMuteQueueTask implements Task {
         }
     }
 
-    private void unregisterDatabaseRecord(Xeus avaire, MuteContainer container) {
+    private void unregisterDatabaseRecord(Xeus avaire, GlobalMuteContainer container) {
         try {
-            avaire.getGlobalMuteManager().unregisterGlobalMute(container.getGuildId(), container.getUserId());
+            avaire.getGlobalMuteManager().unregisterGlobalMute(container.getMainGroupId(), container.getUserId(), container.getRanGuildId());
         } catch (SQLException e) {
             log.error("Failed to unregister mute for guildId:{}, userId:{}",
-                container.getGuildId(), container.getUserId(), e
+                container.getRanGuildId(), container.getUserId(), e
             );
         }
     }

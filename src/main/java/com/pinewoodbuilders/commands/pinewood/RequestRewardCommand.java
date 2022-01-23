@@ -4,38 +4,27 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
-import com.pinewoodbuilders.blacklist.features.FeatureScope;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
-import com.pinewoodbuilders.database.collection.DataRow;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.factories.RequestFactory;
-import com.pinewoodbuilders.requests.Request;
-import com.pinewoodbuilders.requests.Response;
-import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
-import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
-import java.awt.*;
 import java.sql.SQLException;
-import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import static com.pinewoodbuilders.utilities.JsonReader.readJsonFromUrl;
 
@@ -62,42 +51,44 @@ public class RequestRewardCommand extends Command {
     }
 
     @Override
-    public List<String> getUsageInstructions() {
+    public List <String> getUsageInstructions() {
         return Collections.singletonList(
             "`:command` - Start the reward system."
         );
     }
 
     @Override
-    public List<String> getExampleUsage() {
+    public List <String> getExampleUsage() {
         return Collections.singletonList(
             "`:command` - Start the reward system."
         );
     }
 
     @Override
-    public List<String> getTriggers() {
+    public List <String> getTriggers() {
         return Arrays.asList("rr", "request-reward");
     }
 
     @Nonnull
     @Override
-    public List<CommandGroup> getGroups() {
+    public List <CommandGroup> getGroups() {
         return Collections.singletonList(
             CommandGroups.MISCELLANEOUS
         );
     }
 
     @Override
-    public List<String> getMiddleware() {
+    public List <String> getMiddleware() {
         return Arrays.asList(
-            "isPinewoodGuild",
             "throttle:guild,1,30"
         );
     }
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
+        if (true) {
+            return false;
+        }
         GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             context.makeError("Something went wrong loading the guild settings. Please try again later.").queue();
@@ -106,37 +97,37 @@ public class RequestRewardCommand extends Command {
         if (args.length > 0) {
             if (XeusPermissionUtil.getPermissionLevel(context).getLevel() >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
                 switch (args[0].toLowerCase()) {
-                    case "sc":
-                    case "set-channel": {
-                        return runSetRemittanceChannel(context, args);
-                    }
-                    case "clear":
-                    case "reset": {
-                        return runClearAllChannelsFromDatabase(context);
-                    }
-                    default: {
-                        return sendErrorMessage(context, "Invalid argument given.");
-                    }
+                    case "sc", "set-channel" -> runSetRemittanceChannel(context, args);
+
+                    case "clear", "reset" -> runClearAllChannelsFromDatabase(context);
+
+                    default -> sendErrorMessage(context, "Invalid argument given.");
+
                 }
             }
         }
 
-        return startRemittanceWaiter(context, args);
+        return startRewardWaiter(context, args);
     }
 
-    private boolean startRemittanceWaiter(CommandMessage context, String[] args) {
+    private boolean startRewardWaiter(CommandMessage context, String[] args) {
         if (checkAccountAge(context)) {
-            context.makeError("Sorry, but only discord accounts that are older then 3 days are allowed to make actual reports.\nIf this is an important violation, please contact a trainer.").queue();
+            context.makeError("Sorry, but to prevent spam or abuse, only discord accounts older then 3 days may make a reward request.").queue();
             return false;
         }
 
-        context.makeInfo("<a:loading:742658561414266890> Loading servers that are using recorded remittance...").queue(l -> {
-            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("patrol_remittance_channel");
+        context.makeInfo("<a:loading:742658561414266890> Loading servers that are using recorded rewards...").queue(l -> {
+            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where(consumer -> {
+                consumer.where("request_reward_channel_id", "!=", null);
+            }).orderBy("request_reward_channel_id");
             try {
-
+                if (qb.get().size() == 0) {
+                    context.makeError("No servers are using recorded rewards.").queue();
+                    return;
+                }
                 StringBuilder sb = new StringBuilder();
                 qb.get().forEach(dataRow -> {
-                    if (dataRow.getString("patrol_remittance_channel") != null) {
+                    if (dataRow.getString("request_reward_channel_id") != null) {
                         Guild g = avaire.getShardManager().getGuildById(dataRow.getString("id"));
                         Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("emoji_id"));
 
@@ -150,51 +141,12 @@ public class RequestRewardCommand extends Command {
 
                 });
                 l.addReaction("❌").queue();
-                l.editMessageEmbeds(context.makeInfo("Welcome to the recorded remittance system. With this feature, you can record your patrolling/raiding for groups that have this enabled!\n\n" + sb.toString()).buildEmbed()).queue(
+                l.editMessageEmbeds(context.makeInfo("Welcome to the recorded reward request system. Please select the group you wanna reward someone in!\n\n" + sb.toString()).buildEmbed()).queue(
                     message -> {
                         avaire.getWaiter().waitForEvent(MessageReactionAddEvent.class, event -> {
                                 return event.getMember().equals(context.member) && event.getMessageId().equalsIgnoreCase(message.getId());
                             }, react -> {
-                                try {
-                                    if (react.getReactionEmote().getName().equalsIgnoreCase("❌")) {
-                                        message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).queue();
-                                        message.clearReactions().queue();
-                                        return;
-                                    }
-                                    DataRow d = qb.where("emoji_id", react.getReactionEmote().getId()).get().get(0);
 
-                                    TextChannel c = avaire.getShardManager().getTextChannelById(d.getString("patrol_remittance_channel"));
-                                    if (c != null) {
-                                        if (avaire.getFeatureBlacklist().isBlacklisted(context.getAuthor(), c.getGuild().getIdLong(), FeatureScope.PATROL_REMITTANCE)) {
-                                            message.editMessageEmbeds(context.makeError("You have been blacklisted from requesting a remittance for this guild. Please ask a **Level 4** (Or higher) member to remove you from the ``"+c.getGuild().getName()+"`` remittance blacklist.").buildEmbed()).queue();
-                                            return;
-                                        }
-                                        message.editMessageEmbeds(context.makeInfo(d.getString("patrol_remittance_message", "A remittance message for ``:guild`` could not be found. Ask the HR's of ``:guild`` to set one.\n" +
-                                            "If you'd like to request remittance, please enter evidence of this in right now." +"``` ```\n\nPlease enter a **LINK** to evidence. " +
-                                            "\n**Remember, you may only post once per 24 hours. The video may *only be 2 hours* and has to have a *minimum of 30 minutes* in duration**\n\n" +
-                                            "**We're accepting**:\n" +
-                                            "- [YouTube Links](https://www.youtube.com/upload)\n" +
-                                            "- [Streamable](https://streamable.com)\n" +
-                                            "If you want a link/video service added, please ask ``Stefano#7366``")).set("guild", d.getString("name")).set(":user", context.member.getEffectiveName()).buildEmbed()).queue(
-                                            nameMessage -> {
-                                                avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, m -> m.getMember().equals(context.member) && message.getChannel().equals(l.getChannel()) && checkEvidenceAcceptance(context, m),
-                                                    content -> {
-                                                        goToStep2(context, message, content, d, c);
-                                                    },
-                                                    90, TimeUnit.SECONDS,
-                                                    () -> message.editMessage("You took to long to respond, please restart the report system!").queue());
-
-
-                                            }
-                                        );
-                                        message.clearReactions().queue();
-                                    } else {
-                                        context.makeError("The guild doesn't have a (valid) channel for suggestions").queue();
-                                    }
-
-                                } catch (SQLException throwables) {
-                                    context.makeError("Something went wrong while checking the database, please check with the developer for any errors.").queue();
-                                }
                             },
                             5, TimeUnit.MINUTES,
                             () -> {
@@ -211,163 +163,8 @@ public class RequestRewardCommand extends Command {
     }
 
 
-    private boolean checkIfBlacklisted(Long requestedId, TextChannel c) {
-
-        if (c.getGuild().getId().equalsIgnoreCase("438134543837560832")) {
-            return avaire.getBlacklistManager().getPBSTBlacklist().contains(requestedId);
-        } else if (c.getGuild().getId().equalsIgnoreCase("572104809973415943")) {
-            return avaire.getBlacklistManager().getTMSBlacklist().contains(requestedId);
-        } else if (c.getGuild().getId().equalsIgnoreCase("436670173777362944")) {
-            return avaire.getBlacklistManager().getPETBlacklist().contains(requestedId);
-        } else {
-            return false;
-        }
-    }
-
-    private void goToStep2(CommandMessage context, Message message, MessageReceivedEvent content, DataRow d, TextChannel c) {
-        {
-            List<Message> messagesToRemove = new ArrayList <>();
-            messagesToRemove.add(content.getMessage());
-            if (content.getMessage().getContentRaw().equalsIgnoreCase("cancel")) {
-                message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).queue();
-                removeAllUserMessages(messagesToRemove);
-                return;
-            }
-
-            Long requestedId = getRobloxId(context.getMember().getEffectiveName());
-            if (requestedId == 0L) {
-                context.makeError("Sorry, but your nickname does not exist on roblox. Please run ``!verify`` to get your nickname updated.").queue();
-                removeAllUserMessages(messagesToRemove);
-                return;
-            }
-
-            boolean isBlacklisted = checkIfBlacklisted(requestedId, c);
-            if (isBlacklisted) {
-                message.editMessageEmbeds(context.makeWarning("You're blacklisted in ``" + c.getGuild().getName() + "``, for this reason you will not be allowed to request a remittance.").buildEmbed()).queue();
-                removeAllUserMessages(messagesToRemove);
-                return;
-            }
-
-            boolean hasNotExpired = cache.getIfPresent(requestedId) == c.getGuild();
-            if (hasNotExpired) {
-                context.makeError("You've already submitted a remittance request for `:guildName`, please wait 24 hours after the last time you've submitted a remittance request.")
-                    .set("guildName", c.getGuild().getName()).queue();
-                message.editMessage("ERROR. PLEASE CHECK BELOW").queue();
-                removeAllUserMessages(messagesToRemove);
-                return;
-            }
-
-            if (d.getInt("roblox_group_id") != 0) {
-                Request requestedRequest = RequestFactory.makeGET("https://groups.roblox.com/v1/users/" + requestedId + "/groups/roles");
-                requestedRequest.send((Consumer<Response>) response -> {
-                    if (response.getResponse().code() == 200) {
-                        RobloxUserGroupRankService grs = (RobloxUserGroupRankService) response.toService(RobloxUserGroupRankService.class);
-                        Optional<RobloxUserGroupRankService.Data> b = grs.getData().stream().filter(g -> g.getGroup().getId() == d.getInt("roblox_group_id")).findFirst();
-
-                        if (b.isPresent()) {
-                            startConfirmationWaiter(context, message, b, d, content, messagesToRemove);
-                        } else {
-                            //context.makeInfo(String.valueOf(response.getResponse().code())).queue();
-                            context.makeError("You're not in ``:guild``, please check if this is correct or not.").set("guild", d.getString("name")).queue();
-                            removeAllUserMessages(messagesToRemove);
-                        }
-                    }
-                });
-            } else {
-                startConfirmationWaiter(context, message, Optional.empty(), d, content, messagesToRemove);
-            }
-        }
-    }
-
-    private void startConfirmationWaiter(CommandMessage context, Message message, Optional<RobloxUserGroupRankService.Data> b, DataRow d, MessageReceivedEvent content, List<Message> messagesToRemove) {
-        Button b1 = Button.success("yes:" + message.getId(), "Yes").withEmoji(Emoji.fromUnicode("✅"));
-        Button b2 = Button.danger("no:" + message.getId(), "No").withEmoji(Emoji.fromUnicode("❌"));
-
-
-        message.editMessageEmbeds(context.makeInfo("Ok, so. I've collected everything you've told me. And this is the data I got:\n\n" +
-            "**Username**: " + context.getMember().getEffectiveName() + "\n" +
-            "**Group**: " + d.getString("name") + "\n" + (b.map(data -> "**Rank**: " + data.getRole().getName() + "\n").orElse("\n")) +
-            "**Evidence**: \n" + content.getMessage().getContentRaw() +
-            "\n\nIs this correct?").buildEmbed()).setActionRow(b1.asEnabled(), b2.asEnabled()).queue(l -> {
-            //l.addReaction("✅").queue();
-            //l.addReaction("❌").queue();
-            avaire.getWaiter().waitForEvent(ButtonClickEvent.class, r -> isValidMember(r, context, l), send -> {
-                if (send.getButton().getEmoji().getName().equalsIgnoreCase("❌") || send.getButton().getEmoji().getName().equalsIgnoreCase("x")) {
-                    message.editMessageEmbeds(context.makeSuccess("Remittance has been canceled, if you want to restart the report. Do ``!pr`` in any bot-commands channel.").buildEmbed()).setActionRows(Collections.emptyList()).queue();
-                    removeAllUserMessages(messagesToRemove);
-                } else if (send.getButton().getEmoji().getName().equalsIgnoreCase("✅")) {
-                    message.editMessage("Report has been \"sent\".").setActionRows(Collections.emptyList()).queue();
-                    sendReport(context, message, b, d, context.getMember().getEffectiveName(), content.getMessage().getContentRaw(), messagesToRemove);
-                    removeAllUserMessages(messagesToRemove);
-                } else {
-                    message.editMessage("Invalid button given, report deleted!").setActionRows(Collections.emptyList()).queue();
-                    removeAllUserMessages(messagesToRemove);
-                }
-            }, 5, TimeUnit.MINUTES, () -> {
-                removeAllUserMessages(messagesToRemove);
-                message.editMessage("You took to long to respond, please restart the report system!").queue();
-            });
-        });
-    }
-
-    private void removeAllUserMessages(List<Message> messagesToRemove) {
-        for (Message m : messagesToRemove) {
-            m.delete().queue();
-        }
-    }
-
-    private void sendReport(CommandMessage context, Message message, Optional<RobloxUserGroupRankService.Data> groupInfo, DataRow dataRow, String username, String evidence, List<Message> messagesToRemove) {
-        TextChannel tc = avaire.getShardManager().getTextChannelById(dataRow.getString("patrol_remittance_channel"));
-
-        if (tc != null) {
-            Button b1 = Button.success("accept:" + message.getId(), "Accept").withEmoji(Emoji.fromUnicode("✅"));
-            Button b2 = Button.danger("reject:" + message.getId(), "Reject").withEmoji(Emoji.fromUnicode("❌"));
-            Button b3 = Button.secondary("remove:" + message.getId(), "Delete").withEmoji(Emoji.fromUnicode("\uD83D\uDEAB"));
-
-
-            tc.sendMessageEmbeds(context.makeEmbeddedMessage(new Color(32, 34, 37))
-                .setAuthor("Remittance created for: " + username, null, getImageByName(context.guild, username))
-                .setDescription(
-                    "**Username**: " + username + "\n" +
-                        (groupInfo.map(data -> "**Rank**: " + data.getRole().getName() + "\n").orElse("")) +
-                        "**Evidence**: \n" + evidence)
-                .requestedBy(context)
-                .setTimestamp(Instant.now())
-                .buildEmbed())
-                .setActionRow(b1.asEnabled(), b2.asEnabled(), b3.asEnabled())
-                .queue(
-                    finalMessage -> {
-
-                        message.editMessageEmbeds(context.makeSuccess("[Your remittance has been created in the correct channel.](:link).").set("link", finalMessage.getJumpUrl())
-                            .buildEmbed())
-                            .queue();
-                        //createReactions(finalMessage);
-                        try {
-                            avaire.getDatabase().newQueryBuilder(Constants.REMITTANCE_DATABASE_TABLE_NAME).insert(data -> {
-                                data.set("pb_server_id", finalMessage.getGuild().getId());
-                                data.set("request_message_id", finalMessage.getId());
-                                data.set("requester_discord_id", context.getAuthor().getId());
-                                data.set("requester_discord_name", context.getMember().getEffectiveName(), true);
-                                data.set("requester_roblox_id", getRobloxId(username));
-                                data.set("requester_roblox_name", username);
-                                data.set("requester_evidence", evidence, true);
-                                data.set("requester_roblox_rank", groupInfo.map(value -> value.getRole().getName()).orElse(null));
-                            });
-
-                            cache.put(getRobloxId(username), context.getGuild());
-                        } catch (SQLException throwables) {
-                            Xeus.getLogger().error("ERROR: ", throwables);
-                        }
-
-                    }
-                );
-        } else {
-            context.makeError("Channel can't be found for the guild ``" + dataRow.getString("name") + "``. Please contact the bot developer, or guild HRs.");
-        }
-    }
-
     private String getImageByName(Guild guild, String username) {
-        List<Member> members = guild.getMembersByEffectiveName(username, true);
+        List <Member> members = guild.getMembersByEffectiveName(username, true);
 
         if (members.size() < 1) return null;
         if (members.size() > 1) return null;
@@ -406,7 +203,7 @@ public class RequestRewardCommand extends Command {
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
-                q.set("patrol_remittance_channel", null);
+                q.set("request_reward_channel_id", null);
             });
 
             context.makeSuccess("Any information about the remittance channels has been removed from the database.").queue();
@@ -436,15 +233,13 @@ public class RequestRewardCommand extends Command {
     }
 
 
-
-
     private boolean updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel) {
         transformer.setPatrolRemittanceChannel(channel.getIdLong());
 
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
-                q.set("patrol_remittance_channel", transformer.getPatrolRemittanceChannel());
+                q.set("request_reward_channel_id", transformer.getRewardRequestChannelId());
             });
 
             context.makeSuccess("Remittance have been enabled for :channel").set("channel", channel.getAsMention()).queue();

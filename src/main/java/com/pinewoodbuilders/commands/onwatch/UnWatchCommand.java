@@ -118,7 +118,7 @@ public class UnWatchCommand extends OnWatchableCommand {
         GuildSettingsTransformer globalSettingsTransformer = context.getGuildSettingsTransformer();
         if (globalSettingsTransformer != null) {
             long mgi = globalSettingsTransformer.getMainGroupId() != 0 ? globalSettingsTransformer.getMainGroupId() : 0;
-            if (avaire.getGlobalWatchManager().isGlobalWatched(mgi, user.getIdLong())) {
+            if (avaire.getGlobalWatchManager().isGlobalWatched(mgi, user.getIdLong(), context.getGuild().getIdLong())) {
                 return sendErrorMessage(context, "This user has a global watch on their name, hence you cannot unwatch this person. If you are a MGM, please use `gm uw` to this person across all connected guilds.");
             }
         }

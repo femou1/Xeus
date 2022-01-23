@@ -1,7 +1,7 @@
 package com.pinewoodbuilders.commands.automod;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.administration.ListAliasesCommand;
 import com.pinewoodbuilders.contracts.commands.Command;
@@ -10,8 +10,6 @@ import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.Guild.MFALevel;
-import net.dv8tion.jda.api.entities.Guild.VerificationLevel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -60,7 +58,6 @@ public class ToggleAutoModCommand extends Command {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isPinewoodGuild",
             "throttle:user,2,5",
             "isGuildLeadership"
         );
