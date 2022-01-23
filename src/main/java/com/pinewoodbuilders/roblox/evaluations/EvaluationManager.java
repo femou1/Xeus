@@ -1,17 +1,16 @@
 package com.pinewoodbuilders.roblox.evaluations;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.cache.CacheType;
 import com.pinewoodbuilders.contracts.cache.CacheAdapter;
-import com.pinewoodbuilders.contracts.roblox.evaluations.PassedEvals;
+import com.pinewoodbuilders.contracts.roblox.evaluations.EvaluationStatus;
 import com.pinewoodbuilders.database.collection.Collection;
+import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
 
 import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.List;
 
 public class EvaluationManager {
 
@@ -25,82 +24,55 @@ public class EvaluationManager {
         this.manager = robloxAPIManager;
     }
 
-    public List <PassedEvals> getPassedEvals(Long robloxId) {
-        if (avaire.getRobloxAPIManager().getUserAPI().getUsername(robloxId) == null) {
-            return null;
-        }
-        List <PassedEvals> pe = new LinkedList <>();
-        try {
-            Collection c = avaire.getDatabase().newQueryBuilder(Constants.EVALS_DATABASE_TABLE_NAME).where("roblox_id", robloxId).get();
-            if (c.isEmpty()) {
-                return pe;
-            }
-
-            c.forEach(pes -> {
-                if (pes.getBoolean("passed_quiz")) {
-                    pe.add(PassedEvals.COMBAT);
-                }
-                if (pes.getBoolean("passed_patrol")) {
-                    pe.add(PassedEvals.PATROL);
-                }
-                if (pes.getBoolean("passed_combat")) {
-                    pe.add(PassedEvals.COMBAT);
-                }
-            });
-            return pe;
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-            return null;
-        }
-    }
-
-    public boolean setStatus(Long robloxId, PassedEvals eval, boolean isPassed) {
+    public EvaluationStatus getEvaluationStatus(Long robloxId) {
         String username = manager.getUserAPI().getUsername(robloxId);
         if (username == null) {
-            return false;
+            return new EvaluationStatus(false, false, false, false, null, null, null);
         }
 
-        if (eval == null) {
-            return false;
-        }
-
-        QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.EVALS_DATABASE_TABLE_NAME).where("roblox_id", robloxId);
         try {
-            if (getPassedEvals(robloxId) != null) {
-                qb.update(statement -> {
-                    statement.set(eval.getName(), isPassed).set("roblox_username", username);
-                });
-            } else {
-                qb.insert(statement -> {
-                    statement.set(eval.getName(), isPassed).set("roblox_username", username);
-                });
+            Collection qb = avaire.getDatabase().newQueryBuilder(Constants.EVALS_DATABASE_TABLE_NAME).where("roblox_id", robloxId).get();
+
+            if (qb.isEmpty()) {
+                return new EvaluationStatus(false, false, false, false, null, null, null);
             }
-            return true;
+
+            if (qb.size() > 1) {
+                return new EvaluationStatus(false, false, false, false, null, null, null);
+            }
+
+            DataRow dr = qb.get(0);
+            return new EvaluationStatus(
+                dr.getBoolean("passed_quiz"),
+                dr.getBoolean("passed_patrol"),
+                dr.getBoolean("passed_combat"),
+                dr.getBoolean("passed_consensus"),
+                dr.getString("evaluator"),
+                dr.getTimestamp("updated_at"),
+                dr.getTimestamp("created_at")
+            );
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-            return false;
         }
+        return new EvaluationStatus(false, false, false, false, null, null, null);
     }
 
-    public boolean addQuizToDatabase(Long robloxId, Long guildId, Long messageId) {
+
+
+    public void addQuizToDatabase(Long robloxId, Long guildId, Long messageId) {
         String username = manager.getUserAPI().getUsername(robloxId);
         if (username == null) {
-            return false;
+            return;
         }
 
         try {
             QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.PENDING_QUIZ_TABLE_NAME).where("roblox_id", robloxId);
-            if (qb.get().isEmpty()) {
-                qb.insert(statement -> {
-                    statement.set("roblox_id", robloxId).set("message_id", messageId).set("server_id", guildId);
-                });
-                return true;
-            } else {
-                return false;
-            }
+            if (!qb.get().isEmpty()) {return;}
+            qb.insert(statement -> {
+                statement.set("roblox_id", robloxId).set("message_id", messageId).set("server_id", guildId);
+            });
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-            return false;
         }
     }
 
@@ -113,8 +85,8 @@ public class EvaluationManager {
         try {
             QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.PENDING_QUIZ_TABLE_NAME).where("roblox_id", robloxId);
             return !qb.get().isEmpty();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
             return false;
         }
     }

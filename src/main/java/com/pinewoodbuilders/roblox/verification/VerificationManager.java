@@ -80,7 +80,16 @@ public class VerificationManager {
                 if (!vr.isSuccess()) {
                     originalMessage.editMessageEmbeds(context.makeError(vr.getMessage()).buildEmbed()).queue();
                 } else {
-                    originalMessage.editMessageEmbeds(context.makeSuccess(vr.getMessage()).buildEmbed()).queue();
+                    originalMessage.editMessageEmbeds(context.makeSuccess(vr.getMessage()).buildEmbed()).queue(verifyMessage -> {
+                        VerificationTransformer vt = VerificationController.fetchGuild(avaire, context.message);
+                        if (vt == null) return;
+                        if (vt.getVerifyChannel() == 0) return;
+
+                        if (vt.getVerifyChannel() == context.getChannel().getIdLong()) {
+                            verifyMessage.delete().queueAfter(5, TimeUnit.MINUTES);
+                            context.message.delete().queueAfter(5, TimeUnit.MINUTES);
+                        }
+                    });
                 }
             });
 

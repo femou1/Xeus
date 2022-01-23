@@ -94,7 +94,6 @@ public class ModifyLockChannelCommand extends Command {
     @Override
     public List <String> getMiddleware() {
         return Arrays.asList(
-            "isPinewoodGuild",
             "isGuildLeadership",
             "throttle:user,1,5"
         );
@@ -115,11 +114,9 @@ public class ModifyLockChannelCommand extends Command {
         }
 
         GuildChannel channel = MentionableUtil.getChannel(context.getMessage(), args);
-        if (channel == null || !(channel instanceof TextChannel)) {
+        if (!(channel instanceof TextChannel textChannel)) {
             return sendErrorMessage(context, context.i18n("invalidChannel"));
         }
-
-        TextChannel textChannel = (TextChannel) channel;
 
         if (!textChannel.canTalk()) {
             return sendErrorMessage(context, context.i18n("cantTalkInChannel",
@@ -172,11 +169,10 @@ public class ModifyLockChannelCommand extends Command {
                 break;
 
             case UNKNOWN:
-                if (guildTransformer.getLockableChannels().contains(channel.getIdLong())) {
+                if (guildTransformer.getLockableChannels().contains(channel.getIdLong()))
                     guildTransformer.getLockableChannels().remove(channel.getIdLong());
-                } else {
+                 else
                     guildTransformer.getLockableChannels().add(channel.getIdLong());
-                }
                 break;
         }
 
@@ -185,11 +181,9 @@ public class ModifyLockChannelCommand extends Command {
         try {
             avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
                 .where("id", context.getGuild().getId())
-                .update(statement -> {
-                    statement.set("lockable_channels", Xeus.gson.toJson(
-                        guildTransformer.getLockableChannels()
-                    ), true);
-                });
+                .update(statement -> statement.set("lockable_channels", Xeus.gson.toJson(
+                    guildTransformer.getLockableChannels()
+                ), true));
 
             context.makeSuccess(context.i18n("success"))
                 .set("channel", channel.getAsMention())

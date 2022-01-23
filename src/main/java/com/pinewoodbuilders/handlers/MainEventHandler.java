@@ -456,10 +456,8 @@ public class MainEventHandler extends EventHandler {
     @Override
     public void onGuildMessageReactionAdd(@Nonnull GuildMessageReactionAddEvent event) {
         if (isValidMessageReactionEvent(event)) {
-            if (event.getChannel().getId().equals(Constants.REWARD_REQUESTS_CHANNEL_ID)) {
-                reactionEmoteEventAdapter.onPBSTRequestRewardMessageAddEvent(event);
-            }
 
+            reactionEmoteEventAdapter.onPBSTRequestRewardMessageAddEvent(event);
             reactionEmoteEventAdapter.onGuildSuggestionValidation(event);
             reactionEmoteEventAdapter.onReportsReactionAdd(event);
             reactionEmoteEventAdapter.onFeedbackMessageEvent(event);

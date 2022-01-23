@@ -259,7 +259,7 @@ administration:
         failedToUpdate: "Failed to save the changes to the database, please try again. If the issue persists, please contact one of my developers."
         listChannels: "All the channels mentioned below currently have their level rewards turned off, any channel not on this list is unaffected.\n\n:channels"
         listChannelsTitle: "Channels with their Level Rewards disabled ({0})"
-        success: "The XP rewards for the :channel channel has been **:status**!"
+        success: "c"
         status:
             enabled: "Enabled"
             disabled: "Disabled"

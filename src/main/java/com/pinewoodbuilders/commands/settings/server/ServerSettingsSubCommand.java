@@ -9,7 +9,7 @@ import com.pinewoodbuilders.contracts.moderation.LinkLevel;
 import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.moderation.filter.filter.LinkContainer;
+import com.pinewoodbuilders.moderation.global.filter.filter.LinkContainer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
@@ -71,6 +71,8 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             default -> command.sendErrorMessage(context, "I'm unable to find the argument you're looking for, ya twat. Try again. Lemme remind you of the possible commands.", 5, TimeUnit.MINUTES);
         };
     }
+
+
 
     private boolean runLinkFilter(CommandMessage context, GuildSettingsTransformer guildTransformer, String[] args) {
         if (guildTransformer.getMainGroupId() == 0) {

@@ -32,7 +32,6 @@ import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.middleware.MiddlewareStack;
 import com.pinewoodbuilders.utilities.RestActionUtil;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.Message;
 
@@ -126,7 +125,8 @@ public class IsCategoryEnabled extends Middleware {
 
     private boolean isCategoryCommands(MiddlewareStack stack) {
         return stack.getCommand().getClass().getTypeName().equals("com.pinewoodbuilders.commands.administration.ToggleCategoryCommand") ||
-            stack.getCommand().getClass().getTypeName().equals("com.pinewoodbuilders.commands.administration.CategoriesCommand");
+            stack.getCommand().getClass().getTypeName().equals("com.pinewoodbuilders.commands.administration.CategoriesCommand") ||
+            stack.getCommand().getClass().getTypeName().equals("com.pinewoodbuilders.commands.administration.ModifyAdminCommandsChannelCommand");
     }
 
     private boolean isHelpCommand(MiddlewareStack stack) {

@@ -116,8 +116,7 @@ public class KronosManager {
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200 && response.body() != null) {
                 String body = response.body().string();
-                JSONObject array = new JSONObject(body);
-                return array;
+                return new JSONObject(body);
             } else if (response.code() == 404) {
                 return new JSONObject();
             } else if (response.code() == 501) {

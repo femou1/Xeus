@@ -79,10 +79,10 @@ public class RobloxUserAPIRoutes {
         return null;
     }
 
-    public Long getIdFromUsername(String username) {
+    public long getIdFromUsername(String username) {
         String userId = cache.getIfPresent("robloxId." + username);
         if (userId != null) {
-            return Long.valueOf(userId);
+            return Long.parseLong(userId);
         }
 
         request.url("https://api.roblox.com/users/get-by-username?username={userId}".replace("{userId}", username));
@@ -96,7 +96,7 @@ public class RobloxUserAPIRoutes {
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
         }
-        return null;
+        return 0;
     }
 
 

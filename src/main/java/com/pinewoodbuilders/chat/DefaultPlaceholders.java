@@ -29,8 +29,7 @@ class DefaultPlaceholders {
     static String parse(PlaceholderType type, Object object, String message) {
         switch (type) {
             case ALL:
-                if (object instanceof Message && ((Message) object).getChannelType().isGuild()) {
-                    Message jdaMessage = (Message) object;
+                if (object instanceof Message jdaMessage && ((Message) object).getChannelType().isGuild()) {
 
                     return parseGuild(jdaMessage.getGuild(), parseChannel(jdaMessage.getTextChannel(), parseUser(jdaMessage.getAuthor(), message)));
                 }
@@ -56,12 +55,12 @@ class DefaultPlaceholders {
                 break;
 
             case USER:
-                if (object instanceof User) {
-                    return parseUser((User) object, message);
+                if (object instanceof User usr) {
+                    return parseUser(usr, message);
                 }
 
-                if (object instanceof Message && ((Message) object).getAuthor() != null) {
-                    return parseUser(((Message) object).getAuthor(), message);
+                if (object instanceof Message msg) {
+                    return parseUser(msg.getAuthor(), message);
                 }
                 break;
 
@@ -85,7 +84,7 @@ class DefaultPlaceholders {
     }
 
     static String toChannel(Message message, String string) {
-        if (message.getTextChannel() == null || string == null) return string;
+        if (string == null) return null;
         return parseChannel(message.getTextChannel(), string);
     }
 
@@ -98,7 +97,7 @@ class DefaultPlaceholders {
     }
 
     static String toUser(Message message, String string) {
-        if (message.getAuthor() == null || string == null) return string;
+        if (string == null) return null;
         return parseUser(message.getAuthor(), string);
     }
 

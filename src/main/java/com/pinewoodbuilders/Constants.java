@@ -60,14 +60,17 @@ public class Constants {
     public static final String MGM_LOG_TABLE_NAME = "mgm_logs";
     public static final String MGM_LOG_TYPES_TABLE_NAME = "mgm_logs_types";
     public static final String LINK_FILTER_TABLE_NAME = "link_filter";
-
+    public static final String GLOBAL_MUTE_TABLE_NAME = "global_mutes";
+    public static final String GLOBAL_WATCH_TABLE_NAME = "global_watch";
+    public static final String GLOBAL_SETTINGS_TABLE = "global_settings";
+    public static final String WARNINGS_TABLE_NAME = "warns";
 
     // Pinewood Specific Tables
-    public static final String GLOBAL_SETTINGS_TABLE = "global_settings";
     public static final String EVALS_DATABASE_TABLE_NAME = "pinewood_evaluations";
     public static final String EVALS_LOG_DATABASE_TABLE_NAME = "pinewood_evaluations_log";
     public static final String PENDING_QUIZ_TABLE_NAME = "pinewood_pending_quiz";
-    public static final String WARNINGS_TABLE_NAME = "warns";
+
+    public static final String REWARD_REQUESTS_TABLE_NAME = "reward_requests";
 
     public static final String VOTE_TABLE_NAME = "xeus_vote";
     public static final String VOTES_TABLE_NAME = "xeus_votes";
@@ -107,10 +110,12 @@ public class Constants {
     // Command source link
     public static final String SOURCE_URI = "https://gitlab.com/pinewood-builders/discord/xeus/-/blob/master/src/main/java/com/avairebot/commands/%s/%s.java";
 
-    public static final String REWARD_REQUESTS_CHANNEL_ID = "722606219319181392";
     public static final String PIA_LOG_CHANNEL = "788316320747094046";
 
     // Official Pinewood Guilds
+    @Deprecated
+    @ReplaceWith("PWB_GUILD_ID")
+    @ForRemoval()
     public static final ArrayList <String> guilds = new ArrayList<String>() {{
         add("495673170565791754"); // Aerospace
         add("438134543837560832"); // PBST

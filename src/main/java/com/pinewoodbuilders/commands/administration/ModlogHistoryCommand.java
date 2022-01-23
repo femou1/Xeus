@@ -91,6 +91,7 @@ public class ModlogHistoryCommand extends Command {
     public List <String> getMiddleware() {
         return Arrays.asList(
             "isGuildHROrHigher",
+            "usedInAdminChannel",
             "throttle:channel,1,5"
         );
     }

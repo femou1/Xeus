@@ -57,6 +57,14 @@ public class GuildAndGlobalSettingsCommand extends Command {
     }
 
     @Override
+    public List<String> getMiddleware() {
+        return List.of(
+            "isGuildHROrHigher",
+            "usedInAdminChannel"
+        );
+    }
+
+    @Override
     public boolean onCommand(CommandMessage context, String[] args) {
         if (args.length < 1) {
             context.makeInfo("I'm missing an argument. Please provide me with any of the following options next time:\n" +

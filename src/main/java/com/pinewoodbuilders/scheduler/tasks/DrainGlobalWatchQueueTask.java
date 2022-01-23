@@ -30,7 +30,7 @@ import com.pinewoodbuilders.database.controllers.GlobalSettingsController;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.moderation.watch.WatchContainer;
+import com.pinewoodbuilders.moderation.global.globalwatch.GlobalWatchContainer;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogAction;
 import com.pinewoodbuilders.modlog.global.shared.GlobalModlogType;
 import com.pinewoodbuilders.modlog.global.watch.GlobalWatchlog;
@@ -60,8 +60,8 @@ public class DrainGlobalWatchQueueTask implements Task {
             return;
         }
 
-        for (Map.Entry<Long, HashSet<WatchContainer>> entry : avaire.getGlobalWatchManager().getGlobalWatches().entrySet()) {
-            for (WatchContainer container : entry.getValue()) {
+        for (Map.Entry<Long, HashSet<GlobalWatchContainer>> entry : avaire.getGlobalWatchManager().getGlobalWatches().entrySet()) {
+            for (GlobalWatchContainer container : entry.getValue()) {
                 if (container.isPermanent() || container.getSchedule() != null) {
                     continue;
                 }
@@ -75,7 +75,7 @@ public class DrainGlobalWatchQueueTask implements Task {
                     }
 
                     log.debug("Unmute task started for guildId:{}, userId:{}, time:{}",
-                        container.getGuildId(), container.getUserId(), differenceInSeconds
+                        container.getRanGuildId(), container.getUserId(), differenceInSeconds
                     );
 
                     container.setSchedule(ScheduleHandler.getScheduler().schedule(
@@ -92,9 +92,9 @@ public class DrainGlobalWatchQueueTask implements Task {
         return System.currentTimeMillis() / 1000L;
     }
 
-    private void handleAutomaticUnmute(Xeus avaire, WatchContainer container) {
+    private void handleAutomaticUnmute(Xeus avaire, GlobalWatchContainer container) {
         try {
-            List<Guild> guilds = getGuildsByMainGroupId(avaire, container.getMgi());
+            List<Guild> guilds = getGuildsByMainGroupId(avaire, container.getMainGroupId());
             if (guilds == null) {
                 container.cancelSchedule();
                 return;
@@ -105,7 +105,7 @@ public class DrainGlobalWatchQueueTask implements Task {
             User u = avaire.getShardManager().getUserById(container.getUserId());
             if (u == null) return;
 
-            GlobalSettingsTransformer globalSettings = GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(avaire, container.getMgi());
+            GlobalSettingsTransformer globalSettings = GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(avaire, container.getMainGroupId());
             if (globalSettings == null) return;
 
             for (Guild g : guilds) {
@@ -132,7 +132,7 @@ public class DrainGlobalWatchQueueTask implements Task {
                     );
                 }, throwable -> {
                     log.debug("Failed to remove role from {} on the {} guild, error: {}",
-                        container.getUserId(), container.getGuildId(), throwable.getMessage(), throwable
+                        container.getUserId(), container.getRanGuildId(), throwable.getMessage(), throwable
                     );
                 });
             }
@@ -151,12 +151,12 @@ public class DrainGlobalWatchQueueTask implements Task {
         }
     }
 
-    private void unregisterDatabaseRecord(Xeus avaire, WatchContainer container) {
+    private void unregisterDatabaseRecord(Xeus avaire, GlobalWatchContainer container) {
         try {
-            avaire.getGlobalWatchManager().unregisterGlobalWatch(container.getGuildId(), container.getUserId());
+            avaire.getGlobalWatchManager().unregisterGlobalWatch(container.getMainGroupId(), container.getUserId(), container.getRanGuildId());
         } catch (SQLException e) {
             log.error("Failed to unregister mute for guildId:{}, userId:{}",
-                container.getGuildId(), container.getUserId(), e
+                container.getRanGuildId(), container.getUserId(), e
             );
         }
     }

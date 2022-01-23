@@ -196,7 +196,7 @@ public class LogCommand extends Command {
 
     public boolean isValidRobloxUser(String un) {
         try {
-            return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un) != null;
+            return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un) != 0;
         } catch (Exception e) {
             return false;
         }

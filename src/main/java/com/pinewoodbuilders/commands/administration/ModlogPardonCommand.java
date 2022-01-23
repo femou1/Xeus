@@ -32,7 +32,7 @@ import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
-import com.pinewoodbuilders.moderation.warn.WarnContainer;
+import com.pinewoodbuilders.moderation.local.warn.WarnContainer;
 import com.pinewoodbuilders.modlog.local.moderation.Modlog;
 import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
 import com.pinewoodbuilders.modlog.local.shared.ModlogType;

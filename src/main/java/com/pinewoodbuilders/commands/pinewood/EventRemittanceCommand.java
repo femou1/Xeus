@@ -305,7 +305,7 @@ public class EventRemittanceCommand extends Command {
                     message.editMessageEmbeds(context.makeSuccess("Remittance has been canceled, if you want to restart the report. Do ``!pr`` in any bot-commands channel.").buildEmbed()).setActionRows(Collections.emptyList()).queue();
                     removeAllUserMessages(messagesToRemove);
                 } else if (send.getButton().getEmoji().getName().equalsIgnoreCase("✅")) {
-                    message.editMessage("Report has been \"sent\".").setActionRows(Collections.emptyList()).queue();
+                    message.editMessage("Remittance has been \"sent\".").setActionRows(Collections.emptyList()).queue();
                     sendReport(context, message, b, d, context.getMember().getEffectiveName(), content.getMessage().getContentRaw(), messagesToRemove);
                     removeAllUserMessages(messagesToRemove);
                 } else {

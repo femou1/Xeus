@@ -39,7 +39,6 @@ import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.handlers.DatabaseEventHolder;
 import com.pinewoodbuilders.scheduler.tasks.DrainReactionRoleQueueTask;
 import com.pinewoodbuilders.utilities.RoleUtil;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -62,6 +61,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+
+import static com.pinewoodbuilders.Constants.REWARD_REQUESTS_TABLE_NAME;
 
 public class ReactionEmoteEventAdapter extends EventAdapter {
 
@@ -200,7 +201,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
     @Nullable
     private ReactionTransformer getReactionTransformerFromId(@Nonnull Collection collection, @Nonnull String messageId) {
-        List<DataRow> messages = collection.where("message_id", messageId);
+        List <DataRow> messages = collection.where("message_id", messageId);
         if (messages.isEmpty()) {
             return null;
         }
@@ -274,16 +275,9 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
         });
     }
 
-    private String getRole(GuildMessageReceivedEvent c) {
-        return getString(c.getMember());
-    }
-
-    private String getRole(GuildMessageReactionAddEvent c) {
-        return getString(c.getMember());
-    }
 
     @NotNull
-    private String getString(Member member) {
+    private String getRole(Member member) {
         return member.getRoles().size() > 0 ? member.getRoles().get(0).getAsMention() : "";
     }
 
@@ -315,16 +309,16 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                         tc.retrieveMessageById(c.getLong("report_message_id")).queue(v -> {
                                             if (v.getEmbeds().get(0).getColor().equals(new Color(255, 120, 0))) return;
                                             v.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc, new Color(255, 120, 0))
-                                                .setAuthor("Report created for: " + username, null, getImageByName(tc.getGuild(), username))
-                                                .setDescription(
-                                                    "**Violator**: " + username + "\n" +
-                                                        (rank != null ? "**Rank**: ``:rRank``\n" : "") +
-                                                        "**Information**: \n" + description + "\n\n" +
-                                                        "**Evidence**: \n" + evidence +
-                                                        (warningEvidence != null ? "**Evidence of warning**:\n" + warningEvidence : ""))
-                                                .requestedBy(memberAsReporter != null ? memberAsReporter : e.getMember().getUser())
-                                                .setTimestamp(Instant.now()).set("rRank", rank)
-                                                .buildEmbed())
+                                                    .setAuthor("Report created for: " + username, null, getImageByName(tc.getGuild(), username))
+                                                    .setDescription(
+                                                        "**Violator**: " + username + "\n" +
+                                                            (rank != null ? "**Rank**: ``:rRank``\n" : "") +
+                                                            "**Information**: \n" + description + "\n\n" +
+                                                            "**Evidence**: \n" + evidence +
+                                                            (warningEvidence != null ? "**Evidence of warning**:\n" + warningEvidence : ""))
+                                                    .requestedBy(memberAsReporter != null ? memberAsReporter : e.getMember().getUser())
+                                                    .setTimestamp(Instant.now()).set("rRank", rank)
+                                                    .buildEmbed())
                                                 .queue();
                                             v.clearReactions("\uD83D\uDC4D").queue();
                                             v.clearReactions("\uD83D\uDC4E").queue();
@@ -570,7 +564,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                 msg.editMessageEmbeds(new EmbedBuilder()
                                                     .setColor(msg.getEmbeds().get(0).getColor())
                                                     .setAuthor("Suggestion for: " + e.getGuild().getName(), null, e.getGuild().getIconUrl())
-                                                    .setDescription(msg.getEmbeds().get(0).getDescription() + "\n\n" + getRole(c) + " - :speech_balloon: **``" + e.getMember().getEffectiveName() + "``:**\n" + c.getMessage().getContentRaw())
+                                                    .setDescription(msg.getEmbeds().get(0).getDescription() + "\n\n" + getRole(c.getMember()) + " - :speech_balloon: **``" + e.getMember().getEffectiveName() + "``:**\n" + c.getMessage().getContentRaw())
                                                     .setTimestamp(msg.getEmbeds().get(0).getTimestamp())
                                                     .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl()).build()).queue();
                                                 c.getMessage().delete().queue();
@@ -650,7 +644,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
     }
 
     private String getImageByName(Guild guild, String username) {
-        List<Member> members = guild.getMembersByEffectiveName(username, true);
+        List <Member> members = guild.getMembersByEffectiveName(username, true);
 
         if (members.size() < 1) return null;
         if (members.size() > 1) return null;
@@ -669,7 +663,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
             }
         }
         m.editMessageEmbeds(new EmbedBuilder()
-            .setDescription(m.getEmbeds().get(0).getDescription() + "\n\n**Denial Reason given by " + getRole(event) + " " + event.getMember().getEffectiveName() + "**: \n" + c.getMessage().getContentRaw() + "\n\n**Public vote**:\n :+1: - " + likes + "\n:-1: - " + dislikes)
+            .setDescription(m.getEmbeds().get(0).getDescription() + "\n\n**Denial Reason given by " + getRole(event.getMember()) + " " + event.getMember().getEffectiveName() + "**: \n" + c.getMessage().getContentRaw() + "\n\n**Public vote**:\n :+1: - " + likes + "\n:-1: - " + dislikes)
             .setTitle(m.getEmbeds().get(0).getTitle() + " | Denied by " + c.getMember().getEffectiveName())
             .setFooter(m.getEmbeds().get(0).getFooter().getText(), m.getEmbeds().get(0).getFooter().getIconUrl())
             .setTimestamp(m.getEmbeds().get(0).getTimestamp())
@@ -682,132 +676,136 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
     }
 
     public void onPBSTRequestRewardMessageAddEvent(GuildMessageReactionAddEvent event) {
-        MessageReaction.ReactionEmote emote = event.getReactionEmote();
-        event.getChannel().retrieveMessageById(event.getMessageId()).queue(m -> {
-            if (emote.getName().equals("\uD83D\uDC4D") | emote.getName().equals("\uD83D\uDC4E")) {
-            /*if (m.getEmbeds().get(0).getTitle().equals(event.getMember().getEffectiveName()) || m.getEmbeds().get(0).getFooter().getText().contains(event.getMember().getEffectiveName())) {
-                event.getReaction().removeReaction(event.getUser()).queue();
-                event.getMember().getUser().openPrivateChannel().complete().sendMessage("You reacted to a reward request that includes your name, you cannot do this.").queue();
-                return;
-            }*/
-            }
-            if (emote.getName().equals("✅") || emote.getName().equals("❌")) {
-                if (!(isValidReportManager(event, 1) || event.getMember().getId().equals("173839105615069184"))) {
-                    event.getMember().getUser().openPrivateChannel().queue(v -> v.sendMessageEmbeds(new EmbedBuilder().setDescription("Sorry, but you need to be the manager of points in your division to approve or deny a reward request.").build()).queue());
-                    event.getReaction().removeReaction(event.getUser()).queueAfter(1, TimeUnit.SECONDS);
-                    return;
-                }
+        GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild());
+        if (transformer.getRewardRequestChannelId() == 0) return;
+        if (event.getChannel().getIdLong() != transformer.getRewardRequestChannelId()) return;
 
-                if (emote.getName().equals("✅")) {
-                    event.getReaction().removeReaction(event.getUser()).queueAfter(1, TimeUnit.SECONDS);
-                    event.getChannel().sendMessage(event.getMember().getAsMention() + "\n" +
-                        "You've chosen to approve this reward request, what reward will you give?").queue(v ->
-                        avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, c -> c.getChannel().equals(event.getChannel()) && c.getMember().equals(event.getMember()), c -> {
-                            int likes = 0, dislikes = 0;
-                            for (MessageReaction reaction : m.getReactions()) {
-                                if (reaction.getReactionEmote().getName().equals("\uD83D\uDC4D")) {
-                                    likes = reaction.getCount();
-                                }
+        QueryBuilder queryBuilder = avaire.getDatabase().newQueryBuilder(REWARD_REQUESTS_TABLE_NAME).where("message_id", event.getMessageIdLong());
+        try {
 
-                                if (reaction.getReactionEmote().getName().equals("\uD83D\uDC4E")) {
-                                    dislikes = reaction.getCount();
-                                }
+            Collection rewards = queryBuilder.get();
+            if (rewards.size() < 1) return;
+            DataRow c = rewards.get(0);
+
+            long requester = c.getLong("discord_id");
+
+            MessageReaction.ReactionEmote emote = event.getReactionEmote();
+            event.getChannel().retrieveMessageById(event.getMessageId()).
+                queue(m -> {
+                    if (m.getEmbeds().size() < 1) return;
+                    if (requester == event.getMember().getUser().getIdLong()) {
+                        event.getChannel().sendMessageEmbeds(new EmbedBuilder()
+                            .setDescription("You can't vote for your own reward!")
+                            .setColor(new Color(255, 0, 0))
+                            .build()).queue(p -> p.delete().queueAfter(10, TimeUnit.SECONDS));
+                        return;
+                    }
+                    MessageEmbed embed = m.getEmbeds().get(0);
+                    EmbedBuilder builder = new EmbedBuilder();
+                    builder.copyFrom(embed);
+
+                    switch (emote.getName()) {
+                        case "✅":
+                            if (!isValidReportManager(event.getMember(), event.getGuild(), 2)) {
+                                event.getChannel().sendMessageEmbeds(new EmbedBuilder()
+                                    .setDescription("You do not have permission to use this action.")
+                                    .setColor(Color.RED)
+                                    .build()).queue(p -> p.delete().queueAfter(10, TimeUnit.SECONDS));
+                                return;
                             }
-                            m.editMessageEmbeds(new EmbedBuilder()
-                                .setDescription(m.getEmbeds().get(0).getDescription() + "\n\n**Reward given by " + getRole(event) + " " + event.getMember().getEffectiveName() + "**: \n" + c.getMessage().getContentRaw() + "\n\n**Public vote**:\n :+1: - " + likes + "\n:-1: - " + dislikes)
-                                .setTitle(m.getEmbeds().get(0).getTitle() + " | Approved by " + c.getMember().getEffectiveName())
-                                .setTimestamp(m.getEmbeds().get(0).getTimestamp())
-                                .setFooter(m.getEmbeds().get(0).getFooter().getText(), m.getEmbeds().get(0).getFooter().getIconUrl())
-                                .setColor(new Color(0, 255, 0))
-                                .build()).queue();
+                            changeStatus(m, event.getChannel(), event.getMember(), builder, embed, event.getMember().getAsMention() + "\nYou want to approve this reward request. What reward are you giving to this user?", true);
+                            return;
+                        case "❎", "❌":
+                            if (!isValidReportManager(event.getMember(), event.getGuild(), 2)) {
+                                event.getChannel().sendMessageEmbeds(new EmbedBuilder()
+                                    .setDescription("You do not have permission to use this action.")
+                                    .setColor(Color.RED)
+                                    .build()).queue(p -> p.delete().queueAfter(10, TimeUnit.SECONDS));
+                                return;
+                            }
+                            changeStatus(m, event.getChannel(), event.getMember(), builder, embed, event.getMember().getAsMention() + "\nYou want to deny this reward request. What is the reason to reject it?", false);
+                            return;
+                        case "trash":
+                            if (!(isValidReportManager(event, 1))) {
+                                event.getMember().getUser().openPrivateChannel().queue(v -> v.sendMessageEmbeds(new EmbedBuilder().setDescription("Sorry, but you need to be the manager of points in your division to remove a report.").build()).queue());
+                                event.getReaction().removeReaction(event.getUser()).queueAfter(1, TimeUnit.SECONDS);
+                                return;
+                            }
+                            m.delete().queue();
 
-                            v.delete().queue();
-                            c.getMessage().delete().queue();
+                            try {
+                                queryBuilder.delete();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                        case "\uD83D\uDD04":
+                            if (!(isValidReportManager(event, 1))) {
+                                event.getMember().getUser().openPrivateChannel().queue(v -> v.sendMessageEmbeds(new EmbedBuilder().setDescription("Sorry, but you need to be the manager of points in your division to refresh the emoji's.").build()).queue());
+                                event.getReaction().removeReaction(event.getUser()).queueAfter(1, TimeUnit.SECONDS);
+                                return;
+                            }
                             m.clearReactions().queue();
-                            if (event.getGuild().getMembersByEffectiveName(m.getEmbeds().get(0).getFooter().getText(), true).size() > 0) {
-                                for (Member u : event.getGuild().getMembersByEffectiveName(m.getEmbeds().get(0).getTitle(), true)) {
-                                    u.getUser().openPrivateChannel().complete()
-                                        .sendMessageEmbeds(new EmbedBuilder()
-                                            .setDescription("Hello there ``" + u.getEffectiveName() + "``.\n" +
-                                                "It seems like you have gotten reward!\n" +
-                                                "If you want to check the report, [click here](" + m.getJumpUrl() + ")\n" +
-                                                "The reward was given by **" + event.getMember().getEffectiveName() + "** in ``" + event.getGuild().getName() + "``!\n\n" +
-                                                "**The reward**:\n" + c.getMessage().getContentRaw()).build()).queue();
-                                }
-                            }
-                        }, 90, TimeUnit.SECONDS, () -> {
-                            v.delete().queue();
-                            m.getMember().getUser().openPrivateChannel().complete().sendMessage("You took to long to send a reaction, please re-react to the message!").queue();
-                        }));
-
-                }
-                if (emote.getName().equals("❌")) {
-                    event.getReaction().removeReaction(event.getUser()).queueAfter(1, TimeUnit.SECONDS);
-
-                    event.getChannel().sendMessage(event.getMember().getAsMention() + "\n" +
-                        "You've chosen to deny this reward request, what reason will you give?").queue(v -> avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, c -> c.getChannel().equals(event.getChannel()) && c.getMember().equals(event.getMember()), c -> {
-                        count(event, m, v, c);
-                        if (event.getGuild().getMembersByEffectiveName(m.getEmbeds().get(0).getFooter().getText(), true).size() > 0) {
-                            for (Member u : event.getGuild().getMembersByEffectiveName(m.getEmbeds().get(0).getFooter().getText(), true)) {
-                                u.getUser().openPrivateChannel().complete()
-                                    .sendMessageEmbeds(new EmbedBuilder()
-                                        .setColor(new Color(255, 0, 0))
-                                        .setDescription("Hello there ``" + u.getEffectiveName() + "``.\n" +
-                                            "It seems like your reward request on ``" + m.getEmbeds().get(0).getTitle() + "`` has been denied!\n" +
-                                            "If you want to check the reward request, [click here](" + m.getJumpUrl() + ")\n" +
-                                            "The denial was given by **" + event.getMember().getEffectiveName() + "** in ``" + event.getGuild().getName() + "``!\n\n" +
-                                            "**The reason**:\n" + c.getMessage().getContentRaw()).build()).queue();
-                            }
-                        }
-                    }, 90, TimeUnit.SECONDS, () -> {
-                        v.delete().queue();
-                        m.getMember().getUser().openPrivateChannel().complete().sendMessage("You took to long to send a comment, please re-react to the message!").queue();
-                    }));
-
-                }
-            }
-            if (emote.getName().equals("trash")) {
-                if (!(isValidReportManager(event, 1) || event.getMember().getId().equals("173839105615069184"))) {
-                    event.getMember().getUser().openPrivateChannel().queue(v -> v.sendMessageEmbeds(new EmbedBuilder().setDescription("Sorry, but you need to be the manager of points in your division to remove a report.").build()).queue());
-                    event.getReaction().removeReaction(event.getUser()).queueAfter(1, TimeUnit.SECONDS);
-                    return;
-                }
-                m.delete().queue();
-            }
-            if (emote.getName().equals("\uD83D\uDD04")) {
-                if (!(isValidReportManager(event, 1) || event.getMember().getId().equals("173839105615069184"))) {
-                    event.getMember().getUser().openPrivateChannel().queue(v -> v.sendMessageEmbeds(new EmbedBuilder().setDescription("Sorry, but you need to be the manager of points in your division to refresh the emoji's.").build()).queue());
-                    event.getReaction().removeReaction(event.getUser()).queueAfter(1, TimeUnit.SECONDS);
-                    return;
-                }
-                m.clearReactions().queue();
-                m.addReaction("\uD83D\uDC4D").queue();
-                m.addReaction("\uD83D\uDC4E").queue();
-                m.addReaction("✅").queue();
-                m.addReaction("❌").queue();
-                m.addReaction("🚫").queue();
-                m.addReaction("\uD83D\uDD04").queue();
-            }
-        });
+                            m.addReaction("\uD83D\uDC4D").queue();
+                            m.addReaction("\uD83D\uDC4E").queue();
+                            m.addReaction("✅").queue();
+                            m.addReaction("❌").queue();
+                            m.addReaction("🚫").queue();
+                            m.addReaction("\uD83D\uDD04").queue();
+                    }
+                });
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
-    
+
+    private void changeStatus(Message message, TextChannel channel, Member member, EmbedBuilder builder, MessageEmbed embed, String response, boolean isApproved) {
+        channel.sendMessage(response).queue(v ->
+            avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, c -> c.getChannel().equals(channel) && c.getMember().equals(member), c -> {
+                message.editMessageEmbeds(builder
+                    .setDescription(embed.getDescription() + "\n" + (isApproved ? "**Approved for**:" : "**Reason for denial**:") + "\n" + c.getMessage().getContentRaw())
+                    .setTitle(embed.getTitle() + " | " + (isApproved ? "Approved" : "Denied") + " by " + c.getMember().getEffectiveName())
+                    .setTimestamp(Instant.now())
+                    .setColor(isApproved ? new Color(0, 255, 0) : new Color(255, 0, 0))
+                    .build()).queue();
+
+                v.delete().queue();
+                c.getMessage().delete().queue();
+                message.clearReactions().queue();
+
+                try {
+                    avaire.getDatabase().newQueryBuilder(REWARD_REQUESTS_TABLE_NAME).where("message_id", message.getIdLong())
+                        .delete();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+            }, 90, TimeUnit.SECONDS, () -> {
+                v.delete().queue();
+                message.getMember().getUser().openPrivateChannel().submit().thenAccept(privateChannel -> privateChannel.sendMessage("You took to long to send a reaction, please re-react to the message!").queue());
+            }));
+    }
+
     private boolean isValidReportManager(GuildMessageReactionAddEvent e, Integer i) {
-        
-        GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire,e.getGuild());
+        return isValidReportManager(e.getMember(), e.getGuild(), i);
+    }
+
+    private boolean isValidReportManager(Member m, Guild g, Integer i) {
+
+        GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
         if (i == 1) {
-            return XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel();
+            return XeusPermissionUtil.getPermissionLevel(transformer, g, m).getLevel() >= GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel();
         }
         if (i == 2) {
-            return XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
+            return XeusPermissionUtil.getPermissionLevel(transformer, g, m).getLevel() >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
         }
         if (i == 3) {
-            return XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getMember()).getLevel() >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
+            return XeusPermissionUtil.getPermissionLevel(transformer, g, m).getLevel() >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel();
         }
         return false;
     }
 
 
-    private CompletableFuture<DatabaseEventHolder> loadDatabasePropertiesIntoMemory(
+    private CompletableFuture <DatabaseEventHolder> loadDatabasePropertiesIntoMemory(
         final GuildMessageReactionAddEvent event) {
         return CompletableFuture.supplyAsync(() -> {
             if (!event.getChannel().getType().isGuild()) {

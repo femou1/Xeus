@@ -23,7 +23,7 @@ package com.pinewoodbuilders.scheduler.tasks;
 
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.scheduler.Task;
-import com.pinewoodbuilders.moderation.ban.BanContainer;
+import com.pinewoodbuilders.moderation.local.ban.BanContainer;
 import com.pinewoodbuilders.modlog.local.moderation.Modlog;
 import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
 import com.pinewoodbuilders.modlog.local.shared.ModlogType;

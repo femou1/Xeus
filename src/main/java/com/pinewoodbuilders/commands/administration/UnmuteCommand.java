@@ -122,7 +122,7 @@ public class UnmuteCommand extends MuteableCommand {
         GuildSettingsTransformer globalSettingsTransformer = context.getGuildSettingsTransformer();
         if (globalSettingsTransformer != null) {
             long mgi = globalSettingsTransformer.getMainGroupId() != 0 ? globalSettingsTransformer.getMainGroupId() : 0;
-            if (avaire.getGlobalMuteManager().isGlobalMuted(mgi, user.getIdLong())) {
+            if (avaire.getGlobalMuteManager().isGlobalMuted(mgi, user.getIdLong(), context.getGuild().getIdLong())) {
                 return sendErrorMessage(context, "This user has a global mute on their name, hence you cannot unmute this person. If you are a MGM, please use `gm um` to this person across all connected guilds.");
             }
         }
