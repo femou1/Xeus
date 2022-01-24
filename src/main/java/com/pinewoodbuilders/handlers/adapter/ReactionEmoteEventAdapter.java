@@ -674,7 +674,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
         m.clearReactions().queue();
     }
 
-    public void onPBSTRequestRewardMessageAddEvent(GuildMessageReactionAddEvent event) {
+    public void onPBSTRequestRewardMessageAddEvent(MessageReactionAddEvent event) {
         GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild());
         if (transformer.getRewardRequestChannelId() == 0) return;
         if (event.getChannel().getIdLong() != transformer.getRewardRequestChannelId()) return;
@@ -712,7 +712,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                     .build()).queue(p -> p.delete().queueAfter(10, TimeUnit.SECONDS));
                                 return;
                             }
-                            changeStatus(m, event.getChannel(), event.getMember(), builder, embed, event.getMember().getAsMention() + "\nYou want to approve this reward request. What reward are you giving to this user?", true);
+                            changeStatus(m, event.getTextChannel(), event.getMember(), builder, embed, event.getMember().getAsMention() + "\nYou want to approve this reward request. What reward are you giving to this user?", true);
                             return;
                         case "❎", "❌":
                             if (!isValidReportManager(event.getMember(), event.getGuild(), 2)) {
@@ -722,7 +722,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                     .build()).queue(p -> p.delete().queueAfter(10, TimeUnit.SECONDS));
                                 return;
                             }
-                            changeStatus(m, event.getChannel(), event.getMember(), builder, embed, event.getMember().getAsMention() + "\nYou want to deny this reward request. What is the reason to reject it?", false);
+                            changeStatus(m, event.getTextChannel(), event.getMember(), builder, embed, event.getMember().getAsMention() + "\nYou want to deny this reward request. What is the reason to reject it?", false);
                             return;
                         case "trash":
                             if (!(isValidReportManager(event, 1))) {
@@ -759,7 +759,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
     private void changeStatus(Message message, TextChannel channel, Member member, EmbedBuilder builder, MessageEmbed embed, String response, boolean isApproved) {
         channel.sendMessage(response).queue(v ->
-            avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class, c -> c.getChannel().equals(channel) && c.getMember().equals(member), c -> {
+            avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, c -> c.getChannel().equals(channel) && c.getMember().equals(member), c -> {
                 message.editMessageEmbeds(builder
                     .setDescription(embed.getDescription() + "\n" + (isApproved ? "**Approved for**:" : "**Reason for denial**:") + "\n" + c.getMessage().getContentRaw())
                     .setTitle(embed.getTitle() + " | " + (isApproved ? "Approved" : "Denied") + " by " + c.getMember().getEffectiveName())
@@ -784,8 +784,11 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
             }));
     }
 
-    private boolean isValidReportManager(GuildMessageReactionAddEvent e, Integer i) {
-        return isValidReportManager(e.getMember(), e.getGuild(), i);
+    private boolean isValidReportManager(MessageReactionAddEvent e, Integer i) {
+        if (e.isFromGuild()) {
+            return isValidReportManager(e.getMember(), e.getGuild(), i);
+        }
+        else return false;
     }
 
     private boolean isValidReportManager(Member m, Guild g, Integer i) {
@@ -805,7 +808,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
 
     private CompletableFuture <DatabaseEventHolder> loadDatabasePropertiesIntoMemory(
-        final GuildMessageReactionAddEvent event) {
+        final MessageReactionAddEvent event) {
         return CompletableFuture.supplyAsync(() -> {
             if (!event.getChannel().getType().isGuild()) {
                 return new DatabaseEventHolder(null, null, null, null);

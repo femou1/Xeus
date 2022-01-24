@@ -31,6 +31,7 @@ import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.moderation.global.punishments.globalban.GlobalBanContainer;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.TargetType;

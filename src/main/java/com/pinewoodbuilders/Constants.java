@@ -21,6 +21,9 @@
 
 package com.pinewoodbuilders;
 
+import net.dv8tion.jda.annotations.ForRemoval;
+import net.dv8tion.jda.annotations.ReplaceWith;
+
 import java.io.File;
 import java.util.ArrayList;
 
@@ -112,7 +115,7 @@ public class Constants {
     // Official Pinewood Guilds
     @Deprecated
     @ReplaceWith("PWB_GUILD_ID")
-    @ForRemoval()
+    @ForRemoval
     public static final ArrayList <String> guilds = new ArrayList<String>() {{
         add("495673170565791754"); // Aerospace
         add("438134543837560832"); // PBST

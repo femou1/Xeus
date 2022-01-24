@@ -466,21 +466,16 @@ public class MainEventHandler extends EventHandler {
 
         if (isValidMessageReactionEvent(event)) {
             reactionEmoteEventAdapter.onMessageReactionAdd(event);
-            if (event.isFromGuild()) {
-                if (event.getChannel().getId().equals(Constants.REWARD_REQUESTS_CHANNEL_ID)) {
-                    reactionEmoteEventAdapter.onPBSTRequestRewardMessageAddEvent(event);
-                }
-
-    @Override
-    public void onGuildMessageReactionAdd(@Nonnull GuildMessageReactionAddEvent event) {
-        if (isValidMessageReactionEvent(event)) {
-
             reactionEmoteEventAdapter.onPBSTRequestRewardMessageAddEvent(event);
-            reactionEmoteEventAdapter.onGuildSuggestionValidation(event);
-            reactionEmoteEventAdapter.onReportsReactionAdd(event);
-            reactionEmoteEventAdapter.onFeedbackMessageEvent(event);
+            if (event.isFromGuild()) {
+                reactionEmoteEventAdapter.onPBSTRequestRewardMessageAddEvent(event);
+                reactionEmoteEventAdapter.onGuildSuggestionValidation(event);
+                reactionEmoteEventAdapter.onReportsReactionAdd(event);
+                reactionEmoteEventAdapter.onFeedbackMessageEvent(event);
+            }
         }
     }
+
 
     @Override
     public void onButtonClick(@Nonnull ButtonClickEvent event) {

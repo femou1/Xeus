@@ -30,8 +30,7 @@ class DefaultPlaceholders {
         switch (type) {
             case ALL:
                 if (object instanceof Message jdaMessage && ((Message) object).getChannelType().isGuild()) {
-
-                    return parseGuild(jdaMessage.getGuild(), parseChannel(jdaMessage.getTextChannel(), parseUser(jdaMessage.getAuthor(), message)));
+                    return parseGuild(jdaMessage.getGuild(), parseChannel(jdaMessage.getChannel(), parseUser(jdaMessage.getAuthor(), message)));
                 }
 
             case GUILD:
