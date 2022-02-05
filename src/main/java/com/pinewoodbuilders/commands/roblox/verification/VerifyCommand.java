@@ -7,10 +7,10 @@ import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.contracts.verification.VerificationProviders;
 import net.dv8tion.jda.api.entities.Emoji;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
+import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
-import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -95,7 +95,7 @@ public class VerifyCommand extends VerificationCommandContract {
                         return;
                     }
 
-                    SelectionMenu.Builder menu = SelectionMenu.create("menu:provider-to-verify-with" + ":" + context.getMember().getId() + ":" + context.getMessage().getId())
+                    SelectMenu.Builder menu = SelectMenu.create("menu:provider-to-verify-with" + ":" + context.getMember().getId() + ":" + context.getMessage().getId())
                             .setPlaceholder("Select the verification provider!") // shows the placeholder indicating what this menu is for
                             .addOption("Verify a new account!", "verify-new-account", "Select this to verify a new account.", Emoji.fromMarkdown("<:PBST_GOD:857728071183237141>"))
                             .setRequiredRange(1, 1); // only one can be selected
@@ -110,42 +110,43 @@ public class VerifyCommand extends VerificationCommandContract {
 
                     unverifiedMessage.editMessageEmbeds(context.makeSuccess("Found `" + verificationEntities.size() + "` providers with your account in their database, please select the provider you want to verify with! (By clicking on one of these providers, you allow us to store your discord ID and roblox ID within our database. We use this information to link your account to a discord account and to check if there are any infractions on past accounts)").requestedBy(context).buildEmbed())
                             .setActionRow(menu.build()).queue();
-                    avaire.getWaiter().waitForEvent(SelectionMenuEvent.class,
+                    avaire.getWaiter().waitForEvent(SelectMenuInteractionEvent.class,
                             interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(unverifiedMessage),
                             providerSelect -> {
                                 providerSelect.deferEdit().queue(k -> {
-                                    if (providerSelect.getSelectedOptions() != null) {
-                                        for (SelectOption so : providerSelect.getSelectedOptions()) {
-                                            if (so.getValue().equals("verify-new-account")) {
-                                                unverifiedMessage.editMessageEmbeds(context.makeWarning("You selected the option to verify with a new account\n**Please enter the Roblox name of said account**:").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue(unused -> {
-                                                    interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
-                                                    avaire.getWaiter().waitForEvent(MessageReceivedEvent.class,
-                                                            usernameMessage -> {
-                                                                verifyNewAccount(context, usernameMessage.getMessage().getContentRaw(), unverifiedMessage);
-                                                                usernameMessage.getMessage().delete().queue();
-                                                            });
-                                                });
-                                                return;
-                                            }
+                                    providerSelect.getSelectedOptions();
+                                    for (SelectOption so : providerSelect.getSelectedOptions()) {
+                                        if (so.getValue().equals("verify-new-account")) {
+                                            unverifiedMessage.editMessageEmbeds(context.makeWarning("You selected the option to verify with a new account\n**Please enter the Roblox name of said account**:")
+                                                .requestedBy(context).buildEmbed())
+                                                .setActionRows(Collections.emptyList()).queue(unused -> {
+                                                avaire.getWaiter().waitForEvent(MessageReceivedEvent.class,
+                                                    interact -> interact.getMember() != null && interact.getMember().equals(context.getMember()) && interact.getChannel().equals(context.channel),
+                                                        usernameMessage -> {
+                                                            verifyNewAccount(context, usernameMessage.getMessage().getContentRaw(), unverifiedMessage);
+                                                            usernameMessage.getMessage().delete().queue();
+                                                        });
+                                            });
+                                            return;
+                                        }
 
-                                            String provider = so.getValue().split(":")[0];
-                                            String username = so.getValue().split(":")[1];
+                                        String provider = so.getValue().split(":")[0];
+                                        String username = so.getValue().split(":")[1];
 
-                                            if (provider.equals("rover")) {
-                                                assert rover != null;
-                                                addAccountToDatabase(context, rover.getRobloxId(), unverifiedMessage, username);
-                                                return;
-                                            }
-                                            if (provider.equals("bloxlink")) {
-                                                assert bloxlink != null;
-                                                addAccountToDatabase(context, bloxlink.getRobloxId(), unverifiedMessage, username);
-                                                return;
-                                            }
-                                            if (provider.equals("rowifi")) {
-                                                assert bloxlink != null;
-                                                addAccountToDatabase(context, rowifi.getRobloxId(), unverifiedMessage, username);
-                                                return;
-                                            }
+                                        if (provider.equals("rover")) {
+                                            assert rover != null;
+                                            addAccountToDatabase(context, rover.getRobloxId(), unverifiedMessage, username);
+                                            return;
+                                        }
+                                        if (provider.equals("bloxlink")) {
+                                            assert bloxlink != null;
+                                            addAccountToDatabase(context, bloxlink.getRobloxId(), unverifiedMessage, username);
+                                            return;
+                                        }
+                                        if (provider.equals("rowifi")) {
+                                            assert bloxlink != null;
+                                            addAccountToDatabase(context, rowifi.getRobloxId(), unverifiedMessage, username);
+                                            return;
                                         }
                                     }
                                 });
@@ -163,7 +164,7 @@ public class VerifyCommand extends VerificationCommandContract {
         }
 
 
-        SelectionMenu menu = SelectionMenu.create("menu:method-to-verify-with" + ":" + context.getMember().getId() + ":" + context.getMessage().getId())
+        SelectMenu menu = SelectMenu.create("menu:method-to-verify-with" + ":" + context.getMember().getId() + ":" + context.getMessage().getId())
                 .setPlaceholder("Select the verification method!") // shows the placeholder indicating what this menu is for
                 .setRequiredRange(1, 1) // only one can be selected
                 .addOption("In-game Verification", "game-verification", "Join a game on roblox to verify!", Emoji.fromUnicode("\uD83D\uDC68\u200D\uD83D\uDE80"))
@@ -171,7 +172,7 @@ public class VerifyCommand extends VerificationCommandContract {
                 .build();
 
         originalMessage.editMessageEmbeds(context.makeInfo("Account was found on roblox, how would you like to verify?").requestedBy(context).buildEmbed())
-                .setActionRow(menu).queue(m -> avaire.getWaiter().waitForEvent(SelectionMenuEvent.class,
+                .setActionRow(menu).queue(m -> avaire.getWaiter().waitForEvent(SelectMenuInteractionEvent.class,
                 interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(originalMessage),
                 accountSelect -> {
                     accountSelect.deferEdit().queue(k -> {

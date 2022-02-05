@@ -7,10 +7,10 @@ import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.contracts.verification.VerificationProviders;
 import net.dv8tion.jda.api.entities.Emoji;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
+import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
-import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -89,7 +89,7 @@ public class ReverifyCommand extends VerificationCommandContract {
                         return;
                     }
 
-                    SelectionMenu.Builder menu = SelectionMenu.create("menu:provider-to-verify-with" + ":" + context.getMember().getId() + ":" + context.getMessage().getId())
+                    SelectMenu.Builder menu = SelectMenu.create("menu:provider-to-verify-with" + ":" + context.getMember().getId() + ":" + context.getMessage().getId())
                             .setPlaceholder("Select the verification provider!") // shows the placeholder indicating what this menu is for
                             .addOption("Verify a new account!", "verify-new-account", "Select this to verify a new account.", Emoji.fromMarkdown("<:PBST_GOD:857728071183237141>"))
                             .setRequiredRange(1, 1); // only one can be selected
@@ -104,7 +104,7 @@ public class ReverifyCommand extends VerificationCommandContract {
 
                     unverifiedMessage.editMessageEmbeds(context.makeSuccess("Found `" + verificationEntities.size() + "` providers with your account in their database, please select the provider you want to verify with!  (By clicking on one of these providers, you allow us to store your discord ID and roblox ID within our database. We use this information to link your account to a discord account and to check if there are any infractions on past accounts)").requestedBy(context).buildEmbed())
                             .setActionRow(menu.build()).queue(menuSelection -> {
-                        avaire.getWaiter().waitForEvent(SelectionMenuEvent.class,
+                        avaire.getWaiter().waitForEvent(SelectMenuInteractionEvent.class,
                                 interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(unverifiedMessage),
                                 providerSelect -> {
                                     providerSelect.deferEdit().queue();
@@ -118,7 +118,7 @@ public class ReverifyCommand extends VerificationCommandContract {
         return true;
     }
 
-    private void selectProvider(CommandMessage context, Message unverifiedMessage, VerificationEntity rover, VerificationEntity bloxlink, VerificationEntity pinewood, VerificationEntity rowifi, SelectionMenuEvent providerSelect) {
+    private void selectProvider(CommandMessage context, Message unverifiedMessage, VerificationEntity rover, VerificationEntity bloxlink, VerificationEntity pinewood, VerificationEntity rowifi, SelectMenuInteractionEvent providerSelect) {
         if (providerSelect.getSelectedOptions() != null) {
             for (SelectOption so : providerSelect.getSelectedOptions()) {
                 if (so.getValue().equals("verify-new-account")) {
@@ -164,7 +164,7 @@ public class ReverifyCommand extends VerificationCommandContract {
             return;
         }
 
-        SelectionMenu menu = SelectionMenu.create("menu:method-to-verify-with" + ":" + context.getMember().getId() + ":" + context.getMessage().getId())
+        SelectMenu menu = SelectMenu.create("menu:method-to-verify-with" + ":" + context.getMember().getId() + ":" + context.getMessage().getId())
                 .setPlaceholder("Select the verification method!") // shows the placeholder indicating what this menu is for
                 .setRequiredRange(1, 1) // only one can be selected
                 .addOption("In-game Verification", "game-verification", "Join a game on roblox to verify!", Emoji.fromUnicode("\uD83D\uDC68\u200D\uD83D\uDE80"))
@@ -172,24 +172,22 @@ public class ReverifyCommand extends VerificationCommandContract {
                 .build();
 
         originalMessage.editMessageEmbeds(context.makeInfo("Account was found on roblox, how would you like to verify?").requestedBy(context).buildEmbed())
-                .setActionRow(menu).queue(m -> avaire.getWaiter().waitForEvent(SelectionMenuEvent.class,
+                .setActionRow(menu).queue(m -> avaire.getWaiter().waitForEvent(SelectMenuInteractionEvent.class,
                 interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(originalMessage),
                 accountSelect -> accountSelect.deferEdit().queue(k -> selectAccount(context, originalMessage, robloxId, accountSelect))
                 , 5, TimeUnit.MINUTES, () -> originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue()));
     }
 
-    private void selectAccount(CommandMessage context, Message originalMessage, Long robloxId, SelectionMenuEvent accountSelect) {
-        if (accountSelect.getSelectedOptions() != null) {
-            for (SelectOption so : accountSelect.getSelectedOptions()) {
-                if (so.getValue().equals("game-verification")) {
-                    runGameVerification(context, originalMessage, robloxId);
-                    return;
-                }
+    private void selectAccount(CommandMessage context, Message originalMessage, Long robloxId, SelectMenuInteractionEvent accountSelect) {
+        for (SelectOption so : accountSelect.getSelectedOptions()) {
+            if (so.getValue().equals("game-verification")) {
+                runGameVerification(context, originalMessage, robloxId);
+                return;
+            }
 
-                if (so.getValue().equals("edit-description")) {
-                    runDescriptionVerification(context, originalMessage, robloxId);
-                    return;
-                }
+            if (so.getValue().equals("edit-description")) {
+                runDescriptionVerification(context, originalMessage, robloxId);
+                return;
             }
         }
     }

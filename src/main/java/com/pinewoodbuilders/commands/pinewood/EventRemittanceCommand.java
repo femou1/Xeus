@@ -22,10 +22,10 @@ import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
@@ -300,7 +300,7 @@ public class EventRemittanceCommand extends Command {
             "\n\nIs this correct?").buildEmbed()).setActionRow(b1.asEnabled(), b2.asEnabled()).queue(l -> {
             //l.addReaction("✅").queue();
             //l.addReaction("❌").queue();
-            avaire.getWaiter().waitForEvent(ButtonClickEvent.class, r -> isValidMember(r, context, l), send -> {
+            avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class, r -> isValidMember(r, context, l), send -> {
                 if (send.getButton().getEmoji().getName().equalsIgnoreCase("❌") || send.getButton().getEmoji().getName().equalsIgnoreCase("x")) {
                     message.editMessageEmbeds(context.makeSuccess("Remittance has been canceled, if you want to restart the report. Do ``!pr`` in any bot-commands channel.").buildEmbed()).setActionRows(Collections.emptyList()).queue();
                     removeAllUserMessages(messagesToRemove);
@@ -399,7 +399,7 @@ public class EventRemittanceCommand extends Command {
         else return members.get(0).getUser().getEffectiveAvatarUrl();
     }
 
-    private static boolean isValidMember(ButtonClickEvent r, CommandMessage context, Message l) {
+    private static boolean isValidMember(ButtonInteractionEvent r, CommandMessage context, Message l) {
         return context.getMember().equals(r.getMember()) && r.getMessageId().equalsIgnoreCase(l.getId());
     }
 

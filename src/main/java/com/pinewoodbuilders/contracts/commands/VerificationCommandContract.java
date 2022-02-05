@@ -11,8 +11,8 @@ import com.pinewoodbuilders.utilities.RandomUtil;
 import net.dv8tion.jda.api.entities.Emoji;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 import java.sql.SQLException;
 import java.util.Collections;
@@ -124,7 +124,7 @@ public abstract class VerificationCommandContract extends Command {
                         Button.danger("confirm-reject:" + originalMessage.getId(), "I don't wanna confirm anymore.").withEmoji(Emoji.fromUnicode("❌")).asEnabled(),
                         Button.link(game_link, "Join this game to verify").withEmoji(Emoji.fromUnicode("\uD83D\uDD17")).asEnabled())
                 .queue(verifyMessage -> {
-                    avaire.getWaiter().waitForEvent(ButtonClickEvent.class,
+                    avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class,
                             interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
                             action -> {
                                 action.deferEdit().queue();
@@ -172,7 +172,7 @@ public abstract class VerificationCommandContract extends Command {
                 .setImage("https://i.imgur.com/VXoXcIS.png")
                 .setThumbnail("https://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&userid=" + robloxId).requestedBy(context).buildEmbed())
                 .setActionRow(b1.asEnabled(), b2.asEnabled())
-                .queue(statusCheck -> avaire.getWaiter().waitForEvent(ButtonClickEvent.class,
+                .queue(statusCheck -> avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class,
                         interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel)
                         , statusButton -> {
                             statusButton.deferEdit().queue();

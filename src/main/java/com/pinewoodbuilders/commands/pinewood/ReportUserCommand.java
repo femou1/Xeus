@@ -19,10 +19,10 @@ import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
@@ -376,7 +376,7 @@ public class ReportUserCommand extends Command {
             (explainedEvidence != null ? "\n\n**Evidence of warning**:\n" + explainedEvidence : "") + "\n\nIs this correct?").buildEmbed())
             .setActionRow(b1.asEnabled(), b2.asEnabled()).queue(l -> {
 
-            avaire.getWaiter().waitForEvent(ButtonClickEvent.class, r -> isValidMember(r, context, l), send -> {
+            avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class, r -> isValidMember(r, context, l), send -> {
                 if (send.getButton().getEmoji().getName().equalsIgnoreCase("❌") || send.getButton().getEmoji().getName().equalsIgnoreCase("x")) {
                     message.editMessage("Report has been canceled, if you want to restart the report. Do ``!ru`` in any bot-commands channel.").setActionRows(Collections.emptyList()).queue();
                     removeAllUserMessages(messagesToRemove);
@@ -395,7 +395,7 @@ public class ReportUserCommand extends Command {
         });
     }
 
-    private void sendReport(CommandMessage context, Message message, Optional<RobloxUserGroupRankService.Data> groupInfo, DataRow dataRow, String username, String description, String evidence, String explainedEvidence, ButtonClickEvent send) {
+    private void sendReport(CommandMessage context, Message message, Optional<RobloxUserGroupRankService.Data> groupInfo, DataRow dataRow, String username, String description, String evidence, String explainedEvidence, ButtonInteractionEvent send) {
         TextChannel tc = avaire.getShardManager().getTextChannelById(dataRow.getString("handbook_report_channel"));
 
         if (tc != null) {
@@ -454,7 +454,7 @@ public class ReportUserCommand extends Command {
         else return members.get(0).getUser().getEffectiveAvatarUrl();
     }
 
-    private static boolean isValidMember(ButtonClickEvent r, CommandMessage context, Message l) {
+    private static boolean isValidMember(ButtonInteractionEvent r, CommandMessage context, Message l) {
         return context.getMember().equals(r.getMember()) && r.getMessageId().equalsIgnoreCase(l.getId());
     }
 

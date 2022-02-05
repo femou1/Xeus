@@ -14,7 +14,7 @@ import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import org.json.JSONObject;
@@ -171,7 +171,7 @@ public class RequestRewardCommand extends Command {
         else return members.get(0).getUser().getEffectiveAvatarUrl();
     }
 
-    private static boolean isValidMember(ButtonClickEvent r, CommandMessage context, Message l) {
+    private static boolean isValidMember(ButtonInteractionEvent r, CommandMessage context, Message l) {
         return context.getMember().equals(r.getMember()) && r.getMessageId().equalsIgnoreCase(l.getId());
     }
 

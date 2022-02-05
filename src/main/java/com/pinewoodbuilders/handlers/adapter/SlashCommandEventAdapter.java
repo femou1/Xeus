@@ -11,13 +11,14 @@ import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -35,8 +36,20 @@ public class SlashCommandEventAdapter extends EventAdapter {
         super(avaire);
     }
 
+    public boolean runUserInteractionEvent(UserContextInteractionEvent event) {
 
-    public boolean runSlashCommandCheck(SlashCommandEvent event) {
+        switch (event.getName()) {
+            case "whois":
+                return returnWhoisCommand(event);
+            default:
+                event.deferReply().queue(l -> {
+                    l.setEphemeral(true).sendMessage("Slash command does not exist").queue();
+                });
+                return false;
+        }
+    }
+
+    public boolean runSlashCommandCheck(SlashCommandInteractionEvent event) {
         switch (event.getName()) {
             case "verify":
                 return runMemberVerify(event);
@@ -59,7 +72,7 @@ public class SlashCommandEventAdapter extends EventAdapter {
             .replace("@here", "@h\u0435re")
             .replace("discord.gg/", "dis\u0441ord.gg/");
     }
-    private boolean roleInfoCommand(SlashCommandEvent event) {
+    private boolean roleInfoCommand(SlashCommandInteractionEvent event) {
         event.deferReply().setEphemeral(true).queue(
             l -> {
                 Role role = event.getOption("role").getAsRole();
@@ -104,11 +117,16 @@ public class SlashCommandEventAdapter extends EventAdapter {
         return "No members found";
     }
 
-    private boolean returnWhoisCommand(SlashCommandEvent event) {
+    private boolean returnWhoisCommand(CommandInteraction event) {
         event.deferReply().setEphemeral(true).queue(l -> {
+            Member m = event.getOption("member") != null ? event.getOption("member").getAsMember() : null;
+            if (event instanceof UserContextInteractionEvent user) {
+                m = user.getTargetMember();
+            }
+
             VerificationEntity verifiedRobloxUser;
-            if (event.getOption("member") != null) {
-                verifiedRobloxUser = avaire.getRobloxAPIManager().getVerification().fetchInstantVerificationWithBackup(event.getOption("member").getAsUser().getId());
+            if (m != null) {
+                verifiedRobloxUser = avaire.getRobloxAPIManager().getVerification().fetchInstantVerificationWithBackup(m.getId());
             } else {
                 verifiedRobloxUser = avaire.getRobloxAPIManager().getVerification().fetchInstantVerificationWithBackup(event.getMember().getId());
             }
@@ -143,12 +161,15 @@ public class SlashCommandEventAdapter extends EventAdapter {
                     }
                 }
 
-                l.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(event.getChannel(), new Color(0, 255, 0),
-                    "**Roblox Username**: :rusername\n" +
-                        "**Roblox ID**: :userId\n" +
-                        "**Ranks**:\n" +
-                        ":userRanksn\n\n" +
-                        "**Linked Discord Account**:\n:discordAcc")
+                l.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(event.getMessageChannel(), new Color(0, 255, 0),
+                        """
+                            **Roblox Username**: :rusername
+                            **Roblox ID**: :userId
+                            **Ranks**:
+                            :userRanksn
+
+                            **Linked Discord Account**:
+                            :discordAcc""")
                     .set("rusername", verifiedRobloxUser.getRobloxUsername())
                     .set("userId", verifiedRobloxUser.getRobloxId())
                     .set("userRanks", sb.toString())
@@ -168,7 +189,7 @@ public class SlashCommandEventAdapter extends EventAdapter {
         return "https://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&userid=" + ve.getRobloxId();
     }
 
-    private boolean runMemberUpdate(SlashCommandEvent event) {
+    private boolean runMemberUpdate(SlashCommandInteractionEvent event) {
         event.deferReply().setEphemeral(true).queue(l -> {
             Guild g = event.getGuild();
             if (!event.isFromGuild() || g == null) {
@@ -177,17 +198,13 @@ public class SlashCommandEventAdapter extends EventAdapter {
             }
 
             GuildSettingsTransformer guildTransformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
-            if (guildTransformer == null) {
-                l.sendMessage("GuildTransformer is empty.").queue();
-                return;
-            }
             if (XeusPermissionUtil.getPermissionLevel(guildTransformer, event.getGuild(), event.getOption("member").getAsMember()).getLevel() < GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel())
                 avaire.getRobloxAPIManager().getVerification().getVerificationMethodsManager().slashCommandVerify(event.getOption("member").getAsMember(), g, l);
         });
         return false;
     }
 
-    private boolean runMemberVerify(SlashCommandEvent event) {
+    private boolean runMemberVerify(SlashCommandInteractionEvent event) {
         event.deferReply().queue(l -> avaire.getRobloxAPIManager()
             .getVerification()
             .getVerificationMethodsManager()

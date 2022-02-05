@@ -53,8 +53,9 @@ import net.dv8tion.jda.api.events.guild.update.GuildUpdateNameEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.*;
 import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
@@ -96,14 +97,14 @@ public class MainEventHandler extends EventHandler {
     private final SlashCommandEventAdapter slashCommandEventAdapter;
     private final VoiceChannelHandler voiceChannelHandler;
 
-    public static final Cache <Long, Boolean> cache = CacheBuilder.newBuilder()
+    public static final Cache<Long, Boolean> cache = CacheBuilder.newBuilder()
         .recordStats()
         .expireAfterWrite(15, TimeUnit.MINUTES)
         .build();
 
     private static final Logger log = LoggerFactory.getLogger(MainEventHandler.class);
 
-    private List <String> inviteCode = new LinkedList <>();
+    private List<String> inviteCode = new LinkedList<>();
     private int invites = 0;
 
     /**
@@ -139,6 +140,7 @@ public class MainEventHandler extends EventHandler {
     @Override
     public void onReady(ReadyEvent event) {
         jdaStateEventAdapter.onConnectToShard(event.getJDA());
+
         Guild guild = event.getJDA().getGuildById("438134543837560832");
         if (guild != null) {
             guild.retrieveInvites().queue(invites -> {
@@ -284,9 +286,10 @@ public class MainEventHandler extends EventHandler {
         {
             if (retrievedInvites.size() == invites) return;
             if (retrievedInvites.size() > invites) return;
-            List <Role> roles = event.getGuild().getRolesByName("Pizza Delivery", true);
+            List<Role> roles = event.getGuild().getRolesByName("Pizza Delivery", true);
             if (roles.size() == 0) {
-                System.out.println("Role does not exist"); return;
+                System.out.println("Role does not exist");
+                return;
             }
             Role r = roles.get(0);
             event.getGuild().addRoleToMember(event.getMember(), r).queue();
@@ -329,7 +332,7 @@ public class MainEventHandler extends EventHandler {
 
 
     @Override
-    public void onSlashCommand(@NotNull SlashCommandEvent event) {
+    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         slashCommandEventAdapter.runSlashCommandCheck(event);
     }
 
@@ -357,20 +360,19 @@ public class MainEventHandler extends EventHandler {
         }
 
         if (event.isFromGuild()) {
-            if (Constants.guilds.contains(event.getGuild().getId())) {
-                if (!event.getAuthor().isBot()) {
-                    messageEvent.onLocalFilterMessageReceived(event);
-                    messageEvent.onGlobalFilterMessageReceived(event);
-                    messageEvent.onNoLinksFilterMessageReceived(event);
+            if (!event.getAuthor().isBot()) {
+                messageEvent.onLocalFilterMessageReceived(event);
+                messageEvent.onGlobalFilterMessageReceived(event);
+                messageEvent.onNoLinksFilterMessageReceived(event);
 
-                    if (event.getChannel().getId().equals("769274801768235028") || event.getChannel().getId().equals("777903149511082005")) {
-                        messageEvent.onEventGalleryMessageSent(event);
-                    }
-                }
-                if (event.getChannel().getId().equals("871890084121673738")) {
-                    messageEvent.sendPBACRaidVoteEmojis(event);
+                if (event.getChannel().getId().equals("769274801768235028") || event.getChannel().getId().equals("777903149511082005")) {
+                    messageEvent.onEventGalleryMessageSent(event);
                 }
             }
+            if (event.getChannel().getId().equals("871890084121673738")) {
+                messageEvent.sendPBACRaidVoteEmojis(event);
+            }
+
 
         }
 
@@ -409,6 +411,11 @@ public class MainEventHandler extends EventHandler {
                 messageEvent.onLocalFilterEditReceived(event);
             }
         }
+    }
+
+    @Override
+    public void onUserContextInteraction(@NotNull UserContextInteractionEvent event) {
+        slashCommandEventAdapter.runUserInteractionEvent(event);
     }
 
     @Override
@@ -478,11 +485,11 @@ public class MainEventHandler extends EventHandler {
 
 
     @Override
-    public void onButtonClick(@Nonnull ButtonClickEvent event) {
-        buttonClickEventAdapter.onPatrolRemittanceButtonClickEvent(event);
-        buttonClickEventAdapter.onReportsButtonClickEvent(event);
-        buttonClickEventAdapter.onFeedbackButtonClickEvent(event);
-        buttonClickEventAdapter.onQuizButtonClickEvent(event);
+    public void onButtonInteraction(@Nonnull ButtonInteractionEvent event) {
+        buttonClickEventAdapter.onPatrolRemittanceButtonInteractionEvent(event);
+        buttonClickEventAdapter.onReportsButtonInteractionEvent(event);
+        buttonClickEventAdapter.onFeedbackButtonInteractionEvent(event);
+        buttonClickEventAdapter.onQuizButtonInteractionEvent(event);
     }
 
     @Override
@@ -521,7 +528,7 @@ public class MainEventHandler extends EventHandler {
     }
 
 
-    public final ArrayList <String> guilds = new ArrayList <String>() {{
+    public final ArrayList<String> guilds = new ArrayList<String>() {{
         add("495673170565791754"); // Aerospace
         add("438134543837560832"); // PBST
         add("791168471093870622"); // Kronos Dev
@@ -549,7 +556,7 @@ public class MainEventHandler extends EventHandler {
 
         CacheUtil.getUncheckedUnwrapped(cache, guild.getIdLong(), () -> {
             log.debug("Lazy-loading members for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
-            Task <List <Member>> task = guild.loadMembers();
+            Task<List<Member>> task = guild.loadMembers();
 
             guild.getMemberCount();
 

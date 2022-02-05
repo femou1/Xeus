@@ -48,7 +48,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -384,11 +384,11 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                     }
 
                                     if (likes == 26) {
-                                        net.dv8tion.jda.api.interactions.components.Button b1 = net.dv8tion.jda.api.interactions.components.Button.success("accept:" + e.getMessageId(), "Accept").withEmoji(Emoji.fromUnicode("✅"));
-                                        net.dv8tion.jda.api.interactions.components.Button b2 = net.dv8tion.jda.api.interactions.components.Button.danger("reject:" + e.getMessageId(), "Reject").withEmoji(Emoji.fromUnicode("❌"));
-                                        net.dv8tion.jda.api.interactions.components.Button b3 = net.dv8tion.jda.api.interactions.components.Button.secondary("remove:" + e.getMessageId(), "Delete").withEmoji(Emoji.fromUnicode("\uD83D\uDEAB"));
-                                        net.dv8tion.jda.api.interactions.components.Button b4 = net.dv8tion.jda.api.interactions.components.Button.secondary("comment:" + e.getMessageId(), "Comment").withEmoji(Emoji.fromUnicode("\uD83D\uDCAC"));
-                                        net.dv8tion.jda.api.interactions.components.Button b5 = Button.danger("community-move:" + e.getMessageId(), "Move to CAS").withEmoji(Emoji.fromUnicode("\uD83D\uDC51"));
+                                        Button b1 = Button.success("accept:" + e.getMessageId(), "Accept").withEmoji(Emoji.fromUnicode("✅"));
+                                        Button b2 = Button.danger("reject:" + e.getMessageId(), "Reject").withEmoji(Emoji.fromUnicode("❌"));
+                                        Button b3 = Button.secondary("remove:" + e.getMessageId(), "Delete").withEmoji(Emoji.fromUnicode("\uD83D\uDEAB"));
+                                        Button b4 = Button.secondary("comment:" + e.getMessageId(), "Comment").withEmoji(Emoji.fromUnicode("\uD83D\uDCAC"));
+                                        Button b5 = Button.danger("community-move:" + e.getMessageId(), "Move to CAS").withEmoji(Emoji.fromUnicode("\uD83D\uDC51"));
 
                                         ActionRow actionRow = ActionRow.of(b1.asEnabled(), b2.asEnabled(), b3.asEnabled(), b4.asEnabled(), b5.asDisabled());
 

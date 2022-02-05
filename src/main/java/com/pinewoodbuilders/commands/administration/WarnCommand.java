@@ -51,9 +51,9 @@ import com.pinewoodbuilders.utilities.RestActionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -233,6 +233,7 @@ public class WarnCommand extends Command {
 
         if (grade == null) return;
 
+
         Button globalMute = Button.primary("gmute:" + context.getChannel().getId() + ":" + context.getAuthor().getId() + ":" + context.getMessage().getId(),
             "Global Mute (3 days)");
         Button gwatchmute = Button.primary("gwatchmute:" + context.getChannel().getId() + ":" + context.getAuthor().getId() + ":" + context.getMessage().getId(),
@@ -249,12 +250,12 @@ public class WarnCommand extends Command {
         if (!grade.isLocalBan()) localBanAndGlobalWatch = localBanAndGlobalWatch.asDisabled();
         if (!grade.isGlobalBan()) globalBan = globalBan.asDisabled();
 
-        MessageEmbed messageEmbed = context.makeInfo(user.getAsMention() + " has reached a total of " + size + " warns, by this rule. This user should get either of these punishments. The previous warnings: \n").buildEmbed();
+        MessageEmbed messageEmbed = context.makeInfo(user.getAsMention() + " has reached a total of `" + size + "` warns, by this rule. This user should get either of these punishments").buildEmbed();
         ActionRow ar = ActionRow.of(
             globalMute, gwatchmute, localBanAndGlobalWatch, globalBan, cancel
         );
         context.getMessageChannel()
-            .sendMessageEmbeds(messageEmbed, outputWarnsWithReason(warns))
+            .sendMessageEmbeds(messageEmbed)
             .setActionRows(ar)
             .queue(message -> listenForInteraction(message, context, user, size, grade));
 
@@ -290,7 +291,7 @@ public class WarnCommand extends Command {
     }
 
     private void listenForInteraction(Message messageExecute, CommandMessage context, User user, int size, WarningGrade grade) {
-        avaire.getWaiter().waitForEvent(ButtonClickEvent.class, buttonClicker -> {
+        avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class, buttonClicker -> {
             String[] arguments = buttonClicker.getButton().getId().split(":");
             if (arguments[1].contains(context.getChannel().getId()))
                 if (arguments[2].contains(buttonClicker.getUser().getId())) {
@@ -313,39 +314,22 @@ public class WarnCommand extends Command {
         });
     }
 
-    private void punishUserDependingOnButton(ButtonClickEvent interaction, CommandMessage context, User user, Message messageExecute, int size, WarningGrade grade) {
+    private void punishUserDependingOnButton(ButtonInteractionEvent interaction, CommandMessage context, User user, Message messageExecute, int size, WarningGrade grade) {
         String[] arguments = interaction.getButton().getId().split(":");
         String punishment = arguments[0];
 
         switch (punishment) {
-            case "gmute":
-                muteUserQueue(context, Carbon.now().addSecond().addDays(3), user, messageExecute);
-                return;
-            case "gwatchmute":
-                selectWatchOrMuteQueue(context, grade, user, messageExecute, size);
-                return;
-            case "lbanwatch":
-                localBanAndGlobalWatch(context, user, messageExecute);
-                return;
-            case "gban":
-                globalBan(context, user, messageExecute);
-                return;
-            case "globalmute7":
-                muteUserQueue(context, Carbon.now().addWeeks(1).addSecond(), user, messageExecute);
-                return;
-            case "globalwatch7":
-                watchUserQueue(context, Carbon.now().addWeeks(1).addSecond(), user, messageExecute);
-                return;
-            case "globalmute14":
-                muteUserQueue(context, Carbon.now().addWeeks(2).addSecond(), user, messageExecute);
-                return;
-            case "globalwatch14":
-                watchUserQueue(context, Carbon.now().addWeeks(2).addSecond(), user, messageExecute);
-                return;
-            case "cancel":
+            case "gmute" -> muteUserQueue(context, Carbon.now().addSecond().addDays(3), user, messageExecute);
+            case "gwatchmute" -> selectWatchOrMuteQueue(context, grade, user, messageExecute, size);
+            case "lbanwatch" -> localBanAndGlobalWatch(context, user, messageExecute);
+            case "gban" -> globalBan(context, user, messageExecute);
+            case "globalmute7" -> muteUserQueue(context, Carbon.now().addWeeks(1).addSecond(), user, messageExecute);
+            case "globalwatch7" -> watchUserQueue(context, Carbon.now().addWeeks(1).addSecond(), user, messageExecute);
+            case "globalmute14" -> muteUserQueue(context, Carbon.now().addWeeks(2).addSecond(), user, messageExecute);
+            case "globalwatch14" -> watchUserQueue(context, Carbon.now().addWeeks(2).addSecond(), user, messageExecute);
+            case "cancel" ->
                 messageExecute.editMessageEmbeds(new EmbedBuilder().setDescription("No punishments have been given.").build()).setActionRows(Collections.emptyList()).queue();
-                return;
-            default:
+            default ->
                 messageExecute.editMessage("ÍNVALID RESPONSE").setEmbeds(Collections.emptyList()).setActionRow(Collections.emptyList()).queue();
         }
     }
