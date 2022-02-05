@@ -97,7 +97,8 @@ public class ReverifyCommand extends VerificationCommandContract {
                     for (VerificationEntity ve : verificationEntities) {
                         VerificationProviders provider = VerificationProviders.resolveProviderFromProvider(ve.getProvider());
                         if (provider != null) {
-                            menu.addOption(ve.getRobloxUsername(), ve.getProvider() + ":" + ve.getRobloxUsername(), "Verify with " + ve.getRobloxUsername() + " from " + provider.provider, Emoji.fromMarkdown(provider.emoji));
+                            String username = ve.getRobloxUsername() != null ? ve.getRobloxUsername() : "Deleted";
+                                menu.addOption(username, ve.getProvider() + ":" + username, "Verify with " + username + " from " + provider.provider, Emoji.fromMarkdown(provider.emoji));
                         }
                     }
 
@@ -132,20 +133,23 @@ public class ReverifyCommand extends VerificationCommandContract {
                     return;
                 }
 
-                if (rover != null && so.getValue().equals("rover" + ":" + rover.getRobloxUsername())) {
-                    addAccountToDatabase(context, rover.getRobloxId(), unverifiedMessage);
+                String provider = so.getValue().split(":")[0];
+                String username = so.getValue().split(":")[1];
+
+                if (rover != null && provider.equals("rover")) {
+                    addAccountToDatabase(context, rover.getRobloxId(), unverifiedMessage, username);
                     return;
                 }
-                if (bloxlink != null && so.getValue().equals("bloxlink" + ":" + bloxlink.getRobloxUsername())) {
-                    addAccountToDatabase(context, bloxlink.getRobloxId(), unverifiedMessage);
+                if (bloxlink != null && provider.equals("bloxlink")) {
+                    addAccountToDatabase(context, bloxlink.getRobloxId(), unverifiedMessage, username);
                     return;
                 }
-                if (pinewood != null && so.getValue().equals("pinewood" + ":" + pinewood.getRobloxUsername())) {
-                    addAccountToDatabase(context, pinewood.getRobloxId(), unverifiedMessage);
+                if (pinewood != null && provider.equals("pinewood")) {
+                    addAccountToDatabase(context, pinewood.getRobloxId(), unverifiedMessage, username);
                     return;
                 }
-                if (rowifi != null && so.getValue().equals("rowifi" + ":" + rowifi.getRobloxUsername())) {
-                    addAccountToDatabase(context, rowifi.getRobloxId(), unverifiedMessage);
+                if (rowifi != null && provider.equals("rowifi")) {
+                    addAccountToDatabase(context, rowifi.getRobloxId(), unverifiedMessage, username);
                     return;
                 }
             }
@@ -154,12 +158,11 @@ public class ReverifyCommand extends VerificationCommandContract {
 
 
     private void verifyNewAccount(CommandMessage context, String robloxUsername, Message originalMessage) {
-        Long robloxId = getRobloxId(robloxUsername);
-        if (robloxId == null) {
+        long robloxId = getRobloxId(robloxUsername);
+        if (robloxId == 0L) {
             context.makeError("Verification failed. Username doesn't exist on roblox. (`:username`)").set("username", robloxUsername).queue();
             return;
         }
-
 
         SelectionMenu menu = SelectionMenu.create("menu:method-to-verify-with" + ":" + context.getMember().getId() + ":" + context.getMessage().getId())
                 .setPlaceholder("Select the verification method!") // shows the placeholder indicating what this menu is for
@@ -194,7 +197,7 @@ public class ReverifyCommand extends VerificationCommandContract {
 
 
 
-    public Long getRobloxId(String un) {
+    public long getRobloxId(String un) {
         try {
             return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un);
         } catch (Exception e) {

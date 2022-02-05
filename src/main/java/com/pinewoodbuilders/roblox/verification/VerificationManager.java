@@ -78,7 +78,7 @@ public class VerificationManager {
             .queue(originalMessage -> {
                 VerificationResult vr = verify(context.getGuildSettingsTransformer(), member, guild, useCache);
                 if (!vr.isSuccess()) {
-                    originalMessage.editMessageEmbeds(context.makeError(vr.getMessage()).buildEmbed()).queue();
+                    originalMessage.editMessageEmbeds(context.makeError(vr.getMessage()).setImage(getImageFromVerificationEntity(vr.getVerificationEntity())).requestedBy(context).buildEmbed()).queue();
                 } else {
                     originalMessage.editMessageEmbeds(context.makeSuccess(vr.getMessage()).buildEmbed()).queue(verifyMessage -> {
                         VerificationTransformer vt = VerificationController.fetchGuild(avaire, context.message);
@@ -86,8 +86,8 @@ public class VerificationManager {
                         if (vt.getVerifyChannel() == 0) return;
 
                         if (vt.getVerifyChannel() == context.getChannel().getIdLong()) {
-                            verifyMessage.delete().queueAfter(5, TimeUnit.MINUTES);
-                            context.message.delete().queueAfter(5, TimeUnit.MINUTES);
+                            verifyMessage.delete().queueAfter(30, TimeUnit.SECONDS);
+                            context.message.delete().queueAfter(30, TimeUnit.SECONDS);
                         }
                     });
                 }

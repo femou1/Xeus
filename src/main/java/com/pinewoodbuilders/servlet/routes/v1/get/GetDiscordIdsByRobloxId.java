@@ -11,7 +11,7 @@ import spark.Request;
 import spark.Response;
 
 public class GetDiscordIdsByRobloxId extends SparkRoute {
-    private static final Logger log = LoggerFactory.getLogger("[Verification (Roblox -> Discord)]");
+    private static final Logger log = LoggerFactory.getLogger("Verification (R->D)");
 
     @Override
     public Object handle(Request request, Response response) throws Exception {
@@ -31,7 +31,7 @@ public class GetDiscordIdsByRobloxId extends SparkRoute {
             root.put("provider", verificationEntity.getProvider());
             root.put("discordId", verificationEntity.getDiscordId());
             root.put("discordUsername", returnUsernameFromDiscord(verificationEntity.getDiscordId()));
-            log.info("[Verification (Roblox -> Discord)] {} ({}) -> {} ({})", verificationEntity.getRobloxId(), verificationEntity.getRobloxUsername(), verificationEntity.getDiscordId(), returnUsernameFromDiscord(verificationEntity.getDiscordId()));
+            log.info("{} ({}) -> {} ({})", verificationEntity.getRobloxId(), verificationEntity.getRobloxUsername(), verificationEntity.getDiscordId(), returnUsernameFromDiscord(verificationEntity.getDiscordId()));
         } else {
             root.put("error", true);
             root.put("message", "The ID " + id + " doesn't have a user in any verification database.");
@@ -47,7 +47,7 @@ public class GetDiscordIdsByRobloxId extends SparkRoute {
         if (u != null) {
             return u.getName() + "#" + u.getDiscriminator();
         }
-        return "Unkown";
+        return "ERROR: Unable to get user...";
     }
 
 
