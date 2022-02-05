@@ -111,26 +111,17 @@ public class HolidayCommand extends Command {
 
         request.send((Consumer<Response>) response -> {
             switch (response.getResponse().code()) {
-                case 429:
-                    context.makeWarning(context.i18n("tooManyAttempts"))
-                        .queue(message -> message.delete().queueAfter(45, TimeUnit.SECONDS, null, RestActionUtil.ignore));
-                    break;
-
-                case 404:
-                    context.makeWarning(context.i18n("notFound"))
-                        .queue(message -> message.delete().queueAfter(45, TimeUnit.SECONDS, null, RestActionUtil.ignore));
-                    break;
-
-                case 200:
+                case 429 -> context.makeWarning(context.i18n("tooManyAttempts"))
+                    .queue(message -> message.delete().queueAfter(45, TimeUnit.SECONDS, null, RestActionUtil.ignore));
+                case 404 -> context.makeWarning(context.i18n("notFound"))
+                    .queue(message -> message.delete().queueAfter(45, TimeUnit.SECONDS, null, RestActionUtil.ignore));
+                case 200 -> {
                     HolidayService service = (HolidayService) response.toService(HolidayService.class);
                     List<HolidayService.Holiday> holidays = service.getHolidays();
-
                     cache.put(key, holidays);
                     sendHolidayStatus(context, holidays);
-                    break;
-
-                default:
-                    context.makeError(context.i18n("somethingWentWrong")).queue();
+                }
+                default -> context.makeError(context.i18n("somethingWentWrong")).queue();
             }
         });
 

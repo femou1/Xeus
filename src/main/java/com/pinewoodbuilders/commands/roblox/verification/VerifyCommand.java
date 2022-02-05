@@ -103,7 +103,8 @@ public class VerifyCommand extends VerificationCommandContract {
                     for (VerificationEntity ve : verificationEntities) {
                         VerificationProviders provider = VerificationProviders.resolveProviderFromProvider(ve.getProvider());
                         if (provider != null) {
-                            menu.addOption(ve.getRobloxUsername(), ve.getProvider(), "Verify with " + ve.getRobloxUsername() + " from " + provider.provider, Emoji.fromMarkdown(provider.emoji));
+                            String username = ve.getRobloxUsername() != null ? ve.getRobloxUsername() : "Deleted";
+                            menu.addOption(username, ve.getProvider() + ":" + username, "Verify with " + username + " from " + provider.provider, Emoji.fromMarkdown(provider.emoji));
                         }
                     }
 
@@ -118,7 +119,7 @@ public class VerifyCommand extends VerificationCommandContract {
                                             if (so.getValue().equals("verify-new-account")) {
                                                 unverifiedMessage.editMessageEmbeds(context.makeWarning("You selected the option to verify with a new account\n**Please enter the Roblox name of said account**:").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue(unused -> {
                                                     avaire.getWaiter().waitForEvent(GuildMessageReceivedEvent.class,
-                                                            interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(unverifiedMessage),
+                                                            interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
                                                             usernameMessage -> {
                                                                 verifyNewAccount(context, usernameMessage.getMessage().getContentRaw(), unverifiedMessage);
                                                                 usernameMessage.getMessage().delete().queue();
@@ -126,19 +127,23 @@ public class VerifyCommand extends VerificationCommandContract {
                                                 });
                                                 return;
                                             }
-                                            if (so.getValue().equals("rover")) {
+
+                                            String provider = so.getValue().split(":")[0];
+                                            String username = so.getValue().split(":")[1];
+
+                                            if (provider.equals("rover")) {
                                                 assert rover != null;
-                                                addAccountToDatabase(context, rover.getRobloxId(), unverifiedMessage);
+                                                addAccountToDatabase(context, rover.getRobloxId(), unverifiedMessage, username);
                                                 return;
                                             }
-                                            if (so.getValue().equals("bloxlink")) {
+                                            if (provider.equals("bloxlink")) {
                                                 assert bloxlink != null;
-                                                addAccountToDatabase(context, bloxlink.getRobloxId(), unverifiedMessage);
+                                                addAccountToDatabase(context, bloxlink.getRobloxId(), unverifiedMessage, username);
                                                 return;
                                             }
-                                            if (so.getValue().equals("rowifi")) {
+                                            if (provider.equals("rowifi")) {
                                                 assert bloxlink != null;
-                                                addAccountToDatabase(context, rowifi.getRobloxId(), unverifiedMessage);
+                                                addAccountToDatabase(context, rowifi.getRobloxId(), unverifiedMessage, username);
                                                 return;
                                             }
                                         }
@@ -151,9 +156,9 @@ public class VerifyCommand extends VerificationCommandContract {
     }
 
     private void verifyNewAccount(CommandMessage context, String robloxUsername, Message originalMessage) {
-        Long robloxId = getRobloxId(robloxUsername);
-        if (robloxId == null) {
-            context.makeError("Verification failed. Username doesn't exist on roblox. (`:username`)").set("username", robloxUsername).queue();
+        long robloxId = getRobloxId(robloxUsername);
+        if (robloxId == 0L) {
+            context.makeError("Verification failed. Username doesn't exist on roblox or unable to find the username. (`:username`)").set("username", robloxUsername).queue();
             return;
         }
 
@@ -187,7 +192,7 @@ public class VerifyCommand extends VerificationCommandContract {
                 }, 5, TimeUnit.MINUTES, () -> originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue()));
     }
 
-    public Long getRobloxId(String un) {
+    public long getRobloxId(String un) {
         try {
             return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un);
         } catch (Exception e) {

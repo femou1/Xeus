@@ -65,7 +65,7 @@ public abstract class VerificationCommandContract extends Command {
      * @param robloxId        The roblox ID for the user you want to add to the database
      * @param originalMessage The {@link Message} object for editing the message when going to the next step.
      */
-    public void addAccountToDatabase(CommandMessage context, Long robloxId, Message originalMessage) {
+    public void addAccountToDatabase(CommandMessage context, Long robloxId, Message originalMessage, String username) {
         try {
             QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME);
             Collection accounts = qb.where("id", context.getMember().getId()).get();
@@ -87,7 +87,7 @@ public abstract class VerificationCommandContract extends Command {
 
             VerificationResult vr = avaire.getRobloxAPIManager().getVerification().verify(context.getGuildSettingsTransformer(), context.member, context.guild, false);
             MessageEmbed embed1 = context.makeSuccess("Your profile has been verified and your account `:username` with id `:robloxId` has been linked to your discord account (`:id`). You will be verified on this discord in a few seconds.")
-                .set("username", avaire.getRobloxAPIManager().getUserAPI().getUsername(robloxId)).set("robloxId", robloxId).set("id", context.getMember().getId()).buildEmbed();
+                .set("username", username).set("robloxId", robloxId).set("id", context.getMember().getId()).buildEmbed();
 
             MessageEmbed embed2 = vr.isSuccess() ? context.makeSuccess(vr.getMessage()).setTitle("Verification success!").setImage(getImageFromVerificationEntity(vr.getVerificationEntity())).requestedBy(context).buildEmbed() :
                 context.makeError("Something went wrong during verification of your account..." + vr.getMessage()).buildEmbed();
@@ -136,7 +136,7 @@ public abstract class VerificationCommandContract extends Command {
 
                                             if (verificationId.equals("verified") && discordId.equals(context.getAuthor().getId())) {
                                                 verification.remove(robloxId);
-                                                addAccountToDatabase(context, robloxId, originalMessage);
+                                                addAccountToDatabase(context, robloxId, originalMessage, avaire.getRobloxAPIManager().getUserAPI().getUsername(robloxId));
                                             } else {
                                                 originalMessage.editMessageEmbeds(context.makeWarning("Verification has not been confirmed, verification cancelled.").buildEmbed()).setActionRows(Collections.emptyList()).queue();;
                                                 verification.remove(robloxId);
@@ -180,7 +180,7 @@ public abstract class VerificationCommandContract extends Command {
                                 String status = avaire.getRobloxAPIManager().getUserAPI().getUserStatus(robloxId);
                                 if (status != null) {
                                     if (status.contains(token)) {
-                                        addAccountToDatabase(context, robloxId, originalMessage);
+                                        addAccountToDatabase(context, robloxId, originalMessage, avaire.getRobloxAPIManager().getUserAPI().getUsername(robloxId));
                                     } else {
                                         originalMessage.editMessageEmbeds(context.makeWarning("Your status does not contain the token, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();;
                                     }
