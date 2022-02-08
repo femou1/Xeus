@@ -5,21 +5,22 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.kronos.TrellobanLabels;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
-import com.pinewoodbuilders.database.controllers.VerificationController;
 import com.pinewoodbuilders.database.transformers.VerificationTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.requests.service.group.GuildRobloxRanksService;
 import com.pinewoodbuilders.requests.service.user.inventory.RobloxGamePassService;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
-import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.RoleUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.menu.Paginator;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
+import io.github.bucket4j.ConsumptionProbe;
+import io.github.bucket4j.Refill;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.internal.utils.PermissionUtil;
@@ -32,8 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static javassist.util.proxy.ProxyFactory.useCache;
-
 public class UpdateCommand extends Command {
     private final Paginator.Builder builder;
 
@@ -41,10 +40,10 @@ public class UpdateCommand extends Command {
         super(avaire);
         builder = new Paginator.Builder().setColumns(1).setFinalAction(m -> {
             try {
-                m.clearReactions().queue();
+                m.delete().queue();
             } catch (PermissionException ignore) {
             }
-        }).setItemsPerPage(10).waitOnSinglePage(false).useNumberedItems(false).showPageNumbers(true).wrapPageEnds(true)
+        }).setItemsPerPage(25).waitOnSinglePage(false).useNumberedItems(false).showPageNumbers(false).wrapPageEnds(true)
             .setEventWaiter(avaire.getWaiter()).setTimeout(5, TimeUnit.MINUTES);
     }
 
@@ -85,14 +84,10 @@ public class UpdateCommand extends Command {
             return false;
         }
 
-        switch (args[0].toLowerCase()) {
-            case "everyone":
-                return updateEveryone(context);
-            case "all-guilds":
-                return updateAllGuilds(context);
-            default:
-                return updateMember(context, args);
-        }
+        return switch (args[0].toLowerCase()) {
+            case "everyone", "all", "guild" -> updateEveryone(context);
+            default -> updateMember(context, args);
+        };
     }
 
     private boolean updateMember(CommandMessage context, String[] args) {
@@ -118,10 +113,8 @@ public class UpdateCommand extends Command {
         return false;
     }
 
-    boolean globalVerificationRunning;
     boolean verificationRunning;
-    private final Bandwidth limit = Bandwidth.simple(60, Duration.ofSeconds(60));
-    private final Bucket bucket = Bucket.builder().addLimit(limit).build();
+
 
     private boolean updateEveryone(CommandMessage context) {
         int level = XeusPermissionUtil.getPermissionLevel(context).getLevel();
@@ -130,20 +123,11 @@ public class UpdateCommand extends Command {
             return false;
         }
 
-        // if (context.getGuild().getVerificationLevel().equals(VerificationLevel.VERY_HIGH)) {
-
-        // }
-
-        if (globalVerificationRunning) {
-            context.makeError("A pinewood wide verification is already running. Please try again later...").queue();
+        if (verificationRunning) {
+            context.makeError("Somewhere, verification is already running. Please try again later...").queue();
             return false;
         }
 
-        if (verificationRunning) {
-            context.makeError(
-                "A guild is already running a mass verification, due to rate-limits. You might get rate-limited.")
-                .queue();
-        }
 
         context.makeWarning(
             "Running verification...\nDepending on the member total (:members) this might take a while. You will be mentioned once the time is over.")
@@ -163,26 +147,44 @@ public class UpdateCommand extends Command {
 
         verificationRunning = true;
         HashMap <Member, String> ignoredMembers = new HashMap <>();
-        ArrayList <Guild> guilde = new ArrayList <>();
-        for (String s : guilds) {
-            Guild g = avaire.getShardManager().getGuildById(s);
-            if (g != null) {
-                guilde.add(g);
-            }
+        List <Guild> guild;
+        try {
+            guild = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(avaire, context.getGuildSettingsTransformer().getMainGroupId());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            context.makeError("Error while pulling information").queue();
+            return false;
         }
-        for (Member member : context.getGuild().getMembers()) {
-            if (!bucket.tryConsume(1)) {
-                context.makeInfo("Hit bucket ratelimit, pausing for 30 seconds")
-                    .setFooter("This message deletes after 25 seconds.")
-                    .queue(m -> m.delete().queueAfter(25, TimeUnit.SECONDS));
-                try {
-                    Thread.sleep(30000);
-                } catch (InterruptedException ignored) {
 
+        Bucket bucket = Bucket.builder()
+            .addLimit(Bandwidth.classic(45, Refill.intervally(45, Duration.ofMinutes(1))))
+            .build();
+
+        for (Member member : context.getGuild().getMembers()) {
+            ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
+            if (!probe.isConsumed()) {
+                try {
+                    long timeUntilRefill = probe.getNanosToWaitForReset();
+                    long refillTime = timeUntilRefill != 0L ? timeUntilRefill : 0;
+                    long durationInMs = TimeUnit.MILLISECONDS.convert(refillTime, TimeUnit.NANOSECONDS);
+                    long durationInSeconds = TimeUnit.SECONDS.convert(refillTime, TimeUnit.NANOSECONDS);
+
+                    System.out.println("Waiting for " + durationInMs + " (" +  refillTime + ") - " + bucket.getAvailableTokens() + " - " + durationInSeconds);
+
+                    TimeUnit.NANOSECONDS.sleep(refillTime);
+                } catch (InterruptedException ignored) {
+                    context.makeError("Rate-limit interrupted, update cancelled.").queue();
+                    return false;
                 }
             }
 
             if (member == null) {
+                continue;
+            }
+
+            System.out.println("Updating " + member.getEffectiveName() + " with bucket tokens left " + bucket.getAvailableTokens());
+            if (member.getUser().isBot()) {
+                ignoredMembers.put(member, "Account is a bot, ignored.");
                 continue;
             }
 
@@ -198,11 +200,13 @@ public class UpdateCommand extends Command {
             }
 
             VerificationEntity verificationEntity = avaire.getRobloxAPIManager().getVerification()
-                .fetchVerificationWithBackup(member.getId(), useCache);
+                .fetchVerificationWithBackup(member.getId(), false);
             if (verificationEntity == null) {
                 ignoredMembers.put(member, "Xeus coudn't find this profile anywhere, user was not verified");
                 continue;
             }
+
+            System.out.println("User " + verificationEntity.getRobloxUsername() + " with id " + verificationEntity.getRobloxId());
 
             if (trellobans != null) {
                 if (trellobans
@@ -288,7 +292,7 @@ public class UpdateCommand extends Command {
                                 }
                                 ignoredMembers.put(member, "__*`User is TRELLO BANNED AND GLOBAL BANNED`*__");
                                 GlobalBanMember(context, String.valueOf(verificationEntity.getDiscordId()),
-                                    "User has been global-banned by PIA. This is automatic ban.", guilde);
+                                    "User has been global-banned by PIA. This is automatic ban.", guild);
 
                             } else if (canAppeal) {
                                 context.guild.modifyMemberRoles(member, context.guild.getRoleById(canAppealRoleId))
@@ -372,7 +376,8 @@ public class UpdateCommand extends Command {
                 continue;
             }
 
-            if (verificationTransformer.getRanks() == null || verificationTransformer.getRanks().length() < 2) {
+
+            if (verificationTransformer.getRanks() == null) {
                 context.makeError(
                     "Ranks have not been setup on this guild yet. Please ask the admins to setup the roles on this server.")
                     .queue();
@@ -381,7 +386,8 @@ public class UpdateCommand extends Command {
 
             List <RobloxUserGroupRankService.Data> robloxRanks = avaire.getRobloxAPIManager().getUserAPI()
                 .getUserRanks(verificationEntity.getRobloxId());
-            if (robloxRanks == null || robloxRanks.size() == 0) {
+
+            if (robloxRanks == null) {
                 ignoredMembers.put(member, "User doesn't have any group ranks at all.");
                 continue;
             }
@@ -399,7 +405,7 @@ public class UpdateCommand extends Command {
             bindingRoleMap.forEach((groupRankBinding, role) -> {
                 List <String> robloxGroups = robloxRanks.stream()
                     .map(data -> data.getGroup().getId() + ":" + data.getRole().getRank())
-                    .collect(Collectors.toList());
+                    .toList();
 
                 for (String groupRank : robloxGroups) {
                     String[] rank = groupRank.split(":");
@@ -417,7 +423,7 @@ public class UpdateCommand extends Command {
 
             bindingRoleMap.forEach((groupRankBinding, role) -> {
                 List <String> gamepassBinds = groupRankBinding.getGroups().stream()
-                    .map(data -> data.getId() + ":" + data.getRanks().get(0)).collect(Collectors.toList());
+                    .map(data -> data.getId() + ":" + data.getRanks().get(0)).toList();
 
                 for (String groupRank : gamepassBinds) {
                     // Loop through all the gamepass-bindings
@@ -499,21 +505,6 @@ public class UpdateCommand extends Command {
         return !verificationRunning;
     }
 
-    private final ArrayList <String> guilds = new ArrayList <String>() {
-        {
-            add("495673170565791754"); // Aerospace
-            add("438134543837560832"); // PBST
-            add("791168471093870622"); // Kronos Dev
-            add("371062894315569173"); // Official PB Server
-            add("514595433176236078"); // PBQA
-            add("436670173777362944"); // PET
-            add("505828893576527892"); // MMFA
-            add("498476405160673286"); // PBM
-            add("572104809973415943"); // TMS
-            add("758057400635883580"); // PBOP
-            add("669672893730258964"); // PB Dev
-        }
-    };
 
     private void GlobalBanMember(CommandMessage context, String arg, String reason, List <Guild> guilde) {
         StringBuilder sb = new StringBuilder();
@@ -530,251 +521,5 @@ public class UpdateCommand extends Command {
     private boolean isTrelloBanned(VerificationEntity verificationEntity) {
         return avaire.getRobloxAPIManager().getKronosManager().getTrelloBans()
             .containsKey(verificationEntity.getRobloxId());
-    }
-
-    private boolean updateAllGuilds(CommandMessage context) {
-        if (globalVerificationRunning) {
-            context.makeError("Global verification is already running, please wait until it's done.").queue();
-            return false;
-        }
-
-        if (verificationRunning) {
-            context.makeError(
-                "Verification is already being done in another guild, please wait until the verification has ended before starting another mass-verification.")
-                .queue();
-            return false;
-        }
-
-        context.makeWarning(
-            "Running verification...\nDepending on the user total (:users) this might take a while. You will be mentioned once the time is over.")
-            .set("users", context.getJDA().getUsers().size()).queue();
-        AtomicInteger count = new AtomicInteger();
-
-        globalVerificationRunning = true;
-        HashMap <Long, List <TrellobanLabels>> trellobans = avaire.getRobloxAPIManager().getKronosManager()
-            .getTrelloBans();
-        for (String guildId : Constants.guilds) {
-            HashMap <Member, String> ignoredMembers = new HashMap <>();
-            Guild g = avaire.getShardManager().getGuildById(guildId);
-            if (g != null) {
-                AtomicInteger guildCount = new AtomicInteger();
-                for (Member member : g.getMembers()) {
-                    if (!bucket.tryConsume(1)) {
-                        context.makeInfo("Hit bucket ratelimit, pausing for 30 seconds")
-                            .setFooter("This message deletes after 25 seconds.")
-                            .queue(m -> m.delete().queueAfter(25, TimeUnit.SECONDS));
-                        try {
-                            Thread.sleep(30000);
-                        } catch (InterruptedException ignored) {
-                        }
-                    }
-
-                    if (member == null) {
-                        continue;
-                    }
-
-                    if (!PermissionUtil.canInteract(g.getSelfMember(), member)) {
-                        continue;
-                    }
-
-                    if (member.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("Xeus Bypass")
-                        || r.getName().equalsIgnoreCase("RoVer Bypass"))) {
-                        ignoredMembers.put(member, " has the Xeus/RoVer bypass role in `" + g.getName()
-                            + "`, this user cannot be verified/updated.");
-                        continue;
-                    }
-
-                    VerificationEntity verificationEntity = avaire.getRobloxAPIManager().getVerification()
-                        .fetchVerificationWithBackup(member.getId(), useCache);
-                    if (verificationEntity == null) {
-                        continue;
-                    }
-
-                    if (trellobans != null) {
-                        if (isTrelloBanned(verificationEntity)) {
-                            ignoredMembers.put(member, "User is trello-banned. (Not kicked/banned, but not verified)");
-                            continue;
-                        }
-                    }
-
-                    try {
-                        Collection accounts = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME)
-                            .where("roblox_user_id", verificationEntity.getRobloxId())
-                            .orWhere("roblox_username", verificationEntity.getRobloxUsername()).get();
-                        if (accounts.size() > 0) {
-                            ignoredMembers.put(member, "User is banned in the MGM Anti-Unban database.");
-                            continue;
-                        }
-                    } catch (SQLException throwables) {
-                        ignoredMembers.put(member, "Database error");
-                    }
-
-                    if (g.getId().equals("438134543837560832")) {
-                        if (avaire.getBlacklistManager().getPBSTBlacklist()
-                            .contains(verificationEntity.getRobloxId())) {
-                            ignoredMembers.put(member, "User is blacklisted from PBST.");
-                            continue;
-                        }
-                    } else if (g.getId().equals("572104809973415943")) {
-                        if (avaire.getBlacklistManager().getTMSBlacklist().contains(verificationEntity.getRobloxId())) {
-                            ignoredMembers.put(member, "User is blacklisted from TMS.");
-                            continue;
-                        }
-                    } else if (g.getId().equalsIgnoreCase("498476405160673286")) {
-                        if (avaire.getBlacklistManager().getPBMBlacklist().contains(verificationEntity.getRobloxId())) {
-                            ignoredMembers.put(member, "User is blacklisted from PBM.");
-                            continue;
-                        }
-                    } else if (context.getGuild().getId().equalsIgnoreCase("436670173777362944")) {
-                        if (avaire.getBlacklistManager().getPETBlacklist().contains(verificationEntity.getRobloxId())) {
-                            ignoredMembers.put(member, "User is blacklisted from PET.");
-                            continue;
-                        }
-                    }
-
-                    VerificationTransformer verificationTransformer = VerificationController
-                        .fetchVerificationFromGuild(avaire, g);
-                    if (verificationTransformer == null) {
-                        break;
-                    }
-
-                    if (verificationTransformer.getRanks() == null || verificationTransformer.getRanks().length() < 2) {
-                        context.makeError("Ranks have not been setup on `" + g.getName() + "` yet. Skipped.").queue();
-                        break;
-                    }
-
-                    List <RobloxUserGroupRankService.Data> robloxRanks = avaire.getRobloxAPIManager().getUserAPI()
-                        .getUserRanks(verificationEntity.getRobloxId());
-                    if (robloxRanks == null || robloxRanks.size() == 0) {
-                        ignoredMembers.put(member, "User doesn't have any group ranks at all.");
-                        continue;
-                    }
-
-                    GuildRobloxRanksService guildRanks = (GuildRobloxRanksService) avaire.getRobloxAPIManager()
-                        .toService(verificationTransformer.getRanks(), GuildRobloxRanksService.class);
-
-                    Map <GuildRobloxRanksService.GroupRankBinding, Role> bindingRoleMap = guildRanks
-                        .getGroupRankBindings().stream()
-                        .collect(Collectors.toMap(Function.identity(),
-                            groupRankBinding -> g.getRoleById(groupRankBinding.getRole()))),
-                        bindingRoleAddMap = new HashMap <>();
-
-                    // Loop through all the group-rank bindings
-                    bindingRoleMap.forEach((groupRankBinding, role) -> {
-                        List <String> robloxGroups = robloxRanks.stream()
-                            .map(data -> data.getGroup().getId() + ":" + data.getRole().getRank())
-                            .collect(Collectors.toList());
-
-                        for (String groupRank : robloxGroups) {
-                            String[] rank = groupRank.split(":");
-                            String groupId = rank[0];
-                            String rankId = rank[1];
-
-                            if (groupRankBinding.getGroups().stream().filter(group -> !group.getId().equals("GamePass"))
-                                .anyMatch(group -> group.getId().equals(groupId)
-                                    && group.getRanks().contains(Integer.valueOf(rankId)))) {
-                                bindingRoleAddMap.put(groupRankBinding, role);
-                            }
-
-                        }
-                    });
-
-                    bindingRoleMap.forEach((groupRankBinding, role) -> {
-                        List <String> gamepassBinds = groupRankBinding.getGroups().stream()
-                            .map(data -> data.getId() + ":" + data.getRanks().get(0)).collect(Collectors.toList());
-
-                        for (String groupRank : gamepassBinds) {
-                            // Loop through all the gamepass-bindings
-                            String[] rank = groupRank.split(":");
-                            String rankId = rank[1];
-                            gamepassBinds.stream().filter(group -> group.split(":")[0].equals("GamePass")
-                                && group.split(":")[1].equals(rankId)).forEach(gamepass -> {
-                                List <RobloxGamePassService.Datum> rgs = avaire.getRobloxAPIManager()
-                                    .getUserAPI().getUserGamePass(verificationEntity.getRobloxId(),
-                                        Long.valueOf(rankId));
-                                if (rgs != null) {
-                                    bindingRoleAddMap.put(groupRankBinding, role);
-                                }
-                            });
-
-                        }
-                    });
-
-                    // Collect the toAdd and toRemove roles from the previous maps
-                    java.util.Collection <Role> rolesToAdd = bindingRoleAddMap.values().stream()
-                        .filter(role -> RoleUtil.canBotInteractWithRole(context.getMessage(), role))
-                        .collect(Collectors.toList()),
-                        rolesToRemove = bindingRoleMap.values().stream()
-                            .filter(role -> !bindingRoleAddMap.containsValue(role)
-                                && RoleUtil.canBotInteractWithRole(context.getMessage(), role))
-                            .collect(Collectors.toList());
-
-                    if (verificationTransformer.getVerifiedRole() != 0) {
-                        Role r = g.getRoleById(verificationTransformer.getVerifiedRole());
-                        if (r != null) {
-                            rolesToAdd.add(r);
-                        }
-                    }
-
-                    // Modify the roles of the member
-                    g.modifyMemberRoles(member, rolesToAdd, rolesToRemove).queue(l -> {
-                        guildCount.getAndIncrement();
-                        count.getAndIncrement();
-                    }, null);
-
-                    String rolesToAddAsString = "\nRoles to add:\n"
-                        + (rolesToAdd.size() > 0
-                        ? (rolesToAdd.stream().map(role -> "- `" + role.getName() + "`")
-                        .collect(Collectors.joining("\n")))
-                        : "No roles have been added");
-                    // stringBuilder.append(rolesToAddAsString);
-
-                    String rolesToRemoveAsString = "\nRoles to remove:\n"
-                        + (bindingRoleMap.size() > 0
-                        ? (rolesToRemove.stream().map(role -> "- `" + role.getName() + "`")
-                        .collect(Collectors.joining("\n")))
-                        : "No roles have been removed");
-                    // stringBuilder.append(rolesToRemoveAsString);
-
-                    if (!verificationEntity.getRobloxUsername().equals(member.getEffectiveName())) {
-                        if (PermissionUtil.canInteract(g.getSelfMember(), member)) {
-                            g.modifyNickname(member, verificationTransformer.getNicknameFormat().replace("%USERNAME%",
-                                verificationEntity.getRobloxUsername())).queue();
-                            // stringBuilder.append("\n\nNickname has been set to
-                            // `").append(verificationEntity.getRobloxUsername()).append("`");
-                        } else {
-                            ignoredMembers.put(member,
-                                "I do not have the permission to modify their nickname, or their highest rank is above mine.");
-                            // stringBuilder.append("\n\nChanging nickname failed :(");
-                        }
-                    }
-
-                    if (g.getMembers().size() < 100) {
-                        continue;
-                    }
-                    if (guildCount.get() % 100 == 0) {
-                        context.makeInfo(
-                            "**:guild**: `:currentGuildCount/:guildCount`\n**Global**: `:currentCount/:globalCount`")
-                            .set("guild", g.getName()).set("currentGuildCount", guildCount.get())
-                            .set("currentCount", count.get()).set("guildCount", g.getMembers().size())
-                            .set("globalCount", avaire.getShardManager().getUsers().size()).queue();
-                    }
-                }
-                List <String> failedMembers = new ArrayList <>();
-                ignoredMembers.forEach((m, r) -> {
-                    failedMembers.add("`" + m.getEffectiveName() + "` - **" + r + "**");
-                });
-
-                builder.setText("All members that failed to update within **" + g.getName() + "**:")
-                    .setItems(failedMembers);
-                builder.build().paginate(context.getChannel(), 0);
-            }
-        }
-
-        globalVerificationRunning = false;
-        context.getChannel().sendMessage(context.getMember().getAsMention())
-            .setEmbeds(context.makeSuccess("All members have been updated").buildEmbed()).queue();
-
-        return !globalVerificationRunning;
     }
 }
