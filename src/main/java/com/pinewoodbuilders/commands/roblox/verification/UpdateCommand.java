@@ -169,8 +169,6 @@ public class UpdateCommand extends Command {
                     long durationInMs = TimeUnit.MILLISECONDS.convert(refillTime, TimeUnit.NANOSECONDS);
                     long durationInSeconds = TimeUnit.SECONDS.convert(refillTime, TimeUnit.NANOSECONDS);
 
-                    System.out.println("Waiting for " + durationInMs + " (" +  refillTime + ") - " + bucket.getAvailableTokens() + " - " + durationInSeconds);
-
                     TimeUnit.NANOSECONDS.sleep(refillTime);
                 } catch (InterruptedException ignored) {
                     context.makeError("Rate-limit interrupted, update cancelled.").queue();
@@ -182,7 +180,6 @@ public class UpdateCommand extends Command {
                 continue;
             }
 
-            System.out.println("Updating " + member.getEffectiveName() + " with bucket tokens left " + bucket.getAvailableTokens());
             if (member.getUser().isBot()) {
                 ignoredMembers.put(member, "Account is a bot, ignored.");
                 continue;
@@ -206,7 +203,7 @@ public class UpdateCommand extends Command {
                 continue;
             }
 
-            System.out.println("User " + verificationEntity.getRobloxUsername() + " with id " + verificationEntity.getRobloxId());
+            //System.out.println("User " + verificationEntity.getRobloxUsername() + " with id " + verificationEntity.getRobloxId());
 
             if (trellobans != null) {
                 if (trellobans
@@ -292,7 +289,7 @@ public class UpdateCommand extends Command {
                                 }
                                 ignoredMembers.put(member, "__*`User is TRELLO BANNED AND GLOBAL BANNED`*__");
                                 GlobalBanMember(context, String.valueOf(verificationEntity.getDiscordId()),
-                                    "User has been global-banned by PIA. This is automatic ban.", guild);
+                                    guild);
 
                             } else if (canAppeal) {
                                 context.guild.modifyMemberRoles(member, context.guild.getRoleById(canAppealRoleId))
@@ -506,20 +503,16 @@ public class UpdateCommand extends Command {
     }
 
 
-    private void GlobalBanMember(CommandMessage context, String arg, String reason, List <Guild> guilde) {
+    private void GlobalBanMember(CommandMessage context, String arg, List<Guild> guilde) {
         StringBuilder sb = new StringBuilder();
         for (Guild g : guilde) {
-            g.ban(arg, 0, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: " + reason
+            g.ban(arg, 0, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: " + "User has been global-banned by PIA. This is automatic ban."
                 + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
-                .reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + reason)
+                .reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n" + "User has been global-banned by PIA. This is automatic ban.")
                 .queue();
 
             sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
         }
     }
 
-    private boolean isTrelloBanned(VerificationEntity verificationEntity) {
-        return avaire.getRobloxAPIManager().getKronosManager().getTrelloBans()
-            .containsKey(verificationEntity.getRobloxId());
-    }
 }
