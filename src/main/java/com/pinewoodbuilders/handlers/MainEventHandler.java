@@ -86,7 +86,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -113,7 +112,6 @@ public class MainEventHandler extends EventHandler {
 
     private static final Logger log = LoggerFactory.getLogger(MainEventHandler.class);
 
-    private List <String> inviteCode = new LinkedList <>();
     private int invites = 0;
     /**
      * Instantiates the event handler and sets the avaire class instance.

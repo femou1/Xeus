@@ -124,18 +124,31 @@ public class GlobalPunishmentManager {
      * Checks if there are any mute record that exists using the given guild and
      * user IDs.
      *
-     * @param mgi The ID of the guild that should be checked.
-     * @param userId  The ID of the user that should be muted.
+     * @param mgi    The ID of the guild that should be checked.
+     * @param userId The ID of the user that should be muted.
      * @return {@code True} if a user with the given ID is muted on a server with
      * the given guild ID, {@code False} otherwise.
      */
-    public boolean isGlobalBanned(long mgi, String userId) {
+    public boolean isGlobalBanned(long mgi, String discordId) {
         if (!globalBans.containsKey(mgi)) {
             return false;
         }
 
         for (GlobalBanContainer container : globalBans.get(mgi)) {
-            if (container.isSame(mgi, userId)) {
+            if (container.isSame(mgi, discordId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isRobloxGlobalBanned(long mgi, long robloxId) {
+        if (!globalBans.containsKey(mgi)) {
+            return false;
+        }
+
+        for (GlobalBanContainer container : globalBans.get(mgi)) {
+            if (container.getMainGroupId() == mgi && container.getRobloxId() == robloxId) {
                 return true;
             }
         }

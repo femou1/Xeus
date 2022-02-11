@@ -28,7 +28,10 @@ import com.pinewoodbuilders.modlog.local.moderation.Modlog;
 import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
 import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.time.Carbon;
-import com.pinewoodbuilders.utilities.*;
+import com.pinewoodbuilders.utilities.ComparatorUtil;
+import com.pinewoodbuilders.utilities.MentionableUtil;
+import com.pinewoodbuilders.utilities.NumberUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 
@@ -538,7 +541,7 @@ public class GlobalModCommand extends Command {
         do {
             String group = matcher.group();
 
-            String type = group.substring(group.length() - 1, group.length());
+            String type = group.substring(group.length() - 1);
             int timeToAdd = NumberUtil.parseInt(group.substring(0, group.length() - 1));
 
             switch (type.toLowerCase()) {
@@ -788,6 +791,10 @@ public class GlobalModCommand extends Command {
             return true;
         }
 
+        return canGlobalBan(context, args, soft);
+    }
+
+    private boolean canGlobalBan(CommandMessage context, String[] args, ComparatorUtil.ComparatorType soft) {
         GuildSettingsTransformer settingsTransformer = context.getGuildSettingsTransformer();
         if (settingsTransformer == null) {
             context.makeError("Guildtransformer is null, please contact the developer.").queue();
@@ -814,9 +821,14 @@ public class GlobalModCommand extends Command {
             g = avaire.getShardManager().getGuildById(context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId());
         }
 
-        StringBuilder sb = new StringBuilder();
+
+        return executeGlobalBan(context, args, soft, settingsTransformer, g);
+    }
+
+    private boolean executeGlobalBan(CommandMessage context, String[] args, ComparatorUtil.ComparatorType shouldDeleteMessages, GuildSettingsTransformer settingsTransformer, Guild appealsGuild) {
         try {
-            int time = soft.getValue() ? 7 : 0;
+            StringBuilder sb = new StringBuilder();
+            int time = shouldDeleteMessages.getValue() ? 7 : 0;
             String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
             boolean appealsBan = reason.contains("--appeals-ban") || reason.contains("-ab");
             boolean globalBan = reason.contains("--global") || reason.contains("--g");
@@ -826,7 +838,7 @@ public class GlobalModCommand extends Command {
             if (guilds.size() == 0) {
                 context.makeError("Huh? How did we get here? There should be at least one guild with this ID. Weird...")
                     .queue();
-                return false;
+                return true;
             }
 
             if (guilds.size() == 1) {
@@ -845,8 +857,8 @@ public class GlobalModCommand extends Command {
 
             int bannedGuilds = 0;
             for (Guild guild : guilds) {
-                if (g != null) {
-                    if (g.getId().equals(guild.getId())) {
+                if (appealsGuild != null) {
+                    if (appealsGuild.getId().equals(guild.getId())) {
                         if (!appealsBan) {
                             sb.append("``").append(guild.getName()).append("`` - :x:\n");
                             continue;
@@ -879,7 +891,7 @@ public class GlobalModCommand extends Command {
 
             User u = avaire.getShardManager().getUserById(args[0]);
             if (u != null) {
-                String invite = getFirstInvite(g);
+                String invite = getFirstInvite(appealsGuild);
                 String finalReason = reason;
                 u.openPrivateChannel().submit().thenAccept(p -> p.sendMessageEmbeds(context.makeInfo(
                         "*You have been **global-banned** from all discord that are connected to [this group](:groupLink) by an MGM Moderator. "
@@ -928,8 +940,7 @@ public class GlobalModCommand extends Command {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
-        return true;
+        return false;
     }
 
     private String getFirstInvite(Guild g) {

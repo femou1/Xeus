@@ -28,28 +28,10 @@ import com.pinewoodbuilders.database.transformers.VerificationTransformer;
 
 import javax.annotation.Nullable;
 
-public class DatabaseEventHolder {
-
-    private final GuildTransformer guild;
-    private final PlayerTransformer player;
-    private final VerificationTransformer verification;
-    private final GuildSettingsTransformer guildSettings;
-
-    /**
-     * Creates a new database holder instance using the given guild and player
-     * transformer.
-     *
-     * @param guild  The guild transformer that should be stored in the event
-     *               holder.
-     * @param player The player transformer that should be stored in the event
-     *               holder.
-     */
-    public DatabaseEventHolder(GuildTransformer guild, PlayerTransformer player, VerificationTransformer verification, GuildSettingsTransformer guildSettings) {
-        this.guild = guild;
-        this.player = player;
-        this.verification = verification;
-        this.guildSettings = guildSettings;
-    }
+public record DatabaseEventHolder(GuildTransformer guild,
+                                  PlayerTransformer player,
+                                  VerificationTransformer verification,
+                                  GuildSettingsTransformer guildSettings) {
 
     /**
      * Gets the guild database transformer for the current JDA event, the guild
@@ -57,7 +39,7 @@ public class DatabaseEventHolder {
      * about the current guild.
      *
      * @return The guild database transformer for the current JDA event, or
-     *         {@code NULL} if the event was not invoked for a guild.
+     * {@code NULL} if the event was not invoked for a guild.
      */
     public GuildTransformer getGuild() {
         return guild;
@@ -69,8 +51,8 @@ public class DatabaseEventHolder {
      * who invoked the JDA event.
      *
      * @return The player database transformer for the user who invoked the JDA
-     *         event, or {@code NULL} if the leveling feature is disabled in the
-     *         guild.
+     * event, or {@code NULL} if the leveling feature is disabled in the
+     * guild.
      */
     @Nullable
     public PlayerTransformer getPlayer() {
