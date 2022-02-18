@@ -14,10 +14,12 @@ import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.contracts.verification.VerificationResult;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.controllers.VerificationController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.VerificationTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
+import com.pinewoodbuilders.moderation.global.punishments.globalban.GlobalBanContainer;
 import com.pinewoodbuilders.requests.service.group.GuildRobloxRanksService;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
@@ -34,9 +36,11 @@ import org.json.JSONObject;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
+import java.awt.*;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -44,12 +48,12 @@ import java.util.stream.Collectors;
 
 public class VerificationManager {
 
-    public final Cache <String, VerificationEntity> cache = CacheBuilder.newBuilder().recordStats()
+    public final Cache<String, VerificationEntity> cache = CacheBuilder.newBuilder().recordStats()
         .expireAfterWrite(24, TimeUnit.HOURS).build();
     private final Xeus avaire;
     private final RobloxAPIManager manager;
     private final VerificationMethodsManager verificationMethodsManager;
-    private final HashMap <Long, String> inVerification = new HashMap <>();
+    private final HashMap<Long, String> inVerification = new HashMap<>();
 
     public VerificationManager(Xeus avaire, RobloxAPIManager robloxAPIManager) {
         this.avaire = avaire;
@@ -117,13 +121,8 @@ public class VerificationManager {
         }
 
         VerificationTransformer verificationTransformer = VerificationController.fetchVerificationFromGuild(avaire, guild);
-        if (verificationTransformer == null) {
-            return new VerificationResult(false,
-                "The VerificationTransformer seems to have broken, please consult the developer of the bot.");
-        }
-
         if (transformer.getPbVerificationTrelloban()) {
-            HashMap <Long, List <TrellobanLabels>> trellobans = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans();
+            HashMap<Long, List<TrellobanLabels>> trellobans = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans();
             if (trellobans != null && isTrelloBanned(trellobans, member)) {
                 boolean isAppealsVerification = checkTrelloBan(transformer, member, guild, verificationEntity);
                 if (isAppealsVerification) {
@@ -132,7 +131,24 @@ public class VerificationManager {
             }
         }
 
-        if (isBlacklisted(guild, verificationEntity)) {return new VerificationResult(false, "Blacklisted on " + guild.getName());}
+        if (isBlacklisted(guild, verificationEntity)) {
+            return new VerificationResult(false, "Blacklisted on " + guild.getName());
+        }
+
+        boolean isGlobalBanned = avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(transformer.getMainGroupId(), verificationEntity.getRobloxId());
+
+        if (isGlobalBanned) {
+            List<GlobalBanContainer> globalBanContainer = avaire.getGlobalPunishmentManager()
+                .getGlobalBans()
+                .get(transformer.getMainGroupId())
+                .stream()
+                .filter(user -> user.getRobloxId() == verificationEntity.getRobloxId()).toList();
+            if (globalBanContainer.size() > 0) {
+                return canGlobalBan(globalBanContainer.get(0), transformer, member, verificationEntity);
+            }
+
+
+        }
 
         return verifyRoles(member, guild, verificationEntity, verificationTransformer);
     }
@@ -147,25 +163,29 @@ public class VerificationManager {
             return new VerificationResult(false, "Ranks have not been setup on this guild yet. Please ask the admins to setup the roles on this server.");
         }
 
-        List <RobloxUserGroupRankService.Data> robloxRanks = manager.getUserAPI()
-            .getUserRanks(verificationEntity.getRobloxId());
+        return verifyUserRoles(member, guild, verificationEntity, verificationTransformer);
+    }
 
+    @NotNull
+    private VerificationResult verifyUserRoles(Member member, Guild guild, VerificationEntity verificationEntity, VerificationTransformer verificationTransformer) {
+        List<RobloxUserGroupRankService.Data> robloxRanks = manager.getUserAPI()
+            .getUserRanks(verificationEntity.getRobloxId());
 
         StringBuilder stringBuilder = new StringBuilder();
         if (robloxRanks != null && robloxRanks.size() > 0) {
             GuildRobloxRanksService guildRanks = (GuildRobloxRanksService) manager
                 .toService(verificationTransformer.getRanks(), GuildRobloxRanksService.class);
 
-            Map <GuildRobloxRanksService.GroupRankBinding, Role> bindingRoleMap = guildRanks.getGroupRankBindings()
+            Map<GuildRobloxRanksService.GroupRankBinding, Role> bindingRoleMap = guildRanks.getGroupRankBindings()
                 .stream()
                 .collect(Collectors.toMap(Function.identity(),
                     groupRankBinding -> guild.getRoleById(groupRankBinding.getRole()))),
-                bindingRoleAddMap = new HashMap <>();
+                bindingRoleAddMap = new HashMap<>();
 
             // Loop through all the group-rank bindings
             bindingRoleMap.forEach((groupRankBinding, role) -> {
-                List <String> robloxGroups = robloxRanks.stream()
-                    .map(data -> data.getGroup().getId() + ":" + data.getRole().getRank()).collect(Collectors.toList());
+                List<String> robloxGroups = robloxRanks.stream()
+                    .map(data -> data.getGroup().getId() + ":" + data.getRole().getRank()).toList();
 
                 for (String groupRank : robloxGroups) {
                     String[] rank = groupRank.split(":");
@@ -186,7 +206,7 @@ public class VerificationManager {
                 .filter(Objects::nonNull).forEach(pass -> bindingRoleAddMap.put(groupRankBinding, role)));
 
             // Collect the toAdd and toRemove roles from the previous maps
-            java.util.Collection <Role> rolesToAdd = bindingRoleAddMap.values().stream()
+            java.util.Collection<Role> rolesToAdd = bindingRoleAddMap.values().stream()
                 .filter(role -> PermissionUtil.canInteract(guild.getSelfMember(), role)).collect(Collectors.toList()),
                 rolesToRemove = bindingRoleMap.values().stream().filter(role -> !bindingRoleAddMap.containsValue(role)
                     && PermissionUtil.canInteract(guild.getSelfMember(), role)).collect(Collectors.toList());
@@ -199,9 +219,9 @@ public class VerificationManager {
             }
 
             // Modify the roles of the member
-            guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove).queue(unused -> {
-                stringBuilder.append("\n\n**Succesfully changed roles!**\n");
-            }, throwable -> new VerificationResult(false, "Something is wrong with the permissions of the bot, it's unable to give a specific role.\n```" + throwable.getMessage() + "```"));
+            guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove).queue(unused ->
+                stringBuilder.append("\n\n**Succesfully changed roles!**\n"),
+                throwable -> new VerificationResult(false, "Something is wrong with the permissions of the bot, it's unable to give a specific role.\n```" + throwable.getMessage() + "```"));
 
             String rolesToAddAsString = "__**`" + member.getEffectiveName() + "`**__\nRoles to add:\n"
                 + (rolesToAdd.size() > 0 ? (rolesToAdd.stream().map(role -> {
@@ -221,6 +241,12 @@ public class VerificationManager {
         }
 
 
+        changeMemberNickname(member, guild, verificationEntity, verificationTransformer, stringBuilder);
+
+        return new VerificationResult(true, verificationEntity, stringBuilder.toString());
+    }
+
+    private void changeMemberNickname(Member member, Guild guild, VerificationEntity verificationEntity, VerificationTransformer verificationTransformer, StringBuilder stringBuilder) {
         if (!verificationEntity.getRobloxUsername().equals(member.getEffectiveName())) {
             if (PermissionUtil.canInteract(guild.getSelfMember(), member)) {
                 guild.modifyNickname(member, verificationTransformer.getNicknameFormat()
@@ -230,19 +256,17 @@ public class VerificationManager {
                     .append("`");
             }
         }
-
-        return new VerificationResult(true, verificationEntity, stringBuilder.toString());
     }
 
-    private boolean isTrelloBanned(HashMap <Long, List <TrellobanLabels>> trellobans, Member member) {
+    private boolean isTrelloBanned(HashMap<Long, List<TrellobanLabels>> trellobans, Member member) {
         return trellobans.containsKey(member.getIdLong());
     }
 
-    public List <Guild> getGuildsByMainGroupId(Xeus avaire, Long mainGroupId) throws SQLException {
+    public List<Guild> getGuildsByMainGroupId(Xeus avaire, Long mainGroupId) throws SQLException {
         return getGuildsByMainGroupId(avaire, mainGroupId, false);
     }
 
-    public List <Guild> getGuildsByMainGroupId(Xeus avaire, Long mainGroupId, boolean isOfficial) throws SQLException {
+    public List<Guild> getGuildsByMainGroupId(Xeus avaire, Long mainGroupId, boolean isOfficial) throws SQLException {
         if (!avaire.areWeReadyYet()) {
             return null;
         }
@@ -255,7 +279,7 @@ public class VerificationManager {
             })
             .get();
 
-        List <Guild> guildList = new LinkedList <>();
+        List<Guild> guildList = new LinkedList<>();
         for (DataRow dataRow : guildQuery) {
             Guild guild = avaire.getShardManager().getGuildById(dataRow.getString("id"));
             if (guild != null) {
@@ -268,7 +292,7 @@ public class VerificationManager {
 
     private String getFirstInvite(Guild g) {
 
-        List <Invite> invites = g.retrieveInvites().submit().getNow(new LinkedList <>());
+        List<Invite> invites = g.retrieveInvites().submit().getNow(new LinkedList<>());
         if (invites == null || invites.size() < 1)
             return null;
         for (Invite i : invites) {
@@ -278,21 +302,16 @@ public class VerificationManager {
     }
 
     private boolean isBlacklisted(Guild guild, VerificationEntity verificationEntity) {
-        switch (guild.getId()) {
-            case "438134543837560832":
-                return isBlacklisted(avaire.getBlacklistManager().getPBSTBlacklist(), guild, verificationEntity).isSuccess();
-            case "572104809973415943":
-                return isBlacklisted(avaire.getBlacklistManager().getTMSBlacklist(), guild, verificationEntity).isSuccess();
-            case "498476405160673286":
-                return isBlacklisted(avaire.getBlacklistManager().getPBMBlacklist(), guild, verificationEntity).isSuccess();
-            case "436670173777362944":
-                return isBlacklisted(avaire.getBlacklistManager().getPETBlacklist(), guild, verificationEntity).isSuccess();
-            default:
-                return false;
-        }
+        return switch (guild.getId()) {
+            case "438134543837560832" -> isBlacklisted(avaire.getBlacklistManager().getPBSTBlacklist(), guild, verificationEntity).isSuccess();
+            case "572104809973415943" -> isBlacklisted(avaire.getBlacklistManager().getTMSBlacklist(), guild, verificationEntity).isSuccess();
+            case "498476405160673286" -> isBlacklisted(avaire.getBlacklistManager().getPBMBlacklist(), guild, verificationEntity).isSuccess();
+            case "436670173777362944" -> isBlacklisted(avaire.getBlacklistManager().getPETBlacklist(), guild, verificationEntity).isSuccess();
+            default -> false;
+        };
     }
 
-    private VerificationResult isBlacklisted(ArrayList <Long> blacklist, Guild guild, VerificationEntity verificationEntity) {
+    private VerificationResult isBlacklisted(ArrayList<Long> blacklist, Guild guild, VerificationEntity verificationEntity) {
         if (blacklist.contains(verificationEntity.getRobloxId())) {
             String invite = getFirstInvite(guild);
             return new VerificationResult(true, "You're blacklisted on `" + guild.getName() + "`, access to the server has been denied.\n"
@@ -304,9 +323,11 @@ public class VerificationManager {
 
     private boolean checkTrelloBan(GuildSettingsTransformer transformer, Member member, Guild guild, VerificationEntity verificationEntity) {
 
-        List <TrellobanLabels> banLabels = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans()
+        List<TrellobanLabels> banLabels = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans()
             .get(verificationEntity.getRobloxId());
-        if (banLabels.size() <= 0) {banLabels.add(TrellobanLabels.UNKNOWN);}
+        if (banLabels.size() <= 0) {
+            banLabels.add(TrellobanLabels.UNKNOWN);
+        }
 
         String canAppealRoleId = "834326360628658187";
         String trellobanRoleId = "875251061638701086";
@@ -332,7 +353,7 @@ public class VerificationManager {
         }
     }
 
-    private boolean roleUserInAppealsServer(GuildSettingsTransformer transformer, Member member, Guild guild, List <TrellobanLabels> banLabels, String canAppealRoleId, String trellobanRoleId, boolean canAppeal, boolean isPermenant) {
+    private boolean roleUserInAppealsServer(GuildSettingsTransformer transformer, Member member, Guild guild, List<TrellobanLabels> banLabels, String canAppealRoleId, String trellobanRoleId, boolean canAppeal, boolean isPermenant) {
         if (canAppeal) {
             guild.modifyMemberRoles(member, guild.getRoleById(canAppealRoleId))
                 .queue();
@@ -365,7 +386,7 @@ public class VerificationManager {
         return true;
     }
 
-    private boolean banTrelloBannedFromServer(GuildSettingsTransformer transformer, Member member, Guild guild, VerificationEntity verificationEntity, List <TrellobanLabels> banLabels, boolean canAppeal, boolean isPermenant, long appealsDiscord) {
+    private boolean banTrelloBannedFromServer(GuildSettingsTransformer transformer, Member member, Guild guild, VerificationEntity verificationEntity, List<TrellobanLabels> banLabels, boolean canAppeal, boolean isPermenant, long appealsDiscord) {
         if (canAppeal && isPermenant) {
             member.getUser().openPrivateChannel().flatMap(u -> u.sendMessage("Please open this message..."))
                 .flatMap(m -> m.editMessage(member.getAsMention())
@@ -425,6 +446,133 @@ public class VerificationManager {
         }
         return false;
     }
+
+    private VerificationResult canGlobalBan(GlobalBanContainer container, GuildSettingsTransformer settingsTransformer, Member m, VerificationEntity ve) {
+        if (settingsTransformer == null) {
+            return new VerificationResult(false, "Guildtransformer is null, please contact the developer.");
+        }
+
+        Guild g = null;
+        if (settingsTransformer.getGlobalSettings().getAppealsDiscordId() != 0) {
+            g = avaire.getShardManager().getGuildById(settingsTransformer.getGlobalSettings().getAppealsDiscordId());
+        }
+
+
+        return executeGlobalBan(container, m, settingsTransformer, g, ve);
+    }
+
+    private VerificationResult executeGlobalBan(GlobalBanContainer container, Member m, GuildSettingsTransformer settingsTransformer, Guild appealsGuild, VerificationEntity ve) {
+        try {
+            int time = 0;
+            String reason = container.getReason();
+            List<Guild> guilds = getGuildsByMainGroupId(avaire, settingsTransformer.getMainGroupId());
+
+            for (Guild guild : guilds) {
+                if (appealsGuild != null) {
+                    if (appealsGuild.getId().equals(guild.getId())) {
+                        continue;
+                    }
+                }
+                if (guild == null)
+                    continue;
+                if (!guild.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
+                    continue;
+
+                GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
+                if (settings.getGlobalBan()) continue;
+                if (settings.isOfficialSubGroup()) {
+                    guild.ban(m, time, "Banned by: " + m.getEffectiveName() + "\n" + "For: "
+                            + reason
+                            + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
+                        .reason("Global Ban, executed by " + m.getEffectiveName() + ". For: \n"
+                            + reason)
+                        .queue();
+                } else {
+                    guild.ban(m, time,
+                            "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
+                        .queue();
+                }
+            }
+
+            User u = m.getUser();
+            String invite = getFirstInvite(appealsGuild);
+
+            u.openPrivateChannel().submit().thenAccept(p -> p.sendMessageEmbeds(MessageFactory.createEmbeddedBuilder().setDescription(
+                    "*You have been **global-banned** from all discord that are connected to [this group](:groupLink) by an MGM Moderator. "
+                        + "For the reason: *```" + reason + "```\n\n"
+                        + "If you feel that your ban was unjustified please appeal at the group in question;"
+                        + (invite != null ? invite
+                        : "Ask an admin of [this group](" + "https://roblox.com/groups/"
+                        + settingsTransformer.getGlobalSettings().getMainGroupId() + "), to create an invite on the appeals discord server of the group."))
+                .setColor(Color.BLACK).build()).submit()).whenComplete((message, error) -> {
+                if (error != null) {
+                    error.printStackTrace();
+                }
+            });
+
+            long mgmLogs = settingsTransformer.getGlobalSettings().getMgmLogsId();
+            if (mgmLogs != 0) {
+                TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
+                if (tc != null) {
+                    tc.sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder(), "``:global-unbanned-id`` was global-banned from all discords that have global-ban enabled during verification. Banned by ***:user*** in `:guild` for:\n"
+                        + "```:reason```")
+                        .set("global-unbanned-id", m.getId()).set("reason", reason)
+                        .set("guild", m.getGuild().getName())
+                        .set("user", "<@" + container.getPunisherId() + ">").buildEmbed()).queue();
+                }
+            }
+
+            try {
+                return handleGlobalPermBan(settingsTransformer, m, reason, ve, appealsGuild);
+            } catch (SQLException exception) {
+                Xeus.getLogger().error("ERROR: ", exception);
+                return new VerificationResult(false, "Something went wrong adding this user to the global perm ban database.");
+            }
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return new VerificationResult(false, "I have no idea what went wrong.");
+    }
+
+    private VerificationResult handleGlobalPermBan(GuildSettingsTransformer transformer, Member user, String reason, VerificationEntity ve, Guild appealsGuild)
+        throws SQLException {
+        Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("userId", user.getId())
+            .orWhere("roblox_user_id", ve.getRobloxId())
+            .orWhere("roblox_username", ve.getRobloxUsername())
+            .andWhere("main_group_id", transformer.getMainGroupId())
+            .get();
+
+        avaire.getGlobalPunishmentManager().registerGlobalBan(avaire.getSelfUser().getId(),
+            transformer.getMainGroupId(),
+            user.getId(), ve.getRobloxId(), ve.getRobloxUsername(), reason);
+
+        if (c.size() < 1) {
+            if (transformer.getGlobalSettings().getAppealsDiscordId() == appealsGuild.getIdLong()) {
+                VerificationTransformer verificationTransformer = VerificationController.fetchVerificationFromGuild(avaire, appealsGuild);
+                try {
+                    return verifyUserRoles(user, appealsGuild, ve, verificationTransformer);
+                } catch (IllegalArgumentException e) {
+                    return new VerificationResult(false, "Permbanned " + user.getAsMention() + " in the database. - User not in PBAC");
+                }
+            }
+
+
+            return new VerificationResult(false, "Permbanned " + user.getAsMention() + " in the database.");
+        } else {
+
+            if (transformer.getGlobalSettings().getAppealsDiscordId() == appealsGuild.getIdLong()) {
+                VerificationTransformer verificationTransformer = VerificationController.fetchVerificationFromGuild(avaire, appealsGuild);
+                try {
+                    return verifyUserRoles(user, appealsGuild, ve, verificationTransformer);
+                } catch (IllegalArgumentException e) {
+                    return new VerificationResult(false, "Permbanned " + user.getAsMention() + " in the database. - User not in PBAC");
+                }
+            }
+            return new VerificationResult(false, "This user already has a permban in the database!");
+        }
+    }
+
 
     @Nullable
     @CheckReturnValue
@@ -624,15 +772,15 @@ public class VerificationManager {
         }
     }
 
-    public HashSet <VerificationEntity> callDiscordUsersFromDatabaseAPI(Long robloxId) {
+    public HashSet<VerificationEntity> callDiscordUsersFromDatabaseAPI(Long robloxId) {
         try {
             Collection linkedAccounts = Xeus.getInstance().getDatabase()
                 .newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME).where("robloxId", robloxId).get();
             if (linkedAccounts.size() == 0) {
-                return new HashSet <>();
+                return new HashSet<>();
             }
 
-            HashSet <VerificationEntity> discordUsers = new HashSet <>();
+            HashSet<VerificationEntity> discordUsers = new HashSet<>();
             for (DataRow row : linkedAccounts) {
                 discordUsers.add(new VerificationEntity(row.getLong("robloxId"), Xeus.getInstance().getRobloxAPIManager().getUserAPI()
                     .getUsername(row.getLong("robloxId")),
@@ -640,19 +788,19 @@ public class VerificationManager {
             }
             return discordUsers;
         } catch (SQLException throwables) {
-            return new HashSet <>();
+            return new HashSet<>();
         }
     }
 
-    public HashSet <VerificationEntity> callRobloxUsersFromDatabaseAPI(Long discordId) {
+    public HashSet<VerificationEntity> callRobloxUsersFromDatabaseAPI(Long discordId) {
         try {
             Collection linkedAccounts = Xeus.getInstance().getDatabase()
                 .newQueryBuilder(Constants.VERIFICATION_DATABASE_TABLE_NAME).where("id", discordId).get();
             if (linkedAccounts.size() == 0) {
-                return new HashSet <>();
+                return new HashSet<>();
             }
 
-            HashSet <VerificationEntity> discordUsers = new HashSet <>();
+            HashSet<VerificationEntity> discordUsers = new HashSet<>();
             for (DataRow row : linkedAccounts) {
                 discordUsers.add(new VerificationEntity(row.getLong("robloxId"), Xeus.getInstance().getRobloxAPIManager().getUserAPI()
                     .getUsername(row.getLong("robloxId")),
@@ -660,7 +808,7 @@ public class VerificationManager {
             }
             return discordUsers;
         } catch (SQLException throwables) {
-            return new HashSet <>();
+            return new HashSet<>();
         }
     }
 
@@ -674,7 +822,7 @@ public class VerificationManager {
             .queue();
     }
 
-    public HashMap <Long, String> getInVerification() {
+    public HashMap<Long, String> getInVerification() {
         return inVerification;
     }
 

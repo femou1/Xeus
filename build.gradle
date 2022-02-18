@@ -8,7 +8,7 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'idea'
 
-version = '3.4.1'
+version = '3.5.1'
 group = 'com.pinewoodbuilders'
 description = 'Xeus Discord Bot'
 mainClassName = 'com.pinewoodbuilders.Main'
@@ -65,7 +65,7 @@ javadoc {
 
 repositories {
     mavenCentral()                     // Main maven repo
-//    mavenLocal()                       // Useful for developing
+    mavenLocal()                       // Useful for developing
     maven { url "https://jitpack.io" } // Build projects directly from github
 
     // Used for pulling down JDA and LavaPlayer

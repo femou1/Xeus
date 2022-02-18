@@ -73,9 +73,6 @@ public class GuildEventAdapter extends EventAdapter {
 
     public void onGuildPIAMemberBanEvent(GuildUnbanEvent e) {
         GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, e.getGuild());
-        if (transformer == null) {
-            return;
-        }
 
         boolean isBanned = avaire.getGlobalPunishmentManager().isGlobalBanned(transformer.getMainGroupId(), e.getUser().getId());
         if (isBanned) {

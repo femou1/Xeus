@@ -114,7 +114,8 @@ public class FeedbackCommand extends Command {
 
         context.makeInfo("<a:loading:742658561414266890> Loading suggestions... <a:loading:742658561414266890>").queue(l -> {
 
-            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("suggestion_channel_id");
+            QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
+                .orderBy("suggestion_channel_id");
             try {
                 StringBuilder sb = new StringBuilder();
                 qb.get().forEach(dataRow -> {

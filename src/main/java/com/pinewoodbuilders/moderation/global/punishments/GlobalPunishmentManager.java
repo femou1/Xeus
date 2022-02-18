@@ -2,6 +2,7 @@ package com.pinewoodbuilders.moderation.global.punishments;
 
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
+import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.moderation.global.punishments.globalban.GlobalBanContainer;
@@ -33,8 +34,8 @@ public class GlobalPunishmentManager {
             globalBans.put(mgi, new HashSet <>());
         }
 
-        if (isGlobalBanned(mgi, userId)) {
-            unregisterGlobalBan(mgi, userId);
+        if (isRobloxGlobalBanned(mgi, robloxId)) {
+            unregisterRobloxGlobalBan(mgi, robloxId);
         }
 
         avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).insert(statement -> {
@@ -75,20 +76,18 @@ public class GlobalPunishmentManager {
     /**
      * Unregisters a mute matching the given guild ID and user ID.
      *
-     * @param guildId The ID of the guild the mute should've been registered to.
-     * @param userId  The ID of the user that should be unmuted.
      * @throws SQLException If the unmute fails to delete the mute record from the
      *                      database.
      */
-    public void unregisterGlobalBan(long guildId, String userId) throws SQLException {
-        if (!globalBans.containsKey(guildId)) {
+    public void unregisterRobloxGlobalBan(long mgi, long robloxId) throws SQLException {
+        if (!globalBans.containsKey(mgi)) {
             return;
         }
 
         final boolean[] removedEntities = {false};
         synchronized (globalBans) {
-            globalBans.get(guildId).removeIf(next -> {
-                if (!next.isSame(guildId, userId)) {
+            globalBans.get(mgi).removeIf(next -> {
+                if (!isRobloxGlobalBanned(mgi, robloxId)) {
                     return false;
                 }
 
@@ -98,23 +97,23 @@ public class GlobalPunishmentManager {
         }
 
         if (removedEntities[0]) {
-            cleanupGlobalBan(guildId, userId);
+            cleanupRobloxGlobalBan(mgi, robloxId);
         }
     }
 
-    private void cleanupGlobalBan(long mgi, String userId) throws SQLException {
+    private void cleanupRobloxGlobalBan(long mgi, long robloxId) throws SQLException {
         Collection collection = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME)
             .where("main_group_id", mgi)
-            .andWhere("userId", userId)
+            .andWhere("roblox_user_id", robloxId)
             .get();
 
         if (!collection.isEmpty()) {
-            String query = String.format("DELETE FROM `%s` WHERE `main_group_id` = ? AND `userId` = ?",
+            String query = String.format("DELETE FROM `%s` WHERE `main_group_id` = ? AND `roblox_user_id` = ?",
                 Constants.ANTI_UNBAN_TABLE_NAME);
 
             avaire.getDatabase().queryBatch(query, statement -> {
                 statement.setLong(1, mgi);
-                statement.setString(2, userId);
+                statement.setLong(2, robloxId);
                 statement.addBatch();
             });
         }
@@ -124,18 +123,36 @@ public class GlobalPunishmentManager {
      * Checks if there are any mute record that exists using the given guild and
      * user IDs.
      *
-     * @param mgi The ID of the guild that should be checked.
-     * @param userId  The ID of the user that should be muted.
+     * @param mgi    The ID of the guild that should be checked.
      * @return {@code True} if a user with the given ID is muted on a server with
      * the given guild ID, {@code False} otherwise.
      */
-    public boolean isGlobalBanned(long mgi, String userId) {
+    @Deprecated
+    public boolean isGlobalBanned(long mgi, String discordId) {
         if (!globalBans.containsKey(mgi)) {
             return false;
         }
 
         for (GlobalBanContainer container : globalBans.get(mgi)) {
-            if (container.isSame(mgi, userId)) {
+            if (container.isSame(mgi, discordId)) {
+                return true;
+            }
+        }
+
+        VerificationEntity ve = avaire.getRobloxAPIManager().getVerification().fetchVerificationWithBackup(discordId, true);
+        if (ve != null) {
+            return isRobloxGlobalBanned(mgi, ve.getRobloxId());
+        }
+        return false;
+    }
+
+    public boolean isRobloxGlobalBanned(long mgi, long robloxId) {
+        if (!globalBans.containsKey(mgi)) {
+            return false;
+        }
+
+        for (GlobalBanContainer container : globalBans.get(mgi)) {
+            if (container.isRobloxSame(mgi, robloxId)) {
                 return true;
             }
         }

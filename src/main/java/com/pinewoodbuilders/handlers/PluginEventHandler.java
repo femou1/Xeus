@@ -26,6 +26,7 @@ import com.pinewoodbuilders.contracts.handlers.EventHandler;
 import com.pinewoodbuilders.plugin.PluginLoader;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jetbrains.annotations.NotNull;
 
 public class PluginEventHandler extends EventHandler {
 
@@ -39,7 +40,7 @@ public class PluginEventHandler extends EventHandler {
     }
 
     @Override
-    public void onGenericEvent(GenericEvent event) {
+    public void onGenericEvent(@NotNull GenericEvent event) {
         for (PluginLoader plugin : avaire.getPluginManager().getPlugins()) {
             for (ListenerAdapter listener : plugin.getEventListeners()) {
                 listener.onEvent(event);
