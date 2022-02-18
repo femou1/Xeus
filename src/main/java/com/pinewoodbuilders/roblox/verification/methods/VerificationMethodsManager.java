@@ -24,6 +24,7 @@ public class VerificationMethodsManager {
     }
 
     public void slashCommandVerify(Member member, Guild guild, InteractionHook hook) {
+
         GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
         VerificationResult result = robloxAPIManger.getVerification().verify(transformer, member, guild, true);
 

@@ -49,12 +49,12 @@ import static com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType
 
 public class GlobalModCommand extends Command {
 
-    private final static HashSet <String> fuzzyTrue = new HashSet <>(
+    private final static HashSet<String> fuzzyTrue = new HashSet<>(
         Arrays.asList("yes", "y", "on", "enable", "true", "confirm", "1"));
-    private final static HashSet <String> fuzzyFalse = new HashSet <>(
+    private final static HashSet<String> fuzzyFalse = new HashSet<>(
         Arrays.asList("no", "n", "off", "disable", "false", "reset", "0"));
 
-    public final HashMap <Guild, Role> role = new HashMap <>();
+    public final HashMap<Guild, Role> role = new HashMap<>();
 
     public GlobalModCommand(Xeus avaire) {
         super(avaire, false);
@@ -71,28 +71,28 @@ public class GlobalModCommand extends Command {
     }
 
     @Override
-    public List <String> getUsageInstructions() {
+    public List<String> getUsageInstructions() {
         return Collections.singletonList("`:command` - Moderate a member globally.");
     }
 
     @Override
-    public List <String> getExampleUsage(@Nullable Message message) {
+    public List<String> getExampleUsage(@Nullable Message message) {
         return Collections.singletonList("`:command` - Moderate a member globally.");
     }
 
     @Override
-    public List <String> getTriggers() {
+    public List<String> getTriggers() {
         return Arrays.asList("global-mod", "gm");
     }
 
     @Override
-    public List <String> getMiddleware() {
+    public List<String> getMiddleware() {
         return Arrays.asList("isValidMGMMember");
     }
 
     @Nonnull
     @Override
-    public List <CommandGroup> getGroups() {
+    public List<CommandGroup> getGroups() {
         return Collections.singletonList(CommandGroups.MODERATION);
     }
 
@@ -175,7 +175,7 @@ public class GlobalModCommand extends Command {
         }
 
         try {
-            List <Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
+            List<Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
             String reason = generateMuteMessage(Arrays.copyOfRange(args, 1, args.length));
             GlobalModlogType type = GlobalModlogType.GLOBAL_UN_WATCH;
 
@@ -252,7 +252,7 @@ public class GlobalModCommand extends Command {
         }
 
         try {
-            List <Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
+            List<Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
             String reason = generateMuteMessage(Arrays.copyOfRange(args, 1, args.length));
             GlobalModlogType type = GlobalModlogType.GLOBAL_UNMUTE;
 
@@ -332,7 +332,7 @@ public class GlobalModCommand extends Command {
         }
 
         try {
-            List <Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
+            List<Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
             User user = MentionableUtil.getUser(context, args);
             if (user == null) {
                 return sendErrorMessage(context, context.i18n("invalidUserMentioned"));
@@ -435,7 +435,7 @@ public class GlobalModCommand extends Command {
         }
 
         try {
-            List <Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
+            List<Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
             User user = MentionableUtil.getUser(context, args);
             if (user == null) {
                 return sendErrorMessage(context, context.i18n("invalidUserMentioned"));
@@ -575,7 +575,7 @@ public class GlobalModCommand extends Command {
         boolean appealsKick = reason.contains("--appeals-kick");
 
         try {
-            List <Guild> guild = getGuildsByMainGroupId(context.getGuildSettingsTransformer().getMainGroupId(), false);
+            List<Guild> guild = getGuildsByMainGroupId(context.getGuildSettingsTransformer().getMainGroupId(), false);
 
 
             if (appealsKick) {
@@ -681,28 +681,35 @@ public class GlobalModCommand extends Command {
 
     private boolean globalUnbanCommand(CommandMessage context, String[] args) {
         if (args.length < 1) {
-            context.makeError("Sorry, but you didn't give any valid argument to use!\n\n" + "``Valid arguments``: \n"
-                    //+ " - **roblox/rb/roblox-ban/r <roblox-username/id> <reason>** - Remove a roblox account from the auto-ban database `(Appeals Ban not applied with this command)`.\n"
-                    + " - **discord/d/discord-ban <discord-id> <true/false (Delete messages)> <reason>** - Unban a user on all discords that are connected to the MGI")
+            context.makeError("""
+                    Sorry, but you didn't give any valid argument to use!
+
+                    `Valid arguments`:\s
+                     - **roblox/rb/roblox-ban/r <roblox-username/id>** - Remove a roblox account from the auto-ban database `(Appeals Ban not applied with this command)`.
+                     - **discord/d/discord-ban <discord-id> <true/false (Delete messages)> <reason>** - Unban a user on all discords that are connected to the MGI
+                     
+                     `Valid Parameters`:\s
+                     - **`-g` or `--global`** - Unban someone from ALL discords Xeus is connected to. (GM+)
+                     - **`-f` or `--force`** - Force an unban on the account, even if it isn't in the database.
+                     - **`-au` or `--appeals-unban`** - Unban the user on the appeals server.""")
                 .queue();
             return false;
         }
 
         switch (args[0].toLowerCase()) {
-            //TODO: Add a way to remove ID's from the global-ban table
-            /*case "robloxban":
+            case "robloxban":
             case "roblox":
             case "rb":
             case "roblox-ban":
             case "r":
                 try {
-                    return unbanRobloxId(context, args);
+                    return unbanRobloxId(context, Arrays.copyOfRange(args, 1, args.length));
                 } catch (SQLException throwables) {
                     context.makeError(
-                        "Something went wrong when banning the person from their roblox id...\n\n```:error```")
+                            "Something went wrong when banning the person from their roblox id...\n\n```:error```")
                         .set("error", throwables.getMessage()).queue();
                     throwables.printStackTrace();
-                }*/
+                }
             case "d":
             case "discord":
             case "discord-ban":
@@ -715,6 +722,49 @@ public class GlobalModCommand extends Command {
         }
     }
 
+    private boolean unbanRobloxId(CommandMessage context, String[] args) throws SQLException {
+        if (args.length < 1) {
+            return sendErrorMessage(context, "Incorrect parameters: <roblox username or roblox id>");
+        }
+        long userId = NumberUtil.isNumeric(args[0]) ? Long.parseLong(args[0]) : avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(args[0]);
+        boolean isGBanned = avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(context.getGuildSettingsTransformer().getMainGroupId(), userId);
+
+        String arguments = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+        boolean appealsBan = arguments.contains("--appeals-unban") || arguments.contains("-au");
+        boolean globalBan = arguments.contains("--global") || arguments.contains("-g");
+        boolean forced = arguments.contains("--force") || arguments.contains("-f");
+
+        if (isGBanned || forced) {
+            VerificationEntity entity = avaire.getRobloxAPIManager().getVerification().callDiscordUserFromDatabaseAPI(userId);
+            if (entity != null) {
+                List<Guild> guilds = globalBan ? context.getJDA().getGuilds() : getGuildsByMainGroupId(context.getGuildSettingsTransformer().getMainGroupId(), false);
+
+                for (Guild g : guilds) {
+                    if (appealsBan || g.getIdLong() == context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId())
+                        continue;
+
+                    g.retrieveBanById(entity.getDiscordId()).submit().thenAccept(ban -> {
+                        if (ban == null) {
+                            return;
+                        }
+                        g.unban(ban.getUser()).reason("Global unban, executed by: " + context.member.getEffectiveName()).queue();
+                    });
+                }
+            }
+
+            avaire.getGlobalPunishmentManager().unregisterRobloxGlobalBan(context.getGuildSettingsTransformer().getMainGroupId(), userId);
+            TextChannel tc = avaire.getShardManager().getTextChannelById(context.getGuildSettingsTransformer().getGlobalSettings().getMainGroupId());
+            if (tc != null) {
+                tc.sendMessageEmbeds(context.makeInfo("[``:global-unbanned-id`` was unbanned from all discords by :user](:link)").set("global-unbanned-id", args[0]).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+            }
+            context.makeError("**:userId** has been removed from the anti-unban system!").set("userId", userId).queue();
+        } else {
+            context.makeError("This user is not banned!").queue();
+        }
+
+        return false;
+    }
+
     private boolean handleGlobalPermUnban(CommandMessage context, String[] args) throws SQLException {
 
         String arguments = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
@@ -722,9 +772,11 @@ public class GlobalModCommand extends Command {
         boolean globalBan = arguments.contains("--global") || arguments.contains("-g");
         boolean forced = arguments.contains("--force") || arguments.contains("-f");
 
-        boolean isGBanned = avaire.getGlobalPunishmentManager().isGlobalBanned(context.getGuildSettingsTransformer().getMainGroupId(), args[0]);
+        VerificationEntity verificationEntity = avaire.getRobloxAPIManager().getVerification().fetchVerificationWithBackup(args[0], true);
+        if (verificationEntity == null) {context.makeError("Somehow, this ID doesn't exist in the database. Please ban this user's roblox account instead.");return false;}
+        boolean isGBanned = avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(context.getGuildSettingsTransformer().getMainGroupId(), verificationEntity.getRobloxId());
         if (isGBanned || forced) {
-            List <Guild> guilds = globalBan ? context.getJDA().getGuilds() : getGuildsByMainGroupId(context.getGuildSettingsTransformer().getMainGroupId(), false);
+            List<Guild> guilds = globalBan ? context.getJDA().getGuilds() : getGuildsByMainGroupId(context.getGuildSettingsTransformer().getMainGroupId(), false);
             StringBuilder sb = new StringBuilder();
             for (Guild g : guilds) {
                 if (appealsBan || g.getIdLong() == context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId()) {
@@ -739,13 +791,13 @@ public class GlobalModCommand extends Command {
                     sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
                 });
             }
-            avaire.getGlobalPunishmentManager().unregisterGlobalBan(context.getGuildSettingsTransformer().getMainGroupId(), args[0]);
+            avaire.getGlobalPunishmentManager().unregisterRobloxGlobalBan(context.getGuildSettingsTransformer().getMainGroupId(), verificationEntity.getRobloxId());
 
             TextChannel tc = avaire.getShardManager().getTextChannelById(context.getGuildSettingsTransformer().getGlobalSettings().getMainGroupId());
             if (tc != null) {
                 tc.sendMessageEmbeds(context.makeInfo("[``:global-unbanned-id`` was unbanned from all discords by :user](:link)").set("global-unbanned-id", args[0]).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
             }
-            context.makeError("**:userId** has been removed from the anti-unban system! + \n\n" + sb).set("userId", args[0]).queue();
+            context.makeError("**:userId** has been removed from the anti-unban system!\n\n" + sb.toString()).set("userId", args[0]).queue();
         } else {
             context.makeError("This user is not banned!").queue();
         }
@@ -944,7 +996,7 @@ public class GlobalModCommand extends Command {
     }
 
     private String getFirstInvite(Guild g) {
-        List <Invite> invites = g.retrieveInvites().submit().getNow(null);
+        List<Invite> invites = g.retrieveInvites().submit().getNow(null);
         if (invites == null || invites.size() < 1)
             return "https://discord.gg/NgztZpNQ9X";
         for (Invite i : invites) {
@@ -1211,19 +1263,21 @@ public class GlobalModCommand extends Command {
         return result;
     }
 
-    public List <Guild> getGuildsByMainGroupId(Long mainGroupId) throws SQLException {
+    public List<Guild> getGuildsByMainGroupId(Long mainGroupId) throws SQLException {
         return getGuildsByMainGroupId(mainGroupId, false);
     }
 
-    public List <Guild> getGuildsByMainGroupId(Long mainGroupId, boolean isOfficial) throws SQLException {
+    public List<Guild> getGuildsByMainGroupId(Long mainGroupId, boolean isOfficial) throws SQLException {
         Collection guildQuery = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
             .where("main_group_id", mainGroupId)
-            .where(builder -> {if (isOfficial) {
-                builder.where("official_sub_group", 1);
-            }})
+            .where(builder -> {
+                if (isOfficial) {
+                    builder.where("official_sub_group", 1);
+                }
+            })
             .get();
 
-        List <Guild> guildList = new LinkedList <>();
+        List<Guild> guildList = new LinkedList<>();
         for (DataRow dataRow : guildQuery) {
             Guild guild = avaire.getShardManager().getGuildById(dataRow.getString("id"));
             if (guild != null) {

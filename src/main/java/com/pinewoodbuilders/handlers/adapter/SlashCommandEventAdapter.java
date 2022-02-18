@@ -11,7 +11,6 @@ import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;

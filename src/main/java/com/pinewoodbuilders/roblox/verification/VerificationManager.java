@@ -121,11 +121,6 @@ public class VerificationManager {
         }
 
         VerificationTransformer verificationTransformer = VerificationController.fetchVerificationFromGuild(avaire, guild);
-        if (verificationTransformer == null) {
-            return new VerificationResult(false,
-                "The VerificationTransformer seems to have broken, please consult the developer of the bot.");
-        }
-
         if (transformer.getPbVerificationTrelloban()) {
             HashMap<Long, List<TrellobanLabels>> trellobans = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans();
             if (trellobans != null && isTrelloBanned(trellobans, member)) {
@@ -140,9 +135,7 @@ public class VerificationManager {
             return new VerificationResult(false, "Blacklisted on " + guild.getName());
         }
 
-        boolean isGlobalBanned =
-            avaire.getGlobalPunishmentManager().isGlobalBanned(transformer.getMainGroupId(), member.getId()) ||
-                avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(transformer.getMainGroupId(), verificationEntity.getRobloxId());
+        boolean isGlobalBanned = avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(transformer.getMainGroupId(), verificationEntity.getRobloxId());
 
         if (isGlobalBanned) {
             List<GlobalBanContainer> globalBanContainer = avaire.getGlobalPunishmentManager()
@@ -170,6 +163,11 @@ public class VerificationManager {
             return new VerificationResult(false, "Ranks have not been setup on this guild yet. Please ask the admins to setup the roles on this server.");
         }
 
+        return verifyUserRoles(member, guild, verificationEntity, verificationTransformer);
+    }
+
+    @NotNull
+    private VerificationResult verifyUserRoles(Member member, Guild guild, VerificationEntity verificationEntity, VerificationTransformer verificationTransformer) {
         List<RobloxUserGroupRankService.Data> robloxRanks = manager.getUserAPI()
             .getUserRanks(verificationEntity.getRobloxId());
 
@@ -187,7 +185,7 @@ public class VerificationManager {
             // Loop through all the group-rank bindings
             bindingRoleMap.forEach((groupRankBinding, role) -> {
                 List<String> robloxGroups = robloxRanks.stream()
-                    .map(data -> data.getGroup().getId() + ":" + data.getRole().getRank()).collect(Collectors.toList());
+                    .map(data -> data.getGroup().getId() + ":" + data.getRole().getRank()).toList();
 
                 for (String groupRank : robloxGroups) {
                     String[] rank = groupRank.split(":");
@@ -221,9 +219,9 @@ public class VerificationManager {
             }
 
             // Modify the roles of the member
-            guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove).queue(unused -> {
-                stringBuilder.append("\n\n**Succesfully changed roles!**\n");
-            }, throwable -> new VerificationResult(false, "Something is wrong with the permissions of the bot, it's unable to give a specific role.\n```" + throwable.getMessage() + "```"));
+            guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove).queue(unused ->
+                stringBuilder.append("\n\n**Succesfully changed roles!**\n"),
+                throwable -> new VerificationResult(false, "Something is wrong with the permissions of the bot, it's unable to give a specific role.\n```" + throwable.getMessage() + "```"));
 
             String rolesToAddAsString = "__**`" + member.getEffectiveName() + "`**__\nRoles to add:\n"
                 + (rolesToAdd.size() > 0 ? (rolesToAdd.stream().map(role -> {
@@ -243,6 +241,12 @@ public class VerificationManager {
         }
 
 
+        changeMemberNickname(member, guild, verificationEntity, verificationTransformer, stringBuilder);
+
+        return new VerificationResult(true, verificationEntity, stringBuilder.toString());
+    }
+
+    private void changeMemberNickname(Member member, Guild guild, VerificationEntity verificationEntity, VerificationTransformer verificationTransformer, StringBuilder stringBuilder) {
         if (!verificationEntity.getRobloxUsername().equals(member.getEffectiveName())) {
             if (PermissionUtil.canInteract(guild.getSelfMember(), member)) {
                 guild.modifyNickname(member, verificationTransformer.getNicknameFormat()
@@ -252,8 +256,6 @@ public class VerificationManager {
                     .append("`");
             }
         }
-
-        return new VerificationResult(true, verificationEntity, stringBuilder.toString());
     }
 
     private boolean isTrelloBanned(HashMap<Long, List<TrellobanLabels>> trellobans, Member member) {
@@ -300,18 +302,13 @@ public class VerificationManager {
     }
 
     private boolean isBlacklisted(Guild guild, VerificationEntity verificationEntity) {
-        switch (guild.getId()) {
-            case "438134543837560832":
-                return isBlacklisted(avaire.getBlacklistManager().getPBSTBlacklist(), guild, verificationEntity).isSuccess();
-            case "572104809973415943":
-                return isBlacklisted(avaire.getBlacklistManager().getTMSBlacklist(), guild, verificationEntity).isSuccess();
-            case "498476405160673286":
-                return isBlacklisted(avaire.getBlacklistManager().getPBMBlacklist(), guild, verificationEntity).isSuccess();
-            case "436670173777362944":
-                return isBlacklisted(avaire.getBlacklistManager().getPETBlacklist(), guild, verificationEntity).isSuccess();
-            default:
-                return false;
-        }
+        return switch (guild.getId()) {
+            case "438134543837560832" -> isBlacklisted(avaire.getBlacklistManager().getPBSTBlacklist(), guild, verificationEntity).isSuccess();
+            case "572104809973415943" -> isBlacklisted(avaire.getBlacklistManager().getTMSBlacklist(), guild, verificationEntity).isSuccess();
+            case "498476405160673286" -> isBlacklisted(avaire.getBlacklistManager().getPBMBlacklist(), guild, verificationEntity).isSuccess();
+            case "436670173777362944" -> isBlacklisted(avaire.getBlacklistManager().getPETBlacklist(), guild, verificationEntity).isSuccess();
+            default -> false;
+        };
     }
 
     private VerificationResult isBlacklisted(ArrayList<Long> blacklist, Guild guild, VerificationEntity verificationEntity) {
@@ -526,7 +523,7 @@ public class VerificationManager {
             }
 
             try {
-                return handleGlobalPermBan(settingsTransformer, m.getId(), reason, ve);
+                return handleGlobalPermBan(settingsTransformer, m, reason, ve, appealsGuild);
             } catch (SQLException exception) {
                 Xeus.getLogger().error("ERROR: ", exception);
                 return new VerificationResult(false, "Something went wrong adding this user to the global perm ban database.");
@@ -538,28 +535,40 @@ public class VerificationManager {
         return new VerificationResult(false, "I have no idea what went wrong.");
     }
 
-    private VerificationResult handleGlobalPermBan(GuildSettingsTransformer transformer, String userId, String reason, VerificationEntity ve)
+    private VerificationResult handleGlobalPermBan(GuildSettingsTransformer transformer, Member user, String reason, VerificationEntity ve, Guild appealsGuild)
         throws SQLException {
-        Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("userId", userId)
-            .where("main_group_id", transformer.getMainGroupId()).get();
+        Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).where("userId", user.getId())
+            .orWhere("roblox_user_id", ve.getRobloxId())
+            .orWhere("roblox_username", ve.getRobloxUsername())
+            .andWhere("main_group_id", transformer.getMainGroupId())
+            .get();
+
+        avaire.getGlobalPunishmentManager().registerGlobalBan(avaire.getSelfUser().getId(),
+            transformer.getMainGroupId(),
+            user.getId(), ve.getRobloxId(), ve.getRobloxUsername(), reason);
+
         if (c.size() < 1) {
-            /*avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).insert(o -> {
-                o.set("userId", args[0]).set("punisherId", context.getAuthor().getId()).set("reason", reason, true)
-                    .set("roblox_user_id", getRobloxIdFromVerificationEntity(ve))
-                    .set("main_group_id", context.getGuildSettingsTransformer().getMainGroupId());
-            });*/
-            if (ve == null) {
-                avaire.getGlobalPunishmentManager().registerGlobalBan(avaire.getSelfUser().getId(),
-                    transformer.getMainGroupId(),
-                    userId, 0, null, reason);
-            } else {
-                avaire.getGlobalPunishmentManager().registerGlobalBan(avaire.getSelfUser().getId(),
-                    transformer.getMainGroupId(),
-                    userId, ve.getRobloxId(), ve.getRobloxUsername(), reason);
+            if (transformer.getGlobalSettings().getAppealsDiscordId() == appealsGuild.getIdLong()) {
+                VerificationTransformer verificationTransformer = VerificationController.fetchVerificationFromGuild(avaire, appealsGuild);
+                try {
+                    return verifyUserRoles(user, appealsGuild, ve, verificationTransformer);
+                } catch (IllegalArgumentException e) {
+                    return new VerificationResult(false, "Permbanned " + user.getAsMention() + " in the database. - User not in PBAC");
+                }
             }
 
-            return new VerificationResult(false, "Permbanned ``" + userId + "`` in the database.");
+
+            return new VerificationResult(false, "Permbanned " + user.getAsMention() + " in the database.");
         } else {
+
+            if (transformer.getGlobalSettings().getAppealsDiscordId() == appealsGuild.getIdLong()) {
+                VerificationTransformer verificationTransformer = VerificationController.fetchVerificationFromGuild(avaire, appealsGuild);
+                try {
+                    return verifyUserRoles(user, appealsGuild, ve, verificationTransformer);
+                } catch (IllegalArgumentException e) {
+                    return new VerificationResult(false, "Permbanned " + user.getAsMention() + " in the database. - User not in PBAC");
+                }
+            }
             return new VerificationResult(false, "This user already has a permban in the database!");
         }
     }
