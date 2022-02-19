@@ -147,14 +147,7 @@ public class UpdateCommand extends Command {
 
         verificationRunning = true;
         HashMap <Member, String> ignoredMembers = new HashMap <>();
-        List <Guild> guild;
-        try {
-            guild = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(avaire, context.getGuildSettingsTransformer().getMainGroupId());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            context.makeError("Error while pulling information").queue();
-            return false;
-        }
+        List <Guild> guild = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(avaire, context.getGuildSettingsTransformer().getMainGroupId());
 
         Bucket bucket = Bucket.builder()
             .addLimit(Bandwidth.classic(45, Refill.intervally(45, Duration.ofMinutes(1))))

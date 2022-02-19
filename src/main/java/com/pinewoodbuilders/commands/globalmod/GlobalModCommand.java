@@ -87,7 +87,7 @@ public class GlobalModCommand extends Command {
 
     @Override
     public List<String> getMiddleware() {
-        return Arrays.asList("isValidMGMMember");
+        return List.of("isValidMGMMember");
     }
 
     @Nonnull
@@ -174,51 +174,47 @@ public class GlobalModCommand extends Command {
             return sendErrorMessage(context, "This user is **not** global muted, check if they are locally muted.");
         }
 
+        List<Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
+        String reason = generateMuteMessage(Arrays.copyOfRange(args, 1, args.length));
+        GlobalModlogType type = GlobalModlogType.GLOBAL_UN_WATCH;
+
         try {
-            List<Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
-            String reason = generateMuteMessage(Arrays.copyOfRange(args, 1, args.length));
-            GlobalModlogType type = GlobalModlogType.GLOBAL_UN_WATCH;
+            GlobalModlogAction modlogAction = new GlobalModlogAction(
+                type, context.getAuthor(), user,
+                "\n" + reason
+            );
 
-            try {
-                GlobalModlogAction modlogAction = new GlobalModlogAction(
-                    type, context.getAuthor(), user,
-                    "\n" + reason
-                );
-
-                String caseId = GlobalWatchlog.log(avaire, context, modlogAction);
-                GlobalWatchlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
-                avaire.getGlobalWatchManager().unregisterGlobalWatch(mainGroupSettings.getMainGroupId(), user.getIdLong(), context.getGuild().getIdLong());
-                context.makeSuccess(context.i18n("userHasBeenUnmuted"))
-                    .set("target", user.getAsMention())
-                    .queue();
+            String caseId = GlobalWatchlog.log(avaire, context, modlogAction);
+            GlobalWatchlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
+            avaire.getGlobalWatchManager().unregisterGlobalWatch(mainGroupSettings.getMainGroupId(), user.getIdLong(), context.getGuild().getIdLong());
+            context.makeSuccess(context.i18n("userHasBeenUnmuted"))
+                .set("target", user.getAsMention())
+                .queue();
 
 
-                for (Guild g : guilds) {
-                    GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
-                    if (transformer.getOnWatchRole() == 0) continue;
+            for (Guild g : guilds) {
+                GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
+                if (transformer.getOnWatchRole() == 0) continue;
 
-                    Role muteRole = g.getRoleById(transformer.getOnWatchRole());
-                    if (muteRole == null) continue;
-                    if (!g.getSelfMember().canInteract(muteRole)) continue;
-                    if (args.length == 0) return sendErrorMessage(context, "errors.missingArgument", "user");
+                Role muteRole = g.getRoleById(transformer.getOnWatchRole());
+                if (muteRole == null) continue;
+                if (!g.getSelfMember().canInteract(muteRole)) continue;
+                if (args.length == 0) return sendErrorMessage(context, "errors.missingArgument", "user");
 
-                    GuildTransformer guildTransformer = GuildController.fetchGuild(avaire, g);
-                    if (guildTransformer.getModlog() != null) {
-                        ModlogAction localAction = new ModlogAction(
-                            ModlogType.UN_ON_WATCH, context.getAuthor(), user, reason
-                        );
+                GuildTransformer guildTransformer = GuildController.fetchGuild(avaire, g);
+                if (guildTransformer.getModlog() != null) {
+                    ModlogAction localAction = new ModlogAction(
+                        ModlogType.UN_ON_WATCH, context.getAuthor(), user, reason
+                    );
 
-                        Modlog.log(avaire, g, localAction);
-                    }
-
-                    g.removeRoleFromMember(g.getMember(user), muteRole).reason("PIA Global Unwatch").queue();
+                    Modlog.log(avaire, g, localAction);
                 }
-            } catch (SQLException e) {
-                Xeus.getLogger().error(e.getMessage(), e);
-                context.makeError("Failed to save the guild settings: " + e.getMessage()).queue();
+
+                g.removeRoleFromMember(g.getMember(user), muteRole).reason("PIA Global Unwatch").queue();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Xeus.getLogger().error(e.getMessage(), e);
+            context.makeError("Failed to save the guild settings: " + e.getMessage()).queue();
         }
         return true;
     }
@@ -251,61 +247,57 @@ public class GlobalModCommand extends Command {
             return sendErrorMessage(context, "This user is **not** global muted, check if they are locally muted.");
         }
 
+        List<Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
+        String reason = generateMuteMessage(Arrays.copyOfRange(args, 1, args.length));
+        GlobalModlogType type = GlobalModlogType.GLOBAL_UNMUTE;
+
         try {
-            List<Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
-            String reason = generateMuteMessage(Arrays.copyOfRange(args, 1, args.length));
-            GlobalModlogType type = GlobalModlogType.GLOBAL_UNMUTE;
+            GlobalModlogAction modlogAction = new GlobalModlogAction(
+                type, context.getAuthor(), user,
+                "\n" + reason
+            );
 
-            try {
-                GlobalModlogAction modlogAction = new GlobalModlogAction(
-                    type, context.getAuthor(), user,
-                    "\n" + reason
-                );
-
-                String caseId = GlobalModlog.log(avaire, context, modlogAction);
-                GlobalModlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
-                avaire.getGlobalMuteManager().unregisterGlobalMute(mainGroupSettings.getMainGroupId(), user.getIdLong(), context.getGuild().getIdLong());
-                context.makeSuccess(context.i18n("userHasBeenUnmuted"))
-                    .set("target", user.getAsMention())
-                    .queue();
+            String caseId = GlobalModlog.log(avaire, context, modlogAction);
+            GlobalModlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
+            avaire.getGlobalMuteManager().unregisterGlobalMute(mainGroupSettings.getMainGroupId(), user.getIdLong(), context.getGuild().getIdLong());
+            context.makeSuccess(context.i18n("userHasBeenUnmuted"))
+                .set("target", user.getAsMention())
+                .queue();
 
 
-                for (Guild g : guilds) {
-                    GuildTransformer transformer = GuildController.fetchGuild(avaire, g);
-                    if (transformer.getMuteRole() == null) {
-                        continue;
-                    }
-
-                    Role muteRole = g.getRoleById(transformer.getMuteRole());
-                    if (muteRole == null) {
-                        continue;
-                    }
-
-                    if (!g.getSelfMember().canInteract(muteRole)) {
-                        continue;
-                    }
-
-                    if (args.length == 0) {
-                        return sendErrorMessage(context, "errors.missingArgument", "user");
-                    }
-
-                    GuildTransformer guildTransformer = GuildController.fetchGuild(avaire, g);
-                    if (guildTransformer.getModlog() != null) {
-                        ModlogAction localAction = new ModlogAction(
-                            ModlogType.UNMUTE, context.getAuthor(), user, reason
-                        );
-
-                        Modlog.log(avaire, g, localAction);
-                    }
-
-                    g.removeRoleFromMember(g.getMember(user), muteRole).reason("PIA Global Unmute").queue();
+            for (Guild g : guilds) {
+                GuildTransformer transformer = GuildController.fetchGuild(avaire, g);
+                if (transformer.getMuteRole() == null) {
+                    continue;
                 }
-            } catch (SQLException e) {
-                Xeus.getLogger().error(e.getMessage(), e);
-                context.makeError("Failed to save the guild settings: " + e.getMessage()).queue();
+
+                Role muteRole = g.getRoleById(transformer.getMuteRole());
+                if (muteRole == null) {
+                    continue;
+                }
+
+                if (!g.getSelfMember().canInteract(muteRole)) {
+                    continue;
+                }
+
+                if (args.length == 0) {
+                    return sendErrorMessage(context, "errors.missingArgument", "user");
+                }
+
+                GuildTransformer guildTransformer = GuildController.fetchGuild(avaire, g);
+                if (guildTransformer.getModlog() != null) {
+                    ModlogAction localAction = new ModlogAction(
+                        ModlogType.UNMUTE, context.getAuthor(), user, reason
+                    );
+
+                    Modlog.log(avaire, g, localAction);
+                }
+
+                g.removeRoleFromMember(g.getMember(user), muteRole).reason("PIA Global Unmute").queue();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Xeus.getLogger().error(e.getMessage(), e);
+            context.makeError("Failed to save the guild settings: " + e.getMessage()).queue();
         }
         return true;
     }
@@ -331,83 +323,79 @@ public class GlobalModCommand extends Command {
             return sendErrorMessage(context, "The global log channel has not been set...");
         }
 
+        List<Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
+        User user = MentionableUtil.getUser(context, args);
+        if (user == null) {
+            return sendErrorMessage(context, context.i18n("invalidUserMentioned"));
+        }
+
+        Carbon expiresAt = null;
+        if (args.length > 1) {
+            expiresAt = parseTime(args[1]);
+        }
+
+        if (expiresAt != null && expiresAt.copy().subSeconds(61).isPast()) {
+            return sendErrorMessage(context, context.i18n("invalidTimeGiven"));
+        }
+
+        String reason = generateMuteMessage(Arrays.copyOfRange(args, expiresAt == null ? 1 : 2, args.length));
+        GlobalModlogType type = expiresAt == null ? GlobalModlogType.GLOBAL_WATCH : GlobalModlogType.GLOBAL_TEMP_WATCH;
+
+        final Carbon finalExpiresAt = expiresAt;
         try {
-            List<Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
-            User user = MentionableUtil.getUser(context, args);
-            if (user == null) {
-                return sendErrorMessage(context, context.i18n("invalidUserMentioned"));
-            }
+            GlobalModlogAction modlogAction = new GlobalModlogAction(
+                type, context.getAuthor(), user,
+                finalExpiresAt != null
+                    ? finalExpiresAt.toDayDateTimeString() + " (" + finalExpiresAt.diffForHumans(true) + ")" + "\n" + reason
+                    : "\n" + reason
+            );
 
-            Carbon expiresAt = null;
-            if (args.length > 1) {
-                expiresAt = parseTime(args[1]);
-            }
+            String caseId = GlobalWatchlog.log(avaire, context, modlogAction);
+            GlobalWatchlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
 
-            if (expiresAt != null && expiresAt.copy().subSeconds(61).isPast()) {
-                return sendErrorMessage(context, context.i18n("invalidTimeGiven"));
-            }
+            avaire.getGlobalWatchManager().registerGlobalWatch(context.getGuild().getIdLong(), caseId, localGuildSettings.getMainGroupId(), user.getIdLong(), finalExpiresAt);
 
-            String reason = generateMuteMessage(Arrays.copyOfRange(args, expiresAt == null ? 1 : 2, args.length));
-            GlobalModlogType type = expiresAt == null ? GlobalModlogType.GLOBAL_WATCH : GlobalModlogType.GLOBAL_TEMP_WATCH;
-
-            final Carbon finalExpiresAt = expiresAt;
-            try {
-                GlobalModlogAction modlogAction = new GlobalModlogAction(
-                    type, context.getAuthor(), user,
-                    finalExpiresAt != null
-                        ? finalExpiresAt.toDayDateTimeString() + " (" + finalExpiresAt.diffForHumans(true) + ")" + "\n" + reason
-                        : "\n" + reason
-                );
-
-                String caseId = GlobalWatchlog.log(avaire, context, modlogAction);
-                GlobalWatchlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
-
-                avaire.getGlobalWatchManager().registerGlobalWatch(context.getGuild().getIdLong(), caseId, localGuildSettings.getMainGroupId(), user.getIdLong(), finalExpiresAt);
-
-                context.makeSuccess(context.i18n("userHasBeenMuted"))
-                    .set("target", user.getAsMention())
-                    .set("time", finalExpiresAt == null
-                        ? context.i18n("time.permanently")
-                        : context.i18n("time.forFormat", finalExpiresAt.diffForHumans(true)))
-                    .queue();
+            context.makeSuccess(context.i18n("userHasBeenMuted"))
+                .set("target", user.getAsMention())
+                .set("time", finalExpiresAt == null
+                    ? context.i18n("time.permanently")
+                    : context.i18n("time.forFormat", finalExpiresAt.diffForHumans(true)))
+                .queue();
 
 
-                for (Guild g : guilds) {
-                    GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
-                    if (transformer.getOnWatchRole() == 0) {
-                        continue;
-                    }
-
-                    Member m = g.getMember(user);
-                    if (m == null) continue;
-
-                    Role muteRole = g.getRoleById(transformer.getOnWatchRole());
-                    if (muteRole == null) continue;
-
-                    if (!g.getSelfMember().canInteract(muteRole)) continue;
-
-                    if (args.length == 0) return sendErrorMessage(context, "errors.missingArgument", "user");
-
-                    GuildTransformer guildTransformer = GuildController.fetchGuild(avaire, g);
-                    if (guildTransformer.getModlog() != null) {
-                        ModlogAction localAction = new ModlogAction(
-                            ModlogType.ON_WATCH, context.getAuthor(), user,
-                            expiresAt != null
-                                ? expiresAt.toDayDateTimeString() + " (" + expiresAt.diffForHumans(true) + ")" + "\n"
-                                + reason : "\n" + reason
-                        );
-
-                        Modlog.log(avaire, g, localAction);
-                    }
-
-                    g.addRoleToMember(m, muteRole).queue();
+            for (Guild g : guilds) {
+                GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
+                if (transformer.getOnWatchRole() == 0) {
+                    continue;
                 }
-            } catch (SQLException e) {
-                Xeus.getLogger().error(e.getMessage(), e);
-                context.makeError("Failed to save the guild settings: " + e.getMessage()).queue();
+
+                Member m = g.getMember(user);
+                if (m == null) continue;
+
+                Role muteRole = g.getRoleById(transformer.getOnWatchRole());
+                if (muteRole == null) continue;
+
+                if (!g.getSelfMember().canInteract(muteRole)) continue;
+
+                if (args.length == 0) return sendErrorMessage(context, "errors.missingArgument", "user");
+
+                GuildTransformer guildTransformer = GuildController.fetchGuild(avaire, g);
+                if (guildTransformer.getModlog() != null) {
+                    ModlogAction localAction = new ModlogAction(
+                        ModlogType.ON_WATCH, context.getAuthor(), user,
+                        expiresAt != null
+                            ? expiresAt.toDayDateTimeString() + " (" + expiresAt.diffForHumans(true) + ")" + "\n"
+                            + reason : "\n" + reason
+                    );
+
+                    Modlog.log(avaire, g, localAction);
+                }
+
+                g.addRoleToMember(m, muteRole).queue();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Xeus.getLogger().error(e.getMessage(), e);
+            context.makeError("Failed to save the guild settings: " + e.getMessage()).queue();
         }
         return true;
     }
@@ -434,91 +422,87 @@ public class GlobalModCommand extends Command {
             return sendErrorMessage(context, "The global modlogs has not been set...");
         }
 
+        List<Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
+        User user = MentionableUtil.getUser(context, args);
+        if (user == null) {
+            return sendErrorMessage(context, context.i18n("invalidUserMentioned"));
+        }
+
+        Carbon expiresAt = null;
+        if (args.length > 1) {
+            expiresAt = parseTime(args[1]);
+        }
+
+        if (expiresAt != null && expiresAt.copy().subSeconds(61).isPast()) {
+            return sendErrorMessage(context, context.i18n("invalidTimeGiven"));
+        }
+
+        String reason = generateMuteMessage(Arrays.copyOfRange(args, expiresAt == null ? 1 : 2, args.length));
+        GlobalModlogType type = expiresAt == null ? GlobalModlogType.GLOBAL_MUTE : GlobalModlogType.GLOBAL_TEMP_MUTE;
+
+        final Carbon finalExpiresAt = expiresAt;
         try {
-            List<Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId());
-            User user = MentionableUtil.getUser(context, args);
-            if (user == null) {
-                return sendErrorMessage(context, context.i18n("invalidUserMentioned"));
-            }
+            GlobalModlogAction modlogAction = new GlobalModlogAction(
+                type, context.getAuthor(), user,
+                finalExpiresAt != null
+                    ? finalExpiresAt.toDayDateTimeString() + " (" + finalExpiresAt.diffForHumans(true) + ")" + "\n" + reason
+                    : "\n" + reason
+            );
 
-            Carbon expiresAt = null;
-            if (args.length > 1) {
-                expiresAt = parseTime(args[1]);
-            }
+            String caseId = GlobalModlog.log(avaire, context, modlogAction);
+            GlobalModlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
 
-            if (expiresAt != null && expiresAt.copy().subSeconds(61).isPast()) {
-                return sendErrorMessage(context, context.i18n("invalidTimeGiven"));
-            }
+            avaire.getGlobalMuteManager().registerGlobalMute(context.getGuild().getIdLong(), caseId, mainGroupSettings.getMainGroupId(), user.getIdLong(), finalExpiresAt);
 
-            String reason = generateMuteMessage(Arrays.copyOfRange(args, expiresAt == null ? 1 : 2, args.length));
-            GlobalModlogType type = expiresAt == null ? GlobalModlogType.GLOBAL_MUTE : GlobalModlogType.GLOBAL_TEMP_MUTE;
-
-            final Carbon finalExpiresAt = expiresAt;
-            try {
-                GlobalModlogAction modlogAction = new GlobalModlogAction(
-                    type, context.getAuthor(), user,
-                    finalExpiresAt != null
-                        ? finalExpiresAt.toDayDateTimeString() + " (" + finalExpiresAt.diffForHumans(true) + ")" + "\n" + reason
-                        : "\n" + reason
-                );
-
-                String caseId = GlobalModlog.log(avaire, context, modlogAction);
-                GlobalModlog.notifyUser(user, mainGroupSettings, modlogAction, caseId);
-
-                avaire.getGlobalMuteManager().registerGlobalMute(context.getGuild().getIdLong(), caseId, mainGroupSettings.getMainGroupId(), user.getIdLong(), finalExpiresAt);
-
-                context.makeSuccess(context.i18n("userHasBeenMuted"))
-                    .set("target", user.getAsMention())
-                    .set("time", finalExpiresAt == null
-                        ? context.i18n("time.permanently")
-                        : context.i18n("time.forFormat", finalExpiresAt.diffForHumans(true)))
-                    .queue();
+            context.makeSuccess(context.i18n("userHasBeenMuted"))
+                .set("target", user.getAsMention())
+                .set("time", finalExpiresAt == null
+                    ? context.i18n("time.permanently")
+                    : context.i18n("time.forFormat", finalExpiresAt.diffForHumans(true)))
+                .queue();
 
 
-                for (Guild g : guilds) {
-                    GuildTransformer transformer = GuildController.fetchGuild(avaire, g);
-                    if (transformer.getMuteRole() == null) {
-                        continue;
-                    }
-
-                    Member m = g.getMember(user);
-                    if (m == null) {
-                        continue;
-                    }
-
-                    Role muteRole = g.getRoleById(transformer.getMuteRole());
-                    if (muteRole == null) {
-                        continue;
-                    }
-
-                    if (!g.getSelfMember().canInteract(muteRole)) {
-                        continue;
-                    }
-
-                    if (args.length == 0) {
-                        return sendErrorMessage(context, "errors.missingArgument", "user");
-                    }
-
-                    GuildTransformer guildTransformer = GuildController.fetchGuild(avaire, g);
-                    if (guildTransformer.getModlog() != null) {
-                        ModlogAction localAction = new ModlogAction(
-                            ModlogType.ON_WATCH, context.getAuthor(), user,
-                            expiresAt != null
-                                ? expiresAt.toDayDateTimeString() + " (" + expiresAt.diffForHumans(true) + ")" + "\n"
-                                + reason : "\n" + reason
-                        );
-
-                        Modlog.log(avaire, g, localAction);
-                    }
-
-                    g.addRoleToMember(m, muteRole).queue();
+            for (Guild g : guilds) {
+                GuildTransformer transformer = GuildController.fetchGuild(avaire, g);
+                if (transformer.getMuteRole() == null) {
+                    continue;
                 }
-            } catch (SQLException e) {
-                Xeus.getLogger().error(e.getMessage(), e);
-                context.makeError("Failed to save the guild settings: " + e.getMessage()).queue();
+
+                Member m = g.getMember(user);
+                if (m == null) {
+                    continue;
+                }
+
+                Role muteRole = g.getRoleById(transformer.getMuteRole());
+                if (muteRole == null) {
+                    continue;
+                }
+
+                if (!g.getSelfMember().canInteract(muteRole)) {
+                    continue;
+                }
+
+                if (args.length == 0) {
+                    return sendErrorMessage(context, "errors.missingArgument", "user");
+                }
+
+                GuildTransformer guildTransformer = GuildController.fetchGuild(avaire, g);
+                if (guildTransformer.getModlog() != null) {
+                    ModlogAction localAction = new ModlogAction(
+                        ModlogType.ON_WATCH, context.getAuthor(), user,
+                        expiresAt != null
+                            ? expiresAt.toDayDateTimeString() + " (" + expiresAt.diffForHumans(true) + ")" + "\n"
+                            + reason : "\n" + reason
+                    );
+
+                    Modlog.log(avaire, g, localAction);
+                }
+
+                g.addRoleToMember(m, muteRole).queue();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Xeus.getLogger().error(e.getMessage(), e);
+            context.makeError("Failed to save the guild settings: " + e.getMessage()).queue();
         }
         return true;
     }
@@ -574,57 +558,53 @@ public class GlobalModCommand extends Command {
         String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
         boolean appealsKick = reason.contains("--appeals-kick");
 
-        try {
-            List<Guild> guild = getGuildsByMainGroupId(context.getGuildSettingsTransformer().getMainGroupId(), false);
+        List<Guild> guild = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(context.getGuildSettingsTransformer().getMainGroupId(), false);
 
 
-            if (appealsKick) {
-                reason = reason.replace("--appeals-kick", "");
-            }
-
-            User u = avaire.getShardManager().getUserById(args[0]);
-            if (u != null) {
-                String finalReason = reason;
-                u.openPrivateChannel().queue(p -> {
-                    p.sendMessageEmbeds(context.makeInfo(
-                            "*You have been **global-kicked** from all the Pinewood Builders discords by an MGM Moderator*. For the reason: *```"
-                                + finalReason + "```\n\n"
-                                + "You may rejoin the guilds you where kicked from, unless you where banned in one.")
-                        .setColor(Color.BLACK).buildEmbed()).queue();
-                });
-            }
-            long mgmLogs = context.getGuildSettingsTransformer().getGlobalSettings().getMgmLogsId();
-            if (mgmLogs != 0) {
-                TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
-                if (tc != null) {
-                    tc.sendMessageEmbeds(context
-                        .makeInfo("[``:global-unbanned-id`` was global-kicked from all discords by :user for](:link):\n"
-                            + "```:reason```")
-                        .set("global-unbanned-id", args[0]).set("reason", reason)
-                        .set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl())
-                        .buildEmbed()).queue();
-                }
-            }
-
-            StringBuilder sb = new StringBuilder();
-            for (Guild g : guild) {
-                if (appealsKick && g.getIdLong() == context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId())
-                    continue;
-                Member m = g.getMemberById(args[0]);
-                if (m != null) {
-                    g.kick(m,
-                            "Kicked by: " + context.member.getEffectiveName() + "\n" + "For: " + reason
-                                + "\n*THIS IS A MGM GLOBAL KICK*")
-                        .reason("Global Kick, executed by " + context.member.getEffectiveName() + ". For: \n" + reason)
-                        .queue();
-                }
-                sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
-            }
-            context.makeSuccess("<@" + args[0] + "> has been kicked from: \n\n" + sb).queue();
-
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        if (appealsKick) {
+            reason = reason.replace("--appeals-kick", "");
         }
+
+        User u = avaire.getShardManager().getUserById(args[0]);
+        if (u != null) {
+            String finalReason = reason;
+            u.openPrivateChannel().queue(p -> {
+                p.sendMessageEmbeds(context.makeInfo(
+                        "*You have been **global-kicked** from all the Pinewood Builders discords by an MGM Moderator*. For the reason: *```"
+                            + finalReason + "```\n\n"
+                            + "You may rejoin the guilds you where kicked from, unless you where banned in one.")
+                    .setColor(Color.BLACK).buildEmbed()).queue();
+            });
+        }
+        long mgmLogs = context.getGuildSettingsTransformer().getGlobalSettings().getMgmLogsId();
+        if (mgmLogs != 0) {
+            TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
+            if (tc != null) {
+                tc.sendMessageEmbeds(context
+                    .makeInfo("[``:global-unbanned-id`` was global-kicked from all discords by :user for](:link):\n"
+                        + "```:reason```")
+                    .set("global-unbanned-id", args[0]).set("reason", reason)
+                    .set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl())
+                    .buildEmbed()).queue();
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (Guild g : guild) {
+            if (appealsKick && g.getIdLong() == context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId())
+                continue;
+            Member m = g.getMemberById(args[0]);
+            if (m != null) {
+                g.kick(m,
+                        "Kicked by: " + context.member.getEffectiveName() + "\n" + "For: " + reason
+                            + "\n*THIS IS A MGM GLOBAL KICK*")
+                    .reason("Global Kick, executed by " + context.member.getEffectiveName() + ". For: \n" + reason)
+                    .queue();
+            }
+            sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
+        }
+        context.makeSuccess("<@" + args[0] + "> has been kicked from: \n\n" + sb).queue();
+
         return false;
     }
 
@@ -874,123 +854,119 @@ public class GlobalModCommand extends Command {
         }
 
 
+
         return executeGlobalBan(context, args, soft, settingsTransformer, g);
     }
 
     private boolean executeGlobalBan(CommandMessage context, String[] args, ComparatorUtil.ComparatorType shouldDeleteMessages, GuildSettingsTransformer settingsTransformer, Guild appealsGuild) {
+        StringBuilder sb = new StringBuilder();
+        int time = shouldDeleteMessages.getValue() ? 7 : 0;
+        String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+        boolean appealsBan = reason.contains("--appeals-ban") || reason.contains("-ab");
+        boolean globalBan = reason.contains("--global") || reason.contains("--g");
+
+        List<Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(settingsTransformer.getMainGroupId());
+
+        if (guilds.size() == 0) {
+            context.makeError("Huh? How did we get here? There should be at least one guild with this ID. Weird...")
+                .queue();
+            return true;
+        }
+
+        if (guilds.size() == 1) {
+            context.makeWarning(
+                    "Only 1 guild has the MGI of `:id` meaning the user will only be banned on this discord and stored in the database, if this is correct you can ignore this error.")
+                .queue();
+        }
+
+
+        if (appealsBan) {
+            reason = reason.replace("--appeals-ban", "").replace("-ab", "");
+        }
+        if (globalBan) {
+            reason = reason.replace("--global", "").replace("-g", "");
+        }
+
+        int bannedGuilds = 0;
+        for (Guild guild : guilds) {
+            if (appealsGuild != null) {
+                if (appealsGuild.getId().equals(guild.getId())) {
+                    if (!appealsBan) {
+                        sb.append("``").append(guild.getName()).append("`` - :x:\n");
+                        continue;
+                    }
+                }
+            }
+            if (guild == null)
+                continue;
+            if (!guild.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
+                continue;
+
+            GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
+            if (settings.getGlobalBan()) continue;
+            if (settings.isOfficialSubGroup()) {
+                guild.ban(args[0], time, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: "
+                        + reason
+                        + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
+                    .reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n"
+                        + reason)
+                    .queue();
+                sb.append("``").append(guild.getName()).append("`` - :white_check_mark:\n");
+            } else {
+                guild.ban(args[0], time,
+                        "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
+                    .queue();
+                sb.append("``").append(guild.getName()).append("`` - :ballot_box_with_check:\n");
+            }
+            bannedGuilds++;
+        }
+
+        User u = avaire.getShardManager().getUserById(args[0]);
+        if (u != null) {
+            String invite = getFirstInvite(appealsGuild);
+            String finalReason = reason;
+            u.openPrivateChannel().submit().thenAccept(p -> p.sendMessageEmbeds(context.makeInfo(
+                    "*You have been **global-banned** from all discord that are connected to [this group](:groupLink) by an MGM Moderator. "
+                        + "For the reason: *```" + finalReason + "```\n\n"
+                        + "If you feel that your ban was unjustified please appeal at the group in question;"
+                        + (invite != null ? invite
+                        : "Ask an admin of [this group](:groupLink), to create an invite on the appeals discord server of the group."))
+                .setColor(Color.BLACK)
+                .set("groupLink",
+                    "https://roblox.com/groups/"
+                        + context.getGuildSettingsTransformer().getGlobalSettings().getMainGroupId())
+                .buildEmbed()).submit()).whenComplete((message, error) -> {
+                if (error != null) {
+                    error.printStackTrace();
+                }
+            });
+        }
+
+        long mgmLogs = context.getGuildSettingsTransformer().getGlobalSettings().getMgmLogsId();
+        if (mgmLogs != 0) {
+            TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
+            if (tc != null) {
+                tc.sendMessageEmbeds(context.makeInfo(
+                        "[``:global-unbanned-id`` was global-banned from all discords that have global-ban enabled. Banned by ***:user*** in `:guild` for](:link):\n"
+                            + "```:reason```")
+                    .set("global-unbanned-id", args[0]).set("reason", reason)
+                    .set("guild", context.getGuild().getName())
+                    .set("user", context.getMember().getAsMention())
+                    .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
+            }
+        }
+
+        context.makeSuccess(
+                "<@" + args[0] + "> (" + args[0] + ") has been banned from `:guilds` guilds : \n\n" + sb)
+            .set("guilds", bannedGuilds).queue();
+
+        VerificationEntity ve = avaire.getRobloxAPIManager().getVerification()
+            .fetchInstantVerificationWithBackup(args[0]);
         try {
-            StringBuilder sb = new StringBuilder();
-            int time = shouldDeleteMessages.getValue() ? 7 : 0;
-            String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
-            boolean appealsBan = reason.contains("--appeals-ban") || reason.contains("-ab");
-            boolean globalBan = reason.contains("--global") || reason.contains("--g");
-
-            List<Guild> guilds = getGuildsByMainGroupId(settingsTransformer.getMainGroupId());
-
-            if (guilds.size() == 0) {
-                context.makeError("Huh? How did we get here? There should be at least one guild with this ID. Weird...")
-                    .queue();
-                return true;
-            }
-
-            if (guilds.size() == 1) {
-                context.makeWarning(
-                        "Only 1 guild has the MGI of `:id` meaning the user will only be banned on this discord and stored in the database, if this is correct you can ignore this error.")
-                    .queue();
-            }
-
-
-            if (appealsBan) {
-                reason = reason.replace("--appeals-ban", "").replace("-ab", "");
-            }
-            if (globalBan) {
-                reason = reason.replace("--global", "").replace("-g", "");
-            }
-
-            int bannedGuilds = 0;
-            for (Guild guild : guilds) {
-                if (appealsGuild != null) {
-                    if (appealsGuild.getId().equals(guild.getId())) {
-                        if (!appealsBan) {
-                            sb.append("``").append(guild.getName()).append("`` - :x:\n");
-                            continue;
-                        }
-                    }
-                }
-                if (guild == null)
-                    continue;
-                if (!guild.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
-                    continue;
-
-                GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
-                if (settings.getGlobalBan()) continue;
-                if (settings.isOfficialSubGroup()) {
-                    guild.ban(args[0], time, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: "
-                            + reason
-                            + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
-                        .reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n"
-                            + reason)
-                        .queue();
-                    sb.append("``").append(guild.getName()).append("`` - :white_check_mark:\n");
-                } else {
-                    guild.ban(args[0], time,
-                            "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
-                        .queue();
-                    sb.append("``").append(guild.getName()).append("`` - :ballot_box_with_check:\n");
-                }
-                bannedGuilds++;
-            }
-
-            User u = avaire.getShardManager().getUserById(args[0]);
-            if (u != null) {
-                String invite = getFirstInvite(appealsGuild);
-                String finalReason = reason;
-                u.openPrivateChannel().submit().thenAccept(p -> p.sendMessageEmbeds(context.makeInfo(
-                        "*You have been **global-banned** from all discord that are connected to [this group](:groupLink) by an MGM Moderator. "
-                            + "For the reason: *```" + finalReason + "```\n\n"
-                            + "If you feel that your ban was unjustified please appeal at the group in question;"
-                            + (invite != null ? invite
-                            : "Ask an admin of [this group](:groupLink), to create an invite on the appeals discord server of the group."))
-                    .setColor(Color.BLACK)
-                    .set("groupLink",
-                        "https://roblox.com/groups/"
-                            + context.getGuildSettingsTransformer().getGlobalSettings().getMainGroupId())
-                    .buildEmbed()).submit()).whenComplete((message, error) -> {
-                    if (error != null) {
-                        error.printStackTrace();
-                    }
-                });
-            }
-
-            long mgmLogs = context.getGuildSettingsTransformer().getGlobalSettings().getMgmLogsId();
-            if (mgmLogs != 0) {
-                TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
-                if (tc != null) {
-                    tc.sendMessageEmbeds(context.makeInfo(
-                            "[``:global-unbanned-id`` was global-banned from all discords that have global-ban enabled. Banned by ***:user*** in `:guild` for](:link):\n"
-                                + "```:reason```")
-                        .set("global-unbanned-id", args[0]).set("reason", reason)
-                        .set("guild", context.getGuild().getName())
-                        .set("user", context.getMember().getAsMention())
-                        .set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
-                }
-            }
-
-            context.makeSuccess(
-                    "<@" + args[0] + "> (" + args[0] + ") has been banned from `:guilds` guilds : \n\n" + sb)
-                .set("guilds", bannedGuilds).queue();
-
-            VerificationEntity ve = avaire.getRobloxAPIManager().getVerification()
-                .fetchInstantVerificationWithBackup(args[0]);
-            try {
-                handleGlobalPermBan(context, args, reason, ve);
-            } catch (SQLException exception) {
-                Xeus.getLogger().error("ERROR: ", exception);
-                context.makeError("Something went wrong adding this user to the global perm ban database.").queue();
-            }
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            handleGlobalPermBan(context, args, reason, ve);
+        } catch (SQLException exception) {
+            Xeus.getLogger().error("ERROR: ", exception);
+            context.makeError("Something went wrong adding this user to the global perm ban database.").queue();
         }
         return false;
     }

@@ -134,7 +134,7 @@ public class Constants {
         add("853888061476438017"); // MegaRaidOrg Server
     }};
 
-    // BYPASS USERS    
+    // BYPASS USERS
     @Deprecated
     @ForRemoval
     @ReplaceWith("Globalmod Check")
@@ -151,12 +151,13 @@ public class Constants {
         add("235086178309636096"); // RogueVader
         add("252228224904331268"); // Supremo
         add("148420768324124672"); // Diddleshot
-        add("314505421870333952"); // AnuCat
-        add("446775463441072130"); // Oak
+        add("446775463441072130"); // Oak - Pending leave...
         add("622861054489395250"); // neonweld
         add("283720560272211970"); // Phantom_FR
-        //add("257193596074065921"); // Omni - Not MGM Anymore.
-        //add("329668217515540482"); // TenX - Has left
+        //add("314505421870333952"); // AnuCat - Resigned
+        //add("412768975907323905"); // Mr. Inactivity -
+        //add("257193596074065921"); // Omni - [CONNECTION TERMINATED]
+        //add("329668217515540482"); // TenX - Resigned
     }};
 
 

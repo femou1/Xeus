@@ -315,7 +315,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
                 context.makeError("I can't pull the guilds information, please try again later.").queue();
                 return false;
             }
-            transformer.setMainGroupId(Integer.parseInt(args[1]));
+            transformer.setRobloxGroupId(Integer.parseInt(args[1]));
             return updateGroupId(transformer, context);
         } else {
             return command.sendErrorMessage(context,

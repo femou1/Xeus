@@ -23,7 +23,6 @@ package com.pinewoodbuilders.handlers;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Environment;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.handlers.EventHandler;
@@ -105,7 +104,7 @@ public class MainEventHandler extends EventHandler {
     private final SlashCommandEventAdapter slashCommandEventAdapter;
     private final VoiceChannelHandler voiceChannelHandler;
 
-    public static final Cache <Long, Boolean> cache = CacheBuilder.newBuilder()
+    public static final Cache<Long, Boolean> cache = CacheBuilder.newBuilder()
         .recordStats()
         .expireAfterWrite(15, TimeUnit.MINUTES)
         .build();
@@ -113,6 +112,7 @@ public class MainEventHandler extends EventHandler {
     private static final Logger log = LoggerFactory.getLogger(MainEventHandler.class);
 
     private int invites = 0;
+
     /**
      * Instantiates the event handler and sets the avaire class instance.
      *
@@ -155,12 +155,12 @@ public class MainEventHandler extends EventHandler {
     }
 
     @Override
-    public void onResume(ResumedEvent event) {
+    public void onResumed(ResumedEvent event) {
         jdaStateEventAdapter.onConnectToShard(event.getJDA());
     }
 
     @Override
-    public void onReconnect(ReconnectedEvent event) {
+    public void onReconnected(ReconnectedEvent event) {
         jdaStateEventAdapter.onConnectToShard(event.getJDA());
     }
 
@@ -270,9 +270,11 @@ public class MainEventHandler extends EventHandler {
         {
             if (retrievedInvites.size() == invites) return;
             if (retrievedInvites.size() > invites) return;
-            List <Role> roles = event.getGuild().getRolesByName("Pizza Delivery", true);
+            List<Role> roles = event.getGuild().getRolesByName("Pizza Delivery", true);
             if (roles.size() == 0) {
-                System.out.println("Role does not exist");return;}
+                System.out.println("Role does not exist");
+                return;
+            }
             Role r = roles.get(0);
             event.getGuild().addRoleToMember(event.getMember(), r).queue();
             invites = retrievedInvites.size();
@@ -296,7 +298,7 @@ public class MainEventHandler extends EventHandler {
 
         guild.retrieveInvites().queue(retrievedInvites ->                                             // retrieve all guild's invites
         {
-                    invites = retrievedInvites.size();
+            invites = retrievedInvites.size();
         });
     }
 
@@ -342,19 +344,20 @@ public class MainEventHandler extends EventHandler {
         }
 
         if (event.isFromGuild()) {
-            if (Constants.guilds.contains(event.getGuild().getId())) {
-                if (!event.getAuthor().isBot()) {
-                    messageEvent.onLocalFilterMessageReceived(event);
-                    messageEvent.onGlobalFilterMessageReceived(event);
-                    messageEvent.onNoLinksFilterMessageReceived(event);
+            if (!event.getAuthor().isBot()) {
+                messageEvent.onLocalFilterMessageReceived(event);
+                messageEvent.onGlobalFilterMessageReceived(event);
+                messageEvent.onNoLinksFilterMessageReceived(event);
 
-                    if (event.getChannel().getId().equals("769274801768235028") || event.getChannel().getId().equals("777903149511082005")) {
-                        messageEvent.onEventGalleryMessageSent(event);
-                    }
+                if (event.getChannel().getId().equals("769274801768235028") || event.getChannel().getId().equals("777903149511082005")) {
+                    messageEvent.onEventGalleryMessageSent(event);
                 }
-                if (event.getChannel().getId().equals("871890084121673738")) {
-                    messageEvent.sendPBACRaidVoteEmojis(event);
-                }
+            }
+            if (event.getChannel().getId().equals("871890084121673738")) {
+                messageEvent.sendPBACRaidVoteEmojis(event);
+            }
+            if (event.getChannel().getId().equals("744982672228745267")) {
+                messageEvent.onPIAAdminMessageEvent(event);
             }
 
         }
@@ -386,11 +389,9 @@ public class MainEventHandler extends EventHandler {
             return;
         }
         if (event.isFromGuild()) {
-            if (Constants.guilds.contains(event.getGuild().getId())) {
-                messageEvent.onGuildMessageUpdate(event);
-                messageEvent.onGlobalFilterEditReceived(event);
-                messageEvent.onLocalFilterEditReceived(event);
-            }
+            messageEvent.onGuildMessageUpdate(event);
+            messageEvent.onGlobalFilterEditReceived(event);
+            messageEvent.onLocalFilterEditReceived(event);
         }
     }
 
@@ -511,7 +512,7 @@ public class MainEventHandler extends EventHandler {
     }
 
 
-    public final ArrayList <String> guilds = new ArrayList <String>() {{
+    public final ArrayList<String> guilds = new ArrayList<String>() {{
         add("495673170565791754"); // Aerospace
         add("438134543837560832"); // PBST
         add("791168471093870622"); // Kronos Dev
@@ -539,7 +540,7 @@ public class MainEventHandler extends EventHandler {
 
         CacheUtil.getUncheckedUnwrapped(cache, guild.getIdLong(), () -> {
             log.debug("Lazy-loading members for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
-            Task <List <Member>> task = guild.loadMembers();
+            Task<List<Member>> task = guild.loadMembers();
 
             guild.getMemberCount();
 
