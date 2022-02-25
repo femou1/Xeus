@@ -41,6 +41,7 @@ public class MiddlewareStack {
     private static ProcessCommand processCommand;
     private static IsCategoryEnabled isCategoryEnabled;
     private static IncrementMetricsForCommand incrementMetricsForCommand;
+    private static LogModeratorCommand logModeratorCommand;
 
     private final Message message;
     private final CommandContainer command;
@@ -62,6 +63,7 @@ public class MiddlewareStack {
 
         middlewares.add(new MiddlewareContainer(isCategoryEnabled));
         middlewares.add(new MiddlewareContainer(incrementMetricsForCommand));
+        middlewares.add(new MiddlewareContainer(logModeratorCommand));
 
         Metrics.commandAttempts.labels(command.getClass().getSimpleName()).inc();
     }
@@ -79,6 +81,7 @@ public class MiddlewareStack {
         processCommand = new ProcessCommand(avaire);
         isCategoryEnabled = new IsCategoryEnabled(avaire);
         incrementMetricsForCommand = new IncrementMetricsForCommand(avaire);
+        logModeratorCommand = new LogModeratorCommand(avaire);
     }
 
     /**

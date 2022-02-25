@@ -29,15 +29,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class FeedbackCommand extends Command {
+public class SuggestionCommand extends Command {
 
-    public FeedbackCommand(Xeus avaire) {
+    public SuggestionCommand(Xeus avaire) {
         super(avaire);
     }
 
     @Override
     public String getName() {
-        return "Global Feedback Command";
+        return "Global Suggestion Command";
     }
 
     @Override
@@ -90,25 +90,14 @@ public class FeedbackCommand extends Command {
         int permissionLevel = XeusPermissionUtil.getPermissionLevel(context).getLevel();
         if (permissionLevel >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             if (args.length > 0) {
-                switch (args[0].toLowerCase()) {
-                    case "ss":
-                    case "set-suggestions":
-                        return runSetSuggestionChannel(context, args);
-                    case "sc":
-                    case "set-community":
-                        return runSetCommunityVotesChannel(context, args);
-                    case "cch":
-                    case "change-community-threshold":
-                        return runChangeCommunityThreshold(context, args);
-                    case "sasc":
-                    case "set-approved-suggestions-channel":
-                        return runSetApprovedSuggestionsChannel(context, args);
-                    case "ca":
-                    case "clear-all":
-                        return runClearAllChannelsFromDatabase(context);
-                    default:
-                        return sendErrorMessage(context, "Please enter in a correct argument.");
-                }
+                return switch (args[0].toLowerCase()) {
+                    case "ss", "set-suggestions" -> runSetSuggestionChannel(context, args);
+                    case "sc", "set-community" -> runSetCommunityVotesChannel(context, args);
+                    case "cch", "change-community-threshold" -> runChangeCommunityThreshold(context, args);
+                    case "sasc", "set-approved-suggestions-channel" -> runSetApprovedSuggestionsChannel(context, args);
+                    case "ca", "clear-all" -> runClearAllChannelsFromDatabase(context);
+                    default -> sendErrorMessage(context, "Please enter in a correct argument.");
+                };
             }
         }
 
@@ -128,7 +117,6 @@ public class FeedbackCommand extends Command {
                             l.addReaction(e).queue();
                         } else {
                             context.makeError("Either the guild or the emote can't be found in the database, please check with the developer.").queue();
-                            return;
                         }
                     }
                 });

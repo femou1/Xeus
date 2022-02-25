@@ -14,8 +14,10 @@ import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.contracts.verification.VerificationResult;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
+import com.pinewoodbuilders.database.controllers.GlobalSettingsController;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.controllers.VerificationController;
+import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.VerificationTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
@@ -247,13 +249,15 @@ public class VerificationManager {
     }
 
     private void changeMemberNickname(Member member, Guild guild, VerificationEntity verificationEntity, VerificationTransformer verificationTransformer, StringBuilder stringBuilder) {
-        if (!verificationEntity.getRobloxUsername().equals(member.getEffectiveName())) {
-            if (PermissionUtil.canInteract(guild.getSelfMember(), member)) {
-                guild.modifyNickname(member, verificationTransformer.getNicknameFormat()
-                    .replace("%USERNAME%", verificationEntity.getRobloxUsername())).queue();
+        if (verificationEntity.getRobloxUsername() != null) {
+            if (!verificationEntity.getRobloxUsername().equals(member.getEffectiveName())) {
+                if (PermissionUtil.canInteract(guild.getSelfMember(), member)) {
+                    guild.modifyNickname(member, verificationTransformer.getNicknameFormat()
+                        .replace("%USERNAME%", verificationEntity.getRobloxUsername())).queue();
 
-                stringBuilder.append("\n\nNickname has been set to `").append(verificationEntity.getRobloxUsername())
-                    .append("`");
+                    stringBuilder.append("\n\nNickname has been set to `").append(verificationEntity.getRobloxUsername())
+                        .append("`");
+                }
             }
         }
     }
@@ -262,31 +266,45 @@ public class VerificationManager {
         return trellobans.containsKey(member.getIdLong());
     }
 
-    public List<Guild> getGuildsByMainGroupId(Xeus avaire, Long mainGroupId) throws SQLException {
-        return getGuildsByMainGroupId(avaire, mainGroupId, false);
+
+    @Deprecated
+    public List<Guild> getGuildsByMainGroupId(Xeus avaire, Long mainGroupId) {
+        return getGuildsByMainGroupId(mainGroupId, false);
     }
 
-    public List<Guild> getGuildsByMainGroupId(Xeus avaire, Long mainGroupId, boolean isOfficial) throws SQLException {
+    public List<Guild> getGuildsByMainGroupId(Long mainGroupId) {
+        return getGuildsByMainGroupId(mainGroupId, true);
+    }
+
+    public List<Guild> getGuildsByMainGroupId(Long mainGroupId, boolean isOfficial) {
         if (!avaire.areWeReadyYet()) {
             return null;
         }
-        Collection guildQuery = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
-            .where("main_group_id", mainGroupId)
-            .where(builder -> {
-                if (isOfficial) {
-                    builder.where("official_sub_group", 1);
-                }
-            })
-            .get();
-
         List<Guild> guildList = new LinkedList<>();
-        for (DataRow dataRow : guildQuery) {
-            Guild guild = avaire.getShardManager().getGuildById(dataRow.getString("id"));
-            if (guild != null) {
-                guildList.add(guild);
-            }
-        }
 
+        GlobalSettingsTransformer globalSettings = GlobalSettingsController.fetchGlobalSettingsFromGroupSettings(avaire, mainGroupId);
+
+        try {
+            Collection guildQuery = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
+                .where("main_group_id", mainGroupId)
+                .where(builder -> {
+                    if (isOfficial) {
+                        builder.where("official_sub_group", 1);
+                    }
+                })
+                .get();
+
+            for (DataRow dataRow : guildQuery) {
+                if (globalSettings.getModerationServerId() != 0 && dataRow.getString("id").equals(String.valueOf(globalSettings.getModerationServerId()))) {continue;}
+
+                Guild guild = avaire.getShardManager().getGuildById(dataRow.getString("id"));
+                if (guild != null) {
+                    guildList.add(guild);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return guildList;
     }
 
@@ -462,77 +480,71 @@ public class VerificationManager {
     }
 
     private VerificationResult executeGlobalBan(GlobalBanContainer container, Member m, GuildSettingsTransformer settingsTransformer, Guild appealsGuild, VerificationEntity ve) {
-        try {
-            int time = 0;
-            String reason = container.getReason();
-            List<Guild> guilds = getGuildsByMainGroupId(avaire, settingsTransformer.getMainGroupId());
+        int time = 0;
+        String reason = container.getReason();
+        List<Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(avaire, settingsTransformer.getMainGroupId());
 
-            for (Guild guild : guilds) {
-                if (appealsGuild != null) {
-                    if (appealsGuild.getId().equals(guild.getId())) {
-                        continue;
-                    }
-                }
-                if (guild == null)
+        for (Guild guild : guilds) {
+            if (appealsGuild != null) {
+                if (appealsGuild.getId().equals(guild.getId())) {
                     continue;
-                if (!guild.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
-                    continue;
-
-                GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
-                if (settings.getGlobalBan()) continue;
-                if (settings.isOfficialSubGroup()) {
-                    guild.ban(m, time, "Banned by: " + m.getEffectiveName() + "\n" + "For: "
-                            + reason
-                            + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
-                        .reason("Global Ban, executed by " + m.getEffectiveName() + ". For: \n"
-                            + reason)
-                        .queue();
-                } else {
-                    guild.ban(m, time,
-                            "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
-                        .queue();
                 }
             }
+            if (guild == null)
+                continue;
+            if (!guild.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
+                continue;
 
-            User u = m.getUser();
-            String invite = getFirstInvite(appealsGuild);
-
-            u.openPrivateChannel().submit().thenAccept(p -> p.sendMessageEmbeds(MessageFactory.createEmbeddedBuilder().setDescription(
-                    "*You have been **global-banned** from all discord that are connected to [this group](:groupLink) by an MGM Moderator. "
-                        + "For the reason: *```" + reason + "```\n\n"
-                        + "If you feel that your ban was unjustified please appeal at the group in question;"
-                        + (invite != null ? invite
-                        : "Ask an admin of [this group](" + "https://roblox.com/groups/"
-                        + settingsTransformer.getGlobalSettings().getMainGroupId() + "), to create an invite on the appeals discord server of the group."))
-                .setColor(Color.BLACK).build()).submit()).whenComplete((message, error) -> {
-                if (error != null) {
-                    error.printStackTrace();
-                }
-            });
-
-            long mgmLogs = settingsTransformer.getGlobalSettings().getMgmLogsId();
-            if (mgmLogs != 0) {
-                TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
-                if (tc != null) {
-                    tc.sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder(), "``:global-unbanned-id`` was global-banned from all discords that have global-ban enabled during verification. Banned by ***:user*** in `:guild` for:\n"
-                        + "```:reason```")
-                        .set("global-unbanned-id", m.getId()).set("reason", reason)
-                        .set("guild", m.getGuild().getName())
-                        .set("user", "<@" + container.getPunisherId() + ">").buildEmbed()).queue();
-                }
+            GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
+            if (settings.getGlobalBan()) continue;
+            if (settings.isOfficialSubGroup()) {
+                guild.ban(m, time, "Banned by: " + m.getEffectiveName() + "\n" + "For: "
+                        + reason
+                        + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
+                    .reason("Global Ban, executed by " + m.getEffectiveName() + ". For: \n"
+                        + reason)
+                    .queue();
+            } else {
+                guild.ban(m, time,
+                        "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
+                    .queue();
             }
-
-            try {
-                return handleGlobalPermBan(settingsTransformer, m, reason, ve, appealsGuild);
-            } catch (SQLException exception) {
-                Xeus.getLogger().error("ERROR: ", exception);
-                return new VerificationResult(false, "Something went wrong adding this user to the global perm ban database.");
-            }
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
-        return new VerificationResult(false, "I have no idea what went wrong.");
+
+        User u = m.getUser();
+        String invite = getFirstInvite(appealsGuild);
+
+        u.openPrivateChannel().submit().thenAccept(p -> p.sendMessageEmbeds(MessageFactory.createEmbeddedBuilder().setDescription(
+                "*You have been **global-banned** from all discord that are connected to [this group](:groupLink) by an MGM Moderator. "
+                    + "For the reason: *```" + reason + "```\n\n"
+                    + "If you feel that your ban was unjustified please appeal at the group in question;"
+                    + (invite != null ? invite
+                    : "Ask an admin of [this group](" + "https://roblox.com/groups/"
+                    + settingsTransformer.getGlobalSettings().getMainGroupId() + "), to create an invite on the appeals discord server of the group."))
+            .setColor(Color.BLACK).build()).submit()).whenComplete((message, error) -> {
+            if (error != null) {
+                error.printStackTrace();
+            }
+        });
+
+        long mgmLogs = settingsTransformer.getGlobalSettings().getMgmLogsId();
+        if (mgmLogs != 0) {
+            TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
+            if (tc != null) {
+                tc.sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder(), "``:global-unbanned-id`` was global-banned from all discords that have global-ban enabled during verification. Banned by ***:user*** in `:guild` for:\n"
+                    + "```:reason```")
+                    .set("global-unbanned-id", m.getId()).set("reason", reason)
+                    .set("guild", m.getGuild().getName())
+                    .set("user", "<@" + container.getPunisherId() + ">").buildEmbed()).queue();
+            }
+        }
+
+        try {
+            return handleGlobalPermBan(settingsTransformer, m, reason, ve, appealsGuild);
+        } catch (SQLException exception) {
+            Xeus.getLogger().error("ERROR: ", exception);
+            return new VerificationResult(false, "Something went wrong adding this user to the global perm ban database.");
+        }
     }
 
     private VerificationResult handleGlobalPermBan(GuildSettingsTransformer transformer, Member user, String reason, VerificationEntity ve, Guild appealsGuild)

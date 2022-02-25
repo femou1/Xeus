@@ -97,7 +97,7 @@ public class DrainGlobalMuteQueueTask implements Task {
 
     private void handleAutomaticUnmute(Xeus avaire, GlobalMuteContainer container) {
         try {
-            List<Guild> guilds = getGuildsByMainGroupId(avaire, container.getMainGroupId());
+            List<Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(avaire, container.getMainGroupId());
             if (guilds == null) {
                 container.cancelSchedule();
                 return;

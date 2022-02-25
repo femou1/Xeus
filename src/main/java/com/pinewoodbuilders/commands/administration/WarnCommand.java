@@ -353,7 +353,7 @@ public class WarnCommand extends Command {
         StringBuilder sb = new StringBuilder();
         String reason = "User has been global-banned due to reaching 15 warnings in " + context.getGuild().getName();
 
-        List <Guild> guilds = getGuildsByMainGroupId(settingsTransformer.getMainGroupId());
+        List <Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(settingsTransformer.getMainGroupId());
 
         int bannedGuilds = 0;
         for (Guild guild : guilds) {
@@ -461,7 +461,7 @@ public class WarnCommand extends Command {
     private void localBanAndGlobalWatch(CommandMessage context, User user, Message messageExecute) {
         GlobalSettingsTransformer mainGroupSettings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, context.guild)
             .getGlobalSettings();
-        List <Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId(), true);
+        List <Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(mainGroupSettings.getMainGroupId(), true);
 
         GlobalModlogType type = GlobalModlogType.GLOBAL_WATCH;
 
@@ -568,7 +568,7 @@ public class WarnCommand extends Command {
 
         GlobalSettingsTransformer mainGroupSettings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, context.guild)
             .getGlobalSettings();
-        List <Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId(), true);
+        List <Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(mainGroupSettings.getMainGroupId(), true);
         String reason = "Automod, moderative action from " + context.getGuild().getName();
         GlobalModlogType type = expiresAt == null ? GlobalModlogType.GLOBAL_MUTE : GlobalModlogType.GLOBAL_TEMP_MUTE;
 
@@ -632,7 +632,7 @@ public class WarnCommand extends Command {
     private void watchUserQueue(CommandMessage context, Carbon expiresAt, User user, Message messageExecute) {
         GlobalSettingsTransformer mainGroupSettings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, context.guild)
             .getGlobalSettings();
-        List <Guild> guilds = getGuildsByMainGroupId(mainGroupSettings.getMainGroupId(), true);
+        List <Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(mainGroupSettings.getMainGroupId(), true);
         String reason = "Automod, moderative action from " + context.getGuild().getName();
         GlobalModlogType type = expiresAt == null ? GlobalModlogType.GLOBAL_WATCH : GlobalModlogType.GLOBAL_TEMP_WATCH;
 

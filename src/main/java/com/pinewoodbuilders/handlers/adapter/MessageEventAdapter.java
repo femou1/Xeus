@@ -34,6 +34,7 @@ import com.pinewoodbuilders.contracts.cache.CachedMessage;
 import com.pinewoodbuilders.contracts.handlers.EventAdapter;
 import com.pinewoodbuilders.contracts.moderation.LinkLevel;
 import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.controllers.*;
@@ -47,8 +48,8 @@ import com.pinewoodbuilders.handlers.DatabaseEventHolder;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.middleware.MiddlewareStack;
 import com.pinewoodbuilders.middleware.ThrottleMiddleware;
-import com.pinewoodbuilders.moderation.global.filter.filter.LinkContainer;
 import com.pinewoodbuilders.moderation.global.automute.MuteRatelimit;
+import com.pinewoodbuilders.moderation.global.filter.filter.LinkContainer;
 import com.pinewoodbuilders.modlog.local.moderation.Modlog;
 import com.pinewoodbuilders.modlog.local.shared.ModlogAction;
 import com.pinewoodbuilders.modlog.local.shared.ModlogType;
@@ -516,9 +517,6 @@ public class MessageEventAdapter extends EventAdapter {
 
     private void checkFilters(GenericMessageEvent event, DatabaseEventHolder databaseEventHolder) {
         MessageReceivedEvent messageId = (MessageReceivedEvent) event;
-        if (!guilds.contains(event.getGuild().getId())) {
-            return;
-        }
 
         if (!event.getChannelType().equals(ChannelType.TEXT)) {
             return;
@@ -950,5 +948,165 @@ public class MessageEventAdapter extends EventAdapter {
             event.getMessage().addReaction("pianay:900484582032420955").queue();
         }
     }
+
+    public void onPIAAdminMessageEvent(MessageReceivedEvent event) {
+        if (!event.getAuthor().isBot()) {
+            return;
+        } // Ignore human messages
+        if (!(event.getMessage().getEmbeds().size() > 0)) {
+            return;
+        } // Ignore normal messages
+
+        GuildSettingsTransformer gst = GuildSettingsController.fetchGuild(avaire, event.getMessage());
+        if (gst == null) return;
+        if (gst.getMainGroupId() == 0) return;
+        List<MessageEmbed> message = event.getMessage().getEmbeds();
+        MessageEmbed me = message.get(0);
+        List<MessageEmbed.Field> fields = me.getFields();
+        if (fields.size() < 1) return;
+
+        boolean isGameBan = false;
+        String username = null;
+        String reason = null;
+        String moderator = null;
+
+        for (MessageEmbed.Field field : fields) {
+            if (field.getName() == null || field.getValue() == null) continue;
+            if (field.getName().equals("Action") && field.getValue().equals("Gameban")) isGameBan = true;
+            if (field.getName().equals("Player")) username = field.getValue();
+            if (field.getName().equals("Moderator")) moderator = field.getValue();
+            if (field.getName().equals("Reason")) reason = field.getValue();
+            if (reason == null) continue;
+            if (moderator == null) continue;
+            if (username == null) continue;
+            if (!isGameBan) continue;
+
+            Pattern pattern = Pattern.compile("(?<=\\[)[^\\]\\[]*(?=])");
+            Matcher newUsername = pattern.matcher(username);
+            Matcher newModerator = pattern.matcher(moderator);
+
+            String usernameFinal = null;
+            String moderatorFinal = null;
+
+            long bannedRobloxId = 0;
+            long moderatorUserId = 0;
+            if (newUsername.find()) usernameFinal = newUsername.group();
+            if (newModerator.find()) moderatorFinal = newModerator.group();
+
+            if (usernameFinal == null || moderatorFinal == null) return;
+
+            bannedRobloxId = avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(usernameFinal);
+            moderatorUserId = avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(moderatorFinal);
+            //⭕     - User is already in the global-ban database.
+            //✅     - User was on discords and is now banned
+            //☑️  - User was not in the discords, but is added to the roblox global-bans.
+            //❓     - Somehow, the moderator or punished user doesn't have a roblox account.
+            //❌     - User coudn't be banned due to an issue, ping stefano if this happens.
+
+            Message msg = event.getMessage();
+
+            if (bannedRobloxId == 0 || moderatorUserId == 0) {
+                msg.addReaction("❓").queue();
+                return;
+            } // React with ❓
+
+            VerificationEntity bannedEntity = avaire.getRobloxAPIManager().getVerification().callDiscordUserFromDatabaseAPI(bannedRobloxId);
+            VerificationEntity moderatorEntity = avaire.getRobloxAPIManager().getVerification().callDiscordUserFromDatabaseAPI(moderatorUserId);
+
+            if (moderatorEntity == null) {
+                msg.addReaction("\uD83E\uDD26\u200D♀️").queue();
+                return;
+            } // React with 🤦‍♀️(:woman_facepalming:)
+
+            if (avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(gst.getMainGroupId(), bannedRobloxId)) {
+                msg.addReaction("⭕").queue();
+                return;
+            } // React with ⭕
+
+            try {
+                avaire.getGlobalPunishmentManager().registerGlobalBan(moderatorEntity.getDiscordId().toString(), gst.getMainGroupId(), bannedEntity != null ? bannedEntity.getDiscordId().toString() : null, bannedRobloxId, usernameFinal, reason);
+                if (bannedEntity != null) {
+                    executeGlobalBan(reason, bannedEntity.getDiscordId().toString(), gst, bannedEntity, moderatorEntity, msg.getGuild());
+                    msg.addReaction("✅").queue();
+                    return;
+                } else {
+                    msg.addReaction("☑").queue();
+                }
+            } catch (Exception e) {
+                e.printStackTrace(); // React with ❌
+                msg.addReaction("❌").queue();
+            }
+            return;
+        }
+
+    }
+
+    private void executeGlobalBan(String reason, String bannedUserId, GuildSettingsTransformer settingsTransformer, VerificationEntity ve, VerificationEntity moderator, Guild moderatorDiscord) {
+        Guild appealsGuild = null;
+        if (settingsTransformer.getGlobalSettings().getAppealsDiscordId() != 0) {
+            appealsGuild = avaire.getShardManager().getGuildById(settingsTransformer.getGlobalSettings().getAppealsDiscordId());
+        }
+
+        int time = 0;
+        List<Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(settingsTransformer.getMainGroupId());
+
+        for (Guild guild : guilds) {
+            if (appealsGuild != null) {
+                if (appealsGuild.getId().equals(guild.getId())) {
+                    continue;
+                }
+            }
+            if (guild == null)
+                continue;
+            if (!guild.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
+                continue;
+
+            GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
+            if (settings.getGlobalBan()) continue;
+            if (settings.isOfficialSubGroup()) {
+                guild.ban(bannedUserId, time, "Banned by: " + moderator.getRobloxUsername() + "\n" + "For: "
+                        + reason
+                        + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
+                    .reason("Global Ban, executed by " + moderator.getRobloxUsername() + ". For: \n"
+                        + reason)
+                    .queue();
+            } else {
+                guild.ban(bannedUserId, time,
+                        "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
+                    .queue();
+            }
+        }
+
+        User u = avaire.getShardManager().getUserById(bannedUserId);
+        if (u != null) {
+            u.openPrivateChannel().submit().thenAccept(p -> p.sendMessageEmbeds(MessageFactory.createEmbeddedBuilder().setDescription(
+                    "*You have been **global-banned** from all discord that are connected to [this group](:groupLink) by an MGM Moderator. "
+                        + "For the reason: *```" + reason + "```\n\n"
+                        + "If you feel that your ban was unjustified please appeal at the group in question;"
+
+                        + "Ask an admin of [this group](" + "https://roblox.com/groups/"
+                        + settingsTransformer.getGlobalSettings().getMainGroupId() + "), to create an invite on the appeals discord server of the group.")
+                .setColor(Color.BLACK).build()).submit()).whenComplete((message, error) -> {
+                if (error != null) {
+                    error.printStackTrace();
+                }
+            });
+        }
+
+
+        long mgmLogs = settingsTransformer.getGlobalSettings().getMgmLogsId();
+        if (mgmLogs != 0) {
+            TextChannel tc = avaire.getShardManager().getTextChannelById(mgmLogs);
+            if (tc != null) {
+                tc.sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder(), "`:global-unbanned-id` was global-banned from all discords that have global-ban enabled during verification. Banned by ***:user*** in `:guild` for:\n"
+                    + "```:reason```")
+                    .set("global-unbanned-id", bannedUserId)
+                    .set("reason", reason)
+                    .set("guild", moderatorDiscord.getName())
+                    .set("user", "<@" + moderator.getDiscordId() + ">").buildEmbed()).queue();
+            }
+        }
+    }
 }
+
 

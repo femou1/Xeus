@@ -27,6 +27,7 @@ import com.pinewoodbuilders.cache.MessageCache;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.contracts.cache.CachedMessage;
 import com.pinewoodbuilders.contracts.handlers.EventAdapter;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
@@ -85,6 +86,12 @@ public class GuildEventAdapter extends EventAdapter {
             }).collect(Collectors.toList());
 
             e.getGuild().retrieveAuditLogs().queue(items -> {
+                List<AuditLogEntry> logs = items.stream()
+                    .filter(d -> d.getType().equals(ActionType.UNBAN)
+                        && d.getTargetType().equals(TargetType.MEMBER)
+                        && d.getTargetId().equals(e.getUser().getId()))
+                    .collect(Collectors.toList());
+                MessageChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
                 List <AuditLogEntry> logs = items.stream()
                     .filter(d -> d.getType().equals(ActionType.UNBAN)
                         && d.getTargetType().equals(TargetType.MEMBER)
@@ -107,6 +114,7 @@ public class GuildEventAdapter extends EventAdapter {
                     if (tc != null) {
                         if (logs.get(0).getUser().equals(e.getJDA().getSelfUser()))
                             return;
+                        if (XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getGuild().getMember(logs.get(0).getUser())).getLevel() >= GuildPermissionCheckType.MAIN_GLOBAL_LEADERSHIP.getLevel())
                         if (XeusPermissionUtil.getPermissionLevel(transformer, e.getGuild(), e.getGuild().getMemberById(logs.get(0).getUser().getId())).getLevel() >= MAIN_GLOBAL_MODERATOR.getLevel()) {
                             tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
                                 .setDescription("**" + e.getUser().getName() + e.getUser().getDiscriminator()
@@ -154,8 +162,8 @@ public class GuildEventAdapter extends EventAdapter {
                     }
                 }
             });
-
         }
+
     }
 
     public void onGenericGuildEvent(GenericEvent ev) {

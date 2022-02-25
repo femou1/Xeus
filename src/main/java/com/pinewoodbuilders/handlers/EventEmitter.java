@@ -28,9 +28,7 @@ import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.internal.utils.Checks;
 
-public class EventEmitter {
-
-    private final Xeus avaire;
+public record EventEmitter(Xeus avaire) {
 
     /**
      * Creates a new event emitter instance using
@@ -39,8 +37,7 @@ public class EventEmitter {
      * @param avaire The Xeus instance that the event
      *               emitter should be created for.
      */
-    public EventEmitter(Xeus avaire) {
-        this.avaire = avaire;
+    public EventEmitter {
     }
 
     /**

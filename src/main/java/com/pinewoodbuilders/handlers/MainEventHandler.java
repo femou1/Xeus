@@ -23,7 +23,6 @@ package com.pinewoodbuilders.handlers;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Environment;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.handlers.EventHandler;
@@ -370,6 +369,9 @@ public class MainEventHandler extends EventHandler {
             if (event.getChannel().getId().equals("871890084121673738")) {
                 messageEvent.sendPBACRaidVoteEmojis(event);
             }
+            if (event.getChannel().getId().equals("744982672228745267")) {
+                messageEvent.onPIAAdminMessageEvent(event);
+            }
 
 
         }
@@ -403,11 +405,9 @@ public class MainEventHandler extends EventHandler {
             return;
         }
         if (event.isFromGuild()) {
-            if (Constants.guilds.contains(event.getGuild().getId())) {
-                messageEvent.onGuildMessageUpdate(event);
-                messageEvent.onGlobalFilterEditReceived(event);
-                messageEvent.onLocalFilterEditReceived(event);
-            }
+            messageEvent.onGuildMessageUpdate(event);
+            messageEvent.onGlobalFilterEditReceived(event);
+            messageEvent.onLocalFilterEditReceived(event);
         }
     }
 

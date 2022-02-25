@@ -10,12 +10,11 @@ import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
-import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Set;
 
 public class GlobalSettingsSubCommand extends SettingsSubCommand {
 
@@ -37,7 +36,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
         }
 
         if (args.length == 0 || NumberUtil.parseInt(args[0], -1) > 0) {
-            return sendEnabledRoles(context, guildTransformer);
+            return sendCurrentSettings(context, guildTransformer);
         }
 
 
@@ -45,8 +44,137 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
             case "al", "audit-logs" -> runAuditLogsCommand(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
             case "gfilter", "global-filter", "gf", "f", "filter", "globalf" -> runGlobalFilterCommand(context, Arrays.copyOfRange(args, 1, args.length));
             case "tnms", "toggle-new-moderation-system", "nms", "new-moderation-system" -> newModerationSystem(context, guildTransformer);
-            default -> command.sendErrorMessage(context, "God damn, please get this command right.\n\n- `tnms` -> Toggle the new moderation system\n - `al` -> Set the audit log in all connected guilds.\n - `filter` -> Set the filter across the servers\n");
+            case "appeals-server", "as" -> runSetAppealsServer(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
+            case "moderator-server", "ms" -> runSetModeratorServer(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
+            default -> command.sendErrorMessage(context, """
+                God damn, please get this command right.
+
+                 - `tnms`/`new-moderation-system` -> Toggle the new moderation system
+                 - `f`/`filter` -> Set the filter across the servers
+                 - `al`/`audit-logs` -> Set the audit log settings for your MGI.
+                 - `as`/`appeals-server` -> Set the appeals server for your MGI.
+                 - `ms`/`moderator-server` -> Set the moderator server for your MGI.
+                """);
         };
+    }
+
+    private boolean sendCurrentSettings(CommandMessage context, GuildSettingsTransformer guildTransformer) {
+        GlobalSettingsTransformer gst = guildTransformer.getGlobalSettings();
+        if (gst == null) {
+            return command.sendErrorMessage(context, "The guild-transformer is null, please set the Main group ID.");
+        }
+
+        long appealsDiscordId = gst.getAppealsDiscordId();
+        int globalExactFilterSize = gst.getGlobalFilterExact().size();
+        int globalWildcardFilterSize = gst.getGlobalFilterWildcard().size();
+        int globalFilterTotalSize = globalExactFilterSize + globalWildcardFilterSize;
+        long mgi = gst.getMainGroupId();
+        long globalChannelLogsId = gst.getMgmLogsId();
+        long moderationServerId = gst.getModerationServerId();
+        String globalModLogChannel = gst.getGlobalModlogChannel();
+        long globalFilterLogChannel = gst.getGlobalFilterLogChannel();
+        String mainGroupName = gst.getMainGroupName();
+        long globalModlogCaseId = gst.getGlobalModlogCase();
+
+
+        context.makeSuccess("""
+                Current settings for your MGI: "**:mainGroupName**" (`:mainGroupId`):
+                            
+                - Global Filter Exact Size - `:globalExactFilterSize`
+                - Global Filter Wildcard Size - `:globalWildcardFilterSize`
+                - Global Filter Total Size - `:globalFilterTotalSize`
+                - Appeals Discord ID - `:appealsDiscordId`
+                - Moderation Server ID - `:moderationServerId`
+                - Global Modlog Channel - `:globalModlogChannel`
+                - Global Filter Log Channel - `:globalFilterLogChannel`
+                - Mgm Logs ID - `:mgmLogsId`
+                - Global Modlog Case ID - `:globalModlogCaseId`
+                """)
+            .set("mainGroupName", mainGroupName == null ? "N/A" : mainGroupName)
+            .set("mainGroupId", mgi)
+            .set("globalExactFilterSize", globalExactFilterSize)
+            .set("globalWildcardFilterSize", globalWildcardFilterSize)
+            .set("globalFilterTotalSize", globalFilterTotalSize)
+            .set("appealsDiscordId", appealsDiscordId == 0 ? "Not set" : appealsDiscordId)
+            .set("moderationServerId", moderationServerId == 0 ? "Not set" : moderationServerId)
+            .set("globalModlogChannel", globalModLogChannel == null ? "None" : globalModLogChannel)
+            .set("globalFilterLogChannel", globalFilterLogChannel == 0 ? "None" : globalFilterLogChannel)
+            .set("mgmLogsId", globalChannelLogsId == 0 ? "Not set" : globalChannelLogsId)
+            .set("globalModlogCaseId", globalModlogCaseId)
+            .queue();
+
+        return false;
+    }
+
+    private boolean runSetAppealsServer(CommandMessage context, String[] args, GuildSettingsTransformer guildTransformer) {
+        GlobalSettingsTransformer settings = guildTransformer.getGlobalSettings();
+        if (settings == null) return command.sendErrorMessage(context, "Global settings have not been set.");
+
+        if (args.length == 0) {
+            return command.sendErrorMessage(context, "Please provide a server ID.");
+        }
+
+        long serverId = Long.parseLong(args[0]);
+        if (serverId == 0) {
+            context.makeSuccess(serverId + " is not a valid server ID.").queue();
+            return false;
+        }
+
+        Guild g = avaire.getShardManager().getGuildById(serverId);
+        if (g == null) {
+            context.makeSuccess(serverId + " is not a valid server.").queue();
+            return false;
+        }
+
+
+        settings.setAppealsDiscordId(serverId);
+        try {
+            avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE)
+                .where("main_group_id", guildTransformer.getMainGroupId())
+                .update(statement -> statement.set("appeals_discord_id", settings.getAppealsDiscordId()));
+            context.makeSuccess("Set the appeals server to " + g.getName() + " (" + g.getId() + ")").queue();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return command.sendErrorMessage(context, "Failed to set the appeals server.");
+        }
+
+
+        return true;
+    }
+
+    private boolean runSetModeratorServer(CommandMessage context, String[] args, GuildSettingsTransformer guildTransformer) {
+        GlobalSettingsTransformer settings = guildTransformer.getGlobalSettings();
+        if (settings == null) return command.sendErrorMessage(context, "Global settings have not been set.");
+
+        if (args.length == 0) {
+            return command.sendErrorMessage(context, "Please provide a server ID.");
+        }
+
+        long serverId = Long.parseLong(args[0]);
+        if (serverId == 0) {
+            context.makeSuccess(serverId + " is not a valid server ID.").queue();
+            return false;
+        }
+
+        Guild g = avaire.getShardManager().getGuildById(serverId);
+        if (g == null) {
+            context.makeSuccess(serverId + " is not a valid server.").queue();
+            return false;
+        }
+
+        settings.setModerationServerId(serverId);
+        try {
+            avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE)
+                .where("main_group_id", guildTransformer.getMainGroupId())
+                .update(statement -> statement.set("moderation_server_id", settings.getModerationServerId()));
+            context.makeSuccess("Set the moderator server to " + g.getName() + " (" + g.getId() + ")").queue();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return command.sendErrorMessage(context, "Failed to set the moderation server.");
+        }
+
+
+        return true;
     }
 
     private boolean newModerationSystem(CommandMessage context, GuildSettingsTransformer guildTransformer) {
@@ -442,112 +570,6 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
             Xeus.getLogger().error("ERROR: ", throwables);
             context.makeError("Database error!").queue();
             return false;
-        }
-    }
-
-
-    private void runModRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set <Long> mods) {
-        if (b) {
-            sb.append("\n\n**Moderator roles**:");
-            for (Long s : mods) {
-                Role r = context.getGuild().getRoleById(s);
-                if (r != null) {
-                    sb.append("\n - ").append(r.getAsMention());
-                }
-            }
-        } else {
-            sb.append("\n\n**Moderator roles**:\n" + "" + "No roles have been found!");
-        }
-    }
-
-    private void runGroupShoutRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set <Long> groupShouts) {
-        if (b) {
-            sb.append("\n\n**Group Shout roles**:");
-            for (Long s : groupShouts) {
-                Role r = context.getGuild().getRoleById(s);
-                if (r != null) {
-                    sb.append("\n - ").append(r.getAsMention());
-                }
-            }
-        } else {
-            sb.append("\n\n**Group Shout roles**:\n" + "" + "No roles have been found!");
-        }
-    }
-
-    private void runAdminRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set <Long> admins) {
-        if (b) {
-            sb.append("\n\n**Admin roles**:");
-            for (Long s : admins) {
-                Role r = context.getGuild().getRoleById(s);
-                if (r != null) {
-                    sb.append("\n - ").append(r.getAsMention());
-                }
-            }
-        } else {
-            sb.append("\n\n**Admin roles**:\n" + "" + "No roles have been found!");
-        }
-    }
-
-    private void runNoLinksRolesCheck(CommandMessage context, boolean b, StringBuilder sb, Set <Long> admins) {
-        if (b) {
-            sb.append("\n\n**No-Link roles** (Roles that can't send any links):");
-            for (Long s : admins) {
-                Role r = context.getGuild().getRoleById(s);
-                if (r != null) {
-                    sb.append("\n - ").append(r.getAsMention());
-                }
-            }
-        } else {
-            sb.append("\n\n**No-Link roles**:\n" + "" + "No roles have been found!");
-        }
-    }
-
-    private boolean sendEnabledRoles(CommandMessage context, GuildSettingsTransformer transformer) {
-        if (transformer.getLeadRoles().isEmpty() && transformer.getHRRoles().isEmpty()
-            && transformer.getLeadRoles().isEmpty() && transformer.getNoLinksRoles().isEmpty()
-            && transformer.getMainDiscordRole() == 0 && transformer.getRobloxGroupId() == 0) {
-            return command.sendErrorMessage(context,
-                "Sorry, but there are no manager, admin, mod, main role id, roblox group id or no-links roles on the discord configured.");
-        }
-
-        Set <Long> mod = transformer.getHRRoles();
-        Set <Long> admins = transformer.getLeadRoles();
-        Set <Long> noLinks = transformer.getNoLinksRoles();
-        Set <Long> groupShouts = transformer.getGroupShoutRoles();
-        Long groupId = transformer.getRobloxGroupId();
-        Long mainRoleId = transformer.getMainDiscordRole();
-
-        StringBuilder sb = new StringBuilder();
-        runAdminRolesCheck(context, admins.size() > 0, sb, admins);
-        runModRolesCheck(context, mod.size() > 0, sb, mod);
-        runNoLinksRolesCheck(context, noLinks.size() > 0, sb, noLinks);
-        runGroupShoutRolesCheck(context, groupShouts.size() > 0, sb, groupShouts);
-        runRobloxGroupIdCheck(context, sb, groupId);
-        runMainRoleIdCheck(context, sb, mainRoleId);
-
-        context.makeInfo(context.i18n("listRoles")).set("roles", sb.toString())
-            .setTitle(
-                context.i18n("listRolesTitle",
-                    transformer.getHRRoles().size() + transformer.getLeadRoles().size()
-                        + transformer.getLeadRoles().size() + transformer.getNoLinksRoles().size()))
-            .queue();
-
-        return true;
-    }
-
-    private void runRobloxGroupIdCheck(CommandMessage context, StringBuilder sb, Long groupId) {
-        if (groupId != 0) {
-            sb.append("\n\n**Roblox Group ID**: ``").append(groupId).append("``");
-        } else {
-            sb.append("\n\n**Roblox Group ID**\n``Group ID has not been set!``");
-        }
-    }
-
-    private void runMainRoleIdCheck(CommandMessage context, StringBuilder sb, Long mainRoleId) {
-        if (mainRoleId != null) {
-            sb.append("\n\n**Main Role ID**: ``").append(mainRoleId).append("``");
-        } else {
-            sb.append("\n\n**Main Role ID**\n``Main Role ID has not been set!``");
         }
     }
 
