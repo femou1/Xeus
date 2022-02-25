@@ -249,13 +249,15 @@ public class VerificationManager {
     }
 
     private void changeMemberNickname(Member member, Guild guild, VerificationEntity verificationEntity, VerificationTransformer verificationTransformer, StringBuilder stringBuilder) {
-        if (!verificationEntity.getRobloxUsername().equals(member.getEffectiveName())) {
-            if (PermissionUtil.canInteract(guild.getSelfMember(), member)) {
-                guild.modifyNickname(member, verificationTransformer.getNicknameFormat()
-                    .replace("%USERNAME%", verificationEntity.getRobloxUsername())).queue();
+        if (verificationEntity.getRobloxUsername() != null) {
+            if (!verificationEntity.getRobloxUsername().equals(member.getEffectiveName())) {
+                if (PermissionUtil.canInteract(guild.getSelfMember(), member)) {
+                    guild.modifyNickname(member, verificationTransformer.getNicknameFormat()
+                        .replace("%USERNAME%", verificationEntity.getRobloxUsername())).queue();
 
-                stringBuilder.append("\n\nNickname has been set to `").append(verificationEntity.getRobloxUsername())
-                    .append("`");
+                    stringBuilder.append("\n\nNickname has been set to `").append(verificationEntity.getRobloxUsername())
+                        .append("`");
+                }
             }
         }
     }

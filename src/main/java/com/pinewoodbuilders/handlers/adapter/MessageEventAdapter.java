@@ -975,13 +975,18 @@ public class MessageEventAdapter extends EventAdapter {
             Matcher newUsername = pattern.matcher(username);
             Matcher newModerator = pattern.matcher(moderator);
 
+            String usernameFinal = null;
+            String moderatorFinal = null;
+
             long bannedRobloxId = 0;
             long moderatorUserId = 0;
-            if (newUsername.find()) bannedRobloxId = avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(newUsername.group());
-            if (newModerator.find()) moderatorUserId = avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(newModerator.group());
+            if (newUsername.find()) usernameFinal = newUsername.group();
+            if (newModerator.find()) moderatorFinal = newModerator.group();
 
+            if (usernameFinal == null || moderatorFinal == null) return;
 
-
+            bannedRobloxId = avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(usernameFinal);
+            moderatorUserId = avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(moderatorFinal);
             //⭕     - User is already in the global-ban database.
             //✅     - User was on discords and is now banned
             //☑️  - User was not in the discords, but is added to the roblox global-bans.
@@ -1009,7 +1014,7 @@ public class MessageEventAdapter extends EventAdapter {
             } // React with ⭕
 
             try {
-                avaire.getGlobalPunishmentManager().registerGlobalBan(moderatorEntity.getDiscordId().toString(), gst.getMainGroupId(), bannedEntity != null ? bannedEntity.getDiscordId().toString() : null, bannedRobloxId, newUsername.group(), reason);
+                avaire.getGlobalPunishmentManager().registerGlobalBan(moderatorEntity.getDiscordId().toString(), gst.getMainGroupId(), bannedEntity != null ? bannedEntity.getDiscordId().toString() : null, bannedRobloxId, usernameFinal, reason);
                 if (bannedEntity != null) {
                     executeGlobalBan(reason, bannedEntity.getDiscordId().toString(), gst, bannedEntity, moderatorEntity, msg.getGuild());
                     msg.addReaction("✅").queue();
@@ -1026,7 +1031,7 @@ public class MessageEventAdapter extends EventAdapter {
 
     }
 
-    private void executeGlobalBan(String reason, String bannedUserId, GuildSettingsTransformer settingsTransformer, VerificationEntity ve, VerificationEntity moderator, Guild moderatorDiscord) throws Exception {
+    private void executeGlobalBan(String reason, String bannedUserId, GuildSettingsTransformer settingsTransformer, VerificationEntity ve, VerificationEntity moderator, Guild moderatorDiscord) {
         Guild appealsGuild = null;
         if (settingsTransformer.getGlobalSettings().getAppealsDiscordId() != 0) {
             appealsGuild = avaire.getShardManager().getGuildById(settingsTransformer.getGlobalSettings().getAppealsDiscordId());

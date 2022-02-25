@@ -717,11 +717,14 @@ public class GlobalModCommand extends Command {
         if (isGBanned || forced) {
             VerificationEntity entity = avaire.getRobloxAPIManager().getVerification().callDiscordUserFromDatabaseAPI(userId);
             if (entity != null) {
-                List<Guild> guilds = globalBan ? context.getJDA().getGuilds() : getGuildsByMainGroupId(context.getGuildSettingsTransformer().getMainGroupId(), false);
+                List<Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(context.getGuildSettingsTransformer().getMainGroupId(), appealsBan);
 
                 for (Guild g : guilds) {
-                    if (appealsBan || g.getIdLong() == context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId())
-                        continue;
+                    if (g.getIdLong() == context.getGuildSettingsTransformer().getGlobalSettings().getModerationServerId()) continue;
+
+                    if (g.getIdLong() == context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId() && appealsBan) continue;
+
+                    if (!g.getSelfMember().hasPermission(Permission.BAN_MEMBERS)) continue;
 
                     g.retrieveBanById(entity.getDiscordId()).submit().thenAccept(ban -> {
                         if (ban == null) {
@@ -753,15 +756,22 @@ public class GlobalModCommand extends Command {
         boolean forced = arguments.contains("--force") || arguments.contains("-f");
 
         VerificationEntity verificationEntity = avaire.getRobloxAPIManager().getVerification().fetchVerificationWithBackup(args[0], true);
-        if (verificationEntity == null) {context.makeError("Somehow, this ID doesn't exist in the database. Please ban this user's roblox account instead.");return false;}
+        if (verificationEntity == null) {
+            context.makeError("Somehow, this ID doesn't exist in the database. Please ban this user's roblox account instead.");
+            return false;
+        }
         boolean isGBanned = avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(context.getGuildSettingsTransformer().getMainGroupId(), verificationEntity.getRobloxId());
         if (isGBanned || forced) {
-            List<Guild> guilds = globalBan ? context.getJDA().getGuilds() : getGuildsByMainGroupId(context.getGuildSettingsTransformer().getMainGroupId(), false);
+            List<Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(context.getGuildSettingsTransformer().getMainGroupId(), globalBan);
             StringBuilder sb = new StringBuilder();
             for (Guild g : guilds) {
-                if (appealsBan || g.getIdLong() == context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId()) {
+                if (g.getIdLong() == context.getGuildSettingsTransformer().getGlobalSettings().getModerationServerId())
                     continue;
-                }
+
+                if (g.getIdLong() == context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId() && appealsBan) continue;
+
+                if (!g.getSelfMember().hasPermission(Permission.BAN_MEMBERS)) continue;
+
                 g.retrieveBanById(args[0]).submit().thenAccept(ban -> {
                     if (ban == null) {
                         sb.append("``").append(g.getName()).append("`` - :warning:\n");
@@ -770,6 +780,7 @@ public class GlobalModCommand extends Command {
                     g.unban(ban.getUser()).reason("Global unban, executed by: " + context.member.getEffectiveName()).queue();
                     sb.append("``").append(g.getName()).append("`` - :white_check_mark:\n");
                 });
+
             }
             avaire.getGlobalPunishmentManager().unregisterRobloxGlobalBan(context.getGuildSettingsTransformer().getMainGroupId(), verificationEntity.getRobloxId());
 
@@ -852,7 +863,6 @@ public class GlobalModCommand extends Command {
         if (context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId() != 0) {
             g = avaire.getShardManager().getGuildById(context.getGuildSettingsTransformer().getGlobalSettings().getAppealsDiscordId());
         }
-
 
 
         return executeGlobalBan(context, args, soft, settingsTransformer, g);
