@@ -29,6 +29,7 @@ import com.pinewoodbuilders.handlers.DatabaseEventHolder;
 import com.pinewoodbuilders.metrics.Metrics;
 import com.pinewoodbuilders.middleware.global.IncrementMetricsForCommand;
 import com.pinewoodbuilders.middleware.global.IsCategoryEnabled;
+import com.pinewoodbuilders.middleware.global.LogModeratorCommand;
 import com.pinewoodbuilders.middleware.global.ProcessCommand;
 import net.dv8tion.jda.api.entities.Message;
 

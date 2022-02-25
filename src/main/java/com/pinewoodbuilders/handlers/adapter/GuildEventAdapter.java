@@ -92,12 +92,6 @@ public class GuildEventAdapter extends EventAdapter {
                         && d.getTargetId().equals(e.getUser().getId()))
                     .collect(Collectors.toList());
                 MessageChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
-                List <AuditLogEntry> logs = items.stream()
-                    .filter(d -> d.getType().equals(ActionType.UNBAN)
-                        && d.getTargetType().equals(TargetType.MEMBER)
-                        && d.getTargetId().equals(e.getUser().getId()))
-                    .collect(Collectors.toList());
-                TextChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
 
                 if (logs.size() < 1) {
                     if (tc != null) {
