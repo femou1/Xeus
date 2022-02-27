@@ -29,8 +29,6 @@ import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import net.dv8tion.jda.api.Permission;
@@ -161,7 +159,7 @@ public class AuditLogChannelCommand extends Command {
             return context.makeWarning("The audit log channel is disabled on this guild.");
         }
 
-        TextChannel modlogChannel = context.getGuild().getTextChannelById(transformer.getAuditLogsChannelId());
+        GuildChannel modlogChannel = context.getGuild().getTextChannelById(transformer.getAuditLogsChannelId());
         if (modlogChannel == null) {
             try {
                 updateVoteValidation(transformer, context, 0);

@@ -121,7 +121,7 @@ public class PermissionCheck {
                     continue;
                 }
 
-                if (!message.getGuild().getSelfMember().hasPermission(message.getTextChannel(), permission.getPermission())) {
+                if (!message.getGuild().getSelfMember().hasPermission(message.getGuildChannel(), permission.getPermission())) {
                     missingBotPermissions.add(permission);
                 }
             }

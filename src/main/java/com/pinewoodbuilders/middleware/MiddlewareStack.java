@@ -111,7 +111,7 @@ public class MiddlewareStack {
             }
             middlewares.add(new MiddlewareContainer(middlewareReference, split[1].split(",")));
         }
-        middlewares.forEach(action -> System.out.println(action.getMiddleware().getClass().getSimpleName()));
+        //middlewares.forEach(action -> System.out.println(action.getMiddleware().getClass().getSimpleName()));
     }
 
     /**

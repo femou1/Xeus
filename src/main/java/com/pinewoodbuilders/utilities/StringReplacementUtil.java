@@ -133,7 +133,7 @@ public class StringReplacementUtil {
      * otherwise it will just return the original unchanged string.
      */
     private static String toChannel(@Nonnull Message message, @Nonnull String string) {
-        return parseChannel(message.getTextChannel(), string);
+        return parseChannel(message.getGuildChannel(), string);
     }
 
     /**

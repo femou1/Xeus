@@ -221,7 +221,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                             if (message.getEmbeds().size() > 0) {
                                 try {
                                     if (e.getReactionEmote().getName().equals("✅")) {
-                                        message.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(message.getTextChannel(), new Color(0, 255, 0))
+                                        message.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(message.getChannel(), new Color(0, 255, 0))
                                             .setAuthor(message.getEmbeds().get(0).getAuthor().getName(), null, message.getEmbeds().get(0).getAuthor().getIconUrl())
                                             .setDescription(message.getEmbeds().get(0).getDescription())
                                             .setFooter(message.getEmbeds().get(0).getFooter().getText() + " | Accepted by: " + e.getMember().getEffectiveName())
@@ -242,7 +242,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                 });
                                         }
                                     } else if (e.getReactionEmote().getName().equals("❌")) {
-                                        message.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(message.getTextChannel(), new Color(255, 0, 0))
+                                        message.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(message.getChannel(), new Color(255, 0, 0))
                                             .setAuthor(message.getEmbeds().get(0).getAuthor().getName(), null, message.getEmbeds().get(0).getAuthor().getIconUrl())
                                             .setDescription(message.getEmbeds().get(0).getDescription())
                                             .setFooter(message.getEmbeds().get(0).getFooter().getText() + " | Denied by: " + e.getMember().getEffectiveName())
@@ -557,7 +557,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                     e.getReaction().removeReaction(e.getUser()).queue();
 
                                     if (isValidReportManager(e, 1)) {
-                                        msg.getTextChannel().sendMessage(e.getMember().getAsMention() + "\nWhat is your comment?").queue(
+                                        msg.getChannel().sendMessage(e.getMember().getAsMention() + "\nWhat is your comment?").queue(
                                             v -> avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, c -> c.getChannel().equals(e.getChannel()) && c.getMember().equals(e.getMember()), c -> {
                                                 v.delete().queue();
                                                 msg.editMessageEmbeds(new EmbedBuilder()
@@ -712,7 +712,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                     .build()).queue(p -> p.delete().queueAfter(10, TimeUnit.SECONDS));
                                 return;
                             }
-                            changeStatus(m, event.getTextChannel(), event.getMember(), builder, embed, event.getMember().getAsMention() + "\nYou want to approve this reward request. What reward are you giving to this user?", true);
+                            changeStatus(m, event.getChannel(), event.getMember(), builder, embed, event.getMember().getAsMention() + "\nYou want to approve this reward request. What reward are you giving to this user?", true);
                             return;
                         case "❎", "❌":
                             if (!isValidReportManager(event.getMember(), event.getGuild(), 2)) {
@@ -722,7 +722,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                     .build()).queue(p -> p.delete().queueAfter(10, TimeUnit.SECONDS));
                                 return;
                             }
-                            changeStatus(m, event.getTextChannel(), event.getMember(), builder, embed, event.getMember().getAsMention() + "\nYou want to deny this reward request. What is the reason to reject it?", false);
+                            changeStatus(m, event.getChannel(), event.getMember(), builder, embed, event.getMember().getAsMention() + "\nYou want to deny this reward request. What is the reason to reject it?", false);
                             return;
                         case "trash":
                             if (!(isValidReportManager(event, 1))) {
@@ -757,7 +757,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
         }
     }
 
-    private void changeStatus(Message message, TextChannel channel, Member member, EmbedBuilder builder, MessageEmbed embed, String response, boolean isApproved) {
+    private void changeStatus(Message message, MessageChannel channel, Member member, EmbedBuilder builder, MessageEmbed embed, String response, boolean isApproved) {
         channel.sendMessage(response).queue(v ->
             avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, c -> c.getChannel().equals(channel) && c.getMember().equals(member), c -> {
                 message.editMessageEmbeds(builder

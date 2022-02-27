@@ -255,7 +255,7 @@ public class CommandMessage implements CommandContext {
             return true;
         }
 
-        return message.getGuild().getSelfMember().hasPermission(message.getTextChannel(),
+        return message.getGuild().getSelfMember().hasPermission(message.getGuildChannel(),
             Permission.MESSAGE_SEND, Permission.VIEW_CHANNEL, Permission.MESSAGE_EMBED_LINKS
         );
     }

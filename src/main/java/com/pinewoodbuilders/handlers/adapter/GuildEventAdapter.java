@@ -160,32 +160,28 @@ public class GuildEventAdapter extends EventAdapter {
 
     }
 
-    public void onGenericGuildEvent(GenericEvent ev) {
-        if (ev instanceof GenericMessageEvent) {
-            GenericMessageEvent event = (GenericMessageEvent) ev;
+    public void onGenericEvent(GenericEvent ev) {
+        if (ev instanceof GenericMessageEvent event) {
+            if (!event.isFromGuild()) return;
             GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild());
             if (transformer.getAuditLogsChannelId() != 0) {
                 TextChannel tc = event.getGuild().getTextChannelById(transformer.getAuditLogsChannelId());
                 if (tc != null) {
-                    if (event instanceof MessageDeleteEvent) {
-                        MessageDeleteEvent e = (MessageDeleteEvent) event;
+                    if (event instanceof MessageDeleteEvent e) {
                         if (e.isFromGuild()) {messageDeleteEvent(e, tc);}
 
-                    } else if (event instanceof MessageUpdateEvent) {
-                        MessageUpdateEvent e = (MessageUpdateEvent) event;
+                    } else if (event instanceof MessageUpdateEvent e) {
                         if (e.isFromGuild()) {messageUpdateEvent(e, tc);}
                     }
                 }
 
             }
-        } else if (ev instanceof GenericGuildEvent) {
-            GenericGuildEvent event = (GenericGuildEvent) ev;
+        } else if (ev instanceof GenericGuildEvent event) {
             GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild());
             if (transformer.getAuditLogsChannelId() != 0) {
                 TextChannel tc = event.getGuild().getTextChannelById(transformer.getAuditLogsChannelId());
                 if (tc != null) {
-                    if (event instanceof GuildBanEvent) {
-                        GuildBanEvent e = (GuildBanEvent) event;
+                    if (event instanceof GuildBanEvent e) {
                         MessageFactory.makeEmbeddedMessage(tc, new Color(255, 50, 0))
                             .setAuthor("User banned", null, e.getUser().getEffectiveAvatarUrl())
                             .setDescription(
@@ -209,26 +205,23 @@ public class GuildEventAdapter extends EventAdapter {
                             .addField("**Old Channel**:", oldChannel.getName(), true)
                             .addField("**New channel**:", newChannel.getName(), true).setTimestamp(Instant.now())
                             .queue();
-                    } else if (event instanceof GuildUpdateBoostCountEvent) {
-                        GuildUpdateBoostCountEvent e = (GuildUpdateBoostCountEvent) event;
+                    } else if (event instanceof GuildUpdateBoostCountEvent e) {
                         MessageFactory.makeEmbeddedMessage(tc, new Color(255, 0, 255))
                             .setAuthor("Boost count was updated", null, event.getGuild().getIconUrl())
                             .addField("**Old Boost count**:", String.valueOf(e.getOldBoostCount()), true)
                             .addField("**New Boost count**:", String.valueOf(e.getNewBoostCount()), true)
                             .setTimestamp(Instant.now()).queue();
-                    } else if (event instanceof GuildUpdateBoostTierEvent) {
-                        GuildUpdateBoostTierEvent e = (GuildUpdateBoostTierEvent) event;
+                    } else if (event instanceof GuildUpdateBoostTierEvent e) {
                         MessageFactory.makeEmbeddedMessage(tc, new Color(255, 0, 255))
                             .setAuthor("Boost **tier** was updated", null, event.getGuild().getIconUrl())
                             .addField("Old Boost **Tier**:", String.valueOf(e.getOldBoostTier()), true)
                             .addField("New Boost **Tier**:", String.valueOf(e.getNewBoostTier()), true)
                             .setTimestamp(Instant.now()).queue();
-                    } else if (event instanceof GuildMemberJoinEvent) {
-                        GuildMemberJoinEvent e = (GuildMemberJoinEvent) event;
+                    } else if (event instanceof GuildMemberJoinEvent e) {
 
                         if (checkAccountAge(e)) {
                             if (transformer.getUserAlertsChannelId() != 0
-                                && event.getGuild().getGuildChannelById(transformer.getUserAlertsChannelId()) != null) {
+                                && event.getGuild().getTextChannelById(transformer.getUserAlertsChannelId()) != null) {
                                 MessageFactory
                                     .makeEmbeddedMessage(
                                         event.getGuild().getTextChannelById(transformer.getUserAlertsChannelId()))
@@ -242,8 +235,7 @@ public class GuildEventAdapter extends EventAdapter {
                                     .queue();
                             }
                         }
-                    } else if (event instanceof GuildMemberRoleAddEvent) {
-                        GuildMemberRoleAddEvent e = (GuildMemberRoleAddEvent) event;
+                    } else if (event instanceof GuildMemberRoleAddEvent e) {
                         StringBuilder sb = new StringBuilder();
                         for (Role role : e.getRoles()) {
                             sb.append("\n - **").append(role.getName()).append("**");
@@ -252,10 +244,9 @@ public class GuildEventAdapter extends EventAdapter {
                             .setAuthor("Roles were added to member!", null, e.getUser().getEffectiveAvatarUrl())
                             .setDescription("**Member**: " + e.getUser().getAsMention() + "\n" + "**User**: "
                                 + e.getUser().getName() + "#" + e.getUser().getDiscriminator() + "\n"
-                                + "\n**Roles given**: " + sb.toString())
+                                + "\n**Roles given**: " + sb)
                             .setFooter("UserID: " + e.getUser().getId()).setTimestamp(Instant.now()).queue();
-                    } else if (event instanceof GuildMemberRoleRemoveEvent) {
-                        GuildMemberRoleRemoveEvent e = (GuildMemberRoleRemoveEvent) event;
+                    } else if (event instanceof GuildMemberRoleRemoveEvent e) {
                         StringBuilder sb = new StringBuilder();
                         for (Role role : e.getRoles()) {
                             sb.append("\n - **").append(role.getName()).append("**");
@@ -266,8 +257,7 @@ public class GuildEventAdapter extends EventAdapter {
                                 + e.getUser().getName() + "#" + e.getUser().getDiscriminator() + "\n"
                                 + "\n**Roles removed**: " + sb.toString())
                             .setFooter("UserID: " + e.getUser().getId()).setTimestamp(Instant.now()).queue();
-                    } else if (event instanceof GuildMemberUpdateNicknameEvent) {
-                        GuildMemberUpdateNicknameEvent e = (GuildMemberUpdateNicknameEvent) event;
+                    } else if (event instanceof GuildMemberUpdateNicknameEvent e) {
                         MessageFactory.makeEmbeddedMessage(tc, new Color(255, 195, 0))
                             .setAuthor("User nick was changed!", null, e.getUser().getEffectiveAvatarUrl())
                             .setDescription("**Member**: " + e.getUser().getAsMention() + "\n" + "**User**: "
@@ -275,8 +265,7 @@ public class GuildEventAdapter extends EventAdapter {
                                 + "**Old name**: ``" + e.getOldNickname() + "``\n" + "**New name**: ``"
                                 + e.getNewNickname() + "``")
                             .setFooter("UserID: " + e.getUser().getId()).setTimestamp(Instant.now()).queue();
-                    } else if (event instanceof GuildVoiceJoinEvent) {
-                        GuildVoiceJoinEvent e = (GuildVoiceJoinEvent) event;
+                    } else if (event instanceof GuildVoiceJoinEvent e) {
 
                         MessageFactory.makeEmbeddedMessage(tc, new Color(28, 255, 0))
                             .setAuthor(e.getMember().getEffectiveName() + " joined a voice channel!", null,
@@ -287,8 +276,7 @@ public class GuildEventAdapter extends EventAdapter {
                                 + "**Joined channel**: \uD83D\uDD08 " + e.getChannelJoined().getName())
                             .setFooter("UserID: " + e.getMember().getUser().getId()).setTimestamp(Instant.now())
                             .queue();
-                    } else if (event instanceof GuildVoiceLeaveEvent) {
-                        GuildVoiceLeaveEvent e = (GuildVoiceLeaveEvent) event;
+                    } else if (event instanceof GuildVoiceLeaveEvent e) {
 
                         MessageFactory.makeEmbeddedMessage(tc, new Color(255, 11, 0))
                             .setAuthor(e.getMember().getEffectiveName() + " left a voice channel!", null,
@@ -299,8 +287,7 @@ public class GuildEventAdapter extends EventAdapter {
                                 + "**Left channel**: \uD83D\uDD07 " + e.getChannelLeft().getName())
                             .setFooter("UserID: " + e.getMember().getUser().getId()).setTimestamp(Instant.now())
                             .queue();
-                    } else if (event instanceof GuildVoiceMoveEvent) {
-                        GuildVoiceMoveEvent e = (GuildVoiceMoveEvent) event;
+                    } else if (event instanceof GuildVoiceMoveEvent e) {
                         MessageFactory.makeEmbeddedMessage(tc, new Color(156, 0, 255))
                             .setAuthor(e.getMember().getEffectiveName() + " moved voice channels!", null,
                                 e.getMember().getUser().getEffectiveAvatarUrl())
@@ -322,13 +309,10 @@ public class GuildEventAdapter extends EventAdapter {
     public void onJoinLogsEvent(GenericGuildEvent event) {
         GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire,
             event.getGuild());
-        if (transformer == null)
-            return;
 
         if (transformer.getJoinLogs() != 0) {
             TextChannel tc = avaire.getShardManager().getTextChannelById(transformer.getJoinLogs());
-            if (event instanceof GuildMemberJoinEvent) {
-                GuildMemberJoinEvent e = (GuildMemberJoinEvent) event;
+            if (event instanceof GuildMemberJoinEvent e) {
                 MessageFactory.makeEmbeddedMessage(tc, new Color(77, 224, 102))
                     .setAuthor("Member joined the server!", null, e.getUser().getEffectiveAvatarUrl())
                     .setDescription("**Member**: " + e.getUser().getAsMention() + "\n" + "**User**: "
@@ -337,8 +321,7 @@ public class GuildEventAdapter extends EventAdapter {
                         + e.getUser().getTimeCreated()
                         .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")))
                     .setFooter("UserID: " + e.getUser().getId()).setTimestamp(Instant.now()).queue();
-            } else if (event instanceof GuildMemberRemoveEvent) {
-                GuildMemberRemoveEvent e = (GuildMemberRemoveEvent) event;
+            } else if (event instanceof GuildMemberRemoveEvent e) {
 
                 MessageFactory.makeEmbeddedMessage(tc, new Color(255, 67, 65))
                     .setAuthor("Member left the server!", null, e.getUser().getEffectiveAvatarUrl())
@@ -382,7 +365,7 @@ public class GuildEventAdapter extends EventAdapter {
                     tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
                         .setAuthor("A message was pinned", newMessage.getJumpUrl(), guild.getIconUrl())
                         .setDescription("**Message sent by**: " + newMessage.getAuthor().getAsMention()
-                            + "\n**Sent In**: " + guild.getGuildChannelById(channel.getId()).getAsMention()
+                            + "\n**Sent In**: " + channel.getAsMention()
                             + "\n**Sent On**: "
                             + newMessage.getTimeCreated()
                             .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))
@@ -393,7 +376,7 @@ public class GuildEventAdapter extends EventAdapter {
                     tc.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(tc)
                         .setAuthor("A message was unpinned", newMessage.getJumpUrl(), guild.getIconUrl())
                         .setDescription("**Message sent by**: " + newMessage.getAuthor().getAsMention()
-                            + "\n**Sent In**: " + guild.getGuildChannelById(channel.getId()).getAsMention()
+                            + "\n**Sent In**: " + channel.getAsMention()
                             + "\n**Sent On**: "
                             + newMessage.getTimeCreated()
                             .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))
@@ -406,7 +389,7 @@ public class GuildEventAdapter extends EventAdapter {
                     .setAuthor("A message was edited", newMessage.getJumpUrl(),
                         newMessage.getAuthor().getEffectiveAvatarUrl())
                     .setDescription("**Author**: " + newMessage.getAuthor().getAsMention() + "\n**Sent In**: "
-                        + guild.getGuildChannelById(channel.getId()).getAsMention() + "\n**Sent On**: "
+                        + channel.getAsMention() + "\n**Sent On**: "
                         + newMessage.getTimeCreated().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))
                         + "\n\n**Message Content Before**:\n" + oldContent + "\n\n**Message Content After**:\n"
                         + newContent)

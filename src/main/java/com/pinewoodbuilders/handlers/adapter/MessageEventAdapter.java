@@ -230,7 +230,7 @@ public class MessageEventAdapter extends EventAdapter {
 
         boolean b = words.stream().anyMatch(badWordsList::contains);
         if (b) {
-            return warnUserColor(messageId, guild, "**GLOBAL AUTOMOD**: Global Filter was activated!\n**Type**: " + "``EXACT``\n**Sentence Filtered**: \n" + contentRaw, new Color(0, 0, 0), messageId.getTextChannel());
+            return warnUserColor(messageId, guild, "**GLOBAL AUTOMOD**: Global Filter was activated!\n**Type**: " + "``EXACT``\n**Sentence Filtered**: \n" + contentRaw, new Color(0, 0, 0), messageId.getChannel());
         }
         return b;
     }
@@ -302,26 +302,21 @@ public class MessageEventAdapter extends EventAdapter {
         String message = event.getContentStripped().replaceAll("[!@#$%^&*()\\[\\]\\-=';/\\\\{}:\"><?|+_`~]", "");
 
         if (checkGlobalExactFilter(message, settings, event, guild)) {
-            System.out.println("Exact Filter removed: `" + message + "` in " + event.getGuild().getName() + " (<#" + event.getTextChannel().getId() + ">)");
+            System.out.println("Exact Filter removed: `" + message + "` in " + event.getGuild().getName() + " (<#" + event.getChannel().getId() + ">)");
             event.delete().queue();
             MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, event.getAuthor().getIdLong(), event);
             return;
         } else if (checkGlobalWildcardFilter(message, settings, event, guild)) {
-            System.out.println("Wildcard Filter removed: `" + message + "` in " + event.getGuild().getName() + " (<#" + event.getTextChannel().getId() + ">)");
+            System.out.println("Wildcard Filter removed: `" + message + "` in " + event.getGuild().getName() + " (<#" + event.getChannel().getId() + ">)");
             event.delete().queue();
             MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, event.getAuthor().getIdLong(), event);
             return;
         } else if (checkAutomodFilters(event, guild)) {
-            event.getTextChannel().retrieveMessageById(event.getId()).queue(l -> {
-                l.delete().reason("Auto-Mod Violation").queue();
-                System.out.println("AutoMod removed in " + event.getGuild().getName() + " (<#" + event.getTextChannel().getId() + ">): " + event.getContentRaw());
-            }, failure -> {
-                System.out.println("AutoMod failed to remove in " + event.getGuild().getName() + " (<#" + event.getTextChannel().getId() + ">): " + event.getContentRaw());
-            });
+            event.delete().queue();
             MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, event.getAuthor().getIdLong(), event);
             return;
         }
-        checkPIAInviteFilter(event, databaseEventHolder);
+        checkPIAInviteFilter(event, settings, databaseEventHolder);
         checkAutoLinkFilter(event, databaseEventHolder);
 
         if (checkLinkFilter(event.getContentRaw())) {
@@ -376,7 +371,7 @@ public class MessageEventAdapter extends EventAdapter {
                                 :link
                                 """)
                             .set("offender", message.getAuthor().getAsTag() + " " + message.getAuthor().getAsMention())
-                            .set("channel", message.getTextChannel().getAsMention())
+                            .set("channel", message.getGuildChannel().getAsMention())
                             .set("hasDeleted", level.isDelete() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
                             .set("message", message.getContentRaw())
                             .set("link", validLink)
@@ -432,7 +427,7 @@ public class MessageEventAdapter extends EventAdapter {
     private boolean checkAutomodFilters(Message message, GuildSettingsTransformer guild) {
         if (guild.getMassMention() > 0) {
             if (message.getMentionedMembers().size() >= guild.getMassMention()) {
-                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Mass Mention``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
+                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Mass Mention``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getChannel());
                 message.getChannel().sendMessage("Please do not mass mention multiple people. " + message.getMember().getAsMention()).queue();
                 return false;
             }
@@ -441,7 +436,7 @@ public class MessageEventAdapter extends EventAdapter {
             Pattern pattern = Pattern.compile("(.)\\1{" + (guild.getCharacterSpam() - 1) + ",}", Pattern.CASE_INSENSITIVE);
             Matcher m = pattern.matcher(message.getContentRaw());
             if (m.find()) {
-                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Character Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
+                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Character Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getChannel());
                 return true;
             }
         }
@@ -455,19 +450,19 @@ public class MessageEventAdapter extends EventAdapter {
             }
 
             if (count >= guild.getEmojiSpam()) {
-                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Emoji Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
+                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Emoji Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getChannel());
                 message.delete().queue();
                 return true;
             }
         }
         if (guild.getMessageSpam() > 0) {
-            List<Message> history = message.getTextChannel().getIterableHistory().stream().limit(10).filter(msg -> !msg.equals(message)).collect(Collectors.toList());
+            List<Message> history = message.getChannel().getIterableHistory().stream().limit(10).filter(msg -> !msg.equals(message)).collect(Collectors.toList());
             int spam = (int) history.stream().filter(m -> m.getAuthor().equals(message.getAuthor()) && !message.getAuthor().isBot()).filter(msg -> (message.getTimeCreated().toEpochSecond() - msg.getTimeCreated().toEpochSecond()) < 10).count();
 
             if (spam >= guild.getMessageSpam() && !message.getGuild().getOwner().equals(message.getMember())) {
-                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Message Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
+                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Message Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getChannel());
                 for (Message m : history) {
-                    message.getTextChannel().retrieveMessageById(m.getId()).queue(l -> {
+                    message.getChannel().retrieveMessageById(m.getId()).queue(l -> {
                         l.delete().reason("Auto-Mod Violation").queue();
                     }, null);
                 }
@@ -475,12 +470,12 @@ public class MessageEventAdapter extends EventAdapter {
             }
         }
         if (guild.getImageSpam() > 0) {
-            List<Message> history = message.getTextChannel().getIterableHistory().stream().limit(10).filter(msg -> !msg.equals(message)).collect(Collectors.toList());
+            List<Message> history = message.getChannel().getIterableHistory().stream().limit(10).filter(msg -> !msg.equals(message)).collect(Collectors.toList());
             int spam = (int) history.stream().filter(m -> m.getAuthor().equals(message.getAuthor()) && !message.getAuthor().isBot()).filter(msg -> (message.getTimeCreated().toEpochSecond() - msg.getTimeCreated().toEpochSecond()) < 10 && (msg.getAttachments().size() > 0 && message.getAttachments().size() > 0)).count();
             if (spam >= guild.getImageSpam() && !message.getGuild().getOwner().equals(message.getMember())) {
-                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Image Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getTextChannel());
+                warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Image Spam``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getChannel());
                 for (Message m : history) {
-                    message.getTextChannel().retrieveMessageById(m.getId()).queue(l -> {
+                    message.getChannel().retrieveMessageById(m.getId()).queue(l -> {
                         l.delete().reason("Auto-Mod Violation").queue();
                     }, failure -> {
 
@@ -490,11 +485,11 @@ public class MessageEventAdapter extends EventAdapter {
             }
         }
         if (guild.getLinkSpam() > 0) {
-            List<Message> history = message.getTextChannel().getIterableHistory().stream().limit(10).filter(msg -> !msg.equals(message)).collect(Collectors.toList());
+            List<Message> history = message.getChannel().getIterableHistory().stream().limit(10).filter(msg -> !msg.equals(message)).collect(Collectors.toList());
             int spam = (int) history.stream().filter(m -> m.getAuthor().equals(message.getAuthor()) && !message.getAuthor().isBot()).filter(msg -> (message.getTimeCreated().toEpochSecond() - msg.getTimeCreated().toEpochSecond()) < 10 && (message.getContentRaw().contains("http://") || message.getContentRaw().contains("https://"))).count();
             if (spam >= guild.getLinkSpam() && !message.getGuild().getOwner().equals(message.getMember())) {
                 for (Message m : history) {
-                    message.getTextChannel().retrieveMessageById(m.getId()).queue(l -> {
+                    message.getChannel().retrieveMessageById(m.getId()).queue(l -> {
                         l.delete().reason("Auto-Mod Violation").queue();
                     }, failure -> {
 
@@ -516,12 +511,7 @@ public class MessageEventAdapter extends EventAdapter {
 
 
     private void checkFilters(GenericMessageEvent event, DatabaseEventHolder databaseEventHolder) {
-        MessageReceivedEvent messageId = (MessageReceivedEvent) event;
-
-        if (!event.getChannelType().equals(ChannelType.TEXT)) {
-            return;
-        }
-
+        MessageReceivedEvent finalMessageEvent = (MessageReceivedEvent) event;
         GuildSettingsTransformer guild = databaseEventHolder.getGuildSettings();
         if (guild != null) {
 
@@ -529,46 +519,48 @@ public class MessageEventAdapter extends EventAdapter {
                 return;
             }
 
-            int permissionLevel = XeusPermissionUtil.getPermissionLevel(databaseEventHolder.getGuildSettings(), event.getGuild(), messageId.getMember()).getLevel();
+            int permissionLevel = XeusPermissionUtil.getPermissionLevel(databaseEventHolder.getGuildSettings(), event.getGuild(), finalMessageEvent.getMember()).getLevel();
             if (permissionLevel >= GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
                 return;
             }
 
-            String message = messageId.getMessage().getContentStripped().replaceAll("[,.!@#$%^&*()\\[\\]\\-=';/\\\\{}:\"><?|+_`~]", "");
-            if (checkExactFilter(message, guild, messageId.getMessage())) {
+            String message = finalMessageEvent.getMessage().getContentStripped().replaceAll("[,.!@#$%^&*()\\[\\]\\-=';/\\\\{}:\"><?|+_`~]", "");
+            if (checkExactFilter(message, guild, finalMessageEvent.getMessage())) {
                 System.out.println("[EF] Exact Filter removed: " + message);
-                messageId.getMessage().delete().queue();
+                finalMessageEvent.getMessage().delete().queue();
 
-            } else if (checkWildcardFilter(message, guild, messageId.getMessage())) {
+            } else if (checkWildcardFilter(message, guild, finalMessageEvent.getMessage())) {
                 System.out.println("[WCF] Wildcard Filter removed: " + message);
-                messageId.getMessage().delete().queue();
+                finalMessageEvent.getMessage().delete().queue();
 
-            } else if (checkExactFilter(messageId.getMessage().getContentStripped(), guild, messageId.getMessage())) {
+            } else if (checkExactFilter(finalMessageEvent.getMessage().getContentStripped(), guild, finalMessageEvent.getMessage())) {
                 System.out.println("[EEF] Exact Filter removed: " + message);
-                messageId.getMessage().delete().queue();
-            } else if (checkWildcardFilter(messageId.getMessage().getContentStripped(), guild, messageId.getMessage())) {
+                finalMessageEvent.getMessage().delete().queue();
+            } else if (checkWildcardFilter(finalMessageEvent.getMessage().getContentStripped(), guild, finalMessageEvent.getMessage())) {
                 System.out.println("[EWCF] Wildcard Filter removed: " + message);
-                messageId.getMessage().delete().queue();
+                finalMessageEvent.getMessage().delete().queue();
             }
         }
     }
 
-    private void checkPIAInviteFilter(Message message, DatabaseEventHolder databaseEventHolder) {
+    private void checkPIAInviteFilter(Message message, GlobalSettingsTransformer settings, DatabaseEventHolder databaseEventHolder) {
         for (String i : message.getInvites()) {
             Invite.resolve(message.getJDA(), i).queue(v -> {
-                if (!Constants.guilds.contains(v.getGuild().getId())) {
+                List<Guild> g = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(settings.getMainGroupId());
+
+                if (g.stream().anyMatch(guild -> guild.getId().equals(v.getGuild().getId()))) {
                     message.delete().queue();
                     warnUserColor(message, databaseEventHolder.getGuildSettings(), "**AUTOMOD**: Filter was activated!\n**Type**: " + "``INVITE``\n" +
                         "**Guild**: " + v.getGuild().getName() + "\n" +
                         "**Invite**: [Click here!](" + v.getUrl() + ")\n" +
-                        "**Inviter**:" + v.getInviter(), new Color(0, 0, 0), message.getTextChannel());
+                        "**Inviter**:" + v.getInviter(), new Color(0, 0, 0), message.getChannel());
                     MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, message.getAuthor().getIdLong(), message);
                 }
             }, f -> {
                 message.delete().queue();
                 warnUserColor(message, databaseEventHolder.getGuildSettings(), "**AUTOMOD**: Filter was activated!\n**Type**: " + "``INVITE``\n" +
-                    "**Guild**: " + "INVALID (Xeus is banned from the guild)" + "\n" +
-                    "**Violator**:" + message.getMember().getEffectiveName(), new Color(0, 0, 0), message.getTextChannel());
+                    "**Guild**: " + "INVALID (Xeus is banned from the guild, or cannot check this invite)" + "\n" +
+                    "**Violator**:" + message.getMember().getEffectiveName(), new Color(0, 0, 0), message.getChannel());
                 MuteRatelimit.hit(ThrottleMiddleware.ThrottleType.USER, message.getAuthor().getIdLong(), message);
             });
         }
@@ -953,6 +945,7 @@ public class MessageEventAdapter extends EventAdapter {
         if (!event.getAuthor().isBot()) {
             return;
         } // Ignore human messages
+
         if (!(event.getMessage().getEmbeds().size() > 0)) {
             return;
         } // Ignore normal messages

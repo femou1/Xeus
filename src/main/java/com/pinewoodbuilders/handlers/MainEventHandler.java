@@ -130,8 +130,9 @@ public class MainEventHandler extends EventHandler {
     @Override
     public void onGenericEvent(GenericEvent event) {
         prepareGuildMembers(event);
-
         Metrics.jdaEvents.labels(event.getClass().getSimpleName()).inc();
+
+        guildEventAdapter.onGenericEvent(event);
     }
 
     @Override
@@ -317,7 +318,6 @@ public class MainEventHandler extends EventHandler {
 
     @Override
     public void onGenericGuild(@Nonnull GenericGuildEvent event) {
-        guildEventAdapter.onGenericGuildEvent(event);
         guildEventAdapter.onJoinLogsEvent(event);
     }
 

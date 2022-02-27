@@ -89,7 +89,7 @@ class DefaultPlaceholders {
 
     static String toChannel(Message message, String string) {
         if (string == null) return null;
-        return parseChannel(message.getTextChannel(), string);
+        return parseChannel(message.getChannel(), string);
     }
 
     private static String parseChannel(MessageChannel channel, String message) {

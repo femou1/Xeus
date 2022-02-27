@@ -607,7 +607,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                         }
 
                                         if (isValidReportManager(e, 1)) {
-                                            msg.getTextChannel().sendMessage(e.getMember().getAsMention() + "\nWhat is your comment?").queue(
+                                            msg.getChannel().sendMessage(e.getMember().getAsMention() + "\nWhat is your comment?").queue(
                                                 v -> avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, c -> c.getChannel().equals(e.getChannel()) && c.getMember().equals(e.getMember()), c -> {
                                                     v.delete().queue();
                                                     msg.editMessageEmbeds(new EmbedBuilder()

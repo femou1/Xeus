@@ -113,7 +113,7 @@ public class MessageFactory {
     public static void deleteMessage(@Nonnull Message message, int delay, TimeUnit timeUnit) {
         if (message.getJDA().getSelfUser().getId().equals(message.getAuthor().getId())) {
             handleDeleteMessage(message, delay, timeUnit);
-        } else if (message.getGuild() != null && message.getGuild().getSelfMember().hasPermission(message.getTextChannel(), Permission.MESSAGE_MANAGE)) {
+        } else if (message.getGuild().getSelfMember().hasPermission(message.getGuildChannel(), Permission.MESSAGE_MANAGE)) {
             handleDeleteMessage(message, delay, timeUnit);
         }
     }

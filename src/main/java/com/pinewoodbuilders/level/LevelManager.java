@@ -37,10 +37,7 @@ import com.pinewoodbuilders.utilities.RoleUtil;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import javax.annotation.Nonnull;
@@ -423,10 +420,10 @@ public class LevelManager {
      * @param guild   The guild transformer that should be used to get the level up channel.
      * @return The level up channel if one is set, otherwise the text channel from the message object.
      */
-    private TextChannel getLevelUpChannel(Message message, GuildTransformer guild) {
+    private MessageChannel getLevelUpChannel(Message message, GuildTransformer guild) {
         String levelChannel = guild.getLevelChannel();
-        if (levelChannel == null) {
-            return message.getTextChannel();
+        if (levelChannel == null || message.isFromType(ChannelType.GUILD_PUBLIC_THREAD) || message.isFromType(ChannelType.GUILD_PRIVATE_THREAD)) {
+            return message.getChannel();
         }
 
         TextChannel channel = message.getGuild().getTextChannelById(levelChannel);
