@@ -100,7 +100,7 @@ public class WatchlogCommand extends Command {
     @Nonnull
     @Override
     public List<CommandGroup> getGroups() {
-        return Collections.singletonList(CommandGroups.MODERATION);
+        return Collections.singletonList(CommandGroups.ON_WATCH);
     }
 
     @Override

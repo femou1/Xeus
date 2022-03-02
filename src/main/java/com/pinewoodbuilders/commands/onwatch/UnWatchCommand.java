@@ -99,8 +99,8 @@ public class UnWatchCommand extends OnWatchableCommand {
 
     @Nonnull
     @Override
-    public List <CommandGroup> getGroups() {
-        return Collections.singletonList(CommandGroups.MODERATION);
+    public List<CommandGroup> getGroups() {
+        return Collections.singletonList(CommandGroups.ON_WATCH);
     }
 
     @Override

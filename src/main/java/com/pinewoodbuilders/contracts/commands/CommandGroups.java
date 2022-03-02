@@ -41,7 +41,8 @@ public enum CommandGroups implements CommandGroup {
     MISCELLANEOUS("Misc"),
     EVALUATIONS("Evaluations"),
     REPORTS("Reports"),
-    CHANNEL_LOCK("Channel Lock");
+    CHANNEL_LOCK("Channel Lock"),
+    ON_WATCH("On Watch");
 
     private final String name;
 

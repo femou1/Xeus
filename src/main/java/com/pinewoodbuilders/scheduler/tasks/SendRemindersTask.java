@@ -8,9 +8,7 @@ import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.time.Carbon;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 
 import java.awt.*;
 import java.sql.SQLException;
@@ -41,22 +39,26 @@ public class SendRemindersTask implements Task
             {
                 int id = datarow.getInt("id");
                 User user = avaire.getShardManager().getUserById(datarow.getString("user_id"));
-                TextChannel textChannel = datarow.getString("channel_id") != null ? avaire.getShardManager().getTextChannelById(datarow.getString("channel_id")) : null;
+                GuildChannel tc = datarow.getString("channel_id") != null
+                    ? avaire.getShardManager().getGuildChannelById(datarow.getString("channel_id")) : null;
+
                 String content = datarow.getString("message");
                 Carbon timeStamp = datarow.getTimestamp("stored_at");
-                if (textChannel == null || !textChannel.canTalk()) {
-                    sendPrivateMessage(avaire,user,content,timeStamp,id);
-                }
-                else
-                {
-                    if (textChannel != null) {
-                    textChannel.sendMessage(
-                        buildMessage(user,content,timeStamp)
-                    ).queue(
-                        success -> markMessageSent(avaire, id));
-                    } else {
+
+                if (tc instanceof MessageChannel textChannel) {
+                    if (!textChannel.canTalk()) {
                         sendPrivateMessage(avaire,user,content,timeStamp,id);
-                    };
+                    }
+                    else
+                    {
+                        textChannel.sendMessage(
+                            buildMessage(user,content,timeStamp)
+                        ).queue(
+                            success -> markMessageSent(avaire, id));
+                        ;
+                    }
+                } else {
+                    sendPrivateMessage(avaire,user,content,timeStamp,id);
                 }
             }
 

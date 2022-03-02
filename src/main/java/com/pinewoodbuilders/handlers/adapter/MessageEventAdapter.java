@@ -548,7 +548,7 @@ public class MessageEventAdapter extends EventAdapter {
             Invite.resolve(message.getJDA(), i).queue(v -> {
                 List<Guild> g = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(settings.getMainGroupId());
 
-                if (g.stream().anyMatch(guild -> guild.getId().equals(v.getGuild().getId()))) {
+                if (g.stream().noneMatch(guild -> guild.getId().equals(v.getGuild().getId()))) {
                     message.delete().queue();
                     warnUserColor(message, databaseEventHolder.getGuildSettings(), "**AUTOMOD**: Filter was activated!\n**Type**: " + "``INVITE``\n" +
                         "**Guild**: " + v.getGuild().getName() + "\n" +

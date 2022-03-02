@@ -108,7 +108,7 @@ public class WatchRoleCommand extends Command {
     @Nonnull
     @Override
     public List<CommandGroup> getGroups() {
-        return Collections.singletonList(CommandGroups.MODERATION);
+        return Collections.singletonList(CommandGroups.ON_WATCH);
     }
 
     @Override
@@ -122,9 +122,8 @@ public class WatchRoleCommand extends Command {
             return sendMutedRole(context, guildTransformer);
         }
 
-        switch (args[0].toLowerCase()) {
-            case "set":
-                return setMutedRole(context, guildTransformer, Arrays.copyOfRange(args, 1, args.length));
+        return switch (args[0].toLowerCase()) {
+            case "set" -> setMutedRole(context, guildTransformer, Arrays.copyOfRange(args, 1, args.length));
 
             /*case "create-role":
             case "create-roles":
@@ -134,11 +133,10 @@ public class WatchRoleCommand extends Command {
             case "setup-permissions":
                 return setupPermissions(context, guildTransformer);*/
 
-            case "reset":
-                return resetRole(context, guildTransformer);
-        }
+            case "reset" -> resetRole(context, guildTransformer);
+            default -> sendErrorMessage(context, "errors.missingArgument", "option");
+        };
 
-        return sendErrorMessage(context, "errors.missingArgument", "option");
     }
 
     private boolean sendMutedRole(CommandMessage context, GuildSettingsTransformer guildTransformer) {

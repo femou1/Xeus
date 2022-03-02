@@ -65,22 +65,12 @@ public class ChangeGameTask implements Task {
 
         String[] split = status.split(":");
         status = String.join(":", Arrays.copyOfRange(split, 1, split.length));
-        switch (split[0].toLowerCase()) {
-            case "listen":
-            case "listening":
-                return Activity.listening(formatGame(avaire, status, shard));
-
-            case "watch":
-            case "watching":
-                return Activity.watching(formatGame(avaire, status, shard));
-
-            case "stream":
-            case "streaming":
-                return Activity.streaming(formatGame(avaire, status, shard), "https://www.twitch.tv/senither");
-
-            default:
-                return Activity.playing(formatGame(avaire, status, shard));
-        }
+        return switch (split[0].toLowerCase()) {
+            case "listen", "listening" -> Activity.listening(formatGame(avaire, status, shard));
+            case "watch", "watching" -> Activity.watching(formatGame(avaire, status, shard));
+            case "stream", "streaming" -> Activity.streaming(formatGame(avaire, status, shard), "https://www.twitch.tv/codixer");
+            default -> Activity.playing(formatGame(avaire, status, shard));
+        };
     }
 
     private String formatGame(Xeus avaire, String game, JDA shard) {

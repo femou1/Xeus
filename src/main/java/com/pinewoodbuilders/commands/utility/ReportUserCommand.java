@@ -1,4 +1,4 @@
-package com.pinewoodbuilders.commands.pinewood;
+package com.pinewoodbuilders.commands.utility;
 
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;

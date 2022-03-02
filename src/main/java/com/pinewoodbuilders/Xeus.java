@@ -273,7 +273,6 @@ public class Xeus {
         CategoryHandler.addCategory(this, "GlobalMod", defaultPrefix);
         CategoryHandler.addCategory(this, "Search", defaultPrefix);
         CategoryHandler.addCategory(this, "Utility", defaultPrefix);
-        CategoryHandler.addCategory(this, "Pinewood", defaultPrefix);
         CategoryHandler.addCategory(this, "Evaluations", defaultPrefix);
         CategoryHandler.addCategory(this, "Reports", defaultPrefix);
         CategoryHandler.addCategory(this, "Roblox", defaultPrefix);
