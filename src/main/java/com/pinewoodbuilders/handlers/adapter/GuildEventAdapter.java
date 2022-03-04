@@ -62,7 +62,6 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType.MAIN_GLOBAL_MODERATOR;
 
@@ -83,14 +82,13 @@ public class GuildEventAdapter extends EventAdapter {
                 } else {
                     return false;
                 }
-            }).collect(Collectors.toList());
+            }).toList();
 
             e.getGuild().retrieveAuditLogs().queue(items -> {
-                List<AuditLogEntry> logs = items.stream()
+                List <AuditLogEntry> logs = items.stream()
                     .filter(d -> d.getType().equals(ActionType.UNBAN)
                         && d.getTargetType().equals(TargetType.MEMBER)
-                        && d.getTargetId().equals(e.getUser().getId()))
-                    .collect(Collectors.toList());
+                        && d.getTargetId().equals(e.getUser().getId())).toList();
                 MessageChannel tc = avaire.getShardManager().getTextChannelById(Constants.PIA_LOG_CHANNEL);
 
                 if (logs.size() < 1) {
@@ -255,7 +253,7 @@ public class GuildEventAdapter extends EventAdapter {
                             .setAuthor("Roles where removed from member!", null, e.getUser().getEffectiveAvatarUrl())
                             .setDescription("**Member**: " + e.getUser().getAsMention() + "\n" + "**User**: "
                                 + e.getUser().getName() + "#" + e.getUser().getDiscriminator() + "\n"
-                                + "\n**Roles removed**: " + sb.toString())
+                                + "\n**Roles removed**: " + sb)
                             .setFooter("UserID: " + e.getUser().getId()).setTimestamp(Instant.now()).queue();
                     } else if (event instanceof GuildMemberUpdateNicknameEvent e) {
                         MessageFactory.makeEmbeddedMessage(tc, new Color(255, 195, 0))

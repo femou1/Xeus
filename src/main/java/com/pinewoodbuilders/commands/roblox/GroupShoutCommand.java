@@ -7,7 +7,14 @@ import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.text.Modal;
+import net.dv8tion.jda.api.interactions.components.text.TextInput;
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import okhttp3.*;
 import org.json.JSONObject;
 
@@ -73,7 +80,58 @@ public class GroupShoutCommand extends Command {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
 
-        if (avaire.getConfig().getString("apiKeys.nobloxServerAPIKey") == null | avaire.getConfig().getString("apiKeys.nobloxServerAPIKey").length() < 1) {
+        Button button = Button.primary("open-modal:" + context.getMember().getId(), "This will open a question modal");
+
+        context.getChannel().sendMessage("This modal will only work for " + context.member.getAsMention()).setActionRow(button.asEnabled()).queue(buttonMessage ->
+            avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class, event -> {
+                String[] buttonString = event.getButton().getId().split(":");
+                String buttonId = buttonString[0];
+                String userId = buttonString[1];
+                if (!userId.equals(context.getMember().getId())) {
+                    event.reply("This is not your message!").queue();
+                    return false;
+                }
+                return buttonId.equals("open-modal");
+
+            }, event -> {
+                TextInput email = TextInput.create("email", "Random shit.", TextInputStyle.SHORT)
+                    .setPlaceholder("Enter some random shit here")
+                    .setRequired(true)
+                    .setMinLength(10)
+                    .setMaxLength(100) // or setRequiredRange(10, 100)
+                    .build();
+
+                TextInput body = TextInput.create("body", "Info", TextInputStyle.PARAGRAPH)
+                    .setPlaceholder("Your information goes here.")
+                    .setRequired(true)
+                    .setMinLength(30)
+                    .setMaxLength(1000)
+                    .setValue("This is a preinput value for the message. You can change it if you want.")
+                    .build();
+
+                Modal modal1 = Modal.create(event.getMember().getId() + ":support", event.getGuild().getName() + " Testing...")
+                    .addActionRows(ActionRow.of(email), ActionRow.of(body))
+                    .build();
+
+                event.replyModal(modal1).queue(l -> {
+                    avaire.getWaiter().waitForEvent(ModalInteractionEvent.class, modal -> {
+                        String[] modalString = modal.getModalId().split(":");
+                        String userId = modalString[0];
+                        String modalName = modalString[1];
+                        if (userId.equals(modal.getMember().getId())) {
+                            return modalName.equals("support");
+                        }
+                        modal.reply("You are not the user that created this modal!").setEphemeral(true).queue();
+                        return false;
+                    }, modal -> {
+                        modal.reply("Thanks for your message: " + modal.getValue("body").getAsString() + " " + modal.getValue("email").getAsString()).queue();
+                    });
+                });
+
+            })
+        );
+
+/*        if (avaire.getConfig().getString("apiKeys.nobloxServerAPIKey") == null | avaire.getConfig().getString("apiKeys.nobloxServerAPIKey").length() < 1) {
             context.makeError("An noblox api key could not be found. Please enter it in the config.yml").queue();
             return false;
         }
@@ -116,7 +174,7 @@ public class GroupShoutCommand extends Command {
 
                 sendMessage(context, k);
             });
-        });
+        });*/
         return false;
     }
 
