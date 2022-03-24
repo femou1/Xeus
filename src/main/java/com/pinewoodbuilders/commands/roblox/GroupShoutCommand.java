@@ -80,55 +80,62 @@ public class GroupShoutCommand extends Command {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
 
-        Button button = Button.primary("open-modal:" + context.getMember().getId(), "This will open a question modal");
+        context.getChannel().sendMessage("This modal will only work for " + context.member.getAsMention()).queue(buttonMessage ->
 
-        context.getChannel().sendMessage("This modal will only work for " + context.member.getAsMention()).setActionRow(button.asEnabled()).queue(buttonMessage ->
-            avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class, event -> {
-                String[] buttonString = event.getButton().getId().split(":");
-                String buttonId = buttonString[0];
-                String userId = buttonString[1];
-                if (!userId.equals(context.getMember().getId())) {
-                    event.reply("This is not your message!").queue();
-                    return false;
-                }
-                return buttonId.equals("open-modal");
+            {
 
-            }, event -> {
-                TextInput email = TextInput.create("email", "Random shit.", TextInputStyle.SHORT)
-                    .setPlaceholder("Enter some random shit here")
-                    .setRequired(true)
-                    .setMinLength(10)
-                    .setMaxLength(100) // or setRequiredRange(10, 100)
-                    .build();
+                Button button = Button.primary("open-modal:" + context.getMember().getId() + ":" + buttonMessage.getId(), "This will open a question modal");
+                buttonMessage.editMessage("Testing with added button...").setActionRow(button.asEnabled()).queue();
 
-                TextInput body = TextInput.create("body", "Info", TextInputStyle.PARAGRAPH)
-                    .setPlaceholder("Your information goes here.")
-                    .setRequired(true)
-                    .setMinLength(30)
-                    .setMaxLength(1000)
-                    .setValue("This is a preinput value for the message. You can change it if you want.")
-                    .build();
-
-                Modal modal1 = Modal.create(event.getMember().getId() + ":support", event.getGuild().getName() + " Testing...")
-                    .addActionRows(ActionRow.of(email), ActionRow.of(body))
-                    .build();
-
-                event.replyModal(modal1).queue(l -> {
-                    avaire.getWaiter().waitForEvent(ModalInteractionEvent.class, modal -> {
-                        String[] modalString = modal.getModalId().split(":");
-                        String userId = modalString[0];
-                        String modalName = modalString[1];
-                        if (userId.equals(modal.getMember().getId())) {
-                            return modalName.equals("support");
-                        }
-                        modal.reply("You are not the user that created this modal!").setEphemeral(true).queue();
+                avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class, event -> {
+                    String[] buttonString = event.getButton().getId().split(":");
+                    String buttonId = buttonString[0];
+                    String userId = buttonString[1];
+                    String messageId = buttonString[2];
+                    if (!userId.equals(context.getMember().getId()) || !messageId.equals(buttonMessage.getId())) {
+                        event.reply("This is not your message or the incorrect one for this message!").queue();
                         return false;
-                    }, modal -> {
-                        modal.reply("Thanks for your message: " + modal.getValue("body").getAsString() + " " + modal.getValue("email").getAsString()).queue();
-                    });
-                });
+                    }
+                    return buttonId.equals("open-modal") && messageId.equals(buttonMessage.getId());
 
-            })
+                }, event -> {
+                    TextInput email = TextInput.create("email", "Random shit.", TextInputStyle.SHORT)
+                        .setPlaceholder("Enter some random shit here")
+                        .setRequired(true)
+                        .setMinLength(10)
+                        .setMaxLength(100) // or setRequiredRange(10, 100)
+                        .build();
+
+                    TextInput body = TextInput.create("body", "Info", TextInputStyle.PARAGRAPH)
+                        .setPlaceholder("Your information goes here.")
+                        .setRequired(true)
+                        .setMinLength(30)
+                        .setMaxLength(1000)
+                        .setValue("This is a preinput value for the message. You can change it if you want.")
+                        .build();
+
+                    Modal modal1 = Modal.create(event.getMember().getId() + ":support:"+event.getMessageId(), event.getGuild().getName() + " Testing...")
+                        .addActionRows(ActionRow.of(email), ActionRow.of(body))
+                        .build();
+
+                    event.replyModal(modal1).queue(l -> {
+                        avaire.getWaiter().waitForEvent(ModalInteractionEvent.class, modal -> {
+                            String[] modalString = modal.getModalId().split(":");
+                            String userId = modalString[0];
+                            String modalName = modalString[1];
+                            String messageId = modalString[2];
+                            if (userId.equals(modal.getMember().getId()) && messageId.equals(event.getMessageId())) {
+                                return modalName.equals("support");
+                            }
+                            modal.reply("You are not the user that created this modal, or this is the incorrect message.!").setEphemeral(true).queue();
+                            return false;
+                        }, modal -> {
+                            modal.reply("Thanks for your message: " + modal.getValue("body").getAsString() + " " + modal.getValue("email").getAsString()).queue();
+                        });
+                    });
+
+                });
+            }
         );
 
 /*        if (avaire.getConfig().getString("apiKeys.nobloxServerAPIKey") == null | avaire.getConfig().getString("apiKeys.nobloxServerAPIKey").length() < 1) {
