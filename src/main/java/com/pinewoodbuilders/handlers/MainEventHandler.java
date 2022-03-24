@@ -576,7 +576,7 @@ public class MainEventHandler extends EventHandler {
 
     private boolean isValidMessageReactionEvent(MessageReactionAddEvent event) {
         return event.isFromGuild()
-            && event.getReactionEmote().isEmote()
+            && (event.getReactionEmote().isEmoji() || event.getReactionEmote().isEmote())
             && !event.getMember().getUser().isBot();
     }
 
