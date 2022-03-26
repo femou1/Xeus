@@ -2,10 +2,13 @@ package com.pinewoodbuilders.commands.roblox;
 
 import com.pinewoodbuilders.AppInfo;
 import com.pinewoodbuilders.Xeus;
+import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
+import com.pinewoodbuilders.contracts.verification.VerificationEntity;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -20,6 +23,7 @@ import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -99,23 +103,39 @@ public class GroupShoutCommand extends Command {
                     return buttonId.equals("open-modal") && messageId.equals(buttonMessage.getId());
 
                 }, event -> {
-                    TextInput email = TextInput.create("email", "Random shit.", TextInputStyle.SHORT)
-                        .setPlaceholder("Enter some random shit here")
+                    VerificationEntity ve = avaire.getRobloxAPIManager().getVerification().fetchVerificationWithBackup(event.getUser().getId(), true);
+
+                    TextInput username = TextInput.create("username", "What is your roblox username?", TextInputStyle.SHORT)
+                        .setPlaceholder("If you can see this, Xeus coudn't find your username. Please enter it manually.")
+                        .setValue(ve != null ? ve.getRobloxUsername() : "")
                         .setRequired(true)
-                        .setMinLength(10)
-                        .setMaxLength(100) // or setRequiredRange(10, 100)
+                        .setMinLength(3)
+                        .setMaxLength(16)
                         .build();
 
-                    TextInput body = TextInput.create("body", "Info", TextInputStyle.PARAGRAPH)
-                        .setPlaceholder("Your information goes here.")
+                    TextInput timeOfPunishment = TextInput.create("timeOfPunishment", "When did this occur?", TextInputStyle.SHORT)
+                        .setPlaceholder("{Your best estimate of your punishment date}")
                         .setRequired(true)
-                        .setMinLength(30)
-                        .setMaxLength(1000)
-                        .setValue("This is a preinput value for the message. You can change it if you want.")
                         .build();
 
-                    Modal modal1 = Modal.create(event.getMember().getId() + ":support:"+event.getMessageId(), event.getGuild().getName() + " Testing...")
-                        .addActionRows(ActionRow.of(email), ActionRow.of(body))
+                    TextInput punishmentReason = TextInput.create("punishmentReason", "Why was this moderation action put on you?", TextInputStyle.PARAGRAPH)
+                        .setPlaceholder("{The reason for your punishment.}")
+                        .setRequired(true)
+                        .build();
+
+                    TextInput removalReason = TextInput.create("removalReason", "Why should this appeal be accepted?", TextInputStyle.PARAGRAPH)
+                        .setPlaceholder("{Why should we remove your punishment?}")
+                        .setRequired(true)
+                        .build();
+
+                    TextInput prevention = TextInput.create("prevention", "How will you prevent being punished again?", TextInputStyle.PARAGRAPH)
+                        .setPlaceholder("{Your best estimate of your punishment date}")
+                        .setRequired(true)
+                        .build();
+
+
+                    Modal modal1 = Modal.create(event.getMember().getId() + ":support:" + event.getMessageId(), "Gameban Appeal")
+                        .addActionRows(ActionRow.of(username), ActionRow.of(timeOfPunishment), ActionRow.of(punishmentReason), ActionRow.of(removalReason), ActionRow.of(prevention))
                         .build();
 
                     event.replyModal(modal1).queue(l -> {
@@ -130,7 +150,29 @@ public class GroupShoutCommand extends Command {
                             modal.reply("You are not the user that created this modal, or this is the incorrect message.!").setEphemeral(true).queue();
                             return false;
                         }, modal -> {
-                            modal.reply("Thanks for your message: " + modal.getValue("body").getAsString() + " " + modal.getValue("email").getAsString()).queue();
+                            //username - timeOfPunishment - punishmentReason - removalReason - prevention
+                            modal.replyEmbeds(new PlaceholderMessage(new EmbedBuilder(),
+                                """
+                                    **Username:** :username
+                                    **Time of Punishment**: :timeOfPunishment
+                                                                        
+                                    **Punishment Reason**:
+                                        :punishmentReason
+                                        
+                                    **Removal Reason**:
+                                        :removalReason
+                                        
+                                    **Prevention**:
+                                        :prevention
+                                    """)
+                                .setTimestamp(Instant.now())
+                                .set("username", modal.getValue("username").getAsString())
+                                .set("timeOfPunishment", modal.getValue("timeOfPunishment").getAsString())
+                                .set("punishmentReason", modal.getValue("punishmentReason").getAsString())
+                                .set("removalReason", modal.getValue("removalReason").getAsString())
+                                .set("prevention", modal.getValue("prevention").getAsString())
+                                .requestedBy(event.getMember())
+                                .buildEmbed()).queue();
                         });
                     });
 
