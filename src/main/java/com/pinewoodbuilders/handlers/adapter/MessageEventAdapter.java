@@ -130,10 +130,6 @@ public class MessageEventAdapter extends EventAdapter {
             return;
         }
 
-        if (!event.getChannelType().isGuild()) {
-            return;
-        }
-
         if (!event.getAuthor().isBot()) {
             if (event.isFromType(ChannelType.TEXT)) {
                 MessageCache.getCache(event.getGuild()).set(new CachedMessage(event.getMessage()));

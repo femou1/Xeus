@@ -1,23 +1,22 @@
 package com.pinewoodbuilders.commands.utility;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
-import com.pinewoodbuilders.database.controllers.GuildController;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
-import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.RandomString;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildChannel;
@@ -95,13 +94,14 @@ public class VoteCommand extends Command {
         }
 
         if (args.length < 1) {
-            context.makeInfo("Please tell a valid option to work with the vote system:\n" +
-                " - ``create``\n" +
-                " - ``delete``\n" +
-                " - ``responses``\n" +
-                " - ``list``\n" +
-                " - ``show``\n" +
-                " - ``set-vote-validation-channel``").queue();
+            context.makeInfo("""
+                Please tell a valid option to work with the vote system:
+                 - ``create``
+                 - ``delete``
+                 - ``responses``
+                 - ``list``
+                 - ``show``
+                 - ``set-vote-validation-channel``""").queue();
             return false;
         }
         if (args[0].equalsIgnoreCase("create")) {
@@ -459,8 +459,8 @@ public class VoteCommand extends Command {
                             return true;
                         }
 
-                        if (args.length < 22) {
-                            context.makeError("Please explain in more then 20 words why you'd like to vote for this item! This is to verify valid votes.").queue();
+                        if (args.length < 5) {
+                            context.makeError("Please explain in more then 3 words why you'd like to vote for this item! This is to verify valid votes.").queue();
                             return false;
                         }
 

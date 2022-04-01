@@ -383,7 +383,8 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                         }
                                     }
 
-                                    if (likes == 26) {
+
+                                    if (likes >= 26) {
                                         Button b1 = Button.success("accept:" + e.getMessageId(), "Accept").withEmoji(Emoji.fromUnicode("✅"));
                                         Button b2 = Button.danger("reject:" + e.getMessageId(), "Reject").withEmoji(Emoji.fromUnicode("❌"));
                                         Button b3 = Button.secondary("remove:" + e.getMessageId(), "Delete").withEmoji(Emoji.fromUnicode("\uD83D\uDEAB"));
@@ -440,7 +441,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                         msg.clearReactions("\uD83D\uDC4E").queueAfter(1, TimeUnit.SECONDS);
                                     }
 
-                                    if (dislikes == 26) {
+                                    if (dislikes >= 26) {
                                         PlaceholderMessage mb = MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(255, 100, 0))
                                             .setAuthor("Suggestion for: " + e.getGuild().getName() + " | Denied by community", null, e.getGuild().getIconUrl())
                                             .setDescription(msg.getEmbeds().get(0).getDescription())

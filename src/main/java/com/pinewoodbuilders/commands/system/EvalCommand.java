@@ -21,6 +21,7 @@
 
 package com.pinewoodbuilders.commands.system;
 
+import com.oracle.truffle.js.scriptengine.GraalJSEngineFactory;
 import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
@@ -46,18 +47,19 @@ public class EvalCommand extends SystemCommand {
 
     @Nullable
     private Future lastTask;
-    private ScriptEngine engine;
+    private final ScriptEngine engine;
 
     public EvalCommand(Xeus avaire) {
         super(avaire);
 
 
-        engine = GraalJSScriptEngine.create(null,
-            Context.newBuilder("js")
-                .allowHostAccess(HostAccess.ALL)
-                .allowHostClassLookup(s -> true)
-                .allowExperimentalOptions(true)
-                .option("js.nashorn-compat", "true"));
+        Context.Builder context = Context.newBuilder("js")
+            .allowHostAccess(HostAccess.ALL)
+            .allowHostClassLookup(s -> true)
+            .allowExperimentalOptions(true)
+            .option("js.nashorn-compat", "true");
+        GraalJSEngineFactory factory = new GraalJSEngineFactory();
+        engine = GraalJSScriptEngine.create(factory.getPolyglotEngine(), context);
 
 //        engine = new ScriptEngineManager().getEngineByName("graal.js");
 
@@ -86,7 +88,7 @@ public class EvalCommand extends SystemCommand {
                 "Packages.com.pinewoodbuilders.audio," +
                 "Packages.com.pinewoodbuilders.time);");
         } catch (ScriptException e) {
-            log.error("Failed to init eval command", e);
+            e.printStackTrace();
         }
     }
 

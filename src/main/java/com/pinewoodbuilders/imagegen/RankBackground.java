@@ -102,11 +102,9 @@ public class RankBackground implements PurchaseType {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof RankBackground)) {
+        if (!(obj instanceof RankBackground background)) {
             return false;
         }
-
-        RankBackground background = (RankBackground) obj;
 
         return getId() == background.getId()
             || getName().equals(background.getName());

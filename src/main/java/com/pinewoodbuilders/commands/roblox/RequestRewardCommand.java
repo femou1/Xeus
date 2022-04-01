@@ -199,7 +199,7 @@ public class RequestRewardCommand extends Command {
         return true;
     }
 
-    private boolean runClearAllChannelsFromDatabase(CommandMessage context) {
+    private void runClearAllChannelsFromDatabase(CommandMessage context) {
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {
@@ -207,33 +207,33 @@ public class RequestRewardCommand extends Command {
             });
 
             context.makeSuccess("Any information about the remittance channels has been removed from the database.").queue();
-            return true;
         } catch (SQLException throwables) {
             context.makeError("Something went wrong in the database, please check with the developer. (Stefano#7366)").queue();
-            return false;
         }
 
     }
 
-    private boolean runSetRemittanceChannel(CommandMessage context, String[] args) {
+    private void runSetRemittanceChannel(CommandMessage context, String[] args) {
         if (args.length < 3) {
-            return sendErrorMessage(context, "Incorrect arguments");
+            sendErrorMessage(context, "Incorrect arguments");
+            return;
         }
         GuildChannel c = MentionableUtil.getChannel(context.message, args, 1);
         if (c == null) {
-            return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Channel)");
+            sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Channel)");
+            return;
         }
 
         GuildSettingsTransformer transformer = context.getGuildSettingsTransformer();
         if (transformer == null) {
             context.makeError("I can't pull the guilds information, please try again later.").queue();
-            return false;
+            return;
         }
-        return updateChannelAndEmote(transformer, context, (TextChannel) c);
+        updateChannelAndEmote(transformer, context, (TextChannel) c);
     }
 
 
-    private boolean updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel) {
+    private void updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel) {
         transformer.setPatrolRemittanceChannel(channel.getIdLong());
 
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
@@ -243,10 +243,8 @@ public class RequestRewardCommand extends Command {
             });
 
             context.makeSuccess("Remittance have been enabled for :channel").set("channel", channel.getAsMention()).queue();
-            return true;
         } catch (SQLException throwables) {
             context.makeError("Something went wrong in the database, please check with the developer. (Stefano#7366)").queue();
-            return false;
         }
 
     }

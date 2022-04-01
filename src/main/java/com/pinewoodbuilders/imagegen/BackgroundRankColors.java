@@ -26,6 +26,7 @@ import com.pinewoodbuilders.utilities.ColorUtil;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.*;
+import java.util.Objects;
 
 /**
  * The background rank colors used for making
@@ -212,10 +213,7 @@ public class BackgroundRankColors {
      */
     @Nonnull
     public Color getExperienceTextColor() {
-        if (experienceTextColor == null) {
-            return getMainTextColor();
-        }
-        return experienceTextColor;
+        return Objects.requireNonNullElseGet(experienceTextColor, this::getMainTextColor);
     }
 
     /**
