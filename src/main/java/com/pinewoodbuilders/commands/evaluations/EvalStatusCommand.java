@@ -83,13 +83,11 @@ public class EvalStatusCommand extends Command {
         builder.setTitle("Evaluation Status for " + verificationEntity.getRobloxUsername());
         builder.setDescription("""
             **Passed Quiz**: :quizPassed
-            **Passed Patrol**: :patrolPassed
             **Passed Combat**: :combatPassed
             **Passed Consensus**: :consensusPassed
             **Evaluator**: :evaluator
             """)
             .set("quizPassed", status.passedQuiz() ? "<:yes:694268114803621908>": "<:no:694270050257076304>")
-            .set("patrolPassed", status.passedPatrol() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
             .set("combatPassed", status.passedCombat() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
             .set("consensusPassed", status.passedConsensus() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
             .set("evaluator", status.getLastEdit() != null ? status.getLastEvaluator() : "None")
