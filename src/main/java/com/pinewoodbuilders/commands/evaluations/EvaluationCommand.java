@@ -105,21 +105,13 @@ public class EvaluationCommand extends Command {
             return false;
         }
 
-        switch (args[0].toLowerCase()) {
-            case "evaluator":
-                return returnEvaluatorAction(context, args);
-            case "set-quiz-channel":
-            case "sqc":
-            case "quiz-channel":
-            case "qc":
-                return setQuizChannel(context, args);
-            case "questions":
-                return questionSubMenu(context, args);
-            case "kronos-sync":
-                return runKronosSync(context);
-            default:
-                return evalSystemCommands(context, args);
-        }
+        return switch (args[0].toLowerCase()) {
+            case "evaluator" -> returnEvaluatorAction(context, args);
+            case "set-quiz-channel", "sqc", "quiz-channel", "qc" -> setQuizChannel(context, args);
+            case "questions" -> questionSubMenu(context, args);
+            case "kronos-sync" -> runKronosSync(context);
+            default -> evalSystemCommands(context, args);
+        };
     }
 
     private boolean runKronosSync(CommandMessage context) {
@@ -307,7 +299,6 @@ public class EvaluationCommand extends Command {
                 builder.setTitle("Evaluation Status for " + username);
                 builder.setDescription("""
                         **Passed Quiz**: :quizPassed
-                        **Passed Patrol**: :patrolPassed
                         **Passed Combat**: :combatPassed
                         **Passed Consensus**: :consensusPassed
                         **Passed Everything**: :allPassed
@@ -318,7 +309,6 @@ public class EvaluationCommand extends Command {
                         """)
 
                     .set("quizPassed", status.passedQuiz() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
-                    .set("patrolPassed", status.passedPatrol() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
                     .set("combatPassed", status.passedCombat() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
                     .set("consensusPassed", status.passedConsensus() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
                     .set("allPassed", status.isPassed() ? "<:yes:694268114803621908>" : "<:no:694270050257076304>")
@@ -333,14 +323,13 @@ public class EvaluationCommand extends Command {
             switch (args[1]) {
                 case "passed": {
                     if (args.length == 2) {
-                        context.makeError("Do you want to pass the user in the quiz or in the patrol?\n" +
-                            "**Patrol**: ``!evals " + args[0] + " passed patrol``\n" +
+                        context.makeError("Do you want to pass the user in the quiz, combat or consensus?\n" +
                             "**Quiz**: ``!evals " + args[0] + " passed quiz``\n" +
                             "**Combat**: ``!evals " + args[0] + " passed combat``").queue();
                         return false;
                     }
                     if (args.length == 3) {
-                        if (args[2].equalsIgnoreCase("patrol") || args[2].equalsIgnoreCase("quiz") || args[2].equalsIgnoreCase("combat") || args[2].equalsIgnoreCase("consensus")) {
+                        if (args[2].equalsIgnoreCase("quiz") || args[2].equalsIgnoreCase("combat") || args[2].equalsIgnoreCase("consensus")) {
                             if (collection.size() < 1) {
                                 Long roblox_id = getRobloxId(args[0]);
                                 avaire.getDatabase()
@@ -351,9 +340,7 @@ public class EvaluationCommand extends Command {
                                             .set("roblox_username", getRobloxUsernameFromId(roblox_id))
                                             .set("roblox_id", roblox_id).set("evaluator",
                                                 context.getMember().getEffectiveName());
-                                        if (args[2].equalsIgnoreCase("patrol")) {
-                                            statement.set("passed_patrol", true);
-                                        } else if (args[2].equalsIgnoreCase("quiz")) {
+                                        if (args[2].equalsIgnoreCase("quiz")) {
                                             statement.set("passed_quiz", true);
                                         } else if (args[2].equalsIgnoreCase("combat")) {
                                             statement.set("passed_combat", true);
@@ -377,9 +364,7 @@ public class EvaluationCommand extends Command {
                                     .newQueryBuilder(Constants.EVALS_DATABASE_TABLE_NAME)
                                     .where("roblox_id", roblox_id)
                                     .update(statement -> {
-                                        if (args[2].equalsIgnoreCase("patrol")) {
-                                            statement.set("passed_patrol", true);
-                                        } else if (args[2].equalsIgnoreCase("quiz")) {
+                                        if (args[2].equalsIgnoreCase("quiz")) {
                                             statement.set("passed_quiz", true);
                                         } else if (args[2].equalsIgnoreCase("combat")) {
                                             statement.set("passed_combat", true);
@@ -408,8 +393,7 @@ public class EvaluationCommand extends Command {
 
                             return true;
                         } else {
-                            context.makeError("Do you want to pass the user in the quiz or in the patrol?\n" +
-                                "**Patrol**: ``!evals " + args[0] + " passed patrol``\n" +
+                            context.makeError("Do you want to pass the user in the quiz, combat or consensus?\n" +
                                 "**Quiz**: ``!evals " + args[0] + " passed quiz``\n" +
                                 "**Combat**: ``!evals " + args[0] + " passed combat``").queue();
                             return false;
@@ -418,14 +402,13 @@ public class EvaluationCommand extends Command {
                 }
                 case "failed": {
                     if (args.length == 2) {
-                        context.makeError("Do you want to fail the user in the quiz or in the patrol?\n" +
-                            "**Patrol**: ``!evals " + args[0] + " failed patrol``\n" +
+                        context.makeError("Do you want to fail the user in the quiz, combat or consensus?\n" +
                             "**Quiz**: ``!evals " + args[0] + " failed quiz``\n" +
                             "**Combat**: ``!evals " + args[0] + " failed combat``").queue();
                         return false;
                     }
                     if (args.length == 3) {
-                        if (args[2].equalsIgnoreCase("patrol") || args[2].equalsIgnoreCase("quiz") || args[2].equalsIgnoreCase("combat") || args[2].equalsIgnoreCase("consensus")) {
+                        if (args[2].equalsIgnoreCase("quiz") || args[2].equalsIgnoreCase("combat") || args[2].equalsIgnoreCase("consensus")) {
                             if (collection.size() < 1) {
                                 Long roblox_id = getRobloxId(args[0]);
                                 avaire.getDatabase()
@@ -436,9 +419,7 @@ public class EvaluationCommand extends Command {
                                             .set("roblox_username", getRobloxUsernameFromId(roblox_id))
                                             .set("roblox_id", roblox_id).set("evaluator",
                                                 context.getMember().getEffectiveName());
-                                        if (args[2].equalsIgnoreCase("patrol")) {
-                                            statement.set("passed_patrol", false);
-                                        } else if (args[2].equalsIgnoreCase("quiz")) {
+                                        if (args[2].equalsIgnoreCase("quiz")) {
                                             statement.set("passed_quiz", false);
                                         } else if (args[2].equalsIgnoreCase("combat")) {
                                             statement.set("passed_combat", false);
@@ -461,9 +442,7 @@ public class EvaluationCommand extends Command {
                                     .newQueryBuilder(Constants.EVALS_DATABASE_TABLE_NAME)
                                     .where("roblox_id", roblox_id)
                                     .update(statement -> {
-                                        if (args[2].equalsIgnoreCase("patrol")) {
-                                            statement.set("passed_patrol", false);
-                                        } else if (args[2].equalsIgnoreCase("quiz")) {
+                                        if (args[2].equalsIgnoreCase("quiz")) {
                                             statement.set("passed_quiz", false);
                                         } else if (args[2].equalsIgnoreCase("combat")) {
                                             statement.set("passed_combat", false);
@@ -483,8 +462,7 @@ public class EvaluationCommand extends Command {
 
 
                         } else {
-                            context.makeError("Do you want to pass the user in the quiz, combat or in the patrol?\n" +
-                                "**Patrol**: ``!evals " + args[0] + " passed patrol``\n" +
+                            context.makeError("Do you want to pass the user in the quiz, combat or consensus?" +
                                 "**Quiz**: ``!evals " + args[0] + " passed quiz``\n" +
                                 "**Combat**: ``!evals " + args[0] + " passed combat``").queue();
                             return false;
@@ -492,12 +470,12 @@ public class EvaluationCommand extends Command {
                     }
                 }
                 default:
-                    context.makeError("Do you want to pass the user in the quiz, combat or in the patrol?\n" +
-                        "**Patrol**: ``!evals " + args[0] + " passed patrol``\n" +
+                    context.makeError("Do you want to pass the user in the quiz, combat or in the consensus?\n" +
+                        "**Consensus**: ``!evals " + args[0] + " passed consensus``\n" +
                         "**Quiz**: ``!evals " + args[0] + " passed quiz``\n" +
                         "**Combat**: ``!evals " + args[0] + " passed combat``" +
-                        "\nDo you want to fail the user in the quiz or in the patrol?\n" +
-                        "**Patrol**: ``!evals " + args[0] + " failed patrol``\n" +
+                        "\nDo you want to fail the user in the quiz or in the consensus?\n" +
+                        "**Consensus**: ``!evals " + args[0] + " failed consensus``\n" +
                         "**Quiz**: ``!evals " + args[0] + " failed quiz``\n" +
                         "**Combat**: ``!evals " + args[0] + " failed combat``").queue();
                     return false;

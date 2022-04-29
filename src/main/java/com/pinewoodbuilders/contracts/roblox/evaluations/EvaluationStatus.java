@@ -2,12 +2,12 @@ package com.pinewoodbuilders.contracts.roblox.evaluations;
 
 import com.pinewoodbuilders.time.Carbon;
 
-public record EvaluationStatus(boolean passedQuiz, boolean passedPatrol, boolean passedCombat, boolean passedConsensus,
+public record EvaluationStatus(boolean passedQuiz, boolean passedCombat, boolean passedConsensus,
                                String lastEvaluator, Carbon lastEdit,
                                Carbon firstEvaluation) {
 
     public boolean isPassed() {
-        return passedQuiz && passedPatrol && passedCombat && passedConsensus;
+        return passedQuiz && passedCombat && passedConsensus;
     }
 
     public String getLastEvaluator() {
