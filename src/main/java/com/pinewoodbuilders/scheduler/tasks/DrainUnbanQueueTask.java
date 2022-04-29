@@ -32,6 +32,7 @@ import com.pinewoodbuilders.time.Carbon;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Guild.Ban;
 
+import net.dv8tion.jda.api.entities.UserSnowflake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,7 +92,7 @@ public class DrainUnbanQueueTask implements Task {
 
             unregisterDatabaseRecord(avaire, container);
 
-            guild.retrieveBanById(container.getUserId()).queue(ban -> {
+            guild.retrieveBan(UserSnowflake.fromId(container.getUserId())).queue(ban -> {
                 handleBan(guild, ban, container);
             }, error -> {
                 log.error("Unable to retrieve ban for userId:{}", container.getUserId());

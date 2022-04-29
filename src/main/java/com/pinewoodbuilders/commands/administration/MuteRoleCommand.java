@@ -243,7 +243,7 @@ public class MuteRoleCommand extends Command {
                         continue;
                     }
 
-                    channel.getPermissionContainer().putPermissionOverride(role).setDeny(
+                    channel.getPermissionContainer().upsertPermissionOverride(role).setDenied(
                         Permission.CREATE_INSTANT_INVITE.getRawValue() + (
                             channel.getType().equals(ChannelType.TEXT)
                                 ? Permission.ALL_TEXT_PERMISSIONS
@@ -330,7 +330,7 @@ public class MuteRoleCommand extends Command {
             }
 
             channelsModified++;
-            channel.getPermissionContainer().putPermissionOverride(role).setDeny(rawPermissions).queue();
+            channel.getPermissionContainer().upsertPermissionOverride(role).setDenied(rawPermissions).queue();
         }
 
         context.makeSuccess("The override permissions have been setup for the :role role.\n**:modified** channels has been modified, **:notModified** channels were already setup, and **:skipped** channels where skipped due to missing permissions.")

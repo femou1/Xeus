@@ -100,7 +100,7 @@ public class GuildEventAdapter extends EventAdapter {
                                 + "**, however, I could not find the user responsible for the unban. Please check the audit logs in the responsible server for more information. (User has been re-banned)")
                             .buildEmbed()).queue();
                     }
-                    e.getGuild().ban(e.getUser().getId(), 0,
+                    e.getGuild().ban(UserSnowflake.fromId(e.getUser().getId()), 0,
                             "User was unbanned, user has been re-banned due to permban system in Xeus. Original ban reason (Do not unban without MGM permission): "
                                 + unbanCollection.get(0).getReason())
                         .reason("PIA BAN: " + unbanCollection.get(0).getReason()).queue();
@@ -146,7 +146,7 @@ public class GuildEventAdapter extends EventAdapter {
                             String agent = avaire.getShardManager().getUserById(unbanCollection.get(0).getPunisherId()) != null ?
                                 avaire.getShardManager().getUserById(unbanCollection.get(0).getPunisherId()).getName()
                                 : "No MGM Moderator found";
-                            e.getGuild().ban(e.getUser().getId(), 0, "Banned by: " + agent + "\n" + "For: "
+                            e.getGuild().ban(UserSnowflake.fromId(e.getUser().getId()), 0, "Banned by: " + agent + "\n" + "For: "
                                     + unbanCollection.get(0).getReason()
                                     + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
                                 .reason("Global Ban, executed by " + agent + ". For: \n"

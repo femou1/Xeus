@@ -33,6 +33,7 @@ import com.pinewoodbuilders.utilities.RoleUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.UserSnowflake;
 
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -113,7 +114,7 @@ public abstract class BanableCommand extends Command {
 
         final Carbon finalExpiresAt = expiresAt;
 
-        context.getGuild().ban(String.valueOf(userId), soft ? 0 : 7, String.format("%s - %s#%s (%s)", reason,
+        context.getGuild().ban(UserSnowflake.fromId(userId), soft ? 0 : 7, String.format("%s - %s#%s (%s)", reason,
                 context.getAuthor().getName(), context.getAuthor().getDiscriminator(), context.getAuthor().getId()))
                 .queue(aVoid -> {
                     User user = avaire.getShardManager().getUserById(userId);

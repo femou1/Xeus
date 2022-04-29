@@ -726,7 +726,7 @@ public class GlobalModCommand extends Command {
 
                     if (!g.getSelfMember().hasPermission(Permission.BAN_MEMBERS)) continue;
 
-                    g.retrieveBanById(entity.getDiscordId()).submit().thenAccept(ban -> {
+                    g.retrieveBan(UserSnowflake.fromId(entity.getDiscordId())).submit().thenAccept(ban -> {
                         if (ban == null) {
                             return;
                         }
@@ -772,7 +772,7 @@ public class GlobalModCommand extends Command {
 
                 if (!g.getSelfMember().hasPermission(Permission.BAN_MEMBERS)) continue;
 
-                g.retrieveBanById(args[0]).submit().thenAccept(ban -> {
+                g.retrieveBan(UserSnowflake.fromId(args[0])).submit().thenAccept(ban -> {
                     if (ban == null) {
                         sb.append("``").append(g.getName()).append("`` - :warning:\n");
                         return;
@@ -915,7 +915,7 @@ public class GlobalModCommand extends Command {
             GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
             if (settings.getGlobalBan()) continue;
             if (settings.isOfficialSubGroup()) {
-                guild.ban(args[0], time, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: "
+                guild.ban(UserSnowflake.fromId(args[0]), time, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: "
                         + reason
                         + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
                     .reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n"
@@ -923,7 +923,7 @@ public class GlobalModCommand extends Command {
                     .queue();
                 sb.append("``").append(guild.getName()).append("`` - :white_check_mark:\n");
             } else {
-                guild.ban(args[0], time,
+                guild.ban(UserSnowflake.fromId(args[0]), time,
                         "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
                     .queue();
                 sb.append("``").append(guild.getName()).append("`` - :ballot_box_with_check:\n");
@@ -1153,12 +1153,12 @@ public class GlobalModCommand extends Command {
                     if (dr.getString("userId") == null)
                         continue;
                     if (mainGroupId == 0L) {
-                        context.guild.ban(dr.getString("userId"), 0,
+                        context.guild.ban(UserSnowflake.fromId(dr.getString("userId")), 0,
                                 "THIS BAN MAY ONLY BE REVERTED BY A MGM MODERATOR. ORIGINAL BAN REASON: "
                                     + dr.getString("reason"))
                             .reason("Ban sync").queue();
                     } else if (mainGroupId == dr.getLong("main_group_id")) {
-                        context.guild.ban(dr.getString("userId"), 0,
+                        context.guild.ban(UserSnowflake.fromId(dr.getString("userId")), 0,
                                 "THIS BAN MAY ONLY BE REVERTED BY A MGM MODERATOR. ORIGINAL BAN REASON: "
                                     + dr.getString("reason"))
                             .reason("Ban sync").queue();
@@ -1171,12 +1171,12 @@ public class GlobalModCommand extends Command {
                     if (dr.getString("userId") == null)
                         continue;
                     if (mainGroupId == 0L) {
-                        context.guild.ban(dr.getString("userId"), 0,
+                        context.guild.ban(UserSnowflake.fromId(dr.getString("userId")), 0,
                                 "THIS BAN MAY ONLY BE REVERTED BY A MGM MODERATOR. ORIGINAL BAN REASON: "
                                     + dr.getString("reason"))
                             .reason("Ban sync").queue();
                     } else if (mainGroupId == dr.getLong("main_group_id")) {
-                        context.guild.ban(dr.getString("userId"), 0,
+                        context.guild.ban(UserSnowflake.fromId(dr.getString("userId")), 0,
                                 "THIS BAN MAY ONLY BE REVERTED BY A MGM MODERATOR. ORIGINAL BAN REASON: "
                                     + "Hidden for un-official guilds.")
                             .reason("Ban sync").queue();

@@ -371,7 +371,7 @@ public class WarnCommand extends Command {
             GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
             if (settings.getGlobalBan()) continue;
             if (settings.isOfficialSubGroup()) {
-                guild.ban(user.getId(), 0, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: "
+                guild.ban(UserSnowflake.fromId(user.getId()), 0, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: "
                         + reason
                         + "\n*This is a global-ban ran due to reaching 15 warnings in a guild.*")
                     .reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n"
@@ -379,7 +379,7 @@ public class WarnCommand extends Command {
                     .queue();
                 sb.append("``").append(guild.getName()).append("`` - :white_check_mark:\n");
             } else {
-                guild.ban(user.getId(), 0,
+                guild.ban(UserSnowflake.fromId(user.getId()), 0,
                         "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
                     .queue();
                 sb.append("``").append(guild.getName()).append("`` - :ballot_box_with_check:\n");

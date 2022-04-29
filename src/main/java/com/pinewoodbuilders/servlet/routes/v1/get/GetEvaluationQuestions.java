@@ -2,10 +2,8 @@ package com.pinewoodbuilders.servlet.routes.v1.get;
 
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.metrics.SparkRoute;
-import com.pinewoodbuilders.database.controllers.GuildController;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import net.dv8tion.jda.api.entities.Guild;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -60,7 +58,7 @@ public class GetEvaluationQuestions extends SparkRoute {
         }
 
         Random random_method = new Random();
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 10; i++) {
             int index = random_method.nextInt(transformer.getEvalQuestions().size());
             String question = transformer.getEvalQuestions().get(index);
             if (questions.contains(question)) {

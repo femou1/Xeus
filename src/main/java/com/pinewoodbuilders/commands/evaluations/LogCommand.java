@@ -179,7 +179,7 @@ public class LogCommand extends Command {
 
     private static String getRobloxUsernameFromId(int id) {
         try {
-            JSONObject json = readJsonFromUrl("http://api.roblox.com/users/" + id);
+            JSONObject json = readJsonFromUrl("https://api.roblox.com/users/" + id);
             return json.getString("Username");
         } catch (Exception e) {
             return "Unknown";

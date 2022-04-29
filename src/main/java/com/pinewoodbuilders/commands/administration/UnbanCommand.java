@@ -35,6 +35,7 @@ import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.UserSnowflake;
 
 import javax.annotation.Nonnull;
 import java.sql.SQLException;
@@ -120,7 +121,7 @@ public class UnbanCommand extends Command {
         }
 
         try {
-            context.getGuild().retrieveBanById(Long.parseLong(args[0])).queue(ban -> {
+            context.getGuild().retrieveBan(UserSnowflake.fromId(args[0])).queue(ban -> {
                 handleBan(context, ban, Arrays.copyOfRange(args, 1, args.length));
             }, error -> {
                 context.makeWarning(context.i18n("noUserIsBanned"))

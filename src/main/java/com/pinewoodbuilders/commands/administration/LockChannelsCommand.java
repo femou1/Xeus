@@ -155,7 +155,7 @@ public class LockChannelsCommand extends Command {
                         permissionOverride.getManager().setPermissions(allow_see, deny_write).queue();
                         sb.append(":x: ").append(tc.getAsMention()).append(": ").append(role.getAsMention()).append("\n");
                     } else {
-                        permissionOverride.getManager().clear(Permission.MESSAGE_SEND).setAllow(Permission.VIEW_CHANNEL).queue();
+                        permissionOverride.getManager().clear(Permission.MESSAGE_SEND).setAllowed(Permission.VIEW_CHANNEL).queue();
                         sb.append(":white_check_mark: ").append(tc.getAsMention()).append(": ").append(role.getAsMention()).append("\n");
                     }
                 }

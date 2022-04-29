@@ -1053,14 +1053,14 @@ public class MessageEventAdapter extends EventAdapter {
             GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
             if (settings.getGlobalBan()) continue;
             if (settings.isOfficialSubGroup()) {
-                guild.ban(bannedUserId, time, "Banned by: " + moderator.getRobloxUsername() + "\n" + "For: "
+                guild.ban(UserSnowflake.fromId(bannedUserId), time, "Banned by: " + moderator.getRobloxUsername() + "\n" + "For: "
                         + reason
                         + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
                     .reason("Global Ban, executed by " + moderator.getRobloxUsername() + ". For: \n"
                         + reason)
                     .queue();
             } else {
-                guild.ban(bannedUserId, time,
+                guild.ban(UserSnowflake.fromId(bannedUserId), time,
                         "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
                     .queue();
             }
