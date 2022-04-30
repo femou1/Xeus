@@ -803,7 +803,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                 event.getMessage().editMessageEmbeds(event.getMessage().getEmbeds()).setActionRows(Collections.emptyList()).queue();
                 event.getChannel().sendMessageEmbeds(MessageFactory.makeError(event.getMessage(), "Eval has been rejected, record has been updated in the database!").buildEmbed()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
                 CacheAdapter cache = Xeus.getInstance().getRobloxAPIManager().getEvaluationManager().getCooldownCache();
-                cache.put("evaluation." + userId + ".cooldown", true, 60 * 60 * 24);
+                cache.put("evaluation." + userId + ".cooldown", true, 60 * 60 * 48);
             });
         } catch (SQLException throwables) {
             throwables.printStackTrace();
