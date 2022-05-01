@@ -507,20 +507,13 @@ public class MainEventHandler extends EventHandler {
     }*/
 
     private void prepareGuildMembers(GenericEvent event) {
-        if (event instanceof GenericMessageEvent) {
-            GenericMessageEvent genericMessageEvent = (GenericMessageEvent) event;
-
+        if (event instanceof GenericMessageEvent genericMessageEvent) {
             if (genericMessageEvent.isFromGuild()) {
                 loadGuildMembers(genericMessageEvent.getGuild());
             }
-
-        } else if (event instanceof GenericRoleEvent) {
-            GenericRoleEvent genericRoleEvent = (GenericRoleEvent) event;
-
+        } else if (event instanceof GenericRoleEvent genericRoleEvent) {
             loadGuildMembers(genericRoleEvent.getGuild());
-        } else if (event instanceof GenericGuildEvent) {
-            GenericGuildEvent genericGuildEvent = (GenericGuildEvent) event;
-
+        } else if (event instanceof GenericGuildEvent genericGuildEvent) {
             loadGuildMembers(genericGuildEvent.getGuild());
         }
     }

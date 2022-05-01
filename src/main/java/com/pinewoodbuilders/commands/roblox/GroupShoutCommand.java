@@ -2,17 +2,28 @@ package com.pinewoodbuilders.commands.roblox;
 
 import com.pinewoodbuilders.AppInfo;
 import com.pinewoodbuilders.Xeus;
+import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
+import com.pinewoodbuilders.contracts.verification.VerificationEntity;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.text.Modal;
+import net.dv8tion.jda.api.interactions.components.text.TextInput;
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import okhttp3.*;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -73,7 +84,103 @@ public class GroupShoutCommand extends Command {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
 
-        if (avaire.getConfig().getString("apiKeys.nobloxServerAPIKey") == null | avaire.getConfig().getString("apiKeys.nobloxServerAPIKey").length() < 1) {
+        context.getChannel().sendMessage("This modal will only work for " + context.member.getAsMention()).queue(buttonMessage ->
+
+            {
+
+                Button button = Button.primary("open-modal:" + context.getMember().getId() + ":" + buttonMessage.getId(), "This will open a question modal");
+                buttonMessage.editMessage("Testing with added button...").setActionRow(button.asEnabled()).queue();
+
+                avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class, event -> {
+                    String[] buttonString = event.getButton().getId().split(":");
+                    String buttonId = buttonString[0];
+                    String userId = buttonString[1];
+                    String messageId = buttonString[2];
+                    if (!userId.equals(context.getMember().getId()) || !messageId.equals(buttonMessage.getId())) {
+                        event.reply("This is not your message or the incorrect one for this message!").queue();
+                        return false;
+                    }
+                    return buttonId.equals("open-modal") && messageId.equals(buttonMessage.getId());
+
+                }, event -> {
+                    VerificationEntity ve = avaire.getRobloxAPIManager().getVerification().fetchVerificationWithBackup(event.getUser().getId(), true);
+
+                    TextInput username = TextInput.create("username", "What is your roblox username?", TextInputStyle.SHORT)
+                        .setPlaceholder("If you can see this, Xeus coudn't find your username. Please enter it manually.")
+                        .setValue(ve != null ? ve.getRobloxUsername() : "")
+                        .setRequired(true)
+                        .setMinLength(3)
+                        .setMaxLength(16)
+                        .build();
+
+                    TextInput timeOfPunishment = TextInput.create("timeOfPunishment", "When did this occur?", TextInputStyle.SHORT)
+                        .setPlaceholder("{Your best estimate of your punishment date}")
+                        .setRequired(true)
+                        .build();
+
+                    TextInput punishmentReason = TextInput.create("punishmentReason", "Why was this moderation action put on you?", TextInputStyle.PARAGRAPH)
+                        .setPlaceholder("{The reason for your punishment.}")
+                        .setRequired(true)
+                        .build();
+
+                    TextInput removalReason = TextInput.create("removalReason", "Why should this appeal be accepted?", TextInputStyle.PARAGRAPH)
+                        .setPlaceholder("{Why should we remove your punishment?}")
+                        .setRequired(true)
+                        .build();
+
+                    TextInput prevention = TextInput.create("prevention", "How will you prevent being punished again?", TextInputStyle.PARAGRAPH)
+                        .setPlaceholder("{Your best estimate of your punishment date}")
+                        .setRequired(true)
+                        .build();
+
+
+                    Modal modal1 = Modal.create(event.getMember().getId() + ":support:" + event.getMessageId(), "Gameban Appeal")
+                        .addActionRows(ActionRow.of(username), ActionRow.of(timeOfPunishment), ActionRow.of(punishmentReason), ActionRow.of(removalReason), ActionRow.of(prevention))
+                        .build();
+
+                    event.replyModal(modal1).queue(l -> {
+                        avaire.getWaiter().waitForEvent(ModalInteractionEvent.class, modal -> {
+                            String[] modalString = modal.getModalId().split(":");
+                            String userId = modalString[0];
+                            String modalName = modalString[1];
+                            String messageId = modalString[2];
+                            if (userId.equals(modal.getMember().getId()) && messageId.equals(event.getMessageId())) {
+                                return modalName.equals("support");
+                            }
+                            modal.reply("You are not the user that created this modal, or this is the incorrect message.!").setEphemeral(true).queue();
+                            return false;
+                        }, modal -> {
+                            //username - timeOfPunishment - punishmentReason - removalReason - prevention
+                            modal.replyEmbeds(new PlaceholderMessage(new EmbedBuilder(),
+                                """
+                                    **Username:** :username
+                                    **Time of Punishment**: :timeOfPunishment
+                                                                        
+                                    **Punishment Reason**:
+                                        :punishmentReason
+                                        
+                                    **Removal Reason**:
+                                        :removalReason
+                                        
+                                    **Prevention**:
+                                        :prevention
+                                    """)
+                                .setTimestamp(Instant.now())
+                                .set("username", modal.getValue("username").getAsString())
+                                .set("timeOfPunishment", modal.getValue("timeOfPunishment").getAsString())
+                                .set("punishmentReason", modal.getValue("punishmentReason").getAsString())
+                                .set("removalReason", modal.getValue("removalReason").getAsString())
+                                .set("prevention", modal.getValue("prevention").getAsString())
+                                .requestedBy(event.getMember())
+                                .buildEmbed()).queue();
+                        });
+                    });
+
+                });
+            }
+        );
+
+/*        if (avaire.getConfig().getString("apiKeys.nobloxServerAPIKey") == null | avaire.getConfig().getString("apiKeys.nobloxServerAPIKey").length() < 1) {
             context.makeError("An noblox api key could not be found. Please enter it in the config.yml").queue();
             return false;
         }
@@ -116,7 +223,7 @@ public class GroupShoutCommand extends Command {
 
                 sendMessage(context, k);
             });
-        });
+        });*/
         return false;
     }
 
