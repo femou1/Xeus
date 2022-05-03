@@ -2,11 +2,11 @@ package com.pinewoodbuilders.commands.utility;
 
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
-import com.pinewoodbuilders.blacklist.features.FeatureScope;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
@@ -14,15 +14,19 @@ import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.Request;
 import com.pinewoodbuilders.requests.Response;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
-import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.Modal;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
+import net.dv8tion.jda.api.interactions.components.text.TextInput;
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
@@ -129,6 +133,11 @@ public class ReportUserCommand extends Command {
             QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("handbook_report_channel");
             try {
 
+                SelectMenu.Builder menu = SelectMenu.create("selector:server-to-report-to:" + context.getMember().getId() + ":" + context.getMessage().getId())
+                    .setPlaceholder("Select the group to report to!") // shows the placeholder indicating what this menu is for
+                    .addOption("Cancel", "cancel", "Stop reporting someone", Emoji.fromUnicode("❌"))
+                    .setRequiredRange(1, 1); // only one can be selected
+
                 StringBuilder sb = new StringBuilder();
                 qb.get().forEach(dataRow -> {
                     if (dataRow.getString("handbook_report_channel") != null) {
@@ -136,28 +145,73 @@ public class ReportUserCommand extends Command {
                         Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("emoji_id"));
 
                         if (g != null && e != null) {
-                            sb.append("``").append(g.getName()).append("`` - ").append(e.getAsMention()).append("\n");
-                            l.addReaction(e).queue();
+                            menu.addOption(g.getName(), g.getId() + ":" + e.getId(), "Report to " + g.getName(), Emoji.fromEmote(e));
+                            /*sb.append("``").append(g.getName()).append("`` - ").append(e.getAsMention()).append("\n");
+                            l.addReaction(e).queue();*/
                         } else {
                             context.makeError("Either the guild or the emote can't be found in the database, please check with the developer.").queue();
-                            return;
                         }
                     }
-
+                    //l.addReaction("❌").queue();
                 });
-                l.addReaction("❌").queue();
-                l.editMessageEmbeds(context.makeInfo("Welcome to the pinewood report system. With this feature, you can report any Pinewood member in any of the pinewood groups!\n\n" + sb.toString()).buildEmbed()).queue(
+
+
+
+
+
+                l.editMessageEmbeds(context.makeInfo("""
+                    Welcome to the pinewood report system. With this feature, you can report any Pinewood member in any of the pinewood groups!
+
+                    ***__Please choose the group you would like to report to here__***""").buildEmbed()).setActionRow(menu.build()).queue(
                     message -> {
-                        avaire.getWaiter().waitForEvent(MessageReactionAddEvent.class, event -> {
-                            return event.getMember().equals(context.member) && event.getMessageId().equalsIgnoreCase(message.getId());
-                        }, react -> {
-                            try {
-                                if (react.getReactionEmote().getName().equalsIgnoreCase("❌")) {
-                                    message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).queue();
-                                    message.clearReactions().queue();
+                        avaire.getWaiter().waitForEvent(SelectMenuInteractionEvent.class, interaction -> {
+                            return interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(message);
+                        }, select -> {
+                                if (select.getInteraction().getSelectedOptions().get(0).getEmoji().getName().equalsIgnoreCase("❌")) {
+                                    message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).setActionRows(Collections.emptySet()).queue();
+                                    /*message.clearReactions().queue();*/
                                     return;
                                 }
-                                DataRow d = qb.where("emoji_id", react.getReactionEmote().getId()).get().get(0);
+
+                                String[] split = select.getInteraction().getSelectedOptions().get(0).getValue().split(":");
+                                String guildId = split[0];
+
+                                TextInput username = TextInput.create("username", "Username", TextInputStyle.SHORT)
+                                    .setPlaceholder("Enter the username of the person you would like to report.")
+                                    .setMinLength(3)
+                                    .setMaxLength(32) // or setRequiredRange(10, 100)
+                                    .build();
+
+                                TextInput reason = TextInput.create("reason", "What has this user done?", TextInputStyle.PARAGRAPH)
+                                    .setPlaceholder("Please explain why this is a report.")
+                                    .setMinLength(5)
+                                    .setMaxLength(500)
+                                    .build();
+
+                                TextInput evidence = TextInput.create("evidence", "Please provide some evidence.", TextInputStyle.PARAGRAPH)
+                                    .setPlaceholder("We need proof to punish this person. (YT/Imgur/Discord/Gyazo/LightShot/Streamable)")
+                                    .setMinLength(5)
+                                    .setMaxLength(750)
+                                    .build();
+
+
+                                TextInput proofOfWarning = TextInput.create("proofOfWarning", "Have you warned this person?", TextInputStyle.PARAGRAPH)
+                                    .setPlaceholder("We need proof of the user knowing the violation. (YT/Imgur/Discord/Gyazo/LightShot/Streamable)")
+                                    .setMinLength(5)
+                                    .setMaxLength(750)
+                                    .build();
+
+                                Modal.Builder modal = Modal.create("report:" + guildId, "Support")
+                                    .addActionRows(ActionRow.of(username), ActionRow.of(reason), ActionRow.of(evidence));
+
+                                if (!(guildId.equals("572104809973415943") || guildId.equals("572104810289905408"))) {
+                                    modal.addActionRows(ActionRow.of(proofOfWarning));
+                                }
+
+                                message.editMessageEmbeds(context.makeInfo("You have been sent a modal, please respond to the questions asked and come back here, if you're not back in 3 minutes. The modal expires").buildEmbed()).setActionRows(Collections.emptySet()).queue();
+                                select.replyModal(modal.build()).queue();
+                            /*try {
+
 
                                 TextChannel c = avaire.getShardManager().getTextChannelById(d.getString("handbook_report_channel"));
                                 if (c != null) {
@@ -187,7 +241,7 @@ public class ReportUserCommand extends Command {
 
                             } catch (SQLException throwables) {
                                 context.makeError("Something went wrong while checking the database, please check with the developer for any errors.").queue();
-                            }
+                            }*/
                         },
                             5, TimeUnit.MINUTES,
                             () -> {
@@ -630,6 +684,7 @@ public class ReportUserCommand extends Command {
         try {
             qb.update(q -> {
                 q.set("handbook_report_channel", transformer.getHandbookReportChannel());
+                q.set("emoji_id", emote.getId());
             });
 
             context.makeSuccess("Suggestions have been enabled for :channel").set("channel", channel.getAsMention()).queue();

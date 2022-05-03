@@ -34,6 +34,8 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import org.slf4j.Logger;
@@ -73,14 +75,14 @@ public class JDAStateEventAdapter extends EventAdapter {
 
         for (Guild g : shardManager.getGuilds()) {
             if (g.getId().equals("438134543837560832")) {
-                g.updateCommands().addCommands(/*Commands.slash("verify", "Verify yourself on the guild you run this command on."),
+                g.updateCommands().addCommands(Commands.slash("verify", "Verify yourself on the guild you run this command on."),
                     Commands.slash("update", "Update a user on the guild you run this command on.")
                         .addOption(OptionType.USER, "member", "This will update the specified member to the ranks he has.", true),
                     Commands.slash("whois", "Check the information on a user.")
                         .addOption(OptionType.USER, "member", "This will use the user to get info about their ranks + roblox profile.", true),
                     Commands.slash("roleinfo", "See the information about a Discord role.")
                         .addOption(OptionType.ROLE, "role", "The role you would like to see information about.", true),
-                    Commands.user("whois").setDefaultEnabled(true)*/).queue();
+                    Commands.user("whois").setDefaultEnabled(true)).queue();
 
             }
         }

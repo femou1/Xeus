@@ -90,22 +90,22 @@ public class ReverifyCommand extends VerificationCommandContract {
                     }
 
                     SelectMenu.Builder menu = SelectMenu.create("menu:provider-to-verify-with" + ":" + context.getMember().getId() + ":" + context.getMessage().getId())
-                            .setPlaceholder("Select the verification provider!") // shows the placeholder indicating what this menu is for
-                            .addOption("Verify a new account!", "verify-new-account", "Select this to verify a new account.", Emoji.fromMarkdown("<:PBST_GOD:857728071183237141>"))
-                            .setRequiredRange(1, 1); // only one can be selected
+                        .setPlaceholder("Select the verification provider!") // shows the placeholder indicating what this menu is for
+                        .addOption("Verify a new account!", "verify-new-account", "Select this to verify a new account.", Emoji.fromMarkdown("<:PBST_GOD:857728071183237141>"))
+                        .setRequiredRange(1, 1); // only one can be selected
 
                     for (VerificationEntity ve : verificationEntities) {
                         VerificationProviders provider = VerificationProviders.resolveProviderFromProvider(ve.getProvider());
                         if (provider != null) {
                             String username = ve.getRobloxUsername() != null ? ve.getRobloxUsername() : "Deleted";
-                                menu.addOption(username, ve.getProvider() + ":" + username, "Verify with " + username + " from " + provider.provider, Emoji.fromMarkdown(provider.emoji));
+                            menu.addOption(username, ve.getProvider() + ":" + username, "Verify with " + username + " from " + provider.provider, Emoji.fromMarkdown(provider.emoji));
                         }
                     }
 
                     unverifiedMessage.editMessageEmbeds(context.makeSuccess("Found `" + verificationEntities.size() + "` providers with your account in their database, please select the provider you want to verify with!  (By clicking on one of these providers, you allow us to store your discord ID and roblox ID within our database. We use this information to link your account to a discord account and to check if there are any infractions on past accounts)").requestedBy(context).buildEmbed())
                             .setActionRow(menu.build()).queue(menuSelection -> {
                         avaire.getWaiter().waitForEvent(SelectMenuInteractionEvent.class,
-                                interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(unverifiedMessage),
+                            interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(unverifiedMessage),
                                 providerSelect -> {
                                     providerSelect.deferEdit().queue();
                                     selectProvider(context, unverifiedMessage, rover, bloxlink, pinewood, rowifi, providerSelect);

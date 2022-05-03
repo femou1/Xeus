@@ -335,29 +335,14 @@ public class MainEventHandler extends EventHandler {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        if (changelogEventAdapter.isChangelogMessage(event.getChannel())) {
-            changelogEventAdapter.onMessageReceived(event);
-        }
+        if (event.getAuthor().isBot()) return;
+        if (changelogEventAdapter.isChangelogMessage(event.getChannel())) changelogEventAdapter.onMessageReceived(event);
         messageEvent.onMessageReceived(event);
-
-        if (event.getChannel().getId().equals("691337332661420082")) {
-            if (!event.getMessage().getContentRaw().contains("img.pizzabyte.xyz")) {
-                event.getMessage().delete()
-                    .flatMap(l -> event.getMember().getUser().openPrivateChannel())
-                    .flatMap(privateChannel -> privateChannel.sendMessage("Hi there, we only allow messages that contain the " +
-                        "**official https://img.pizzabyte.xyz/ domain.**, your message has been deleted. Sorry for the inconvenience. " +
-                        "If you'd like to ask any questions, please follow the steps in the topic of <#691337332661420082>"))
-                    .queue();
-            }
-            return;
-        }
-
         if (Xeus.getEnvironment().getName().equals(Environment.DEVELOPMENT.getName())) {
             return;
         }
 
         if (event.isFromGuild()) {
-            if (!event.getAuthor().isBot()) {
                 messageEvent.onLocalFilterMessageReceived(event);
                 messageEvent.onGlobalFilterMessageReceived(event);
                 messageEvent.onNoLinksFilterMessageReceived(event);
@@ -365,7 +350,7 @@ public class MainEventHandler extends EventHandler {
                 if (event.getChannel().getId().equals("769274801768235028") || event.getChannel().getId().equals("777903149511082005")) {
                     messageEvent.onEventGalleryMessageSent(event);
                 }
-            }
+
             if (event.getChannel().getId().equals("871890084121673738")) {
                 messageEvent.sendPBACRaidVoteEmojis(event);
             }
