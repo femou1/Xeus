@@ -1,7 +1,8 @@
 package com.pinewoodbuilders.commands.evaluations;
 
-import com.pinewoodbuilders.Xeus;
+import com.pinewoodbuilders.AppInfo;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.MessageType;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.commands.CommandMessage;
@@ -19,11 +20,16 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.PermissionException;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
+import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -110,8 +116,42 @@ public class EvaluationCommand extends Command {
             case "set-quiz-channel", "sqc", "quiz-channel", "qc" -> setQuizChannel(context, args);
             case "questions" -> questionSubMenu(context, args);
             case "kronos-sync" -> runKronosSync(context);
+            case "oh-no" -> ohNo(context);
             default -> evalSystemCommands(context, args);
         };
+    }
+
+    private boolean ohNo(CommandMessage context) {
+        // Send a json request to the following raw url: https://pastebin.com/raw/ptR6VgXk
+        // The json will be a list of long values, each long being an roblox user id.
+        // Every ID will be checked to see if they have passed all evals, and if they haven't. Put their ID in an array.
+        // The array will be sent to the following url: https://pastebin.com/raw/ptR6VgXk
+
+        Request.Builder request = new Request.Builder()
+            .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
+            .url("https://pastebin.com/raw/ptR6VgXk");
+
+        try (Response response = avaire.getRobloxAPIManager().getClient().newCall(request.build()).execute()) {
+            if (response.code() == 200) {
+                String body = response.body().string();
+                JSONArray array = new JSONArray(body);
+                List<Long> ids = array.toList().stream().map(Object::toString).map(Long::parseLong).toList();
+
+                List<Long> failed = new ArrayList <>();
+
+                for (Long id : ids) {
+                    EvaluationStatus status = avaire.getRobloxAPIManager().getEvaluationManager().getEvaluationStatus(id);
+                    if (!status.isPassed()) {
+                        failed.add(id);
+                    }
+                }
+
+                System.out.println(failed);
+            }
+        } catch (IOException e) {
+            Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+        }
+        return true;
     }
 
     private boolean runKronosSync(CommandMessage context) {

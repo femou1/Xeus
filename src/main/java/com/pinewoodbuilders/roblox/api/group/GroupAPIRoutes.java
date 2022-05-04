@@ -50,8 +50,8 @@ public class GroupAPIRoutes {
 
     private GroupRanksService callGroupRanksFromRobloxAPI(long groupId) {
         Request.Builder request = new Request.Builder()
-                .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
-                .url("https://groups.roblox.com/v1/groups/{groupId}/roles".replace("{groupId}", String.valueOf(groupId)));
+            .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
+            .url("https://groups.roblox.com/v1/groups/{groupId}/roles".replace("{groupId}", String.valueOf(groupId)));
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
