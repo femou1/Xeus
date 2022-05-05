@@ -6,18 +6,12 @@ import com.pinewoodbuilders.contracts.cache.CacheAdapter;
 import com.pinewoodbuilders.contracts.metrics.SparkRoute;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
-import com.pinewoodbuilders.database.controllers.GuildSettingsController;
-import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
 import net.dv8tion.jda.api.entities.Guild;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Request;
 import spark.Response;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class GetEvaluationStatus extends SparkRoute {
 
@@ -46,8 +40,6 @@ public class GetEvaluationStatus extends SparkRoute {
         Collection collection = Xeus.getInstance().getDatabase().newQueryBuilder(Constants.EVALS_DATABASE_TABLE_NAME).where("roblox_id", robloxId).get();
         if (collection.size() < 1) {
             root.put("passed_quiz", false);
-            root.put("passed_combat", false);
-            root.put("passed_patrol", false);
             root.put("quizPending", Xeus.getInstance().getRobloxAPIManager().getEvaluationManager().hasPendingQuiz(robloxId));
             root.put("enoughPoints", points >= 75);
             root.put("points", points);
@@ -80,7 +72,6 @@ public class GetEvaluationStatus extends SparkRoute {
         root.put("roblox_id", robloxId);
         root.put("quizPending", Xeus.getInstance().getRobloxAPIManager().getEvaluationManager().hasPendingQuiz(robloxId));
         root.put("enoughPoints", points >= 75);
-        root.put("points", points);
         root.put("rankLocked", Xeus.getInstance().getRobloxAPIManager().getKronosManager().isRanklocked(robloxId));
         root.put("onCooldown", getCooldownFromCache(robloxId));
         root.put("isEvalRank", isEvalRank(guildId, robloxId));
@@ -94,7 +85,7 @@ public class GetEvaluationStatus extends SparkRoute {
 
     private boolean isEvalRank(Long id, Long robloxId) {
         Guild guild = Xeus.getInstance().getShardManager().getGuildById(id);
-        if (guild != null) {
+        /*if (guild != null) {
             if (guild.getId().equals("438134543837560832")) {
                 GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(Xeus.getInstance(), guild);
                 if (transformer != null) {
@@ -107,11 +98,11 @@ public class GetEvaluationStatus extends SparkRoute {
                             return false;
                         }
 
-                        return ranks.get(0).getRole().getRank() == 2;
+                        //return ranks.get(0).getRole().getRank() == 2;
                     }
                 }
             }
-        }
+        }*/
         return true;
     }
 

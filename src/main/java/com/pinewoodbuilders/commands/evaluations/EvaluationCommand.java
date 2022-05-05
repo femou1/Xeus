@@ -117,19 +117,65 @@ public class EvaluationCommand extends Command {
             case "questions" -> questionSubMenu(context, args);
             case "kronos-sync" -> runKronosSync(context);
             case "oh-no" -> ohNo(context);
+            case "oh-yes" -> ohYes(context);
             default -> evalSystemCommands(context, args);
         };
     }
 
+    private boolean ohYes(CommandMessage context) {
+        // Send a json request to the following raw url: https://pastebin.com/raw/Yscb67wh
+        // The json will be a list of long values, each long being an roblox user id.
+        // Every ID in that list get's checked on their eval status, and if they passed both the quiz and the combat.
+        // If they passed both, they get a DM with a message saying they passed the quiz and the combat.
+        Request.Builder request = new Request.Builder()
+            .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
+            .url("https://pastebin.com/raw/Yscb67wh");
+
+        try (Response response = avaire.getRobloxAPIManager().getClient().newCall(request.build()).execute()) {
+            if (response.code() == 200) {
+                String body = response.body().string();
+                JSONArray array = new JSONArray(body);
+                List<Long> ids = array.toList().stream().map(Object::toString).map(Long::parseLong).toList();
+
+                for (Long id : ids) {
+                    EvaluationStatus status = avaire.getRobloxAPIManager().getEvaluationManager().getEvaluationStatus(id);
+                    if (status.passedQuiz() && status.passedCombat() && !status.passedConsensus()) {
+                        String username = avaire.getRobloxAPIManager().getUserAPI().getUsername(id);
+                        context.makeInfo("""
+                            **:username**
+
+                            Quiz: **:status**
+                            Combat: **:status**
+
+                            Verdict: **N.A.**""")
+                            .set("username", username)
+                            .set("status", "Passed").queue(
+                                message -> {
+                                    message.createThreadChannel(username).queue();
+                                    message.addReaction("\uD83D\uDC4D").queue(); //
+                                    message.addReaction("✋").queue(); //
+                                    message.addReaction("\uD83D\uDC4E").queue(); //
+                                }
+                            );
+
+                    }
+                }
+            }
+        } catch (IOException e) {
+            Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+        }
+        return true;
+    }
+
     private boolean ohNo(CommandMessage context) {
-        // Send a json request to the following raw url: https://pastebin.com/raw/ptR6VgXk
+        // Send a json request to the following raw url: https://pastebin.com/raw/Yscb67wh
         // The json will be a list of long values, each long being an roblox user id.
         // Every ID will be checked to see if they have passed all evals, and if they haven't. Put their ID in an array.
-        // The array will be sent to the following url: https://pastebin.com/raw/ptR6VgXk
+        // The array will be sent to the following url: https://pastebin.com/raw/Yscb67wh
 
         Request.Builder request = new Request.Builder()
             .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
-            .url("https://pastebin.com/raw/ptR6VgXk");
+            .url("https://pastebin.com/raw/Yscb67wh");
 
         try (Response response = avaire.getRobloxAPIManager().getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {

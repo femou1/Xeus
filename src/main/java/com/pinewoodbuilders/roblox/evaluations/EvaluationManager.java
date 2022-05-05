@@ -25,11 +25,6 @@ public class EvaluationManager {
     }
 
     public EvaluationStatus getEvaluationStatus(Long robloxId) {
-        String username = manager.getUserAPI().getUsername(robloxId);
-        if (username == null) {
-            return new EvaluationStatus(false, false, false, null, null, null);
-        }
-
         try {
             Collection qb = avaire.getDatabase().newQueryBuilder(Constants.EVALS_DATABASE_TABLE_NAME).where("roblox_id", robloxId).get();
 
