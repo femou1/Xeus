@@ -507,6 +507,8 @@ public class EvaluationCommand extends Command {
                                                 context.getMember().getEffectiveName());
                                         if (args[2].equalsIgnoreCase("quiz")) {
                                             statement.set("passed_quiz", false);
+                                            avaire.getRobloxAPIManager().getEvaluationManager().getCooldownCache()
+                                                .put("evaluation." + roblox_id + ".cooldown", true, 60 * 60 * 48);
                                         } else if (args[2].equalsIgnoreCase("combat")) {
                                             statement.set("passed_combat", false);
                                         } else if (args[2].equalsIgnoreCase("consensus")) {
@@ -530,6 +532,8 @@ public class EvaluationCommand extends Command {
                                     .update(statement -> {
                                         if (args[2].equalsIgnoreCase("quiz")) {
                                             statement.set("passed_quiz", false);
+                                            avaire.getRobloxAPIManager().getEvaluationManager().getCooldownCache()
+                                                .put("evaluation." + roblox_id + ".cooldown", true, 60 * 60 * 48);
                                         } else if (args[2].equalsIgnoreCase("combat")) {
                                             statement.set("passed_combat", false);
                                         } else if (args[2].equalsIgnoreCase("consensus")) {
