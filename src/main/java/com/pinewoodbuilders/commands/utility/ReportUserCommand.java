@@ -321,7 +321,7 @@ public class ReportUserCommand extends Command {
                         askConfirmation(modalEvidence, tc, act, modalUsername, modalReason, modalProofOfWarning, b.get().getRole().getName(), message);
                     } else {
                         //context.makeInfo(String.valueOf(response.getResponse().code())).queue();
-                        act.getInteraction().reply("The user who you've requested a punishment for isn't in `" + act.getGuild().getName() + "`, please check if this is correct or not.").queue();
+                        act.getInteraction().reply("The user who you've requested a punishment for isn't in `" + tc.getGuild().getName() + "`, please check if this is correct or not.").queue();
 
                     }
                 } else {
