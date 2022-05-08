@@ -34,6 +34,7 @@ import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.time.Carbon;
+import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.User;
 
@@ -104,7 +105,8 @@ public class ModlogHistoryCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        String user = null;
+        User su = MentionableUtil.getUser(context, args);
+        String user = su != null ? su.getId() : null;
         if (args.length == 0) {
             return sendErrorMessage(context, context.i18n("mustMentionUser"));
         }
