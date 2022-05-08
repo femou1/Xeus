@@ -148,9 +148,9 @@ public class WarnCommand extends Command {
             return sendErrorMessage(context, context.i18n("warnBots"));
         }
 
-        /*if (user == context.getAuthor()) {
+        if (user == context.getAuthor()) {
             return sendErrorMessage(context, "Silly person, you can't warn yourself you twat.");
-        }*/
+        }
 
 
         Carbon expiresAt = null;
@@ -164,18 +164,10 @@ public class WarnCommand extends Command {
         if (expiresAt == null) {
             Carbon expire = Carbon.now().addSecond();
             switch (args[1].toLowerCase(Locale.ROOT)) {
-                case "t1":
-                    expire = expire.addMonth();
-                    break;
-                case "t2":
-                    expire = expire.addMonths(2);
-                    break;
-                case "t3":
-                    expire = expire.addMonths(3);
-                    break;
-                default:
-                    expire = expire.addDays(30);
-                    break;
+                case "t1": expire = expire.addMonths(3);
+                case "t2": expire = expire.addMonths(4);
+                case "t3": expire = expire.addMonths(5);
+                default: expire = expire.addMonths(3);
             }
             expiresAt = expire;
         }
