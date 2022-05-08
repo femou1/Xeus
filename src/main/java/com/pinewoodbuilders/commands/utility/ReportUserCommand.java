@@ -100,22 +100,13 @@ public class ReportUserCommand extends Command {
         int permissionLevel = XeusPermissionUtil.getPermissionLevel(context).getLevel();
         if (permissionLevel >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             if (args.length > 0) {
-                switch (args[0].toLowerCase()) {
-                    case "sr":
-                    case "set-reports":
-                        return runSetReportChannel(context, args);
-                    case "ca":
-                    case "clear-all":
-                        return runClearAllChannelsFromDatabase(context);
-                    case "sgi":
-                    case "set-group-id":
-                        return runSetGroupId(context, args);
-                    case "srm":
-                    case "set-report-message":
-                        return runSetReportMessage(context);
-                    default:
-                        return sendErrorMessage(context, "Please enter in a correct argument.");
-                }
+                return switch (args[0].toLowerCase()) {
+                    case "sr", "set-reports" -> runSetReportChannel(context, args);
+                    case "ca", "clear-all" -> runClearAllChannelsFromDatabase(context);
+                    case "sgi", "set-group-id" -> runSetGroupId(context, args);
+                    case "srm", "set-report-message" -> runSetReportMessage(context);
+                    default -> sendErrorMessage(context, "Please enter in a correct argument.");
+                };
             }
         }
 
