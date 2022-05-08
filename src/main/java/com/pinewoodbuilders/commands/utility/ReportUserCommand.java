@@ -317,13 +317,11 @@ public class ReportUserCommand extends Command {
                         Optional <RobloxUserGroupRankService.Data> b = grs.getData().stream().filter(group -> group.getGroup().getId() == settings.getRobloxGroupId()).findFirst();
 
                         if (b.isPresent()) {
-                            act.getInteraction("""
-                                """
-                            );
+                            act.getInteraction().reply("");
                         } else {
                             //context.makeInfo(String.valueOf(response.getResponse().code())).queue();
-                            context.makeError("The user who you've requested a punishment for isn't in ``:guild``, please check if this is correct or not.").set("guild", d.getString("name")).queue();
-                            removeAllUserMessages(messagesToRemove);
+                            act.getInteraction().reply("The user who you've requested a punishment for isn't in `"+act.getGuild().getName()+"`, please check if this is correct or not.").queue();
+
                         }
                     }
                 });
@@ -451,20 +449,6 @@ public class ReportUserCommand extends Command {
             return false;
         }
         return true;
-    }
-
-    private boolean antiSpamInfo(CommandMessage context, MessageReceivedEvent l) {
-        if (l.getMessage().getContentRaw().equalsIgnoreCase("cancel")) return true;
-
-        int length = l.getMessage().getContentRaw().length();
-        if (length <= 25 || length >= 700) {
-            context.getChannel().sendMessageEmbeds(context.makeError("Sorry, but reports have to have a minimal of 25 characters and a maximum of 700 characters.\n" +
-                "Your report currently has **``" + length + "``** characters").buildEmbed()).queue();
-            return false;
-
-        } else {
-            return true;
-        }
     }
 
     private boolean runClearAllChannelsFromDatabase(CommandMessage context) {
