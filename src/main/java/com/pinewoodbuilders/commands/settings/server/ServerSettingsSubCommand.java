@@ -68,6 +68,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             case "group-id", "sgi", "set-group-id" -> runSetGroupId(context, args);
             case "uac", "user-alerts-channel", "alerts-channel" -> runYoungWarningChannelUpdateCommand(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
             case "young-warning-channel" -> runYoungWarningChannelUpdateCommand(context, args, context.getGuildSettingsTransformer());
+            case "audit-ignored-channels", "aic", "ignore-audit" -> onFilterChannelCommand(context, Arrays.copyOfRange(args, 1, args.length));
             default -> command.sendErrorMessage(context, "I'm unable to find the argument you're looking for, ya twat. Try again. Lemme remind you of the possible commands.", 5, TimeUnit.MINUTES);
         };
     }
@@ -773,7 +774,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
 
     private boolean sendEnabledChannels(CommandMessage context, GuildTransformer guildTransformer) {
         if (guildTransformer.getIgnoredAuditLogChannels().isEmpty()) {
-            return command.sendErrorMessage(context, "There are currently no channels with the admin channel check enabled, you can add one by using the `"+generateCommandTrigger(context.getMessage())+" <channel>` ");
+            return command.sendErrorMessage(context, "There are currently no channels with the anti audit log, you can add one by using the `"+command.generateCommandTrigger(context.getMessage())+" s aic <channel>` ");
         }
 
         List <String> channels = new ArrayList <>();
@@ -784,9 +785,9 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             }
         }
 
-        context.makeInfo("All the channels mentioned below currently allow some specific admin to be ran in there, any channel not on this list is unaffected.\n\n:channels")
+        context.makeInfo("All the channels mentioned below currently will not show anything in audit logs, any channel not on this list is unaffected.\n\n:channels")
             .set("channels", String.join(", ", channels))
-            .setTitle("Channels that only allow specific commands ("+guildTransformer.getIgnoredAuditLogChannels().size()+")")
+            .setTitle("Channels that don't send to audit logs. ("+guildTransformer.getIgnoredAuditLogChannels().size()+")")
             .queue();
 
         return true;
@@ -822,9 +823,9 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
                     guildTransformer.getIgnoredAuditLogChannels()
                 ), true));
 
-            context.makeSuccess("All admin commands have been **:status** for :channel!")
+            context.makeSuccess("All audit events have been **:status** for :channel!")
                 .set("channel", channel.getAsMention())
-                .set("status", isEnabled ? "Enabled" : "Disabled")
+                .set("status", isEnabled ? "Disabled" : "Enabled")
                 .queue();
 
             return true;

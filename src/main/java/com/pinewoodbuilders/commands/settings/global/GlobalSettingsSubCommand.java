@@ -310,10 +310,11 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
 
     private void updateGuildAutoModExact(CommandMessage message, GlobalSettingsTransformer transformer)
         throws SQLException {
-        for (String id : Constants.guilds) {
-            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", id)
+        for (Guild guild : avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(transformer.getMainGroupId(), true)) {
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", guild.getId())
                 .update(statement -> statement.set("global_filter_exact",
                     Xeus.gson.toJson(transformer.getGlobalFilterExact()), true));
+
         }
     }
 

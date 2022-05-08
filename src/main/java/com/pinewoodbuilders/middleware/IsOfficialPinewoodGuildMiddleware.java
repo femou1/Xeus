@@ -1,18 +1,15 @@
 package com.pinewoodbuilders.middleware;
 
-import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.middleware.Middleware;
 import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.utilities.RestActionUtil;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.Message;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class IsOfficialPinewoodGuildMiddleware extends Middleware {
@@ -20,7 +17,7 @@ public class IsOfficialPinewoodGuildMiddleware extends Middleware {
     public IsOfficialPinewoodGuildMiddleware(Xeus avaire) {
         super(avaire);
     }
-    ArrayList<String> guilds = Constants.guilds;
+
 
     @Override
     public String buildHelpDescription(@Nonnull CommandMessage context, @Nonnull String[] arguments) {
@@ -38,9 +35,10 @@ public class IsOfficialPinewoodGuildMiddleware extends Middleware {
             return stack.next();
         }
 
-        if (isPinewoodGuild(message.getGuild().getId())) {
+        if (stack.getDatabaseEventHolder().getGuildSettings() != null &&
+            (stack.getDatabaseEventHolder().getGuildSettings().isOfficialSubGroup() ||
+                stack.getDatabaseEventHolder().getGuildSettings().isLeadershipServer()))
             return stack.next();
-        }
 
         if (args.length == 0) {
             return sendMustBePinewoodDiscordMessage(message);
@@ -53,9 +51,7 @@ public class IsOfficialPinewoodGuildMiddleware extends Middleware {
         return stack.next();
     }
 
-    private boolean isPinewoodGuild(String id) {
-        return guilds.contains(id);
-    }
+
 
     private boolean sendMustBePinewoodDiscordMessage(@Nonnull Message message) {
         return runMessageCheck(message, () -> {

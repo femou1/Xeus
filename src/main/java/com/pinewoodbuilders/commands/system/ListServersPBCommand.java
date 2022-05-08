@@ -22,7 +22,6 @@
 package com.pinewoodbuilders.commands.system;
 
 import com.pinewoodbuilders.Xeus;
-import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.SystemCommand;
 
@@ -82,7 +81,4 @@ public class ListServersPBCommand extends SystemCommand {
         return true;
     }
 
-    private boolean isValidPBGuild(String id) {
-        return Constants.guilds.contains(id);
-    }
 }

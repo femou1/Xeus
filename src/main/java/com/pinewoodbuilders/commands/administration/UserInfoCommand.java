@@ -35,13 +35,8 @@ import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankServic
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
-
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -115,8 +110,6 @@ public class UserInfoCommand extends Command {
         Carbon joinedDate = Carbon.createFromOffsetDateTime(member.getTimeJoined());
         Carbon createdDate = Carbon.createFromOffsetDateTime(member.getUser().getTimeCreated());
 
-        VerificationEntity entity = avaire.getRobloxAPIManager().getVerification().fetchVerificationWithBackup(member.getId(), true);
-
         PlaceholderMessage placeholderMessage = context.makeEmbeddedMessage(getRoleColor(member.getRoles()),
             new MessageEmbed.Field(
                 context.i18n("fields.username"),
@@ -158,7 +151,10 @@ public class UserInfoCommand extends Command {
             )), true));
 
         placeholderMessage.requestedBy(context.getMember());
-        context.getMessageChannel().sendMessageEmbeds(placeholderMessage.buildEmbed(), buildVerificationEmbed(context, member)).queue();
+        Member finalMember = member;
+        context.getMessageChannel().sendMessageEmbeds(placeholderMessage.buildEmbed())
+            .flatMap(message -> message.editMessageEmbeds(placeholderMessage.buildEmbed(), buildVerificationEmbed(context, finalMember)))
+            .queue();
         return true;
     }
 
@@ -182,7 +178,7 @@ public class UserInfoCommand extends Command {
                 Guild g = context.getJDA().getGuildById(data.getString("id"));
                 if (g == null) continue;
                 if (sb.toString().contains(String.valueOf(data.getInt("roblox_group_id")))) continue;
-                
+                if (data.getBoolean("leadership_server")) {continue;}
                 if (data.getString("roblox_group_id") != null) {
                     List<RobloxUserGroupRankService.Data> ranks = avaire.getRobloxAPIManager().getUserAPI().getUserRanks(verifiedRobloxUser.getRobloxId());
                     if (ranks != null) {

@@ -21,10 +21,14 @@
 
 package com.pinewoodbuilders.moderation.global.automute;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.pinewoodbuilders.Xeus;
-import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.contracts.blacklist.PunishmentLevel;
 import com.pinewoodbuilders.database.controllers.GuildController;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.middleware.ThrottleMiddleware;
@@ -34,9 +38,6 @@ import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.CacheUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import net.dv8tion.jda.api.entities.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -217,20 +218,12 @@ public class MuteRatelimit {
     }
 
     private static void globalMuteUser(Carbon punishment, Message context) {
-        List<Guild> gs = new ArrayList<>();
-        for (String s : Constants.guilds) {
-            Guild guild = Xeus.getInstance().getShardManager().getGuildById(s);
-            if (guild != null) {
-                gs.add(guild);
-            }
-        }
+        GuildSettingsTransformer selfTransformer = GuildSettingsController.fetchGuild(Xeus.getInstance(), context);
+        if (selfTransformer == null || selfTransformer.getMainGroupId() == 0) return;
 
+        List<Guild> gs = Xeus.getInstance().getRobloxAPIManager().getVerification().getGuildsByMainGroupId(selfTransformer.getMainGroupId());
         for (Guild g : gs) {
             GuildTransformer transformer = GuildController.fetchGuild(Xeus.getInstance(), g);
-            if (transformer == null) {
-                continue;
-            }
-
             if (transformer.getMuteRole() == null) {
                 continue;
             }

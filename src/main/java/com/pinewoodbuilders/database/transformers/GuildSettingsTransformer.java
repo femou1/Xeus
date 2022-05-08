@@ -93,6 +93,7 @@ public class GuildSettingsTransformer extends Transformer {
     private long linkFilterLog = 0;
     private long evaluationEvalChannel = 0;
     private long rewardRequestChannelId;
+    private boolean isLeadershipServer;
 
     public GuildSettingsTransformer(DataRow data) {
         super(data);
@@ -149,6 +150,7 @@ public class GuildSettingsTransformer extends Transformer {
             isOfficialSubGroup = data.getBoolean("official_sub_group");
 
             rewardRequestChannelId = data.getLong("reward_request_channel_id");
+            isLeadershipServer = data.getBoolean("leadership_server");
 
             if (data.getString("moderator_roles", null) != null) {
                 List <String> moderatorRoles = Xeus.gson.fromJson(
@@ -234,11 +236,13 @@ public class GuildSettingsTransformer extends Transformer {
             }
             if (data.getString("eval_questions", null) != null) {
                 List<String> evaluationQuestions = Xeus.gson.fromJson(data.getString("eval_questions"),
-                        new TypeToken<List<String>>() {
-                        }.getType());
+                    new TypeToken<List<String>>() {
+                    }.getType());
 
                 evalQuestions.addAll(evaluationQuestions);
             }
+
+
 
             reset();
         }
@@ -646,5 +650,14 @@ public class GuildSettingsTransformer extends Transformer {
     }
     public void setIsOfficialSubGroup(boolean sOSG) {
         this.isOfficialSubGroup = sOSG;
+    }
+
+
+    public boolean isLeadershipServer() {
+        return this.isLeadershipServer;
+    }
+
+    public void setLeadershipServer(boolean leadershipServer) {
+        isLeadershipServer = leadershipServer;
     }
 }
