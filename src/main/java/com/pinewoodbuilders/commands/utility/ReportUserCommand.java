@@ -252,8 +252,11 @@ public class ReportUserCommand extends Command {
 
                         if (b.isPresent()) {
                             message.editMessageEmbeds(context.makeInfo(
-                                "You're trying to report: ``:reported``\n" +
-                                    "With the rank: ``:rank``\n\nPlease tell me what he did wrong. (Make sure this is an actual handbook violation)").set("reported", content.getMessage().getContentRaw()).set("rank", b.get().getRole().getName()).buildEmbed()).queue(
+                                """
+                                    You're trying to report: ``:reported``
+                                    With the rank: ``:rank``
+
+                                    Please tell me what he did wrong. (Make sure this is an actual handbook violation)""").set("reported", content.getMessage().getContentRaw()).set("rank", b.get().getRole().getName()).buildEmbed()).queue(
                                 getEvidence -> {
                                     startDescriptionWaiter(context, message, b, d, getEvidence, content, messagesToRemove);
                                 }
