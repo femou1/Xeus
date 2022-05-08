@@ -21,11 +21,7 @@
 
 package com.pinewoodbuilders;
 
-import net.dv8tion.jda.annotations.ForRemoval;
-import net.dv8tion.jda.annotations.ReplaceWith;
-
 import java.io.File;
-import java.util.ArrayList;
 
 @SuppressWarnings("WeakerAccess")
 public class Constants {
@@ -112,27 +108,4 @@ public class Constants {
 
     public static final String PIA_LOG_CHANNEL = "788316320747094046";
 
-    // Official Pinewood Guilds
-
-    @Deprecated
-    @ReplaceWith("PWB_GUILD_ID")
-    @ForRemoval(deadline = "5.2.0")
-    public static final ArrayList <String> guilds = new ArrayList<String>() {{
-        add("495673170565791754"); // Aerospace
-        add("438134543837560832"); // PBST
-        add("791168471093870622"); // Kronos Dev
-        add("371062894315569173"); // Official PB Server
-        add("514595433176236078"); // PBQA
-        add("436670173777362944"); // PET
-        add("505828893576527892"); // MMFA
-        add("498476405160673286"); // PBM
-        add("572104809973415943"); // TMS
-        add("697546632040022186"); // PWA (Wiki Administration)
-        add("669672893730258964"); // PB Dev Lair
-        add("699379074505637908"); // PTE (PBST Tier Evals)
-        add("750471488095780966"); // PBA (Pinewood Builders Appeals)
-        add("758057400635883580"); // PBOP
-        add("853888061476438017"); // MegaRaidOrg Server
-        add("594598932722614350"); // PBST Leadership Server
-    }};
 }

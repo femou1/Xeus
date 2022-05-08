@@ -143,17 +143,16 @@ public class MemberEventAdapter extends EventAdapter {
 
 
         GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild());
-        if (settings == null) {
-            log.warn("Failed to get a valid guild transformer during member join! User:{}, Guild:{}",
-                event.getMember().getUser().getId(), event.getGuild().getId()
-            );
-            return;
-        }
         // Re-WATCHES the user if a valid WATCH role have been setup for the guild
         // and the user is still registered as WATCHED for the server.
         if (settings.getOnWatchRole() != 0) {
             Role watch = event.getGuild().getRoleById(settings.getOnWatchRole());
-            if (canGiveRole(event, watch) && (avaire.getOnWatchManger().isOnWatchd(event.getGuild().getIdLong(), event.getUser().getIdLong()) || avaire.getGlobalWatchManager().isGlobalWatched(settings.getMainGroupId(), event.getMember().getIdLong(), event.getGuild().getIdLong()))) {
+            if (canGiveRole(event, watch) &&
+                (avaire.getOnWatchManger().isOnWatchd(event.getGuild().getIdLong(), event.getUser().getIdLong()) ||
+                    avaire.getGlobalWatchManager()
+                        .isGlobalWatched(settings.getMainGroupId(),
+                        event.getMember().getIdLong(),
+                        event.getGuild().getIdLong()))) {
                 event.getGuild().addRoleToMember(
                     event.getMember(), watch
                 ).queue();

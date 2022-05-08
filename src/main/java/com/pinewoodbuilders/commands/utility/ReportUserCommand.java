@@ -305,7 +305,7 @@ public class ReportUserCommand extends Command {
 
         boolean isBlacklisted = checkIfBlacklisted(requestedId, tc);
         if (isBlacklisted) {
-            act.getInteraction().reply(modalUsername + ": This user is already blacklisted in ``" + tc.getGuild().getName() + "``.").setEphemeral(true).queue();
+            act.getInteraction().reply(modalUsername + ": This user is already blacklisted in `" + tc.getGuild().getName() + "`.").setEphemeral(true).queue();
             return;
         }
 
@@ -387,7 +387,7 @@ public class ReportUserCommand extends Command {
                 .setAuthor("Report created for: " + modalUsername, null, getImageByName(tc.getGuild(), modalUsername))
                 .setDescription(
                     "**Violator**: " + modalUsername + "\n" +
-                        "**Rank**: " + rank + "\n" +
+                        "**Rank**: `" + rank + "`\n" +
                         "**Information**: \n" + modalReason + "\n\n" +
                         "**Evidence**: \n" + modalEvidence +
                         (modalProofOfWarning != null ? "\n\n**Evidence of warning**:\n" + modalProofOfWarning.getAsString() : ""))
