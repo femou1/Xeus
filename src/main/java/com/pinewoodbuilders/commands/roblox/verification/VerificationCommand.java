@@ -14,9 +14,9 @@ import com.pinewoodbuilders.roblox.RobloxAPIManager;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RoleUtil;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.menu.Paginator;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
@@ -26,7 +26,9 @@ import net.dv8tion.jda.internal.utils.PermissionUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.awt.*;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -536,9 +538,14 @@ public class VerificationCommand extends VerificationCommandContract {
             .flatMap((channel) -> channel.sendMessage("Hello! In this channel, all verification commands are being posted. All messages (eventually) get deleted!"))
             .flatMap((channel) -> channel.getCategory().createTextChannel("verify-instructions")
                 .addPermissionOverride(guild.getPublicRole(), EnumSet.of(Permission.VIEW_CHANNEL), EnumSet.of(Permission.MESSAGE_SEND)))
-            .flatMap((channel) -> channel.sendMessage("This server uses a Roblox verification system. In order to unlock all the features of this server, you'll need to verify your Roblox account with your Discord account!\n" +
-                "\n" +
-                "Visit https://verify.eryn.io/ and follow the instructions. Then, say !verify in #verify and it will update you accordingly."));
+            .flatMap((channel) -> channel.sendMessageEmbeds(new EmbedBuilder().setDescription("""
+                This server uses a Roblox verification system. In order to unlock all the features of this server, you'll need to verify your Roblox account with your Discord account!
+                Make sure you have a Roblox account that's in any of the Pinewood Builders groups!
+                If you don't have one, you can create one here: https://www.roblox.com/my/account/create
+                
+                To do so, simply click the link below and follow the instructions.
+                Once you've done that, you'll be able to speak in the server.
+                """).setColor(Color.GREEN).build()));
     }
 
 

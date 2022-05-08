@@ -72,8 +72,6 @@ public class GroupShoutCommand extends Command {
     }
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-
-
         if (avaire.getConfig().getString("apiKeys.nobloxServerAPIKey") == null | avaire.getConfig().getString("apiKeys.nobloxServerAPIKey").length() < 1) {
             context.makeError("An noblox api key could not be found. Please enter it in the config.yml").queue();
             return false;

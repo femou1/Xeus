@@ -57,8 +57,8 @@ public class EightBallCommand extends Command {
         "Very doubtful"
     );
 
-    public EightBallCommand(Xeus avaire) {
-        super(avaire);
+    public EightBallCommand(Xeus xeus) {
+        super(xeus);
     }
 
     @Override
