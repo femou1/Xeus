@@ -113,9 +113,10 @@ public class Constants {
     public static final String PIA_LOG_CHANNEL = "788316320747094046";
 
     // Official Pinewood Guilds
+
     @Deprecated
     @ReplaceWith("PWB_GUILD_ID")
-    @ForRemoval
+    @ForRemoval(deadline = "5.2.0")
     public static final ArrayList <String> guilds = new ArrayList<String>() {{
         add("495673170565791754"); // Aerospace
         add("438134543837560832"); // PBST
@@ -132,6 +133,6 @@ public class Constants {
         add("750471488095780966"); // PBA (Pinewood Builders Appeals)
         add("758057400635883580"); // PBOP
         add("853888061476438017"); // MegaRaidOrg Server
+        add("594598932722614350"); // PBST Leadership Server
     }};
-
 }

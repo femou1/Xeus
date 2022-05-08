@@ -9,6 +9,7 @@ import com.pinewoodbuilders.contracts.moderation.LinkLevel;
 import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.moderation.global.filter.filter.LinkContainer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
@@ -23,9 +24,8 @@ import net.dv8tion.jda.api.exceptions.PermissionException;
 
 import java.awt.*;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class ServerSettingsSubCommand extends SettingsSubCommand {
@@ -68,6 +68,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             case "group-id", "sgi", "set-group-id" -> runSetGroupId(context, args);
             case "uac", "user-alerts-channel", "alerts-channel" -> runYoungWarningChannelUpdateCommand(context, Arrays.copyOfRange(args, 1, args.length), guildTransformer);
             case "young-warning-channel" -> runYoungWarningChannelUpdateCommand(context, args, context.getGuildSettingsTransformer());
+            case "audit-ignored-channels", "aic", "ignore-audit" -> onFilterChannelCommand(context, Arrays.copyOfRange(args, 1, args.length));
             default -> command.sendErrorMessage(context, "I'm unable to find the argument you're looking for, ya twat. Try again. Lemme remind you of the possible commands.", 5, TimeUnit.MINUTES);
         };
     }
@@ -739,6 +740,102 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
         } catch (SQLException throwables) {
             context.makeError("Something went wrong in the database, please check with the developer. (Stefano#7366)")
                 .queue();
+            return false;
+        }
+    }
+
+    public boolean onFilterChannelCommand(CommandMessage context, String[] args) {
+        GuildTransformer guildTransformer = context.getGuildTransformer();
+        if (guildTransformer == null) {
+            context.makeError("Server settings could not be gathered").queue();
+            return false;
+        }
+
+        if (args.length == 0 || NumberUtil.parseInt(args[0], -1) > 0) {
+            return sendEnabledChannels(context, guildTransformer);
+        }
+
+        GuildChannel channel = MentionableUtil.getChannel(context.getMessage(), args);
+        if (!(channel instanceof TextChannel textChannel)) {
+            return command.sendErrorMessage(context, "You must provide a valid text channel.");
+        }
+
+        if (!textChannel.canTalk()) {
+            return command.sendErrorMessage(context, context.i18n("I can't talk in the {0} channel",
+                textChannel.getAsMention()
+            ));
+        }
+
+        if (args.length > 1) {
+            return handleToggleChannel(context, textChannel, ComparatorUtil.getFuzzyType(args[1]));
+        }
+        return handleToggleChannel(context, textChannel, ComparatorUtil.ComparatorType.UNKNOWN);
+    }
+
+    private boolean sendEnabledChannels(CommandMessage context, GuildTransformer guildTransformer) {
+        if (guildTransformer.getIgnoredAuditLogChannels().isEmpty()) {
+            return command.sendErrorMessage(context, "There are currently no channels with the anti audit log, you can add one by using the `"+command.generateCommandTrigger(context.getMessage())+" s aic <channel>` ");
+        }
+
+        List <String> channels = new ArrayList <>();
+        for (Long channelId : guildTransformer.getIgnoredAuditLogChannels()) {
+            TextChannel textChannel = context.getGuild().getTextChannelById(channelId);
+            if (textChannel != null) {
+                channels.add(textChannel.getAsMention());
+            }
+        }
+
+        context.makeInfo("All the channels mentioned below currently will not show anything in audit logs, any channel not on this list is unaffected.\n\n:channels")
+            .set("channels", String.join(", ", channels))
+            .setTitle("Channels that don't send to audit logs. ("+guildTransformer.getIgnoredAuditLogChannels().size()+")")
+            .queue();
+
+        return true;
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private boolean handleToggleChannel(CommandMessage context, TextChannel channel, ComparatorUtil.ComparatorType value) {
+        GuildTransformer guildTransformer = context.getGuildTransformer();
+
+        switch (value) {
+            case FALSE:
+                guildTransformer.getIgnoredAuditLogChannels().remove(channel.getIdLong());
+                break;
+
+            case TRUE:
+                guildTransformer.getIgnoredAuditLogChannels().add(channel.getIdLong());
+                break;
+
+            case UNKNOWN:
+                if (guildTransformer.getIgnoredAuditLogChannels().contains(channel.getIdLong()))
+                    guildTransformer.getIgnoredAuditLogChannels().remove(channel.getIdLong());
+                else
+                    guildTransformer.getIgnoredAuditLogChannels().add(channel.getIdLong());
+                break;
+        }
+
+        boolean isEnabled = guildTransformer.getIgnoredAuditLogChannels().contains(channel.getIdLong());
+
+        try {
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_TABLE_NAME)
+                .where("id", context.getGuild().getId())
+                .update(statement -> statement.set("ignored_audit_log_channels", Xeus.gson.toJson(
+                    guildTransformer.getIgnoredAuditLogChannels()
+                ), true));
+
+            context.makeSuccess("All audit events have been **:status** for :channel!")
+                .set("channel", channel.getAsMention())
+                .set("status", isEnabled ? "Disabled" : "Enabled")
+                .queue();
+
+            return true;
+        } catch (SQLException e) {
+            Xeus.getLogger().error("Failed to save the level exempt channels to the data for guild {}, error: {}",
+                context.getGuild().getId(), e.getMessage(), e
+            );
+
+            context.makeError("Failed to save the changes to the database, please try again. If the issue persists, please contact one of my developers.").queue();
+
             return false;
         }
     }

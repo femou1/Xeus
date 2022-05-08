@@ -62,7 +62,7 @@ public class GuildSettingsController {
             "guild_settings.audit_logs_channel_id", "guild_settings.vote_validation_channel_id",
             "guild_settings.user_alerts_channel_id", "guild_settings.evaluation_answer_channel",
             "guild_settings.eval_questions", "guild_settings.handbook_report_info_message", "guild_settings.official_sub_group",
-            "guild_settings.link_filter_log", "guild_settings.reward_request_channel_id"
+            "guild_settings.link_filter_log", "guild_settings.reward_request_channel_id", "guild_settings.leadership_server",
     };
 
     /**

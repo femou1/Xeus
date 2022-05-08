@@ -52,7 +52,8 @@ public class GuildController {
         "guilds.local", "guilds.channels", "guilds.modules", "guilds.level_roles", "guilds.level_modifier", "guilds.claimable_roles",
         "guilds.prefixes", "guilds.aliases", "guilds.level_exempt_channels", "guilds.level_exempt_roles", "guilds.modlog_case", "guilds.modlog",
         "guilds.mute_role", "guilds.autorole", "guilds.level_channel", "guilds.level_alerts", "guilds.levels", "guilds.hierarchy",
-        "guilds.on_watch_case", "guilds.lockable_channels_roles", "guilds.lockable_channels", "guilds.auto_channel", "guilds.command_admin_channels"
+        "guilds.on_watch_case", "guilds.lockable_channels_roles", "guilds.lockable_channels", "guilds.auto_channel", "guilds.command_admin_channels",
+        "guilds.ignored_audit_log_channels"
     };
 
     /**

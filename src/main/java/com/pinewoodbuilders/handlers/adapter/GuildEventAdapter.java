@@ -28,8 +28,10 @@ import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.contracts.cache.CachedMessage;
 import com.pinewoodbuilders.contracts.handlers.EventAdapter;
 import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.database.controllers.GuildController;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.moderation.global.punishments.globalban.GlobalBanContainer;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
@@ -165,10 +167,13 @@ public class GuildEventAdapter extends EventAdapter {
             if (transformer.getAuditLogsChannelId() != 0) {
                 TextChannel tc = event.getGuild().getTextChannelById(transformer.getAuditLogsChannelId());
                 if (tc != null) {
+                    GuildTransformer guild = GuildController.fetchGuild(avaire, event.getGuild());
                     if (event instanceof MessageDeleteEvent e) {
+                        if (guild.getIgnoredAuditLogChannels().contains(event.getChannel().getIdLong())) {return;}
                         if (e.isFromGuild()) {messageDeleteEvent(e, tc);}
 
                     } else if (event instanceof MessageUpdateEvent e) {
+                        if (guild.getIgnoredAuditLogChannels().contains(event.getChannel().getIdLong())) {return;}
                         if (e.isFromGuild()) {messageUpdateEvent(e, tc);}
                     }
                 }

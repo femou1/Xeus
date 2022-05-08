@@ -9,7 +9,6 @@ import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GlobalSettingsTransformer;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -33,29 +32,48 @@ public class OtherSettingsSubCommand extends SettingsSubCommand {
             return true;
         }
         if (args.length < 1) {
-            context.makeWarning("I'm missing the arguments for this command.\nYou noob, get it right.\n"
-                    + " - `bypass` - Add a moderator to the list of approved mods.\n"
-                    + " - `permission-override` - Remove a moderator from the list of approved mods\n"
-            // + " - `change` - Modify a moderator's permissions."
+            context.makeWarning("""
+                    I'm missing the arguments for this command.
+                    You noob, get it right.
+                     - `bypass` - Add a moderator to the list of approved mods.
+                     - `permission-override` - Remove a moderator from the list of approved mods
+                    """
+                // + " - `change` - Modify a moderator's permissions."
             ).queue();
             return false;
         }
 
         String[] arguments = Arrays.copyOfRange(args, 1, args.length);
-        switch (args[0].toLowerCase()) {
-            case "bypass":
-                return setBypassOption(context, arguments, permissionLevel);
-            case "permission-override":
-            case "po":
-            case "permov":
-                return togglePermissionOverride(context);
-            default:
-                context.makeError("I'm missing the arguments for this command.\nYou noob, get it right.\n"
-                        + " - `permission-override`").queue();
-                return false;
-        }
+        return switch (args[0].toLowerCase()) {
+            case "bypass" -> setBypassOption(context, arguments, permissionLevel);
+            case "permission-override", "po", "permov" -> togglePermissionOverride(context);
+            case "leadership-server" -> leadershipServerChange(context, arguments);
+            default -> command.sendErrorMessage(context, """
+                I'm missing the arguments for this command.
+                You noob, get it right.
+                 - `permission-override`
+                 - `bypass`
+                 - `leadership-server` - Will toggle the leadership features of a guild.""");
+        };
     }
 
+    private boolean leadershipServerChange(CommandMessage context, String[] arguments) {
+        GuildSettingsTransformer settings = context.getGuildSettingsTransformer();
+        if (settings == null) return command.sendErrorMessage(context, "Global settings have not been set.");
+
+        settings.setLeadershipServer(!settings.isLeadershipServer());
+        try {
+            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId())
+                .update(l -> {
+                    l.set("leadership_server", true);
+                });
+            context.makeSuccess((settings.isLeadershipServer() ? "Set" : "Unset") + " this server as a leadership server.").queue();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
     private boolean setBypassOption(CommandMessage context, String[] arguments, int permissionLevel) {
         if (!context.guild.getSelfMember().hasPermission(Permission.ADMINISTRATOR)) {
             return noPermissionError(context);
@@ -66,7 +84,8 @@ public class OtherSettingsSubCommand extends SettingsSubCommand {
         }
 
         GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, context.getGuild());
-        if (settings == null) return command.sendErrorMessage(context, "Settings Transformer could not be pulled, nothing has changed");
+        if (settings == null)
+            return command.sendErrorMessage(context, "Settings Transformer could not be pulled, nothing has changed");
 
         settings.setPermissionBypass(!settings.getPermissionBypass());
         try {
@@ -96,12 +115,12 @@ public class OtherSettingsSubCommand extends SettingsSubCommand {
         if (!context.guild.getSelfMember().hasPermission(Permission.ADMINISTRATOR)) {
             return noPermissionError(context);
         }
-        List<Role> r = context.getGuild().getRolesByName("XEUS-BYPASS", true);
+        List <Role> r = context.getGuild().getRolesByName("XEUS-BYPASS", true);
         if (r.size() < 1) {
             context.guild.createRole().setHoisted(false).setMentionable(false).setName("XEUS-BYPASS")
-                    .setPermissions(Permission.ADMINISTRATOR).queue(role -> {
-                        runRoleGiveAction(context, role);
-                    });
+                .setPermissions(Permission.ADMINISTRATOR).queue(role -> {
+                    runRoleGiveAction(context, role);
+                });
             return true;
         }
         runRoleGiveAction(context, r.get(0));
@@ -119,13 +138,13 @@ public class OtherSettingsSubCommand extends SettingsSubCommand {
             context.guild.removeRoleFromMember(m, role);
             context.makeSuccess(
                     "Your role was removed from your account. This has been logged in the server Audit Logs and the developer of the bot.")
-                    .queue();
+                .queue();
 
         } else {
             context.guild.addRoleToMember(m, role);
             context.makeSuccess(
                     "Your role was added to your account. This has been logged in the server Audit Logs and the developer of the bot.")
-                    .queue();
+                .queue();
         }
     }
 }

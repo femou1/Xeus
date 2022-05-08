@@ -54,6 +54,7 @@ public class GuildTransformer extends Transformer {
     private final Set <Long> lockableChannelsRoles = new HashSet <>();
 
     private final Set<Long> adminCommandChannels = new HashSet <>();
+    private Set<Long> ignoredAuditLogChannels = new HashSet <>();
 
     private final GuildTypeTransformer guildType;
     private boolean partner;
@@ -257,6 +258,14 @@ public class GuildTransformer extends Transformer {
                 }
             }
 
+            if (data.getString("ignored_audit_log_channels", null) != null) {
+                List<Long> ignoredAuditLogChannel = Xeus.gson.fromJson(data.getString("ignored_audit_log_channels"),
+                    new TypeToken<List<Long>>() {
+                    }.getType());
+
+                ignoredAuditLogChannels.addAll(ignoredAuditLogChannel);
+            }
+
             if (data.getString("modules", null) != null) {
                 HashMap <String, Map <String, String>> dbModules = Xeus.gson.fromJson(
                     data.getString("modules"),
@@ -280,6 +289,7 @@ public class GuildTransformer extends Transformer {
                     channels.add(new ChannelTransformer(new DataRow(value), this));
                 }
             }
+
         }
 
         guildType = partner ? partnerTypeTransformer : new GuildTypeTransformer(data);
@@ -502,5 +512,8 @@ public class GuildTransformer extends Transformer {
 
     public Set<Long> getAdminCommandChannels() {
         return adminCommandChannels;
+    }
+    public Set<Long> getIgnoredAuditLogChannels() {
+        return this.ignoredAuditLogChannels;
     }
 }

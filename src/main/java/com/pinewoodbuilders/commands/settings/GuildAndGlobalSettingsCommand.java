@@ -7,6 +7,7 @@ import com.pinewoodbuilders.commands.settings.moderation.ModSettingsSubCommand;
 import com.pinewoodbuilders.commands.settings.other.OtherSettingsSubCommand;
 import com.pinewoodbuilders.commands.settings.server.ServerSettingsSubCommand;
 import com.pinewoodbuilders.contracts.commands.Command;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.Member;
@@ -89,22 +90,23 @@ public class GuildAndGlobalSettingsCommand extends Command {
 
     private boolean getUserLevel(CommandMessage context, GuildSettingsTransformer guildTransformer) {
         if (context.getMessage().getMentionedMembers().size() == 1) {
-            Member m = context.getMessage().getMentionedMembers().get(0);
-            context.makeInfo(m.getAsMention() + " has permission level ``"
-                    + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, m).getLevel()
+            Member member = context.getMessage().getMentionedMembers().get(0);
+            GuildPermissionCheckType rank = XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, member);
+            context.makeInfo(member.getAsMention() + " has permission level ``"
+                    + rank.getLevel()
                     + "`` and is classified as a **"
-                    + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, m).getRankName() + "**")
+                    + rank.getRankName() + "**")
                     .queue();
             return true;
         }
         if (context.getMessage().getMentionedMembers().size() > 1) {
-            context.getMessage().getMentionedMembers().forEach(member -> {
+            for (Member member : context.getMessage().getMentionedMembers()) {
                 context.makeInfo(member.getAsMention() + " has permission level ``"
-                    + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, member).getLevel()
-                    + "`` and is classified as a **"
-                    + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, member).getRankName() + "**")
+                        + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, member).getLevel()
+                        + "`` and is classified as a **"
+                        + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, member).getRankName() + "**")
                     .queue();
-            });
+            }
             return true;
         }
         context.makeInfo(context.member.getAsMention() + " has permission level ``"

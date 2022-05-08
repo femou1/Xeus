@@ -106,7 +106,6 @@ public class MessageEventAdapter extends EventAdapter {
         "",
         "I am currently running **Xeus v%s**"
     ));
-    ArrayList<String> guilds = Constants.guilds;
 
     /**
      * Instantiates the event adapter and sets the avaire class instance.
