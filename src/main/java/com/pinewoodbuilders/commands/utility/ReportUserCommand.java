@@ -8,6 +8,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.collection.DataRow;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.RequestFactory;
@@ -18,6 +19,7 @@ import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -27,6 +29,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
@@ -192,15 +195,34 @@ public class ReportUserCommand extends Command {
                                     .setMaxLength(750)
                                     .build();
 
-                                Modal.Builder modal = Modal.create("report:" + guildId, "Support")
+                                Modal.Builder modal = Modal.create("report:" + guildId, select.getGuild().getName())
                                     .addActionRows(ActionRow.of(username), ActionRow.of(reason), ActionRow.of(evidence));
 
                                 if (!(guildId.equals("572104809973415943") || guildId.equals("572104810289905408"))) {
                                     modal.addActionRows(ActionRow.of(proofOfWarning));
                                 }
 
-                                message.editMessageEmbeds(context.makeInfo("You have been sent a modal, please respond to the questions asked and come back here, if you're not back in 3 minutes. The modal expires").buildEmbed()).setActionRows(Collections.emptySet()).queue();
-                                select.replyModal(modal.build()).queue();
+
+                                message.editMessageEmbeds(context.makeInfo("You have been sent a modal, please respond to the questions asked and come back here, if you're not back in 3 minutes. The modal expires").buildEmbed()).setActionRows(Collections.emptySet())
+                                    .queue(p ->{
+                                        select.replyModal(modal.build()).queue();
+                                        avaire.getWaiter().waitForEvent(ModalInteractionEvent.class,
+                                            modalInteractionEvent -> modalInteractionEvent.getUser().equals(message.getAuthor()) && modalInteractionEvent.getModalId().equals("report:" + guildId),
+                                            act -> {
+                                                String modalUsername = act.getInteraction().getValue("username").getAsString();
+                                                String modalReason = act.getInteraction().getValue("reason").getAsString();
+                                                String modalEvidence = act.getInteraction().getValue("evidence").getAsString();
+                                                ModalMapping modalProofOfWarning = act.getInteraction().getValue("proofOfWarning");
+
+                                                message.delete().queue();
+                                                goToStep2(act, modalUsername, modalReason, modalEvidence, modalProofOfWarning, guildId);
+
+                                            },
+                                            3, TimeUnit.MINUTES, () -> {
+                                                select.reply("The modal has expired, please try again.").queue();
+                                            });
+                                    });
+
                             /*try {
 
 
@@ -264,48 +286,43 @@ public class ReportUserCommand extends Command {
         }
     }
 
-    private void goToStep2(CommandMessage context, Message message, MessageReceivedEvent content, DataRow d, TextChannel c) {
-        {
-            List<Message> messagesToRemove = new ArrayList<>();
-            messagesToRemove.add(content.getMessage());
-            if (content.getMessage().getContentRaw().equalsIgnoreCase("cancel")) {
-                message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).queue();
-                removeAllUserMessages(messagesToRemove);
-                return;
-            }
+    private void goToStep2(ModalInteractionEvent act, String modalUsername, String modalReason, String modalEvidence, ModalMapping modalProofOfWarning, String guildId) {
 
-            Long requestedId = getRobloxId(content.getMessage().getContentRaw());
+            Long requestedId = getRobloxId(modalUsername);
             if (requestedId == 0L) {
-                context.makeError("Sorry, but your username you gave us, does not exist on roblox. Please give us a username that's on roblox").queue();
-                removeAllUserMessages(messagesToRemove);
+                act.getInteraction().reply(modalUsername + " does no exist on roblox.").setEphemeral(true).queue();
                 return;
             }
 
-            boolean isBlacklisted = checkIfBlacklisted(requestedId, c);
+            Guild g = avaire.getShardManager().getGuildById(guildId);
+            if (g == null) return;
+
+            GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
+            TextChannel tc = avaire.getShardManager().getTextChannelById(settings.getHandbookReportChannel());
+            if (tc == null) return;
+
+            boolean isBlacklisted = checkIfBlacklisted(requestedId, tc);
             if (isBlacklisted) {
-                message.editMessageEmbeds(context.makeWarning("This user is already blacklisted in ``" + c.getGuild().getName() + "``.").buildEmbed()).queue();
-                removeAllUserMessages(messagesToRemove);
+                act.getInteraction().reply(modalUsername + ": This user is already blacklisted in ``" + tc.getGuild().getName() + "``.").setEphemeral(true).queue();
                 return;
             }
 
-            if (!d.getString("id").equalsIgnoreCase("371062894315569173") && d.getInt("roblox_group_id") != 0) {
+
+
+            if (!tc.getGuild().getId().equalsIgnoreCase("371062894315569173") && settings.getRobloxGroupId() != 0) {
                 Request requestedRequest = RequestFactory.makeGET("https://groups.roblox.com/v1/users/" + requestedId + "/groups/roles");
                 requestedRequest.send((Consumer <Response>) response -> {
                     if (response.getResponse().code() == 200) {
                         RobloxUserGroupRankService grs = (RobloxUserGroupRankService) response.toService(RobloxUserGroupRankService.class);
-                        Optional <RobloxUserGroupRankService.Data> b = grs.getData().stream().filter(g -> g.getGroup().getId() == d.getInt("roblox_group_id")).findFirst();
+                        Optional <RobloxUserGroupRankService.Data> b = grs.getData().stream().filter(group -> group.getGroup().getId() == settings.getRobloxGroupId()).findFirst();
 
                         if (b.isPresent()) {
-                            message.editMessageEmbeds(context.makeInfo(
-                                "You're trying to report: ``:reported``\n" +
-                                    "With the rank: ``:rank``\n\nPlease tell me what he did wrong. (Make sure this is an actual handbook violation)").set("reported", content.getMessage().getContentRaw()).set("rank", b.get().getRole().getName()).buildEmbed()).queue(
-                                getEvidence -> {
-                                    startDescriptionWaiter(context, message, b, d, getEvidence, content, messagesToRemove);
-                                }
+                            act.getInteraction("""
+                                """
                             );
                         } else {
                             //context.makeInfo(String.valueOf(response.getResponse().code())).queue();
-                            context.makeError("The user who you've requested a reward for isn't in ``:guild``, please check if this is correct or not.").set("guild", d.getString("name")).queue();
+                            context.makeError("The user who you've requested a punishment for isn't in ``:guild``, please check if this is correct or not.").set("guild", d.getString("name")).queue();
                             removeAllUserMessages(messagesToRemove);
                         }
                     }
@@ -320,125 +337,7 @@ public class ReportUserCommand extends Command {
                 );
             }
         }
-    }
 
-    private void removeAllUserMessages(List<Message> messagesToRemove) {
-        for (Message m : messagesToRemove) {
-            m.delete().queue();
-        }
-    }
-
-    private void startDescriptionWaiter(CommandMessage context, Message message, Optional <RobloxUserGroupRankService.Data> b, DataRow d, Message getEvidence, MessageReceivedEvent content, List <Message> messagesToRemove) {
-        avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, a ->
-                context.getMember().equals(a.getMember()) && antiSpamInfo(context, a),
-            r -> {
-                messagesToRemove.add(r.getMessage());
-                if (r.getMessage().getContentRaw().equalsIgnoreCase("cancel")) {
-                    message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).queue();
-                    removeAllUserMessages(messagesToRemove);
-                    return;
-                }
-
-                startEvidenceWaiter(context, r.getMessage().getContentRaw(), message, b, d, content.getMessage().getContentRaw(), messagesToRemove);
-            },
-            5, TimeUnit.MINUTES,
-            () -> {
-                message.editMessage("You took to long to respond, please restart the report system!").queue();
-                removeAllUserMessages(messagesToRemove);
-            });
-    }
-
-    private void startEvidenceWaiter(CommandMessage context, String contentRaw, Message message, Optional <RobloxUserGroupRankService.Data> groupInfo, DataRow dataRow, String username, List <Message> messagesToRemove) {
-        message.editMessageEmbeds(context.makeSuccess("I've collected the violation you entered, but I need to be sure he actually did something bad.\n" +
-            "Please enter a **LINK** to evidence.\n\n" +
-            "**We're accepting**:\n" +
-            "- [YouTube Links](https://www.youtube.com/upload)\n" +
-            "- [Imgur Links](https://imgur.com/upload)\n" +
-            "- [Discord Image Links](https://cdn.discordapp.com/attachments/689520756891189371/733599719351123998/unknown.png)\n" +
-            "- [Gyazo Links](https://gyazo.com)\n" +
-            "- [LightShot Links](https://app.prntscr.com/)\n" +
-            "- [Streamable](https://streamable.com)\n" +
-            "If you want a link/video/image service added, please ask ``Stefano#7366``").buildEmbed()).queue(evi -> avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, pm ->
-                context.getMember().equals(pm.getMember()) && context.getChannel().equals(pm.getChannel()) && checkEvidenceAcceptance(context, pm),
-            evidence -> {
-                messagesToRemove.add(evidence.getMessage());
-                if (evidence.getMessage().getContentRaw().equalsIgnoreCase("cancel")) {
-                    message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).queue();
-                    removeAllUserMessages(messagesToRemove);
-                    return;
-                }
-                startConfirmWarnedEvidence(context, message, groupInfo, dataRow, username, evidence.getMessage().getContentRaw(), contentRaw, messagesToRemove);
-            },
-            5, TimeUnit.MINUTES,
-            () -> {
-                message.editMessage("You took to long to respond, please restart the report system!").queue();
-                removeAllUserMessages(messagesToRemove);
-            }));
-
-    }
-
-    private void startConfirmWarnedEvidence(CommandMessage context, Message message, Optional<RobloxUserGroupRankService.Data> groupInfo, DataRow dataRow, String username, String contentRaw, String evidence, List<Message> messagesToRemove) {
-        if (!(dataRow.getString("id").equalsIgnoreCase("572104809973415943") || dataRow.getString("id").equalsIgnoreCase("371062894315569173"))) {
-            message.editMessageEmbeds(context.makeWarning("You've given evidence about reporting someone, **however** we now need proof that they did something wrong.\n" +
-                "Please enter a **LINK** to evidence to proof you've warned the user about their misbehavior.\n\n" +
-                "**We're accepting**:\n" +
-                "- [YouTube Links](https://www.youtube.com/upload)\n" +
-                "- [Imgur Links](https://imgur.com/upload)\n" +
-                "- [Discord Image Links](https://cdn.discordapp.com/attachments/689520756891189371/733599719351123998/unknown.png)\n" +
-                "- [Gyazo Links](https://gyazo.com)\n" +
-                "- [LightShot Links](https://app.prntscr.com/)\n" +
-                "- [Streamable](https://streamable.com)\n" +
-                "If you want a link/video/image service added, please ask ``Stefano#7366``").buildEmbed()).queue(evi -> avaire.getWaiter().waitForEvent(MessageReceivedEvent.class, pm ->
-                    context.getMember().equals(pm.getMember()) && context.getChannel().equals(pm.getChannel()) && checkEvidenceAcceptance(context, pm),
-                explainedEvidence -> {
-                    messagesToRemove.add(explainedEvidence.getMessage());
-                    startConfirmationWaiter(context, message, groupInfo, dataRow, username, contentRaw, evidence, messagesToRemove, explainedEvidence.getMessage().getContentRaw());
-                },
-                5, TimeUnit.MINUTES,
-                () -> {
-                    message.editMessage("You took to long to respond, please restart the report system!").queue();
-                    removeAllUserMessages(messagesToRemove);
-                }));
-        } else {
-            startConfirmationWaiter(context, message, groupInfo, dataRow, username, contentRaw, evidence, messagesToRemove, null);
-        }
-
-
-
-
-    }
-
-    private void startConfirmationWaiter(CommandMessage context, Message message, Optional<RobloxUserGroupRankService.Data> groupInfo, DataRow dataRow, String username, String evidence, String description, List<Message> messagesToRemove, String explainedEvidence) {
-
-        Button b1 = Button.success("yes", "Yes").withEmoji(Emoji.fromUnicode("✅"));
-        Button b2 = Button.danger("no", "No").withEmoji(Emoji.fromUnicode("❌"));
-
-        message.editMessageEmbeds(context.makeInfo("Ok, so. I've collected everything you've told me. And this is the data I got:\n\n" +
-            "**Username**: " + username + "\n" +
-            "**Group**: " + dataRow.getString("name") + "\n" + (groupInfo.map(data -> "**Rank**: " + data.getRole().getName() + "\n").orElse("\n")) +
-            "**Description**: \n" + description + "\n\n" +
-            "**Evidence**: \n" + evidence +
-            (explainedEvidence != null ? "\n\n**Evidence of warning**:\n" + explainedEvidence : "") + "\n\nIs this correct?").buildEmbed())
-            .setActionRow(b1.asEnabled(), b2.asEnabled()).queue(l -> {
-
-            avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class, r -> isValidMember(r, context, l), send -> {
-                if (send.getButton().getEmoji().getName().equalsIgnoreCase("❌") || send.getButton().getEmoji().getName().equalsIgnoreCase("x")) {
-                    message.editMessage("Report has been canceled, if you want to restart the report. Do ``!ru`` in any bot-commands channel.").setActionRows(Collections.emptyList()).queue();
-                    removeAllUserMessages(messagesToRemove);
-                } else if (send.getButton().getEmoji().getName().equalsIgnoreCase("✅")) {
-                    message.editMessage("Report has been \"sent\".").queue();
-                    sendReport(context, message, groupInfo, dataRow, username, description, evidence, explainedEvidence, send);
-                    removeAllUserMessages(messagesToRemove);
-                } else {
-                    message.editMessage("Invalid emoji given, report deleted!").setActionRows(Collections.emptyList()).queue();
-                    removeAllUserMessages(messagesToRemove);
-                }
-            }, 5, TimeUnit.MINUTES, () -> {
-                removeAllUserMessages(messagesToRemove);
-                message.editMessage("You took to long to respond, please restart the report system!").queue();
-            });
-        });
-    }
 
     private void sendReport(CommandMessage context, Message message, Optional<RobloxUserGroupRankService.Data> groupInfo, DataRow dataRow, String username, String description, String evidence, String explainedEvidence, ButtonInteractionEvent send) {
         TextChannel tc = avaire.getShardManager().getTextChannelById(dataRow.getString("handbook_report_channel"));
