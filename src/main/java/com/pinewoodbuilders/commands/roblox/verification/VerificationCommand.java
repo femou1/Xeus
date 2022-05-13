@@ -372,7 +372,7 @@ public class VerificationCommand extends VerificationCommandContract {
             return false;
         }
 
-        binds.getGroupRankBindings().stream().filter(m -> m.getRole().equals(args[1])).collect(Collectors.toList()).forEach(
+        binds.getGroupRankBindings().stream().filter(m -> m.getRole().equals(args[1])).toList().forEach(
             l -> {
                 binds.getGroupRankBindings().remove(l);
             }

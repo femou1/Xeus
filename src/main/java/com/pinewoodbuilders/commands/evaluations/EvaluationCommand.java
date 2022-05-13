@@ -217,7 +217,6 @@ public class EvaluationCommand extends Command {
             }
             context.makeSuccess("Synced data with Kronos!").queue();
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return false;

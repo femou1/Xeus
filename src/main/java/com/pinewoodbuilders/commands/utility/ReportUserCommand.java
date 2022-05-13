@@ -135,7 +135,6 @@ public class ReportUserCommand extends Command {
                     .addOption("Cancel", "cancel", "Stop reporting someone", Emoji.fromUnicode("❌"))
                     .setRequiredRange(1, 1); // only one can be selected
 
-                StringBuilder sb = new StringBuilder();
                 qb.get().forEach(dataRow -> {
                     if (dataRow.getString("handbook_report_channel") != null) {
                         Guild g = avaire.getShardManager().getGuildById(dataRow.getString("id"));

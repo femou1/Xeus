@@ -7,18 +7,25 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
-import com.pinewoodbuilders.database.collection.DataRow;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
-import com.pinewoodbuilders.utilities.XeusPermissionUtil;
+import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.utilities.EventWaiter;
 import com.pinewoodbuilders.utilities.MentionableUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.Modal;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
+import net.dv8tion.jda.api.interactions.components.text.TextInput;
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -91,7 +98,7 @@ public class SuggestionCommand extends Command {
         if (permissionLevel >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             if (args.length > 0) {
                 return switch (args[0].toLowerCase()) {
-                    case "ss", "set-suggestions" -> runSetSuggestionChannel(context, args);
+                    case "ss", "set-suggestions " -> runSetSuggestionChannel(context, args);
                     case "sc", "set-community" -> runSetCommunityVotesChannel(context, args);
                     case "cch", "change-community-threshold" -> runChangeCommunityThreshold(context, args);
                     case "sasc", "set-approved-suggestions-channel" -> runSetApprovedSuggestionsChannel(context, args);
@@ -102,29 +109,35 @@ public class SuggestionCommand extends Command {
         }
 
         context.makeInfo("<a:loading:742658561414266890> Loading suggestions... <a:loading:742658561414266890>").queue(l -> {
+            SelectMenu.Builder menu = SelectMenu.create("selector:server-to-suggest-to:" + context.getMember().getId() + ":" + context.getMessage().getId())
+                .setPlaceholder("Select the place to suggest to!") // shows the placeholder indicating what this menu is for
+                .addOption("Cancel", "cancel", "Stop offering suggestions", Emoji.fromUnicode("❌"))
+                .setRequiredRange(1, 1); // only one can be selected
+
 
             QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                 .orderBy("suggestion_channel_id");
             try {
-                StringBuilder sb = new StringBuilder();
                 qb.get().forEach(dataRow -> {
                     if (dataRow.getString("suggestion_channel_id") != null) {
                         Guild g = avaire.getShardManager().getGuildById(dataRow.getString("id"));
                         Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("emoji_id"));
 
                         if (g != null && e != null) {
-                            sb.append("``").append(g.getName()).append("`` - ").append(e.getAsMention()).append("\n");
-                            l.addReaction(e).queue();
+                            menu.addOption(g.getName(), g.getId() + ":" + e.getId(), "Suggest to " + g.getName(), Emoji.fromEmote(e));
+                            //sb.append("``").append(g.getName()).append("`` - ").append(e.getAsMention()).append("\n");
+                            //l.addReaction(e).queue();
                         } else {
                             context.makeError("Either the guild or the emote can't be found in the database, please check with the developer.").queue();
                         }
                     }
                 });
-                l.editMessageEmbeds(context.makeInfo("Welcome to the pinewood suggestion system, please submit a suggestion for any of the selected guilds.\nIf you want to suggest a feature for Xeus, [then please go to the Xeus issue's page, and create a suggestion](https://gitlab.com/pinewood-builders/discord/xeus/-/issues).\n\n" + sb.toString()).buildEmbed()).queue();
+                l.editMessageEmbeds(context.makeInfo("Welcome to the pinewood suggestion system, please submit a suggestion for any of the selected guilds.\nIf you want to suggest a feature for Xeus, [then please go to the Xeus issue's page, and create a suggestion](https://gitlab.com/pinewood-builders/discord/xeus/-/issues).").buildEmbed())
+                    .setActionRow(menu.build()).queue();
 
-                startEmojiWaiter(context, l, avaire.getWaiter(), qb);
-            } catch (SQLException throwables) {
-                Xeus.getLogger().error("ERROR: ", throwables);
+                startMenuWaiter(context.member, l, avaire.getWaiter(), qb);
+            } catch (SQLException throwable) {
+                Xeus.getLogger().error("ERROR: ", throwable);
             }
 
         });
@@ -137,75 +150,108 @@ public class SuggestionCommand extends Command {
         return false;
     }
 
-    private void startEmojiWaiter(CommandMessage context, Message message, EventWaiter waiter, QueryBuilder qb) {
-        waiter.waitForEvent(MessageReactionAddEvent.class, l -> l.getMember().equals(context.member) && message.getId().equals(l.getMessageId()), emote -> {
-            try {
-                DataRow d = qb.where("emoji_id", emote.getReactionEmote().getId()).get().get(0);
+    private void startMenuWaiter(Member member, Message message, EventWaiter waiter, QueryBuilder qb) {
+        waiter.waitForEvent(SelectMenuInteractionEvent.class, l -> l.getMember().equals(member) && message.getId().equals(l.getMessageId()), emote -> {
 
-                TextChannel c = avaire.getShardManager().getTextChannelById(d.getString("suggestion_channel_id"));
-                if (c != null) {
+            if (emote.getInteraction().getSelectedOptions().get(0).getEmoji().getName().equalsIgnoreCase("❌")) {
+                message.editMessageEmbeds(MessageFactory.makeWarning(message, "Cancelled the system").buildEmbed()).setActionRows(Collections.emptySet()).queue();
+                /*message.clearReactions().queue();*/
+                return;
+            }
 
-                    if (avaire.getFeatureBlacklist().isBlacklisted(context.getAuthor(), c.getGuild().getIdLong(), FeatureScope.SUGGESTIONS)) {
-                        message.editMessageEmbeds(context.makeError("You have been blacklisted from creating suggestions for this guild. Please ask a **Level 4** or higher to remove you from the ``"+c.getGuild().getName()+"`` suggestion blacklist. (Or global, if you're globally banned from all features)").buildEmbed()).queue();
-                        return;
-                    }
+            String[] split = emote.getInteraction().getSelectedOptions().get(0).getValue().split(":");
+            String guildId = split[0];
 
-                    message.editMessageEmbeds(context.makeInfo("You've selected a suggestion for: `:guild`\nPlease tell me, what is your suggestion?").set("guild", c.getGuild().getName()).buildEmbed()).queue();
-                    message.clearReactions().queue();
+            Guild guild = avaire.getShardManager().getGuildById(guildId);
+            if (guild == null) {emote.reply("Something went wrong, please try again.").queue(); return;}
 
+            GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
+            if (transformer.getSuggestionChannelId() == 0) {emote.reply("The suggestion ID doesn't exist. Please contact an admin+").queue(); return;}
 
-                    waiter.waitForEvent(MessageReceivedEvent.class, l -> {
-                        Member m = l.getMember();
-                        return m != null && m.equals(context.member) && message.getChannel().equals(l.getChannel()) && antiSpamInfo(context, l);
-                    }, p -> {
-                        if (p.getMessage().getContentRaw().equalsIgnoreCase("cancel")) {
-                            context.makeInfo("Cancelled suggestion.").queue();
-                            return;
-                        }
+            TextChannel c = avaire.getShardManager().getTextChannelById(transformer.getSuggestionChannelId());
+            if (c != null) {
 
-
-                        Button b1 = Button.success("accept:" + message.getId(), "Accept").withEmoji(Emoji.fromUnicode("✅"));
-                        Button b2 = Button.danger("reject:" + message.getId(), "Reject").withEmoji(Emoji.fromUnicode("❌"));
-                        Button b3 = Button.secondary("remove:" + message.getId(), "Delete").withEmoji(Emoji.fromUnicode("\uD83D\uDEAB"));
-                        Button b4 = Button.secondary("comment:" + message.getId(), "Comment").withEmoji(Emoji.fromUnicode("\uD83D\uDCAC"));
-                        Button b5 = Button.secondary("community-move:" + message.getId(), "Move to CAS").withEmoji(Emoji.fromUnicode("\uD83D\uDC51"));
-
-                        ActionRow actionRow;
-                        if (d.getString("suggestion_community_channel_id") != null) {
-                            actionRow = ActionRow.of(b1.asEnabled(), b2.asEnabled(), b3.asEnabled(), b4.asEnabled(), b5.asEnabled());
-                        } else {
-                            actionRow = ActionRow.of(b1.asEnabled(), b2.asEnabled(), b3.asEnabled(), b4.asEnabled(), b5.asDisabled());
-                        }
-
-                        c.sendMessageEmbeds(context.makeEmbeddedMessage(new Color(32, 34, 37))
-                            .setAuthor("Suggestion for: " + c.getGuild().getName(), null, c.getGuild().getIconUrl())
-                            .requestedBy(context.member).setDescription(p.getMessage().getContentRaw())
-                            .setTimestamp(Instant.now())
-                            .buildEmbed()).setActionRows(actionRow).queue(v -> {
-                            context.makeSuccess("[Your suggestion has been posted in the correct suggestion channel.](:link)").set("link", v.getJumpUrl()).queue();
-                            createReactions(v, d.getString("suggestion_community_channel_id"));
-
-                            try {
-                                avaire.getDatabase().newQueryBuilder(Constants.PB_SUGGESTIONS_TABLE_NAME).insert(data -> {
-                                    data.set("pb_server_id", d.getString("id"));
-                                    data.set("suggestion_message_id", v.getId());
-                                    data.set("suggester_discord_id", context.getMember().getId());
-                                });
-                            } catch (SQLException throwables) {
-                                context.makeError("Something went wrong in the database, please check with the developer.").queue();
-                                Xeus.getLogger().error("ERROR: ", throwables);
-                            }
-                        });
-                    });
-                } else {
-                    context.makeError("This guild doesn't have a (valid) channel for suggestions").queue();
+                if (avaire.getFeatureBlacklist().isBlacklisted(member.getUser(), c.getGuild().getIdLong(), FeatureScope.SUGGESTIONS)) {
+                    message.editMessageEmbeds(MessageFactory.makeError(message, "You have been blacklisted from creating suggestions for this guild. Please ask a **Level 4** or higher to remove you from the `"+c.getGuild().getName()+"` suggestion blacklist. (Or global, if you're globally banned from all features)")
+                        .buildEmbed())
+                        .setActionRows(Collections.emptySet())
+                        .queue();
+                    return;
                 }
 
+                message.editMessageEmbeds(MessageFactory.makeError(message, "You have been sent a modal, please respond to the questions asked and come back here, if you're not back in 3 minutes. The modal expires").buildEmbed()).setActionRows(Collections.emptySet()).queue();
+
+                TextInput suggestion = TextInput.create("suggestion", "Type your suggestion here!", TextInputStyle.PARAGRAPH)
+                    .setPlaceholder("This can be anything, just make sure it's appropriate for the guild.")
+                    .setMinLength(10)
+                    .setMaxLength(1000)
+                    .build();
+
+                Modal.Builder modal = Modal.create("report:" + guildId + ":" + message.getId(), guild.getName())
+                    .addActionRows(ActionRow.of(suggestion));
+
+                emote.replyModal(modal.build()).queue();
+                //message.clearReactions().queue();
+
+
+                waiter.waitForEvent(ModalInteractionEvent.class, l -> {
+                    Member m = l.getMember();
+                    return m != null && m.equals(member) && message.getChannel().equals(l.getChannel());
+                }, p -> {
+                    goToStep2(message, c, p, member, transformer);
+                });
+            } else {
+                emote.reply("This guild doesn't have a (valid) channel for suggestions").queue();
+            }
+
+        }, 5, TimeUnit.MINUTES, () -> {
+            message.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(message.getChannel()).setColor(Color.BLACK).setDescription("Stopped the suggestion system. Timeout of 5 minutes reached .").buildEmbed()).queue();
+        });
+    }
+
+    private void goToStep2(Message message, TextChannel c, ModalInteractionEvent p, Member member, GuildSettingsTransformer transformer) {
+        Button b1 = Button.success("accept:" + message.getId(), "Accept").withEmoji(Emoji.fromUnicode("✅"));
+        Button b2 = Button.danger("reject:" + message.getId(), "Reject").withEmoji(Emoji.fromUnicode("❌"));
+        Button b3 = Button.secondary("remove:" + message.getId(), "Delete").withEmoji(Emoji.fromUnicode("\uD83D\uDEAB"));
+        Button b4 = Button.secondary("comment:" + message.getId(), "Comment").withEmoji(Emoji.fromUnicode("\uD83D\uDCAC"));
+        Button b5 = Button.secondary("community-move:" + message.getId(), "Move to CAS").withEmoji(Emoji.fromUnicode("\uD83D\uDC51"));
+
+        ModalMapping suggestionModal = p.getValue("suggestion");
+
+        ActionRow actionRow =
+            ActionRow.of(b1.asEnabled(),
+            b2.asEnabled(),
+            b3.asEnabled(),
+            b4.asEnabled(),
+                transformer.getSuggestionCommunityChannelId() != 0 ? b5.asEnabled() : b5.asDisabled()
+            );
+
+        c.sendMessageEmbeds(MessageFactory.makeEmbeddedMessage(c).setColor(new Color(32, 34, 37))
+            .setAuthor("Suggestion for: " + c.getGuild().getName(), null, c.getGuild().getIconUrl())
+            .requestedBy(member).setDescription(suggestionModal != null ? suggestionModal.getAsString() : "No suggestion provided.")
+            .setTimestamp(Instant.now())
+            .buildEmbed()).setActionRows(actionRow).queue(v -> {
+            p.replyEmbeds(MessageFactory.
+                makeSuccess(message, "[Your suggestion has been posted in the correct suggestion channel.](:link)")
+                .set("link", v.getJumpUrl()).buildEmbed()).setEphemeral(true).queue();
+
+            message.editMessage("The modal has been correctly received and the suggestion has been sent.")
+                .setEmbeds(Collections.emptySet())
+                .setActionRows(Collections.emptySet())
+                .queue();
+
+            createReactions(v);
+
+            try {
+                avaire.getDatabase().newQueryBuilder(Constants.PB_SUGGESTIONS_TABLE_NAME).insert(data -> {
+                    data.set("pb_server_id", c.getGuild().getId());
+                    data.set("suggestion_message_id", v.getId());
+                    data.set("suggester_discord_id", member.getId());
+                });
             } catch (SQLException throwables) {
+                MessageFactory.makeError(message, "Something went wrong in the database, please check with the developer.").queue();
                 Xeus.getLogger().error("ERROR: ", throwables);
             }
-        }, 5, TimeUnit.MINUTES, () -> {
-            message.editMessageEmbeds(context.makeEmbeddedMessage().setColor(Color.BLACK).setDescription("Stopped the suggestion system. Timeout of 5 minutes reached .").buildEmbed()).queue();
         });
     }
 
@@ -359,7 +405,7 @@ public class SuggestionCommand extends Command {
 
     }
 
-    public static void createReactions(Message r, String communityApprovedSuggestion) {
+    public static void createReactions(Message r) {
         r.addReaction("\uD83D\uDC4D").queue();   // 👍
         r.addReaction("\uD83D\uDC4E").queue();  // 👎
         /*r.addReaction("✅").queue();
