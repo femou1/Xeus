@@ -44,6 +44,7 @@ public class UniformCommand extends Command {
     public List <String> getTriggers() {
         return Arrays.asList("uniform", "uni");
     }
+    boolean busy = false;
 
     /**
      * Gets the command description, this is used in help messages to help
@@ -95,6 +96,10 @@ public class UniformCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
+
+        if (busy) {
+            return sendErrorMessage(context, "This command is currently sending requests to Roblox. Please wait 10 minutes and try again.");
+        }
         if (getGroupId(context) == 0) {return sendErrorMessage(context, "You need to set a Roblox group ID first. Please configure the group ID before continue-ing");}
         if (getGroupId(context) != 645836) {return sendErrorMessage(context, "This command currently only works for `645836` (**Pinewood Builders Security Team**), contact the dev to see if your group can use it.");}
 
@@ -169,12 +174,13 @@ public class UniformCommand extends Command {
 
 
     private boolean updateUniforms(CommandMessage context, List <Asset> assets, boolean forSale, boolean reset) {
+        busy = true;
         Bucket bucket = Bucket.builder()
             .addLimit(Bandwidth.classic(6, Refill.intervally(6, Duration.ofMinutes(1))))
             .build();
 
         int count = 0;
-
+        int total = assets.size();
         for (Asset asset : assets) {
             ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
             if (!probe.isConsumed()) {
@@ -185,30 +191,33 @@ public class UniformCommand extends Command {
                     long durationInSeconds = TimeUnit.SECONDS.convert(refillTime, TimeUnit.NANOSECONDS);
 
                     context.makeWarning("You are being rate limited. Please wait `" + durationInMs + "ms` (`"+durationInSeconds+"s` (`"+timeUntilRefill+"ns`)) before using this command again.").queue(l -> l.delete().queueAfter(durationInSeconds, TimeUnit.SECONDS));
-                    TimeUnit.SECONDS.sleep((long) (durationInSeconds + (count*0.1)));
+                    TimeUnit.SECONDS.sleep((long) (durationInSeconds + (count*0.2)));
                 } catch (InterruptedException ignored) {
-                    //context.makeError("Rate-limit interrupted, update cancelled.").queue();
+                    busy = false;
                 }
             }
 
             count++;
-            if (!updateAsset(context, forSale, reset, asset, bucket)) {return true;}
+            if (!updateAsset(context, forSale, reset, asset, bucket, count, total)) {
+                busy = false;
+                break;
+            }
         }
 
         context.getMessageChannel().sendMessage(context.member.getAsMention())
             .setEmbeds(
-                context.makeSuccess("Updated " + count + " assets.")
+                context.makeSuccess("Updated " + count + " of " + total + " assets.")
                     .requestedBy(context)
                     .buildEmbed())
             .queue();
-
+        busy = false;
         return false;
     }
 
-    private boolean updateAsset(CommandMessage context, boolean forSale, boolean reset, Asset asset, Bucket bucket) {
+    private boolean updateAsset(CommandMessage context, boolean forSale, boolean reset, Asset asset, Bucket bucket, int count, int total) {
         String s = buildPayload(asset.getAssetId(),
             asset.getName(),
-            asset.getDescription() + "\nUID: " + RandomUtil.generateString(RandomUtil.getInteger(1) + 4),
+            asset.getDescription() + "\nID: " + RandomUtil.generateString(RandomUtil.getInteger(1) + 3),
             asset.isComments(),
             reset ? asset.isForSale() : forSale,
             asset.getRobloxPrice()
@@ -232,7 +241,7 @@ public class UniformCommand extends Command {
             if (response.code() == 429) {
                 context.makeError("Rate-limit reached, waiting an additional 60 seconds...").queue(l -> l.delete().queueAfter(10, TimeUnit.SECONDS));
                 TimeUnit.SECONDS.sleep(60);
-                updateAsset(context, forSale, reset, asset, bucket);
+                updateAsset(context, forSale, reset, asset, bucket, count, total);
                 return true;
             }
 
@@ -252,19 +261,30 @@ public class UniformCommand extends Command {
                 JSONObject newAsset = new JSONObject(response.body().string());
 
                 context.makeSuccess("""
-                    Successfully updated `:assetName`.
+                    Successfully updated:
+                        `:assetName`.
+                    Price: `:price`
+                    Description: ```:description```
+                    Type: `:type`
+                    For Sale: `:forSale`
                     """)
-                    .setTitle("Asset Updated {Click here to view}", "https://www.roblox.com/catalog/" + newAsset.get("id"))
+                    .setTitle("Asset Updated {"+asset.getAssetId()+"} - Assets: " + count + "/" + total, "https://www.roblox.com/catalog/" + newAsset.get("id"))
                     .setFooter("Remaining Tokens: " + bucket.getAvailableTokens())
                     .setTimestamp(Instant.now())
                     .setColor(getColor(newAsset.getString("error")))
                     .set("assetName", newAsset.get("name"))
+                    .set("price", asset.getRobloxPrice())
+                    .set("description", asset.getDescription())
+                    .set("type", asset.getAssetType().toString())
+                    .set("forSale", reset ? asset.isForSale() : forSale)
                     .queue(l -> l.delete().queueAfter(1, TimeUnit.MINUTES));
                 TimeUnit.SECONDS.sleep(9);
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending sync with beacon request: " + e.getMessage());
+            busy = false;
         } catch (InterruptedException e) {
+            busy = false;
             throw new RuntimeException(e);
         }
         return true;
