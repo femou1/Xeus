@@ -118,6 +118,9 @@ public enum Asset {
     V2SECURITYVESTHALLOWEENZOMBIE(7577146697L, "[V2] Security Vest - Halloween Zombie", "Approved for use at any Pinewood facility for on-duty security during the month of October only.\nPatrol in style with the Halloween Zombie uniform.\nUniform made by WickyTheUnicorn.", 15, false, true, AssetType.HALLOWEEN),
     V2SECURITYPANTSHALLOWEENZOMBIE(7577113060L, "[V2] Security Pants - Halloween Zombie", "Approved for use at any Pinewood facility for on-duty security during the month of October only.\nPatrol in style with the Halloween Zombie uniform.\nUniform made by WickyTheUnicorn.", 10, false, true, AssetType.HALLOWEEN),
 
+    V2SECURITYVESTAPRILFOOLSDAY(9630925133L, "[V2] Security Vest - April Fools' Day", "Approved for use at any Pinewood facility for on-duty security during the day of April 1st only.\nFool everyone in style with the April Fools' Day uniform.\nUniform made by sodaSopha.", 15, false, true, AssetType.APRIL_FOOLS),
+    V2SECURITYPANTSAPRILFOOLSDAY(9630931377L, "[V2] Security Pants - April Fools' Day", "Approved for use at any Pinewood facility for on-duty security during the day of April 1st only.\nFool everyone in style with the April Fools' Day uniform.\nUniform made by sodaSopha.", 10, false, true, AssetType.APRIL_FOOLS),
+
     V2SECURITYSHIRTLIMITEDEDITION(7953332016L, "[V2] Security Shirt - Limited Edition", "Patrol in style with the Limited Edition uniform.\nUniform made by WickyTheUnicorn.", 50, false, true, AssetType.LIMITED),
     V2SECURITYSHIRTLIMITEDEDITIONSHORTSLEEVE(7953559571L, "[V2] Security Shirt - Limited Edition Short-Sleeve", "Patrol in style with the Limited Edition uniform.\nUniform made by WickyTheUnicorn.", 50, false, true, AssetType.LIMITED),
     V2SECURITYVESTLIMITEDEDITION(5850555191L, "[V2] Security Vest - Limited Edition", "Patrol in style with the Limited Edition uniform.\nUniform made by WickyTheUnicorn.", 50, false, true, AssetType.LIMITED),
