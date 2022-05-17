@@ -335,7 +335,12 @@ public class MainEventHandler extends EventHandler {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        if (event.getAuthor().isBot()) return;
+        if (event.getAuthor().isBot()) {
+            if (event.getChannel().getId().equals("744982672228745267")) {
+                messageEvent.onPIAAdminMessageEvent(event);
+            }
+            return;
+        }
         if (changelogEventAdapter.isChangelogMessage(event.getChannel())) changelogEventAdapter.onMessageReceived(event);
         messageEvent.onMessageReceived(event);
         if (Xeus.getEnvironment().getName().equals(Environment.DEVELOPMENT.getName())) {
@@ -354,9 +359,7 @@ public class MainEventHandler extends EventHandler {
             if (event.getChannel().getId().equals("871890084121673738")) {
                 messageEvent.sendPBACRaidVoteEmojis(event);
             }
-            if (event.getChannel().getId().equals("744982672228745267")) {
-                messageEvent.onPIAAdminMessageEvent(event);
-            }
+
 
 
         }

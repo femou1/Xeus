@@ -134,7 +134,7 @@ public class GroupShoutCommand extends Command {
         Request.Builder request = new Request.Builder()
             .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
             .url(avaire.getConfig().getString("URL.noblox").replace("%location%", "GroupShout"))
-            .post(RequestBody.create(json, buildPayload(message, context.getGuildSettingsTransformer().getRobloxGroupId())));
+            .post(RequestBody.create(buildPayload(message, context.getGuildSettingsTransformer().getRobloxGroupId()), json));
 
         try (Response response = client.newCall(request.build()).execute()) {
             if (response.code() == 500) {
