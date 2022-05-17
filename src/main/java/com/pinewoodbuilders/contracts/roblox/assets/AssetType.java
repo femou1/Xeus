@@ -5,5 +5,9 @@ public enum AssetType {
     HALLOWEEN,
     CHRISTMAS,
     LIMITED,
-    INSIGNIA, OFF_DUTY, V1_UNIFORMS, V2_UNIFORMS, TEST
+    INSIGNIA,
+    OFF_DUTY,
+    V1_UNIFORMS,
+    V2_UNIFORMS,
+    NULL
 }

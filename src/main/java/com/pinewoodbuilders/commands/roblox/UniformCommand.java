@@ -107,6 +107,7 @@ public class UniformCommand extends Command {
             return sendErrorMessage(context, "You need to specify a command. `:command uniform update` to update the group, `:command uniform reset` to reset the group.");
         }
 
+
         // Switch the first argument to lowercase.
         // Check if the first argument is either enable, disable or reset.
         return switch (args[0].toLowerCase()) {
@@ -127,7 +128,7 @@ public class UniformCommand extends Command {
             return updateUniforms(context, Arrays.stream(Asset.values()).toList(), true, true);
         }
 
-        AssetType assetType = AssetType.valueOf(args[0].toUpperCase());
+        AssetType assetType = Arrays.stream(AssetType.values()).filter(type -> type.name().equalsIgnoreCase(args[0])).findFirst().orElse(AssetType.NULL);
         List<Asset> assets = Arrays.stream(Asset.values()).filter(asset -> asset.getAssetType() == assetType).toList();
 
         if (!assets.isEmpty()) {
@@ -144,7 +145,7 @@ public class UniformCommand extends Command {
                 Arrays.stream(AssetType.values()).map(type -> "\n- `" + type.name().toUpperCase() + "`").collect(Collectors.joining()));
         }
 
-        AssetType assetType = AssetType.valueOf(args[0].toUpperCase());
+        AssetType assetType = Arrays.stream(AssetType.values()).filter(type -> type.name().equalsIgnoreCase(args[0])).findFirst().orElse(AssetType.NULL);
         List<Asset> assets = Arrays.stream(Asset.values()).filter(asset -> asset.getAssetType() == assetType).toList();
 
         if (!assets.isEmpty()) {
@@ -161,7 +162,7 @@ public class UniformCommand extends Command {
                 Arrays.stream(AssetType.values()).map(type -> "\n- `" + type.name().toUpperCase() + "`").collect(Collectors.joining()));
         }
 
-        AssetType assetType = AssetType.valueOf(args[0].toUpperCase());
+        AssetType assetType = Arrays.stream(AssetType.values()).filter(type -> type.name().equalsIgnoreCase(args[0])).findFirst().orElse(AssetType.NULL);
         List<Asset> assets = Arrays.stream(Asset.values()).filter(asset -> asset.getAssetType() == assetType).toList();
 
         if (!assets.isEmpty()) {
