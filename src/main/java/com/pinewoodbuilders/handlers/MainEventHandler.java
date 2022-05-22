@@ -50,7 +50,6 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateNameEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
@@ -93,8 +92,6 @@ public class MainEventHandler extends EventHandler {
     private final WhitelistEventAdapter whitelistEventAdapter;
     private final ButtonClickEventAdapter buttonClickEventAdapter;
     private final SlashCommandEventAdapter slashCommandEventAdapter;
-    private final VoiceChannelHandler voiceChannelHandler;
-
     public static final Cache<Long, Boolean> cache = CacheBuilder.newBuilder()
         .recordStats()
         .expireAfterWrite(15, TimeUnit.MINUTES)
@@ -124,7 +121,6 @@ public class MainEventHandler extends EventHandler {
         this.whitelistEventAdapter = new WhitelistEventAdapter(avaire, avaire.getVoiceWhitelistManager());
         this.buttonClickEventAdapter = new ButtonClickEventAdapter(avaire);
         this.slashCommandEventAdapter = new SlashCommandEventAdapter(avaire);
-        this.voiceChannelHandler = new VoiceChannelHandler(avaire);
     }
 
     @Override
@@ -180,35 +176,26 @@ public class MainEventHandler extends EventHandler {
     @Override
     public void onChannelDelete(ChannelDeleteEvent event) {
 
-        if (event.getChannel() instanceof TextChannel) {
-            TextChannel channel = (TextChannel) event.getChannel();
+        if (event.getChannel() instanceof TextChannel channel) {
             channelEvent.updateChannelData(channel.getGuild(), channel);
             channelEvent.onTextChannelDelete(event, channel);
-        }
-
-        if (event.getChannel() instanceof VoiceChannel) {
-            VoiceChannel channel = (VoiceChannel) event.getChannel();
-            voiceChannelHandler.onVoiceDelete(channel);
         }
     }
 
     @Override
     public void onChannelCreate(ChannelCreateEvent event) {
-        if (event.getChannel() instanceof TextChannel) {
-            TextChannel channel = (TextChannel) event.getChannel();
+        if (event.getChannel() instanceof TextChannel channel) {
             channelEvent.updateChannelData(channel.getGuild(), channel);
         }
 
-        if (event.getChannel() instanceof ThreadChannel) {
-            ThreadChannel channel = (ThreadChannel) event.getChannel();
+        if (event.getChannel() instanceof ThreadChannel channel) {
             channel.join().queue();
         }
     }
 
     @Override
     public void onChannelUpdateName(ChannelUpdateNameEvent event) {
-        if (event.getChannel() instanceof TextChannel) {
-            TextChannel channel = (TextChannel) event.getChannel();
+        if (event.getChannel() instanceof TextChannel channel) {
 
             channelEvent.updateChannelData(channel.getGuild(), channel);
 
@@ -217,8 +204,7 @@ public class MainEventHandler extends EventHandler {
 
     @Override
     public void onChannelUpdatePosition(ChannelUpdatePositionEvent event) {
-        if (event.getChannel() instanceof TextChannel) {
-            TextChannel channel = (TextChannel) event.getChannel();
+        if (event.getChannel() instanceof TextChannel channel) {
 
             channelEvent.updateChannelData(channel.getGuild(), channel);
         }
@@ -227,19 +213,13 @@ public class MainEventHandler extends EventHandler {
     @Override
     public void onGuildVoiceJoin(@Nonnull GuildVoiceJoinEvent event) {
         whitelistEventAdapter.whitelistCheckEvent(event);
-        voiceChannelHandler.createPrivateChannelOnLobbyJoin(event);
     }
 
     @Override
     public void onGuildVoiceMove(@Nonnull GuildVoiceMoveEvent event) {
         whitelistEventAdapter.whitelistCheckEvent(event);
-        voiceChannelHandler.createPrivateChannelOnLobbyJoinFromMove(event);
     }
 
-    @Override
-    public void onGuildVoiceLeave(@Nonnull GuildVoiceLeaveEvent event) {
-        voiceChannelHandler.removePrivateChannelOn(event);
-    }
 
     @Override
     public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
