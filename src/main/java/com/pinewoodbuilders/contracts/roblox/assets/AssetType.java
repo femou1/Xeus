@@ -1,14 +1,16 @@
 package com.pinewoodbuilders.contracts.roblox.assets;
 
 public enum AssetType {
-    DEFAULT,
-    HALLOWEEN,
-    CHRISTMAS,
-    LIMITED,
-    INSIGNIA,
     APRIL_FOOLS,
+    CHRISTMAS,
+    DEFAULT,
+    EASTER,
+    HALLOWEEN,
+    INSIGNIA,
+    LIMITED,
+    NULL,
     OFF_DUTY,
-    V1_UNIFORMS,
-    V2_UNIFORMS,
-    NULL
+    SAINT_PATRICKS_DAY, VALENTINES_DAY, NEW_YEARS, V1_UNIFORMS, V2_UNIFORMS,
+
+
 }

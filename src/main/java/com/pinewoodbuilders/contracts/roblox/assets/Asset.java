@@ -77,6 +77,7 @@ public enum Asset {
     V2SECURITYPANTSBROWN(7978106743L, "[V2] Security Pants - Brown", "Patrol in style with the Brown uniform.\nMade by WickyTheUnicorn.", 5, true, true, AssetType.V2_UNIFORMS),
     V2SECURITYSHORTSBROWN(7978099103L, "[V2] Security Shorts - Brown", "Patrol in style with the Brown uniform.\nMade by WickyTheUnicorn.", 5, true, true, AssetType.V2_UNIFORMS),
     V2SECURITYSKIRTBROWN(7978100699L, "[V2] Security Skirt - Brown", "Patrol in style with the Brown uniform.\nMade by WickyTheUnicorn.", 5, true, true, AssetType.V2_UNIFORMS),
+
     TIER1RANKINSIGNIAV1(6129368082L, "Tier 1 Rank Insignia V1", "These are optional pips for Tiers to wear with their uniform. Reminder, using these to impersonate a tier will lead to disciplinary action!\nMade by WickyTheUnicorn.", 5, true, true, AssetType.INSIGNIA),
     TIER2RANKINSIGNIAV1(6129368354L, "Tier 2 Rank Insignia V1", "These are optional pips for Tiers to wear with their uniform. Reminder, using these to impersonate a tier will lead to disciplinary action!\nMade by WickyTheUnicorn.", 5, true, true, AssetType.INSIGNIA),
     TIER3RANKINSIGNIAV1(6129368639L, "Tier 3 Rank Insignia V1", "These are optional pips for Tiers to wear with their uniform. Reminder, using these to impersonate a tier will lead to disciplinary action!\nMade by WickyTheUnicorn.", 5, true, true, AssetType.INSIGNIA),

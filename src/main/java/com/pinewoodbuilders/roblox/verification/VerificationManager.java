@@ -848,7 +848,7 @@ public class VerificationManager {
     @Nullable
     public VerificationEntity callUserFromRoWifiAPI(String discordUserId) {
         Request.Builder request = new Request.Builder().addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
-            .url("https://api.rowifi.link/v1/users/" + discordUserId);
+            .url("https://api.rowifi.xyz/v1/users/" + discordUserId);
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200 && response.body() != null) {

@@ -2,7 +2,6 @@ package com.pinewoodbuilders.servlet.routes.v1.post;
 
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.metrics.SparkRoute;
-import com.pinewoodbuilders.roblox.RobloxAPIManager;
 import net.dv8tion.jda.api.entities.Guild;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -12,7 +11,6 @@ import spark.Response;
 
 public class PostAcknowledgedMessage extends SparkRoute {
     private static final Logger log = LoggerFactory.getLogger(PostEvalAnswers.class);
-    private final RobloxAPIManager manager = Xeus.getInstance().getRobloxAPIManager();
 
     @Override
     public Object handle(Request request, Response response) throws Exception {
@@ -29,8 +27,6 @@ public class PostAcknowledgedMessage extends SparkRoute {
             root.put("message", "Guild doesn't exist. :(");
             return root;
         }
-
-
 
         return root;
     }

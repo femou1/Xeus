@@ -177,7 +177,7 @@ public class UniformCommand extends Command {
     private boolean updateUniforms(CommandMessage context, List <Asset> assets, boolean forSale, boolean reset) {
         busy = true;
         Bucket bucket = Bucket.builder()
-            .addLimit(Bandwidth.classic(6, Refill.intervally(6, Duration.ofMinutes(1))))
+            .addLimit(Bandwidth.classic(1, Refill.intervally(1, Duration.ofMinutes(1))))
             .build();
 
         int count = 0;
@@ -279,7 +279,7 @@ public class UniformCommand extends Command {
                     .set("type", asset.getAssetType().toString())
                     .set("forSale", reset ? asset.isForSale() : forSale)
                     .queue(l -> l.delete().queueAfter(1, TimeUnit.MINUTES));
-                TimeUnit.SECONDS.sleep(9);
+                TimeUnit.SECONDS.sleep(60);
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending sync with beacon request: " + e.getMessage());
