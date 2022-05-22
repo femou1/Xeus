@@ -11,6 +11,7 @@ public enum AssetType {
     NULL,
     OFF_DUTY,
     SAINT_PATRICKS_DAY, VALENTINES_DAY, NEW_YEARS, V1_UNIFORMS, V2_UNIFORMS,
+    LANYARD,
 
 
 }

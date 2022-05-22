@@ -87,6 +87,7 @@ public enum Asset {
     TIER2RANKINSIGNIAV2(9536477984L, "Tier 2 Rank Insignia V2", "These are optional pips for Tiers to wear with their uniform. Reminder, using these to impersonate a tier will lead to disciplinary action!\nMade by TenX29.", 5, true, true, AssetType.INSIGNIA),
     TIER3RANKINSIGNIAV2(9536478950L, "Tier 3 Rank Insignia V2", "These are optional pips for Tiers to wear with their uniform. Reminder, using these to impersonate a tier will lead to disciplinary action! Made by TenX29.", 5, true, true, AssetType.INSIGNIA),
 
+    PBSTLANYARD(6678427010L, "PBST Lanyard", "This is an optional Lanyard for PBST to wear with their uniform. This Lanyard does not make you on duty for PBST though, you must still be wearing a full PBST uniform. Made by WickyTheUnicorn.", 5, true, true, AssetType.LANYARD),
     OFFDUTYONLYPBSTHOODIE(6372803373L, "[OFF DUTY ONLY] PBST Hoodie", "This is not an official PBST uniform, wearing this will not make you on duty for PBST. This is purely for off-duty personnel.\nMade by WickyTheUnicorn.", 5, true, true, AssetType.OFF_DUTY),
 
     V2SECURITYSHIRTCHRISTMASRED(7953369576L, "[V2] Security Shirt - Christmas Red", "Approved for use at any Pinewood facility for on-duty security during the month of December only.\nPatrol in style with the Christmas Red uniform.\nUniform made by WickyTheUnicorn.", 15, false, true, AssetType.CHRISTMAS),
