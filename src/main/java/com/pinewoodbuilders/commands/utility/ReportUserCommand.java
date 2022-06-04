@@ -309,7 +309,7 @@ public class ReportUserCommand extends Command {
         }
 
 
-        if (settings.getRobloxGroupId() != 0) {
+        if (settings.getRobloxGroupId() != 0 && settings.getRobloxGroupId() != 159511) {
             Request requestedRequest = RequestFactory.makeGET("https://groups.roblox.com/v1/users/" + requestedId + "/groups/roles");
             requestedRequest.send((Consumer <Response>) response -> {
                 if (response.getResponse().code() == 200) {

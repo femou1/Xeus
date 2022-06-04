@@ -760,9 +760,9 @@ public class ButtonClickEventAdapter extends EventAdapter {
                 event.getMessage().editMessageEmbeds(event.getMessage().getEmbeds()).setActionRows(Collections.emptyList()).queue();
                 event.getChannel().sendMessageEmbeds(MessageFactory.makeSuccess(event.getMessage(), "Eval has been accepted, record has been updated in the database!").buildEmbed()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
 
-                avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(MessageFactory.makeSuccess(event.getMessage(), "`" + username + "` has passed the `quiz` evaluation.").requestedBy(event.getMember()).buildEmbed()).queue();
+                avaire.getShardManager().getTextChannelById("980947919022731315").sendMessageEmbeds(MessageFactory.makeSuccess(event.getMessage(), "`" + username + "` has passed the `quiz` evaluation.").requestedBy(event.getMember()).buildEmbed()).queue();
                 if (avaire.getRobloxAPIManager().getEvaluationManager().getEvaluationStatus(userId).isPassed()) {
-                    avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(MessageFactory.makeSuccess(event.getMessage(), "`" + username + "` has now passed all evaluations!").setColor(new Color(255, 215, 0)).buildEmbed()).queue();
+                    avaire.getShardManager().getTextChannelById("980947919022731315").sendMessageEmbeds(MessageFactory.makeSuccess(event.getMessage(), "`" + username + "` has now passed all evaluations!").setColor(new Color(255, 215, 0)).buildEmbed()).queue();
                 }
             });
         } catch (SQLException throwables) {

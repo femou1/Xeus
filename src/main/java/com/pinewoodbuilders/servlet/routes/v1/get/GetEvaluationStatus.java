@@ -6,12 +6,17 @@ import com.pinewoodbuilders.contracts.cache.CacheAdapter;
 import com.pinewoodbuilders.contracts.metrics.SparkRoute;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
+import com.pinewoodbuilders.database.controllers.GuildSettingsController;
+import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
+import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
 import net.dv8tion.jda.api.entities.Guild;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Request;
 import spark.Response;
+
+import java.util.List;
 
 public class GetEvaluationStatus extends SparkRoute {
 
@@ -85,24 +90,20 @@ public class GetEvaluationStatus extends SparkRoute {
 
     private boolean isEvalRank(Long id, Long robloxId) {
         Guild guild = Xeus.getInstance().getShardManager().getGuildById(id);
-        /*if (guild != null) {
-            if (guild.getId().equals("438134543837560832")) {
-                GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(Xeus.getInstance(), guild);
-                if (transformer != null) {
-                    if (transformer.getRobloxGroupId() != 0) {
-                        List <RobloxUserGroupRankService.Data> ranks = Xeus.getInstance().getRobloxAPIManager()
-                            .getUserAPI().getUserRanks(robloxId).stream()
-                            .filter(groupRanks -> groupRanks.getGroup().getId() == transformer.getRobloxGroupId())
-                            .collect(Collectors.toList());
-                        if (ranks.size() == 0) {
-                            return false;
-                        }
+        if (guild != null) {
 
-                        //return ranks.get(0).getRole().getRank() == 2;
-                    }
-                }
+            GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(Xeus.getInstance(), guild);
+            if (transformer.getRobloxGroupId() != 0) {
+                List <RobloxUserGroupRankService.Data> ranks = Xeus.getInstance().getRobloxAPIManager()
+                    .getUserAPI().getUserRanks(robloxId).stream()
+                    .filter(groupRanks -> groupRanks.getGroup().getId() == transformer.getRobloxGroupId()).toList();
+                if (ranks.size() == 0) return false;
+                if (!(transformer.getRobloxGroupId() == 645836)) return false;
+
+                return ranks.get(0).getRole().getRank() == 2;
             }
-        }*/
+
+        }
         return true;
     }
 

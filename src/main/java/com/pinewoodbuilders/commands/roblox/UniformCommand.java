@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -96,7 +97,6 @@ public class UniformCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-
         if (busy) {
             return sendErrorMessage(context, "This command is currently sending requests to Roblox. Please wait 10 minutes and try again.");
         }
@@ -125,7 +125,10 @@ public class UniformCommand extends Command {
 
     private boolean resetUniform(CommandMessage context, String[] args) {
         if (args.length == 0) {
-            return updateUniforms(context, Arrays.stream(Asset.values()).toList(), true, true);
+            List <Asset> assets = new java.util.ArrayList <>(Arrays.stream(Asset.values()).toList());
+            Collections.sort(assets);
+
+            return updateUniforms(context, assets, true, true);
         }
 
         AssetType assetType = Arrays.stream(AssetType.values()).filter(type -> type.name().equalsIgnoreCase(args[0])).findFirst().orElse(AssetType.NULL);
@@ -218,7 +221,7 @@ public class UniformCommand extends Command {
     private boolean updateAsset(CommandMessage context, boolean forSale, boolean reset, Asset asset, Bucket bucket, int count, int total) {
         String s = buildPayload(asset.getAssetId(),
             asset.getName(),
-            asset.getDescription() + "\nID: " + RandomUtil.generateString(RandomUtil.getInteger(1) + 3),
+            asset.getDescription() + "\nUID: " + RandomUtil.generateString(RandomUtil.getInteger(1) + 2),
             asset.isComments(),
             reset ? asset.isForSale() : forSale,
             asset.getRobloxPrice()
@@ -241,7 +244,7 @@ public class UniformCommand extends Command {
             }
             if (response.code() == 429) {
                 context.makeError("Rate-limit reached, waiting an additional 60 seconds...").queue(l -> l.delete().queueAfter(10, TimeUnit.SECONDS));
-                TimeUnit.SECONDS.sleep(60);
+                TimeUnit.SECONDS.sleep(10);
                 updateAsset(context, forSale, reset, asset, bucket, count, total);
                 return true;
             }

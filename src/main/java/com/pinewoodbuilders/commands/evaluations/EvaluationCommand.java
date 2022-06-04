@@ -434,7 +434,7 @@ public class EvaluationCommand extends Command {
                                         }
                                     });
                                 context.makeSuccess("Successfully added the record to the database").queue();
-                                avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`" + args[0] + "` has passed the `" + args[2] + "` eval.").buildEmbed()).queue();
+                                avaire.getShardManager().getTextChannelById("980947919022731315").sendMessageEmbeds(context.makeSuccess("`" + args[0] + "` has passed the `" + args[2] + "` eval.").buildEmbed()).queue();
 
                                 return true;
                             }
@@ -459,12 +459,12 @@ public class EvaluationCommand extends Command {
                                         statement.set("evaluator", context.getMember().getEffectiveName());
                                     });
                                 context.makeSuccess("Successfully updated the record in the database").queue();
-                                avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`" + args[0] + "` has passed the `" + args[2] + "` eval.").requestedBy(context.getMember()).buildEmbed()).queue();
+                                avaire.getShardManager().getTextChannelById("980947919022731315").sendMessageEmbeds(context.makeSuccess("`" + args[0] + "` has passed the `" + args[2] + "` eval.").requestedBy(context.getMember()).buildEmbed()).queue();
                                 try {
 
                                     EvaluationStatus status = avaire.getRobloxAPIManager().getEvaluationManager().getEvaluationStatus(roblox_id);
                                     if (status.isPassed()) {
-                                        avaire.getShardManager().getTextChannelById("690731696387260541").sendMessageEmbeds(context.makeSuccess("`" + args[0] + "` has now passed all evaluations!").setColor(new Color(255, 215, 0)).requestedBy(context).buildEmbed()).queue();
+                                        avaire.getShardManager().getTextChannelById("980947919022731315").sendMessageEmbeds(context.makeSuccess("`" + args[0] + "` has now passed all evaluations!").setColor(new Color(255, 215, 0)).requestedBy(context).buildEmbed()).queue();
 
                                         avaire.getRobloxAPIManager().getKronosManager().modifyEvalStatus(roblox_id, "pbst", true);
 

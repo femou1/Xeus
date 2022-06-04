@@ -257,7 +257,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
             }
             transformer.getGlobalFilterExact().add(words);
             try {
-                updateGuildAutoModExact(context, transformer);
+                updateGuildAutoModExact(transformer);
 
                 context.makeSuccess("Successfully added: ``" + words + "``").queue();
 
@@ -298,7 +298,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
         transformer.getGlobalFilterExact().remove(args);
 
         try {
-            updateGuildAutoModExact(context, transformer);
+            updateGuildAutoModExact(transformer);
 
             context.makeSuccess("Deleted: " + args).queue();
             return true;
@@ -308,14 +308,13 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
         }
     }
 
-    private void updateGuildAutoModExact(CommandMessage message, GlobalSettingsTransformer transformer)
+    private void updateGuildAutoModExact(GlobalSettingsTransformer transformer)
         throws SQLException {
-        for (Guild guild : avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(transformer.getMainGroupId(), true)) {
-            avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", guild.getId())
-                .update(statement -> statement.set("global_filter_exact",
-                    Xeus.gson.toJson(transformer.getGlobalFilterExact()), true));
+        avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE)
+            .where("main_group_id", transformer.getMainGroupId())
+            .update(statement -> statement.set("global_filter_exact",
+                Xeus.gson.toJson(transformer.getGlobalFilterExact()), true));
 
-        }
     }
 
     private boolean runEditWCFFilter(CommandMessage context, String[] args) {
@@ -357,7 +356,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
             }
             transformer.getGlobalFilterWildcard().add(words);
             try {
-                updateGuildAutoModWildcard(context, transformer);
+                updateGuildAutoModWildcard(transformer);
 
                 context.makeSuccess("Successfully added: ``" + words + "``").queue();
 
@@ -384,7 +383,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
             }
             transformer.getGlobalFilterWildcard().add(words);
             try {
-                updateGuildAutoModWildcard(context, transformer);
+                updateGuildAutoModWildcard(transformer);
 
                 context.makeSuccess("Successfully added: ``" + words + "``").queue();
                 return true;
@@ -404,7 +403,7 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
 
         transformer.getGlobalFilterWildcard().remove(args);
         try {
-            updateGuildAutoModWildcard(context, transformer);
+            updateGuildAutoModWildcard(transformer);
 
             context.makeSuccess("Deleted: ``" + args + "``").queue();
             return true;
@@ -420,10 +419,11 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
         return false;
     }
 
-    private void updateGuildAutoModWildcard(CommandMessage message, GlobalSettingsTransformer transformer)
+    private void updateGuildAutoModWildcard(GlobalSettingsTransformer transformer)
         throws SQLException {
 
-        avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE).where("main_group_id", transformer.getMainGroupId())
+        avaire.getDatabase().newQueryBuilder(Constants.GLOBAL_SETTINGS_TABLE)
+            .where("main_group_id", transformer.getMainGroupId())
             .update(statement -> statement.set("global_filter_wildcard",
                 Xeus.gson.toJson(transformer.getGlobalFilterWildcard()), true));
 
