@@ -314,7 +314,6 @@ public class GlobalSettingsSubCommand extends SettingsSubCommand {
             .where("main_group_id", transformer.getMainGroupId())
             .update(statement -> statement.set("global_filter_exact",
                 Xeus.gson.toJson(transformer.getGlobalFilterExact()), true));
-
     }
 
     private boolean runEditWCFFilter(CommandMessage context, String[] args) {
