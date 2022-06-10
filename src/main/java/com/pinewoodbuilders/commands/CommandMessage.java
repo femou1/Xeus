@@ -217,10 +217,10 @@ public class CommandMessage implements CommandContext {
     @Override
     public List<User> getMentionedUsers() {
         if (!isMentionableCommand()) {
-            return message.getMentionedUsers();
+            return message.getMentions().getUsers();
         }
 
-        List<User> mentions = new ArrayList<>(message.getMentionedUsers());
+        List<User> mentions = new ArrayList<>(message.getMentions().getUsers());
         if (!mentions.isEmpty()) {
             mentions.remove(0);
         }
@@ -228,8 +228,8 @@ public class CommandMessage implements CommandContext {
     }
 
     @Override
-    public List<TextChannel> getMentionedChannels() {
-        return message.getMentionedChannels();
+    public List <GuildChannel> getMentionedChannels() {
+        return message.getMentions().getChannels();
     }
 
     @Override
@@ -239,7 +239,7 @@ public class CommandMessage implements CommandContext {
 
     @Override
     public boolean mentionsEveryone() {
-        return message.mentionsEveryone()
+        return message.getMentions().mentionsEveryone()
             || message.getContentRaw().contains("@everyone")
             || message.getContentRaw().contains("@here");
     }

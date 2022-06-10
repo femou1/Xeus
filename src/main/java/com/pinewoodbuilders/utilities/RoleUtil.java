@@ -42,8 +42,8 @@ public class RoleUtil {
      * @return Possibly-null, if a role was mentioned the role will be returned, otherwise the role will be fetched from the guilds role list.
      */
     public static Role getRoleFromMentionsOrName(@Nonnull Message message, @Nonnull String roleName) {
-        if (!message.getMentionedRoles().isEmpty()) {
-            return message.getMentionedRoles().get(0);
+        if (!message.getMentions().getRoles().isEmpty()) {
+            return message.getMentions().getRoles().get(0);
         }
 
         if (roleName.length() == 0) {

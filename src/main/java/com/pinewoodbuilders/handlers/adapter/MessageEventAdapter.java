@@ -421,7 +421,7 @@ public class MessageEventAdapter extends EventAdapter {
 
     private boolean checkAutomodFilters(Message message, GuildSettingsTransformer guild) {
         if (guild.getMassMention() > 0) {
-            if (message.getMentionedMembers().size() >= guild.getMassMention()) {
+            if (message.getMentions().getMembers().size() >= guild.getMassMention()) {
                 warnUserColor(message, guild, "**GLOBAL AUTOMOD**: Global Automod was triggered!\n**Type**: " + "``Mass Mention``\n**Sentence Filtered**: \n" + message.getContentRaw(), new Color(0, 0, 0), message.getChannel());
                 message.getChannel().sendMessage("Please do not mass mention multiple people. " + message.getMember().getAsMention()).queue();
                 return false;
@@ -644,14 +644,14 @@ public class MessageEventAdapter extends EventAdapter {
     }
 
     private boolean isMentionableAction(MessageReceivedEvent event) {
-        if (!event.getMessage().isMentioned(avaire.getSelfUser())) {
+        if (!event.getMessage().getMentions().isMentioned(avaire.getSelfUser())) {
             return false;
         }
 
         String[] args = event.getMessage().getContentRaw().split(" ");
         return args.length >= 2 &&
             userRegEX.matcher(args[0]).matches() &&
-            event.getMessage().getMentionedUsers().get(0).getId().equals(avaire.getSelfUser().getId());
+            event.getMessage().getMentions().getUsers().get(0).getId().equals(avaire.getSelfUser().getId());
 
     }
 
@@ -929,7 +929,7 @@ public class MessageEventAdapter extends EventAdapter {
         event.getMessage().addReaction("tmsaye:873681202048016385").queue();
         event.getMessage().addReaction("tmsabstain:873681310881837106").queue();
         event.getMessage().addReaction("tmsnay:873681430054588456").queue();
-        if (event.getMessage().getMentionedRoles().stream().anyMatch(role -> role.getName().equals("PIA"))) {
+        if (event.getMessage().getMentions().getRoles().stream().anyMatch(role -> role.getName().equals("PIA"))) {
             event.getMessage().addReaction("piaaye:900484641037881405").queue();
             event.getMessage().addReaction("piaabstain:900484610771812352").queue();
             event.getMessage().addReaction("pianay:900484582032420955").queue();

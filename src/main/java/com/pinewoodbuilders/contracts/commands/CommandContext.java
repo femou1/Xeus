@@ -190,7 +190,7 @@ public interface CommandContext {
      * @return immutable list of mentioned TextChannels
      * @throws java.lang.UnsupportedOperationException If this is not a Received Message from {@link net.dv8tion.jda.api.entities.MessageType#DEFAULT MessageType.DEFAULT}
      */
-    List<TextChannel> getMentionedChannels();
+    List <GuildChannel> getMentionedChannels();
 
     /**
      * Returns true if the message was invoked as a mentionable command, this means

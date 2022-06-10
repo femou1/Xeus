@@ -89,8 +89,8 @@ public class GuildAndGlobalSettingsCommand extends Command {
     }
 
     private boolean getUserLevel(CommandMessage context, GuildSettingsTransformer guildTransformer) {
-        if (context.getMessage().getMentionedMembers().size() == 1) {
-            Member member = context.getMessage().getMentionedMembers().get(0);
+        if (context.getMessage().getMentions().getMembers().size() == 1) {
+            Member member = context.getMessage().getMentions().getMembers().get(0);
             GuildPermissionCheckType rank = XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, member);
             context.makeInfo(member.getAsMention() + " has permission level ``"
                     + rank.getLevel()
@@ -99,8 +99,8 @@ public class GuildAndGlobalSettingsCommand extends Command {
                     .queue();
             return true;
         }
-        if (context.getMessage().getMentionedMembers().size() > 1) {
-            for (Member member : context.getMessage().getMentionedMembers()) {
+        if (context.getMessage().getMentions().getMembers().size() > 1) {
+            for (Member member : context.getMessage().getMentions().getMembers()) {
                 context.makeInfo(member.getAsMention() + " has permission level ``"
                         + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, member).getLevel()
                         + "`` and is classified as a **"

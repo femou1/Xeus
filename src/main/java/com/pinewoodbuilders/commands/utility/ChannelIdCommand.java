@@ -26,7 +26,7 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
-import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.GuildChannel;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -80,7 +80,7 @@ public class ChannelIdCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        MessageChannel channel = context.getChannel();
+        GuildChannel channel = context.getGuildChannel();
         if (!context.getMentionedChannels().isEmpty()) {
             channel = context.getMentionedChannels().get(0);
         }

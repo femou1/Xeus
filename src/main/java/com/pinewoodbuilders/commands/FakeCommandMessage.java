@@ -104,7 +104,7 @@ public class FakeCommandMessage implements CommandContext {
     }
 
     @Override
-    public List<TextChannel> getMentionedChannels() {
+    public List <GuildChannel> getMentionedChannels() {
         return new ArrayList<>();
     }
 

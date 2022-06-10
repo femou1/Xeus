@@ -117,8 +117,8 @@ public class ModlogHistoryCommand extends Command {
                 user = u.getId();
             }
         } else {
-            if (context.getMessage().getMentionedUsers().size() > 0) {
-                user = context.getMessage().getMentionedUsers().get(0).getId();
+            if (context.getMessage().getMentions().getUsers().size() > 0) {
+                user = context.getMessage().getMentions().getUsers().get(0).getId();
             } else {user = args[0];}
 
         }

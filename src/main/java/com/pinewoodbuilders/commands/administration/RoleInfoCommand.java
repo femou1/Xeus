@@ -100,7 +100,7 @@ public class RoleInfoCommand extends Command {
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
         Role role;
-        List<Role> rolesByMention = (context.getMessage().getMentionedRoles());
+        List<Role> rolesByMention = (context.getMessage().getMentions().getRoles());
 
         if (rolesByMention.isEmpty()) {
             Role rolesByName = MentionableUtil.getRole(context.getMessage(), args);

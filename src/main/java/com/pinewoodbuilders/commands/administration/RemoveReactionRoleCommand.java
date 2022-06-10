@@ -177,11 +177,11 @@ public class RemoveReactionRoleCommand extends Command {
 
     @SuppressWarnings("ConstantConditions")
     private boolean removeSingleRoleOrEmoteFromMessage(CommandMessage context, String[] args, DataRow row) {
-        if (context.getMessage().getEmotes().isEmpty()) {
+        if (context.getMessage().getMentions().getEmotes().isEmpty()) {
             return sendErrorMessage(context, context.i18n("mustIncludeEmote"));
         }
 
-        Emote emote = context.getMessage().getEmotes().get(0);
+        Emote emote = context.getMessage().getMentions().getEmotes().get(0);
         if (emote.getGuild() == null || emote.getGuild().getIdLong() != context.getGuild().getIdLong()) {
             return sendErrorMessage(context, context.i18n("emoteDoestBelongToServer"));
         }

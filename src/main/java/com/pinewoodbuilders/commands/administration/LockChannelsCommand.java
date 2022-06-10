@@ -136,7 +136,7 @@ public class LockChannelsCommand extends Command {
 
     private boolean handleChannelLock(CommandMessage context, List <Role> r) {
         StringBuilder sb = new StringBuilder();
-        MessageChannel tc = context.getMentionedChannels().size() == 1 ? context.getMentionedChannels().get(0) : context.channel;
+        GuildChannel tc = context.getMentionedChannels().size() == 1 ? context.getMentionedChannels().get(0) : context.getGuildChannel();
         changePermissions(r, sb, tc, context);
         context.makeSuccess("Succesfully modified the current channel!\n" + sb).queue();
         return true;
@@ -145,13 +145,12 @@ public class LockChannelsCommand extends Command {
     EnumSet <Permission> allow_see = EnumSet.of(Permission.VIEW_CHANNEL);
     EnumSet <Permission> deny_write = EnumSet.of(Permission.MESSAGE_SEND);
 
-    private void changePermissions(List <Role> r, StringBuilder sb, MessageChannel tc, CommandMessage context) {
-        if (tc instanceof GuildChannel) {
-            GuildChannel guildChannel = (GuildChannel) tc;
+    private void changePermissions(List <Role> r, StringBuilder sb, GuildChannel tc, CommandMessage context) {
+        if (tc != null) {
             for (Role role : r) {
-                PermissionOverride permissionOverride = guildChannel.getPermissionContainer().getPermissionOverride(role);
+                PermissionOverride permissionOverride = tc.getPermissionContainer().getPermissionOverride(role);
                 if (permissionOverride != null) {
-                    if (permissionOverride.getRole().hasPermission(guildChannel, Permission.MESSAGE_SEND)) {
+                    if (permissionOverride.getRole().hasPermission(tc, Permission.MESSAGE_SEND)) {
                         permissionOverride.getManager().setPermissions(allow_see, deny_write).queue();
                         sb.append(":x: ").append(tc.getAsMention()).append(": ").append(role.getAsMention()).append("\n");
                     } else {

@@ -137,29 +137,29 @@ public class WhitelistCommand extends Command {
     }
 
     private boolean removeFromWhitelist(CommandMessage context) {
-        if (context.message.getMentionedMembers().size() < 1) {
+        if (context.message.getMentions().getMembers().size() < 1) {
             context.makeError("Please **mention** who you'd like to whitelist.").queue();
             return false;
         }
-        if (context.message.getMentionedMembers().size() > 1) {
+        if (context.message.getMentions().getMembers().size() > 1) {
             context.makeError("Please **mention** only ***one*** member you'd like to remove from the whitelist.").queue();
             return false;
         }
 
-        return avaire.getVoiceWhitelistManager().removeUserFromWhitelist(context, context.message.getMentionedMembers().get(0));
+        return avaire.getVoiceWhitelistManager().removeUserFromWhitelist(context, context.message.getMentions().getMembers().get(0));
     }
 
     private boolean addToWhitelist(CommandMessage context) {
-        if (context.message.getMentionedMembers().size() < 1) {
+        if (context.message.getMentions().getMembers().size() < 1) {
             context.makeError("Please **mention** who you'd like to whitelist.").queue();
             return false;
         }
-        if (context.message.getMentionedMembers().size() > 1) {
+        if (context.message.getMentions().getMembers().size() > 1) {
             context.makeError("Please **mention** only ***one*** member you'd like to whitelist.").queue();
             return false;
         }
 
-        return avaire.getVoiceWhitelistManager().addUserToWhitelist(context, context.message.getMentionedMembers().get(0));
+        return avaire.getVoiceWhitelistManager().addUserToWhitelist(context, context.message.getMentions().getMembers().get(0));
     }
 
 }

@@ -458,8 +458,8 @@ public class EventRemittanceCommand extends Command {
             if (e == null) {
                 return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - ID)");
             }
-        } else if (context.message.getEmotes().size() == 1) {
-            e = context.message.getEmotes().get(0);
+        } else if (context.message.getMentions().getEmotes().size() == 1) {
+            e = context.message.getMentions().getEmotes().get(0);
             if (e == null) {
                 return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - Mention)");
             }
@@ -472,8 +472,8 @@ public class EventRemittanceCommand extends Command {
             if (e == null) {
                 return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - ID)");
             }
-        } else if (context.message.getEmotes().size() == 1) {
-            e = context.message.getEmotes().get(0);
+        } else if (context.message.getMentions().getEmotes().size() == 1) {
+            e = context.message.getMentions().getEmotes().get(0);
             if (e == null) {
                 return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - Mention)");
             }

@@ -359,8 +359,8 @@ public class RoleSettingsCommand extends SystemCommand {
     }
 
     private boolean getUserLevel(CommandMessage context, GuildSettingsTransformer guildTransformer) {
-        if (context.getMessage().getMentionedMembers().size() == 1) {
-            Member m = context.getMessage().getMentionedMembers().get(0);
+        if (context.getMessage().getMentions().getMembers().size() == 1) {
+            Member m = context.getMessage().getMentions().getMembers().get(0);
             context.makeInfo(m.getAsMention() + " has permission level ``"
                 + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, m).getLevel() +
                 "`` and is classified as a **" + XeusPermissionUtil.getPermissionLevel(guildTransformer, context.guild, m).getRankName()

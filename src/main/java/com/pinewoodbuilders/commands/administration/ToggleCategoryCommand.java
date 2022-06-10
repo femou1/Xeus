@@ -121,18 +121,18 @@ public class ToggleCategoryCommand extends Command {
             return sendErrorMessage(context, context.i18n("missingArgumentType"));
         }
 
-        if (context.getMessage().getMentionedChannels().size() != 1) {
+        if (context.getMessage().getMentions().getChannels().size() != 1) {
             return sendErrorMessage(context, context.i18n("invalidChannelOrGlobalString"));
         }
 
-        String channelId = context.getMessage().getMentionedChannels().get(0).getId();
+        String channelId = context.getMessage().getMentions().getChannels().get(0).getId();
         GuildTransformer transformer = context.getGuildTransformer();
         if (transformer == null) {
             return sendErrorMessage(context, "errors.errorOccurredWhileLoading", "server settings");
         }
 
 
-        ChannelTransformer channel = (context.getMessage().getMentionedChannels().get(0) instanceof ThreadChannel threadChannel) ? transformer.getChannel(threadChannel.getParentChannel().getId()) : transformer.getChannel(channelId);
+        ChannelTransformer channel = (context.getMessage().getMentions().getChannels().get(0) instanceof ThreadChannel threadChannel) ? transformer.getChannel(threadChannel.getParentChannel().getId()) : transformer.getChannel(channelId);
         //ChannelTransformer channel = transformer.getChannel(channelId);
 
         boolean status = channel.isCategoryDisabled(category);

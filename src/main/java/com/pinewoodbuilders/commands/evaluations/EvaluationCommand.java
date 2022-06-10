@@ -584,11 +584,11 @@ public class EvaluationCommand extends Command {
             return false;
         }
 
-        if (!(context.getMessage().getMentionedMembers().size() > 0)) {
+        if (!(context.getMessage().getMentions().getMembers().size() > 0)) {
             context.makeError("Please mention members in this guild.").queue();
             return false;
         }
-        List <Member> members = context.getMessage().getMentionedMembers();
+        List <Member> members = context.getMessage().getMentions().getMembers();
         Role r = context.guild.getRolesByName("Evaluators", true).get(0);
 
         for (Member m : members) {

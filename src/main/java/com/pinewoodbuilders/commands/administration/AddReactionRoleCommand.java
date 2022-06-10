@@ -200,8 +200,8 @@ public class AddReactionRoleCommand extends Command {
 
     @Nullable
     private Emote getEmote(CommandMessage context, String[] args) {
-        if (!context.getMessage().getEmotes().isEmpty()) {
-            return context.getMessage().getEmotes().get(0);
+        if (!context.getMessage().getMentions().getEmotes().isEmpty()) {
+            return context.getMessage().getMentions().getEmotes().get(0);
         }
 
         try {

@@ -220,8 +220,8 @@ public class MentionableUtil {
      * @return Possibly-null, or the channel matching the given index.
      */
     public static GuildChannel getChannel(@Nonnull Message message, @Nonnull String[] args, int index, @Nonnull ChannelPriorityType priority) {
-        if (!message.getMentionedChannels().isEmpty()) {
-            return message.getMentionedChannels().get(0);
+        if (!message.getMentions().getChannels().isEmpty()) {
+            return message.getMentions().getChannels().get(0);
         }
 
         if (args.length <= index) {

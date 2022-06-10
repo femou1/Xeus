@@ -32,7 +32,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.transformers.ChannelTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
-import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.ThreadChannel;
 
 import javax.annotation.Nonnull;
@@ -90,7 +90,7 @@ public class CategoriesCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        MessageChannel channel = context.getChannel();
+        GuildChannel channel = context.getGuildChannel();
         if (!context.getMentionedChannels().isEmpty()) {
             channel = context.getMentionedChannels().get(0);
         }
