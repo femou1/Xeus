@@ -488,8 +488,8 @@ public abstract class Command extends Reflectionable {
             .addField("Example Usage", generateExampleUsage(context.getMessage()), false);
 
         if (context.getDatabaseEventHolder().getGuildSettings() != null) {
-            Long mainGroupId = context.getDatabaseEventHolder().getGuildSettings().getMainGroupId();
-            Long groupId = context.getDatabaseEventHolder().getGuildSettings().getRobloxGroupId();
+            long mainGroupId = context.getDatabaseEventHolder().getGuildSettings().getMainGroupId();
+            long groupId = context.getDatabaseEventHolder().getGuildSettings().getRobloxGroupId();
             if (mainGroupId != 0) {
                 placeholderMessage.set("groupId", mainGroupId);
             }
