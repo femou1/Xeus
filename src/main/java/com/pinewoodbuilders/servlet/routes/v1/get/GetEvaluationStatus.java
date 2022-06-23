@@ -98,7 +98,7 @@ public class GetEvaluationStatus extends SparkRoute {
                     .getUserAPI().getUserRanks(robloxId).stream()
                     .filter(groupRanks -> groupRanks.getGroup().getId() == transformer.getRobloxGroupId()).toList();
                 if (ranks.size() == 0) return false;
-                if (!(transformer.getRobloxGroupId() == 645836)) return false;
+                if (transformer.getRobloxGroupId() != 645836) return false;
 
                 return ranks.get(0).getRole().getRank() == 2;
             }

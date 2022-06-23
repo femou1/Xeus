@@ -18,7 +18,6 @@ import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Modal;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -242,6 +241,8 @@ public class SuggestionCommand extends Command {
 
             createReactions(v);
 
+            if (v.getGuild().getId().equals("438134543837560832")) v.createThreadChannel("Suggestion - " + member.getEffectiveName()).queue();
+
             try {
                 avaire.getDatabase().newQueryBuilder(Constants.PB_SUGGESTIONS_TABLE_NAME).insert(data -> {
                     data.set("pb_server_id", c.getGuild().getId());
@@ -253,17 +254,6 @@ public class SuggestionCommand extends Command {
                 Xeus.getLogger().error("ERROR: ", throwables);
             }
         });
-    }
-
-    private boolean antiSpamInfo(CommandMessage context, MessageReceivedEvent l) {
-        if (l.getMessage().getContentRaw().equalsIgnoreCase("cancel")) return true;
-
-        if (l.getMessage().getContentRaw().length() <= 25) {
-            context.makeError("Please make sure your suggestion has more then 25 characters before submitting it. If you want to cancel. Say \"cancel\"").queue();
-            return false;
-        } else {
-            return true;
-        }
     }
 
     private boolean runClearAllChannelsFromDatabase(CommandMessage context) {

@@ -104,7 +104,7 @@ public class UpdateHandbookCommand extends Command {
 
     @Override
     public boolean onCommand(CommandMessage context, String[] args) {
-        if (!(context.getGuildSettingsTransformer().getRobloxGroupId() == 7335071)) {return false;}
+        if (!(context.getGuildSettingsTransformer().getRobloxGroupId() == 645836)) {return false;}
         if (args.length == 0) {
             return sendErrorMessage(context, "What URL should be used to update the handbook?");
         }
