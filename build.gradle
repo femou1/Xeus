@@ -8,7 +8,7 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'idea'
 
-version = '5.3.3-beta'
+version = '5.4.0'
 group = 'com.pinewoodbuilders'
 description = 'Xeus Discord Bot'
 mainClassName = 'com.pinewoodbuilders.Main'
