@@ -81,6 +81,10 @@ public abstract class Restable {
         ));
     }
 
+    public final Message complete() {
+        return sendMessage().isPresent() ? sendMessage().get().complete() : null;
+    }
+
     /**
      * Submits a Request for execution.
      * <br>Using the default failure callback function.

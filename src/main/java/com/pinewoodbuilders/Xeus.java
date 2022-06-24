@@ -425,6 +425,8 @@ public class Xeus {
             servlet.registerPost("/evaluations/answers/:guildId", new PostEvalAnswers());
         }
 
+        servlet.registerGet("/devforum/handbooks", new GetTextDevforumPost());
+
         log.info("Preparing and setting up metrics");
         Metrics.setup(this);
 

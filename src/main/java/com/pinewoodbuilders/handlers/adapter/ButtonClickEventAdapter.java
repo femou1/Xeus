@@ -525,7 +525,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
 
                                     if (e.getButton().getEmoji().getName().equals("❌") || e.getButton().getEmoji().getName().equals("✅") || e.getButton().getEmoji().getName().equals("\uD83D\uDD04")) {
                                         switch (e.getButton().getEmoji().getName()) {
-                                            case "❌":
+                                            case "❌" -> {
                                                 if (!(isValidReportManager(e, 2))) {
                                                     deferReply.setEphemeral(true).sendMessage("Sorry, but you have to be a **Manager** or above to reject an report.").queue();
                                                     return;
@@ -538,13 +538,15 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     .buildEmbed()).setActionRows(Collections.emptyList()).queue();
                                                 msg.clearReactions().queue();
                                                 qb.delete();
-                                                break;
-                                            case "✅":
+                                                if (msg.getStartedThread() != null && !msg.getStartedThread().isArchived() && !msg.getStartedThread().isLocked()) {
+                                                    msg.getStartedThread().getManager().setArchived(true).queue();
+                                                }
+                                            }
+                                            case "✅" -> {
                                                 if (!(isValidReportManager(e, 2))) {
                                                     deferReply.setEphemeral(true).sendMessage("Sorry, but you have to be a **Manager** or above to accept a report.").queue();
                                                     return;
                                                 }
-
                                                 if (databaseEventHolder.getGuildSettings().getSuggestionApprovedChannelId() != 0) {
                                                     TextChannel atc = avaire.getShardManager().getTextChannelById(databaseEventHolder.getGuildSettings().getSuggestionApprovedChannelId());
                                                     if (atc != null) {
@@ -575,14 +577,16 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     msg.clearReactions().queue();
 
                                                 }
-
                                                 try {
                                                     qb.delete();
+                                                    if (msg.getStartedThread() != null && !msg.getStartedThread().isArchived() && !msg.getStartedThread().isLocked()) {
+                                                        msg.getStartedThread().getManager().setArchived(true).queue();
+                                                    }
                                                 } catch (SQLException throwables) {
                                                     Xeus.getLogger().error("ERROR: ", throwables);
                                                 }
-                                                break;
-                                            case "\uD83D\uDD04":
+                                            }
+                                            case "\uD83D\uDD04" -> { // 🔄
                                                 if (!(isValidReportManager(e, 2))) {
                                                     deferReply.setEphemeral(true).sendMessage("Sorry, but you have to be a **Manager** or above to reject an report.").queue();
 
@@ -591,12 +595,16 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                 msg.clearReactions().queue();
                                                 msg.addReaction("\uD83D\uDC4D").queue(); //
                                                 msg.addReaction("\uD83D\uDC4E").queue(); // 👎
+                                            }
                                         }
                                     }
                                     if (e.getButton().getEmoji().getName().equals("\uD83D\uDEAB")) { //🚫
                                         if (!(isValidReportManager(e, 1))) {
                                             deferReply.setEphemeral(true).sendMessage("Sorry, but you have to be a **Manager** or above to delete an report.").queue();
                                             return;
+                                        }
+                                        if (msg.getStartedThread() != null) {
+                                            msg.getStartedThread().delete().queue();
                                         }
                                         msg.delete().queue();
                                     } //🚫
