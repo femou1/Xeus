@@ -680,13 +680,22 @@ public class VerificationManager {
 
     @Nullable
     public VerificationEntity callUserFromBloxlinkAPI(String discordUserId) {
-        Request.Builder request = new Request.Builder().addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
-            .url("https://api.blox.link/v1/user/" + discordUserId);
+        String bloxApiKey = avaire.getConfig().getString("apiKeys.bloxlink");
+        if (bloxApiKey.length() < 1) return null;
+
+        Request.Builder request = new Request.Builder()
+            .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
+            .addHeader("api-key", bloxApiKey)
+            .url("https://v3.blox.link/developer/discord/" + discordUserId);
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200 && response.body() != null) {
                 JSONObject json = new JSONObject(response.body().string());
-                if (json.has("primaryAccount")) {
+
+                if (json.getBoolean("success") && json.has("user")) {
+
+                    json = json.getJSONObject("user");
+
                     VerificationEntity verificationEntity = new VerificationEntity(json.getLong("primaryAccount"),
                         manager.getUserAPI().getUsername(json.getLong("primaryAccount")), Long.valueOf(discordUserId),
                         "bloxlink", true);
@@ -697,10 +706,10 @@ public class VerificationManager {
             } else if (response.code() == 404) {
                 return null;
             } else {
-                throw new Exception("Rover API returned something else then 200, please retry.");
+                throw new Exception("Bloxlink API returned something else then 200, please retry.");
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to Bloxlink API: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }

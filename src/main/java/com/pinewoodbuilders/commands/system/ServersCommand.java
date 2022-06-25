@@ -83,20 +83,14 @@ public class ServersCommand extends SystemCommand {
             return sendErrorMessage(context, "errors.missingArgument", "action");
         }
 
-        switch (args[0].toLowerCase()) {
-            case "filter":
-            case "filters":
-                return handleFilters(context);
+        return switch (args[0].toLowerCase()) {
+            case "filter", "filters" -> handleFilters(context);
+            case "show", "display" -> handleShow(context, Arrays.copyOfRange(args, 1, args.length));
+            case "list" -> handleList(context, Arrays.copyOfRange(args, 1, args.length));
+            default ->
+                sendErrorMessage(context, "Invalid action given, you must either use `filter`, `show`, or `list` to use the command.");
+        };
 
-            case "show":
-            case "display":
-                return handleShow(context, Arrays.copyOfRange(args, 1, args.length));
-
-            case "list":
-                return handleList(context, Arrays.copyOfRange(args, 1, args.length));
-        }
-
-        return sendErrorMessage(context, "Invalid action given, you must either use `filter`, `show`, or `list` to use the command.");
     }
 
     private boolean handleFilters(CommandMessage context) {
