@@ -61,9 +61,11 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.GenericMessageEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import okhttp3.HttpUrl;
 import org.nibor.autolink.LinkExtractor;
 import org.nibor.autolink.LinkSpan;
@@ -1012,10 +1014,46 @@ public class MessageEventAdapter extends EventAdapter {
             } // React with ⭕
 
             try {
-                avaire.getGlobalPunishmentManager().registerGlobalBan(moderatorEntity.getDiscordId().toString(), gst.getMainGroupId(), bannedEntity != null ? bannedEntity.getDiscordId().toString() : null, bannedRobloxId, usernameFinal, reason);
                 if (bannedEntity != null) {
-                    executeGlobalBan(reason, bannedEntity.getDiscordId().toString(), gst, bannedEntity, moderatorEntity, msg.getGuild());
-                    msg.addReaction("✅").queue();
+
+                    String finalReason = reason;
+                    long finalBannedRobloxId = bannedRobloxId;
+                    String finalUsernameFinal = usernameFinal;
+                    Button approveBan = Button.primary("ban:" + finalBannedRobloxId, "Ban " + finalUsernameFinal);
+
+                    event.getChannel().sendMessage("<@" + moderatorEntity.getDiscordId() + ">\n" +
+                        "You just banned " + finalUsernameFinal + " for: ```" + reason + "```\n\n" +
+                        "Would you like to issue a global-ban? (This message will dissapear in 5 minutes)")
+                        .setActionRow(approveBan).queue(
+                            message1 -> {
+                                avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class, e -> e.getMessage().getId().equals(msg.getId()), e -> {
+                                    if (
+                                        e.getButton().getId().equals("ban:" + finalBannedRobloxId) &&
+                                        e.getMessageId().equals(message1.getId())
+                                       ) {
+
+                                        if (e.getMember().getIdLong() != moderatorEntity.getDiscordId()) {
+                                            e.reply("You where not the person who issued the ban... <@"+ moderatorEntity.getDiscordId() +"> has to push the button.").queue();
+                                        }
+
+                                        try {
+                                            avaire.getGlobalPunishmentManager().registerGlobalBan(moderatorEntity.getDiscordId().toString(), gst.getMainGroupId(), bannedEntity.getDiscordId().toString(), finalBannedRobloxId, finalUsernameFinal, finalReason);
+                                        } catch (SQLException ex) {
+                                            e.reply("Hi, something went wrong in the ban system.\n" +
+                                                "Please contact stefano... PLEASE. CONTACT HIM... NOWWWWW!!!!!?!?!?!?").queue();
+                                            throw new RuntimeException(ex);
+                                        }
+                                        msg.delete().queue();
+                                        e.reply("<@" + moderatorEntity.getDiscordId() + ">\n" +
+                                            "You just banned " + finalUsernameFinal + " for: ```" + finalReason + "```\n\n" +
+                                            "The user was banned from the server.").queue(del -> del.deleteOriginal().queueAfter(15, TimeUnit.SECONDS));
+                                        msg.addReaction("✅").queue();
+
+                                    }
+                                }, 5, TimeUnit.MINUTES, () -> {message1.delete().queue();});
+                            }
+                        );
+
                     return;
                 } else {
                     msg.addReaction("☑").queue();
