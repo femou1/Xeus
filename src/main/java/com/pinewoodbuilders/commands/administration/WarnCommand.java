@@ -113,7 +113,7 @@ public class WarnCommand extends Command {
     public List <String> getMiddleware() {
         return Arrays.asList(
             "isGuildHROrHigher",
-            "require:bot,general.mute_members",
+            "require:bot,general.ban_members",
             "throttle:channel,1,5"
         );
     }
