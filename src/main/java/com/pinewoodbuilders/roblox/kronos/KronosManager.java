@@ -4,7 +4,6 @@ import com.pinewoodbuilders.AppInfo;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.cache.CacheType;
 import com.pinewoodbuilders.contracts.kronos.TrellobanLabels;
-import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.service.kronos.trelloban.TrellobanService;
 import com.pinewoodbuilders.requests.service.kronos.trelloban.trello.Card;
 import com.pinewoodbuilders.requests.service.kronos.trelloban.trello.Datum;
@@ -20,7 +19,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class KronosManager {
 
@@ -144,27 +142,30 @@ public class KronosManager {
             createTrelloBanList(root, tbs);
 
         } else {
-            RequestFactory.makeGET("https://pb-kronos.dev/api/v2/moderation/admin")
+
+            Request.Builder request = new Request.Builder()
+                .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
                 .addHeader("Access-Key", avaire.getConfig().getString("apiKeys.kronosTrellobanKey"))
-                .send((Consumer <Response>) response -> {
+                .url("https://pb-kronos.dev/api/v2/moderation/admin");
 
-                    try {
-                        TrellobanService tbs = (TrellobanService) avaire.getRobloxAPIManager().toService((String) response.body().string(), TrellobanService.class);
+            try (Response response = manager.getClient().newCall(request.build()).execute()) {
+                if (response.code() == 200 && response.body() != null) {
+                    String body = response.body().string();
 
-                        createTrelloBanList(root, tbs);
+                    TrellobanService tbs = (TrellobanService) avaire.getRobloxAPIManager().toService(body, TrellobanService.class);
 
-                        avaire.getCache().getAdapter(CacheType.FILE).remember("trelloban.global." + mainGroupId, (60*60)*90, () -> {
-                            try {
-                                return response.body().string();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            return null;
-                        });
-                    } catch (IOException ignored) {
-                        return;
-                    }
-                });
+                    createTrelloBanList(root, tbs);
+                    avaire.getCache().getAdapter(CacheType.FILE).remember("trelloban.global." + mainGroupId, (60*60)*90, () -> body);
+                } else if (response.code() == 404) {
+                    return null;
+                } else {
+                    throw new Exception("Kronos API returned something else then 200, please retry.");
+                }
+            } catch (IOException e) {
+                Xeus.getLogger().error("Failed sending request to Kronos API: " + e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return root;
     }

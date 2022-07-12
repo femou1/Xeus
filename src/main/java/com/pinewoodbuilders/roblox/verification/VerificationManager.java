@@ -125,7 +125,7 @@ public class VerificationManager {
         VerificationTransformer verificationTransformer = VerificationController.fetchVerificationFromGuild(avaire, guild);
         if (transformer.getPbVerificationTrelloban()) {
             HashMap<Long, List<TrellobanLabels>> trellobans = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans();
-            if (trellobans != null && isTrelloBanned(trellobans, member)) {
+            if (trellobans != null && isTrelloBanned(trellobans, verificationEntity)) {
                 boolean isAppealsVerification = checkTrelloBan(transformer, member, guild, verificationEntity);
                 if (isAppealsVerification) {
                     return verifyRoles(member, guild, verificationEntity, verificationTransformer);
@@ -262,8 +262,8 @@ public class VerificationManager {
         }
     }
 
-    private boolean isTrelloBanned(HashMap<Long, List<TrellobanLabels>> trellobans, Member member) {
-        return trellobans.containsKey(member.getIdLong());
+    private boolean isTrelloBanned(HashMap<Long, List<TrellobanLabels>> trellobans, VerificationEntity member) {
+        return trellobans.containsKey(member.getRobloxId());
     }
 
 
@@ -462,6 +462,7 @@ public class VerificationManager {
                     .queue();
             }
         }
+        member.ban(0, "Trelloban").queue();
         return false;
     }
 
