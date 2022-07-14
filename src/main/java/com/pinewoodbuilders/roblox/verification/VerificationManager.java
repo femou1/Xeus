@@ -180,8 +180,13 @@ public class VerificationManager {
 
             Map<GuildRobloxRanksService.GroupRankBinding, Role> bindingRoleMap = guildRanks.getGroupRankBindings()
                 .stream()
+                .filter(binding -> {
+                    Role r = guild.getRoleById(binding.getRole());
+                    return r != null;
+                })
                 .collect(Collectors.toMap(Function.identity(),
-                    groupRankBinding -> guild.getRoleById(groupRankBinding.getRole()))),
+                    groupRankBinding -> {
+                    return guild.getRoleById(groupRankBinding.getRole());})),
                 bindingRoleAddMap = new HashMap<>();
 
             // Loop through all the group-rank bindings
