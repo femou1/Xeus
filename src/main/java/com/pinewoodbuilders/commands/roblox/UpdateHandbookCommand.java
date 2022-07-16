@@ -244,7 +244,8 @@ public class UpdateHandbookCommand extends Command {
             context.makeError("You do not have the correct permission level (LGL)").queue();
             return false;
         }
-            approvals.add(d.getIdLong());
+        approvals.add(d.getIdLong());
+
         context.makeSuccess(d.getMember().getEffectiveName() + " has approved the changes. (" + approvals.size() + "/3)").queue();
         return approvals.size() >= 3;
     }

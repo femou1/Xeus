@@ -82,6 +82,8 @@ public class Constants {
 
     public static final String ANTI_UNBAN_TABLE_NAME = "pia_antiban";
     public static final String FEATURE_BLACKLIST_TABLE_NAME = "feature_blacklist";
+    public static final String APPEAL_TICKETS_TABLE_NAME = "appeal_tickets";
+    public static final String APPEAL_TYPES_TABLE_NAME = "appeal_types";
 
 
 
@@ -89,13 +91,12 @@ public class Constants {
     public static final String PACKAGE_MIGRATION_PATH = "com.pinewoodbuilders.database.migrate";
     public static final String PACKAGE_SEEDER_PATH = "com.pinewoodbuilders.database.seeder";
     public static final String PACKAGE_COMMAND_PATH = "com.pinewoodbuilders.commands";
-    public static final String PACKAGE_INTENTS_PATH = "com.pinewoodbuilders.ai.dialogflow.intents";
     public static final String PACKAGE_JOB_PATH = "com.pinewoodbuilders.scheduler";
 
     // Emojis
-    public static final String EMOTE_ONLINE = "<:green_circle:679666667672174592>";
-    public static final String EMOTE_AWAY = "<:yellow_circle:679666871368417290>";
-    public static final String EMOTE_DND = "<:red_circle:6796668916982088550>";
+    public static final String EMOTE_ONLINE = ":green_circle:";
+    public static final String EMOTE_AWAY =  ":yellow_circle:";
+    public static final String EMOTE_DND = ":red_circle:";
 
     // Purchase Types
     public static final String RANK_BACKGROUND_PURCHASE_TYPE = "rank-background";

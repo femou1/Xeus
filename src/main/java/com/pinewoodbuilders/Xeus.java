@@ -278,6 +278,7 @@ public class Xeus {
         CategoryHandler.addCategory(this, "Roblox", defaultPrefix);
         CategoryHandler.addCategory(this, "Verification", defaultPrefix);
         CategoryHandler.addCategory(this, "Settings", defaultPrefix);
+        CategoryHandler.addCategory(this, "Appeals", defaultPrefix);
         CategoryHandler.addCategory(this, "System", getConfig().getString(
             "system-prefix", DiscordConstants.DEFAULT_SYSTEM_PREFIX
         ));
