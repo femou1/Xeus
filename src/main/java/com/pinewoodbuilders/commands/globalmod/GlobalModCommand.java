@@ -762,7 +762,7 @@ public class GlobalModCommand extends Command {
             context.makeError("Somehow, this ID doesn't exist in the database. Please ban this user's roblox account instead.");
             return false;
         }
-        boolean isGBanned = avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(context.getGuildSettingsTransformer().getMainGroupId(), verificationEntity.getRobloxId());
+        boolean isGBanned = avaire.getGlobalPunishmentManager().isGlobalBanned(context.getGuildSettingsTransformer().getMainGroupId(), String.valueOf(verificationEntity.getDiscordId()));
         if (isGBanned || forced) {
             List <Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(context.getGuildSettingsTransformer().getMainGroupId(), globalBan);
             StringBuilder sb = new StringBuilder();
@@ -785,7 +785,7 @@ public class GlobalModCommand extends Command {
                 });
 
             }
-            avaire.getGlobalPunishmentManager().unregisterRobloxGlobalBan(context.getGuildSettingsTransformer().getMainGroupId(), verificationEntity.getRobloxId());
+            avaire.getGlobalPunishmentManager().unregisterDiscordGlobalBan(context.getGuildSettingsTransformer().getMainGroupId(), String.valueOf(verificationEntity.getDiscordId()));
 
             TextChannel tc = avaire.getShardManager().getTextChannelById(context.getGuildSettingsTransformer().getGlobalSettings().getMainGroupId());
             if (tc != null) {

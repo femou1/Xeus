@@ -137,14 +137,14 @@ public class VerificationManager {
             return new VerificationResult(false, "Blacklisted on " + guild.getName());
         }
 
-        boolean isGlobalBanned = avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(transformer.getMainGroupId(), verificationEntity.getRobloxId());
+        boolean isGlobalBanned = avaire.getGlobalPunishmentManager().isGlobalBanned(transformer.getMainGroupId(), String.valueOf(verificationEntity.getDiscordId()));
 
         if (isGlobalBanned) {
             List<GlobalBanContainer> globalBanContainer = avaire.getGlobalPunishmentManager()
                 .getGlobalBans()
                 .get(transformer.getMainGroupId())
                 .stream()
-                .filter(user -> user.getRobloxId() == verificationEntity.getRobloxId()).toList();
+                .filter(user -> Objects.equals(user.getUserId(), String.valueOf(verificationEntity.getDiscordId()))).toList();
             if (globalBanContainer.size() > 0) {
                 return canGlobalBan(globalBanContainer.get(0), transformer, member, verificationEntity);
             }

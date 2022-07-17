@@ -34,7 +34,11 @@ public class GlobalPunishmentManager {
             globalBans.put(mgi, new HashSet <>());
         }
 
-        if (isRobloxGlobalBanned(mgi, robloxId)) {
+        if (isGlobalBanned(mgi, userId)) {
+            unregisterDiscordGlobalBan(mgi, userId);
+        }
+
+        if (isRobloxGlobalBanned(mgi,  robloxId)) {
             unregisterRobloxGlobalBan(mgi, robloxId);
         }
 
@@ -114,6 +118,46 @@ public class GlobalPunishmentManager {
             avaire.getDatabase().queryBatch(query, statement -> {
                 statement.setLong(1, mgi);
                 statement.setLong(2, robloxId);
+                statement.addBatch();
+            });
+        }
+    }
+
+    public void unregisterDiscordGlobalBan(long mgi, String userId) throws SQLException {
+        if (!globalBans.containsKey(mgi)) {
+            return;
+        }
+
+        final boolean[] removedEntities = {false};
+        synchronized (globalBans) {
+            globalBans.get(mgi).removeIf(next -> {
+                if (!isGlobalBanned(mgi, userId)) {
+                    return false;
+                }
+
+                removedEntities[0] = true;
+                return true;
+            });
+        }
+
+        if (removedEntities[0]) {
+            cleanupDiscordGlobalBan(mgi, userId);
+        }
+    }
+
+    private void cleanupDiscordGlobalBan(long mgi, String userId) throws SQLException {
+        Collection collection = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME)
+            .where("main_group_id", mgi)
+            .andWhere("userId", userId)
+            .get();
+
+        if (!collection.isEmpty()) {
+            String query = String.format("DELETE FROM `%s` WHERE `main_group_id` = ? AND `userId` = ?",
+                Constants.ANTI_UNBAN_TABLE_NAME);
+
+            avaire.getDatabase().queryBatch(query, statement -> {
+                statement.setLong(1, mgi);
+                statement.setString(2, userId);
                 statement.addBatch();
             });
         }

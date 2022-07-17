@@ -1035,7 +1035,7 @@ public class MessageEventAdapter extends EventAdapter {
                                     }
 
                                     try {
-                                        avaire.getGlobalPunishmentManager().registerGlobalBan(moderatorEntity.getDiscordId().toString(), gst.getMainGroupId(), bannedEntity != null ? bannedEntity.getDiscordId().toString() : null, finalBannedRobloxId, finalUsernameFinal, finalReason);
+                                        avaire.getGlobalPunishmentManager().registerGlobalBan(String.valueOf(moderatorEntity.getDiscordId()), gst.getMainGroupId(), bannedEntity != null ? String.valueOf(bannedEntity.getDiscordId()) : null, finalBannedRobloxId, finalUsernameFinal, finalReason);
                                     } catch (SQLException ex) {
                                         e.reply("Hi, something went wrong in the ban system.\n" +
                                             "Please contact stefano... PLEASE. CONTACT HIM... NOWWWWW!!!!!?!?!?!?").queue();
