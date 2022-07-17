@@ -127,7 +127,6 @@ public class GlobalPunishmentManager {
      * @return {@code True} if a user with the given ID is muted on a server with
      * the given guild ID, {@code False} otherwise.
      */
-    @Deprecated
     public boolean isGlobalBanned(long mgi, String discordId) {
         if (!globalBans.containsKey(mgi)) {
             return false;
