@@ -35,7 +35,7 @@ public class VerificationEntity {
         return provider;
     }
 
-    public Long getDiscordId() {
+    public long getDiscordId() {
         return discordId;
     }
 

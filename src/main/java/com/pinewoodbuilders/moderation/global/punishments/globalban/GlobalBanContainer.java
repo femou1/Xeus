@@ -1,7 +1,6 @@
 package com.pinewoodbuilders.moderation.global.punishments.globalban;
 
 import com.pinewoodbuilders.database.collection.DataRow;
-import net.dv8tion.jda.annotations.ReplaceWith;
 
 public class GlobalBanContainer {
     private final String reason;
@@ -53,8 +52,6 @@ public class GlobalBanContainer {
         return punisherId;
     }
 
-    @Deprecated
-    @ReplaceWith("GlobalBanContainer#isRobloxSame")
     public boolean isSame(long mgi, String userId) {
         if (userId == null || this.userId == null) {return false;}
         return this.userId.equals(userId) && this.mgi == mgi;
