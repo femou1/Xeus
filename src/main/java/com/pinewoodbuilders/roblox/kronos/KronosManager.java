@@ -65,10 +65,15 @@ public class KronosManager {
     }
 
     public boolean isRanklocked(Long userId) {
+        return isRanklocked(userId, "pbst");
+
+    }
+
+    public boolean isRanklocked(Long userId, String division) {
         Request.Builder request = new Request.Builder()
             .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
             .addHeader("Access-Key", apikey)
-            .url("https://www.pb-kronos.dev/api/v2/database/pbst?userids=" + userId);
+            .url("https://www.pb-kronos.dev/api/v2/database/" + division.toLowerCase() + "?userids=" + userId);
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200 && response.body() != null) {

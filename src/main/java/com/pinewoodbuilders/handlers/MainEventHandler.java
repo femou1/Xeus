@@ -51,9 +51,11 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateNameEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
 import net.dv8tion.jda.api.events.message.*;
 import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
@@ -92,6 +94,8 @@ public class MainEventHandler extends EventHandler {
     private final WhitelistEventAdapter whitelistEventAdapter;
     private final ButtonClickEventAdapter buttonClickEventAdapter;
     private final SlashCommandEventAdapter slashCommandEventAdapter;
+    private final AppealsServerEventAdapter appealsServerEventAdapter;
+
     public static final Cache<Long, Boolean> cache = CacheBuilder.newBuilder()
         .recordStats()
         .expireAfterWrite(15, TimeUnit.MINUTES)
@@ -121,6 +125,7 @@ public class MainEventHandler extends EventHandler {
         this.whitelistEventAdapter = new WhitelistEventAdapter(avaire, avaire.getVoiceWhitelistManager());
         this.buttonClickEventAdapter = new ButtonClickEventAdapter(avaire);
         this.slashCommandEventAdapter = new SlashCommandEventAdapter(avaire);
+        this.appealsServerEventAdapter = new AppealsServerEventAdapter(avaire);
     }
 
     @Override
@@ -456,6 +461,17 @@ public class MainEventHandler extends EventHandler {
         buttonClickEventAdapter.onReportsButtonInteractionEvent(event);
         buttonClickEventAdapter.onFeedbackButtonInteractionEvent(event);
         buttonClickEventAdapter.onQuizButtonInteractionEvent(event);
+        appealsServerEventAdapter.onAppealsButtonClickEvent(event);
+    }
+
+    @Override
+    public void onSelectMenuInteraction(@Nonnull SelectMenuInteractionEvent event) {
+        appealsServerEventAdapter.onAppealsSelectMenuInteractionEvent(event);
+    }
+
+    @Override
+    public void onModalInteraction(@Nonnull ModalInteractionEvent event) {
+        appealsServerEventAdapter.onAppealModelInteractionEvent(event);
     }
 
     @Override
