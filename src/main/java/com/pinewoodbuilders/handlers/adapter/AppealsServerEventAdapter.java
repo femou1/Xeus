@@ -236,13 +236,11 @@ public class AppealsServerEventAdapter extends EventAdapter {
             event.reply("Category not found.").setEphemeral(true).queue();
             return;
         }
-        // guild:SUB:groupdiscordban appeal:PIA:globalban appeal:RAID:raidblacklist
 
         String roles = value[1];
         String type = value[2];
         AppealType appealType = AppealType.fromName(type);
         VerificationEntity ve = avaire.getRobloxAPIManager().getVerification().fetchInstantVerificationWithBackup(event.getMember().getId());
-
 
         if (!checkIfCanAppeal(type, roles, ve, g)) {
             event.editMessageEmbeds(new EmbedBuilder().setDescription("You may not appeal for " + appealType.getCleanName() + ". You either don't have this punishment, or something went wrong. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
@@ -251,7 +249,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
 
         String name = type + "-" + RandomUtil.generateString(5);
 
-        c.createTextChannel(name).submit()
+        c.createTextChannel(name).setTopic(type.toLowerCase() + " - " + event.getMember().getId() + " - " + roles + " - OPEN").submit()
             .thenCompose((channel) -> channel.upsertPermissionOverride(event.getMember()).setAllowed(Permission.VIEW_CHANNEL).submit())
             .thenCompose((override) -> override.getChannel().upsertPermissionOverride(getAppealRole(roles, event.getGuild())).setAllowed(Permission.VIEW_CHANNEL).submit())
             .thenCompose((chan) -> event.getGuild().getTextChannelById(chan.getChannel().getId()).sendMessage(event.getMember().getAsMention())
@@ -292,19 +290,20 @@ public class AppealsServerEventAdapter extends EventAdapter {
     }
 
     private boolean checkIfCanAppeal(String type, String group, VerificationEntity ve, Guild g) {
-        switch (type.toLowerCase()) {
-            case "globalban":
-                GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
-                return avaire.getGlobalPunishmentManager().isGlobalBanned(settings.getMainGroupId(), String.valueOf(ve.getDiscordId()));
-            case "groupranklock":
-                return avaire.getRobloxAPIManager().getKronosManager().isRanklocked(ve.getRobloxId(), group.toLowerCase());
-            case "groupblacklist":
-                return getBlacklistByShortname(group).contains(ve.getRobloxId());
-            case "trelloban":
-                return avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().containsKey(ve.getRobloxId());
-            default:
-                return false;
-        }
+        GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
+        return switch (type.toLowerCase()) {
+            case "globalban" ->
+                avaire.getGlobalPunishmentManager().isGlobalBanned(settings.getMainGroupId(), String.valueOf(ve.getDiscordId()));
+            case "gameban" ->
+                avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(settings.getMainGroupId(), ve.getRobloxId());
+            case "groupranklock" ->
+                avaire.getRobloxAPIManager().getKronosManager().isRanklocked(ve.getRobloxId(), group.toLowerCase());
+            case "groupblacklist" ->
+                getBlacklistByShortname(group).contains(ve.getRobloxId());
+            case "trelloban" ->
+                avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().containsKey(ve.getRobloxId());
+            default -> false;
+        };
     }
 
     private List<Long> getBlacklistByShortname(String group) {
