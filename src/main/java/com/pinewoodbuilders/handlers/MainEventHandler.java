@@ -51,6 +51,7 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateNameEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -466,6 +467,11 @@ public class MainEventHandler extends EventHandler {
     @Override
     public void onSelectMenuInteraction(@Nonnull SelectMenuInteractionEvent event) {
         appealsServerEventAdapter.onAppealsSelectMenuInteractionEvent(event);
+    }
+
+    @Override
+    public void onModalInteraction(@Nonnull ModalInteractionEvent event) {
+        appealsServerEventAdapter.onAppealModelInteractionEvent(event);
     }
 
     @Override

@@ -639,6 +639,10 @@ public class VerificationManager {
             entity = callUserFromBloxlinkAPI(discordUserId);
         }
 
+        if (entity == null) {
+            entity = callUserFromRoWifiAPI(discordUserId);
+        }
+
         return entity;
     }
 
