@@ -306,6 +306,7 @@ public class AppealCommand extends Command {
                 } else {
                     context.makeError("Deletion has been cancelled, appeal will not be deleted.").queue();
                     closedMessage.delete().queue();
+                    context.getTextChannel().getManager().setParent(context.getGuild().getCategoryById("834325263240003595")).queue();
                 }
             });
 
@@ -354,10 +355,11 @@ public class AppealCommand extends Command {
             return sendErrorMessage(context, "Appealer seems to have left the appeal server. Please `$appeal delete` this appeal.");
 
         String state = information[3];
-        if (state.equals("CLOSED"))
+        if (state.equals("OPEN"))
             return sendErrorMessage(context, "This appeal is already opened, please use `$appeal close/delete`.");
 
         context.getTextChannel().getManager().setTopic(String.format("%s - %s - %s - OPEN", appealType.getName(), userId, information[2])).queue();
+        context.getTextChannel().getManager().setParent(context.getGuild().getCategoryById("834325263240003595")).queue();
 
         context.getTextChannel().upsertPermissionOverride(appealer).setDenied(Permission.MESSAGE_SEND).queue();
 
@@ -390,6 +392,7 @@ public class AppealCommand extends Command {
             reason = "No reason given, assume the moderators are discussing your appeal. Please wait patiently for a response.";
 
         context.getTextChannel().getManager().setTopic(String.format("%s - %s - %s - CLOSED", appealType.getName(), userId, information[2])).queue();
+        context.getTextChannel().getManager().setParent(context.getGuild().getCategoryById("835299956809531492")).queue();
 
         context.getTextChannel().upsertPermissionOverride(appealer).setDenied(Permission.MESSAGE_SEND).queue();
 
@@ -398,6 +401,8 @@ public class AppealCommand extends Command {
             .setTitle("Pinewood - Appeal System")
             .setThumbnail(appealType.getEmoteImage())
             .queue();
+
+
 
         return true;
     }
