@@ -35,7 +35,7 @@ public enum AppealType {
         this.emoteImage = emoteImage;
     }
 
-    public static  AppealType fromName(String named) {
+    public static AppealType fromName(String named) {
         for (AppealType type : values()) {
             if (type.getName().equals(named.toLowerCase())) {
                 return type;

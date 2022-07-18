@@ -63,6 +63,11 @@ public class FakeCommandMessage implements CommandContext {
     }
 
     @Override
+    public TextChannel getTextChannel() {
+        return null;
+    }
+
+    @Override
     public GuildChannel getGuildChannel() {
         return null;
     }

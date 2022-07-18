@@ -1,5 +1,6 @@
 package com.pinewoodbuilders.handlers.adapter;
 
+import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.contracts.appeals.AppealType;
@@ -52,7 +53,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
                         ```:prevention```
                         """
                 )
-                .setFooter("Pinewood Intelligence Agency", "https://i.imgur.com/RAOn0OI.png")
+                .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
                 .setTitle("Pinewood - Appeal System")
                 .set("username", event.getValue("username").getAsString())
                 .set("whenOccur", event.getValue("whenOccur").getAsString())
@@ -262,7 +263,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
                     Please click this button and respond within 24 hours, otherwise we will close your appeal.
                     """
                 ).set("appeal", appealType != null ? appealType.getCleanName() : type)
-                    .setFooter("Pinewood Intelligence Agency", "https://i.imgur.com/RAOn0OI.png")
+                    .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
                     .setTitle("Pinewood - Appeal System")
                     .setThumbnail(appealType.getEmoteImage())
                     .buildEmbed())
@@ -281,7 +282,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
                     .set("appeal", appealType != null ? appealType.getCleanName() : type)
                     .set("emote", appealType != null ? appealType.getEmote() : "")
                     .setThumbnail(appealType.getEmoteImage())
-                    .setFooter("Pinewood Intelligence Agency", "https://i.imgur.com/RAOn0OI.png")
+                    .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
                 .setAuthor(event.getUser().getAsTag() + " - Appeal System", null, event.getUser().getEffectiveAvatarUrl())
                 .buildEmbed()).submit())
             .whenComplete((s, error) -> {
@@ -301,10 +302,29 @@ public class AppealsServerEventAdapter extends EventAdapter {
                 avaire.getRobloxAPIManager().getKronosManager().isRanklocked(ve.getRobloxId(), group.toLowerCase());
             case "groupblacklist" ->
                 getBlacklistByShortname(group).contains(ve.getRobloxId());
+            case "groupdiscordban" -> group.equals("OTHER") ? isOtherGuildBanned(ve) : getGuildByShortName(group).retrieveBanList().stream().filter(k -> k.getUser().getIdLong() == ve.getDiscordId()).toList().size() > 0;
             case "trelloban" ->
                 avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().containsKey(ve.getRobloxId()) &&
                     avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().get(ve.getRobloxId()).stream().anyMatch(TrellobanLabels::isAppealable);
             default -> true;
+        };
+    }
+
+    private boolean isOtherGuildBanned(VerificationEntity ve) {
+        boolean kddBanned = avaire.getShardManager().getGuildById("791168471093870622").retrieveBanList().stream().filter(k -> k.getUser().getIdLong() == ve.getDiscordId()).toList().size() > 0;
+        boolean pbBanned = avaire.getShardManager().getGuildById("371062894315569173").retrieveBanList().stream().filter(k -> k.getUser().getIdLong() == ve.getDiscordId()).toList().size() > 0;
+        boolean pbqaBanned = avaire.getShardManager().getGuildById("791168471093870622").retrieveBanList().stream().filter(k -> k.getUser().getIdLong() == ve.getDiscordId()).toList().size() > 0;
+
+        return kddBanned || pbBanned || pbqaBanned;
+    }
+
+    private Guild getGuildByShortName(String group) {
+        return switch (group) {
+            case "PBST" -> avaire.getShardManager().getGuildById("438134543837560832");
+            case "PET" -> avaire.getShardManager().getGuildById("436670173777362944");
+            case "TMS" -> avaire.getShardManager().getGuildById("438134543837560832");
+            case "PBM" -> avaire.getShardManager().getGuildById("438134543837560832");
+            default -> null;
         };
     }
 

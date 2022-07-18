@@ -54,7 +54,7 @@ public interface CommandContext {
 
     /**
      * Returns the author of this Message as a {@link net.dv8tion.jda.api.entities.Member member}.
-     * <br>This is just a shortcut to {@link #getGuild()}{@link net.dv8tion.jda.api.entities.Guild#getMember(User) .getMember(getAuthor())}.
+     * <br>This is just a shortcut to {@link #getGuild()}{@link net.dv8tion.jda.api.entities.Guild}.
      * <br><b>This is only valid if the Message was actually sent in a TextChannel.</b> This will return {@code null}
      * if it was not sent from a TextChannel.
      * <br>You can check the type of channel this message was sent from using {@link #getMessage() getMessage().getChannelType()}.
@@ -95,6 +95,8 @@ public interface CommandContext {
     MessageChannel getMessageChannel();
 
     GuildChannel getGuildChannel();
+
+    TextChannel getTextChannel();
 
     /**
      * The received {@link net.dv8tion.jda.api.entities.Message Message} object.

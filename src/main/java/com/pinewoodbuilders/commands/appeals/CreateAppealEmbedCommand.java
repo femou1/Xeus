@@ -1,5 +1,6 @@
 package com.pinewoodbuilders.commands.appeals;
 
+import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
@@ -56,7 +57,7 @@ public class CreateAppealEmbedCommand extends Command {
                     To start your appeal, click the button below. You will be asked a few questions.
                     If you have any questions, please contact a PIA Member
                     """)
-                .setFooter("Pinewood Intelligence Agency", "https://i.imgur.com/RAOn0OI.png")
+                .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
                 .setColor(new Color(0, 0, 0))
                 .build()
         )

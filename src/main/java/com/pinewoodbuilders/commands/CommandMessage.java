@@ -180,6 +180,11 @@ public class CommandMessage implements CommandContext {
     }
 
     @Override
+    public TextChannel getTextChannel() {
+        return message.getTextChannel();
+    }
+
+    @Override
     public GuildChannel getGuildChannel() {
         return guildChannel;
     }

@@ -109,4 +109,6 @@ public class Constants {
 
     public static final String PIA_LOG_CHANNEL = "788316320747094046";
 
+    public static final String PIA_LOGO_URL = "https://i.imgur.com/RAOn0OI.png";
+
 }

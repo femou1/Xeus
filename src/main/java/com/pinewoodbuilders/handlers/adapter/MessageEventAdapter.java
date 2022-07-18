@@ -234,7 +234,7 @@ public class MessageEventAdapter extends EventAdapter {
 
     private boolean checkLinkFilter(String m) {
         return m.contains("https://") || m.contains("http://") || m.startsWith("porn") || m.contains("www.") || m.contains(".com") || m.contains(".nl") || m.contains(".net") ||
-            m.startsWith("http") || m.startsWith("https") || m.contains("http//") || m.contains("https//") || m.matches("[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)") || m.contains("%E2");
+            m.startsWith("http") || m.startsWith("https") || m.contains("http//") || m.contains("https//") || m.matches("[-a-zA-Z\\d@:%._+~#=]{1,256}\\.[a-zA-Z\\d()]{1,6}\\b([-a-zA-Z\\d()@:%_+.~#?&/=]*)") || m.contains("%E2");
     }
 
     public void onGuildMessageUpdate(MessageUpdateEvent event) {
@@ -1035,20 +1035,19 @@ public class MessageEventAdapter extends EventAdapter {
                                     }
 
                                     try {
-                                        avaire.getGlobalPunishmentManager().registerGlobalBan(String.valueOf(moderatorEntity.getDiscordId()), gst.getMainGroupId(), bannedEntity != null ? String.valueOf(bannedEntity.getDiscordId()) : null, finalBannedRobloxId, finalUsernameFinal, finalReason);
+                                        avaire.getGlobalPunishmentManager().registerGlobalBan(String.valueOf(moderatorEntity.getDiscordId()), gst.getMainGroupId(), bannedEntity.getDiscordId() != 0 ? String.valueOf(bannedEntity.getDiscordId()) : null, finalBannedRobloxId, finalUsernameFinal, finalReason);
                                         if (bannedEntity != null) {
                                             List <Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(gst.getMainGroupId(), false);
-
                                             for (Guild g : guilds) {
                                                 if (g.getIdLong() == gst.getGlobalSettings().getModerationServerId())
                                                     continue;
 
-                                                if (g.getIdLong() == gst.getGlobalSettings().getAppealsDiscordId() && appealsBan)
+                                                if (g.getIdLong() == gst.getGlobalSettings().getAppealsDiscordId())
                                                     continue;
 
                                                 if (!g.getSelfMember().hasPermission(Permission.BAN_MEMBERS)) continue;
 
-                                                g.ban()
+                                                g.ban(UserSnowflake.fromId(bannedEntity.getDiscordId()), 0).reason(finalReason).queue();
                                             }
                                         }
                                     } catch (SQLException ex) {
