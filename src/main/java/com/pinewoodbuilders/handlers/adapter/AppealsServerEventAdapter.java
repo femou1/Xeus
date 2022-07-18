@@ -322,8 +322,8 @@ public class AppealsServerEventAdapter extends EventAdapter {
         return switch (group) {
             case "PBST" -> avaire.getShardManager().getGuildById("438134543837560832");
             case "PET" -> avaire.getShardManager().getGuildById("436670173777362944");
-            case "TMS" -> avaire.getShardManager().getGuildById("438134543837560832");
-            case "PBM" -> avaire.getShardManager().getGuildById("438134543837560832");
+            case "TMS" -> avaire.getShardManager().getGuildById("572104809973415943");
+            case "PBM" -> avaire.getShardManager().getGuildById("498476405160673286");
             default -> null;
         };
     }

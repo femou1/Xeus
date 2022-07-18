@@ -62,14 +62,14 @@ import com.pinewoodbuilders.level.LevelManager;
 import com.pinewoodbuilders.metrics.Metrics;
 import com.pinewoodbuilders.middleware.*;
 import com.pinewoodbuilders.middleware.global.IsCategoryEnabled;
-import com.pinewoodbuilders.moderation.local.ban.BanManager;
 import com.pinewoodbuilders.moderation.global.filter.LinkFilterManager;
-import com.pinewoodbuilders.moderation.local.mute.MuteManager;
 import com.pinewoodbuilders.moderation.global.globalmute.GlobalMuteManager;
+import com.pinewoodbuilders.moderation.global.globalwatch.GlobalWatchManager;
 import com.pinewoodbuilders.moderation.global.punishments.GlobalPunishmentManager;
+import com.pinewoodbuilders.moderation.local.ban.BanManager;
+import com.pinewoodbuilders.moderation.local.mute.MuteManager;
 import com.pinewoodbuilders.moderation.local.warn.WarnsManager;
 import com.pinewoodbuilders.moderation.local.watch.WatchManager;
-import com.pinewoodbuilders.moderation.global.globalwatch.GlobalWatchManager;
 import com.pinewoodbuilders.pinewood.VoiceWhitelistManager;
 import com.pinewoodbuilders.plugin.PluginLoader;
 import com.pinewoodbuilders.plugin.PluginManager;
@@ -278,7 +278,7 @@ public class Xeus {
         CategoryHandler.addCategory(this, "Roblox", defaultPrefix);
         CategoryHandler.addCategory(this, "Verification", defaultPrefix);
         CategoryHandler.addCategory(this, "Settings", defaultPrefix);
-        CategoryHandler.addCategory(this, "Appeals", defaultPrefix);
+        CategoryHandler.addCategory(this, "Appeals", "$");
         CategoryHandler.addCategory(this, "System", getConfig().getString(
             "system-prefix", DiscordConstants.DEFAULT_SYSTEM_PREFIX
         ));
