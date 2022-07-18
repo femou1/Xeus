@@ -81,7 +81,7 @@ public class AppealCommand extends Command {
         if (!information[3].equals("DELETING")) {
             return sendErrorMessage(context, "This channel is not currently deleting an appeal.");
         }
-        context.getTextChannel().getManager().setTopic(information[0] + " - " + information[1] + " - " + information[2] + " - OPEN");
+        context.getTextChannel().getManager().setTopic(information[0] + " - " + information[1] + " - " + information[2] + " - OPEN").queue();
         return true;
     }
 
