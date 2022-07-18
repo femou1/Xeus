@@ -1036,6 +1036,21 @@ public class MessageEventAdapter extends EventAdapter {
 
                                     try {
                                         avaire.getGlobalPunishmentManager().registerGlobalBan(String.valueOf(moderatorEntity.getDiscordId()), gst.getMainGroupId(), bannedEntity != null ? String.valueOf(bannedEntity.getDiscordId()) : null, finalBannedRobloxId, finalUsernameFinal, finalReason);
+                                        if (bannedEntity != null) {
+                                            List <Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(gst.getMainGroupId(), false);
+
+                                            for (Guild g : guilds) {
+                                                if (g.getIdLong() == gst.getGlobalSettings().getModerationServerId())
+                                                    continue;
+
+                                                if (g.getIdLong() == gst.getGlobalSettings().getAppealsDiscordId() && appealsBan)
+                                                    continue;
+
+                                                if (!g.getSelfMember().hasPermission(Permission.BAN_MEMBERS)) continue;
+
+                                                g.ban()
+                                            }
+                                        }
                                     } catch (SQLException ex) {
                                         e.reply("Hi, something went wrong in the ban system.\n" +
                                             "Please contact stefano... PLEASE. CONTACT HIM... NOWWWWW!!!!!?!?!?!?").queue();

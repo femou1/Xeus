@@ -4,6 +4,7 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.contracts.appeals.AppealType;
 import com.pinewoodbuilders.contracts.handlers.EventAdapter;
+import com.pinewoodbuilders.contracts.kronos.TrellobanLabels;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
@@ -301,8 +302,9 @@ public class AppealsServerEventAdapter extends EventAdapter {
             case "groupblacklist" ->
                 getBlacklistByShortname(group).contains(ve.getRobloxId());
             case "trelloban" ->
-                avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().containsKey(ve.getRobloxId());
-            default -> false;
+                avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().containsKey(ve.getRobloxId()) &&
+                    avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().get(ve.getRobloxId()).stream().anyMatch(TrellobanLabels::isAppealable);
+            default -> true;
         };
     }
 
@@ -322,6 +324,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
             case "PET" -> guild.getRoleById("750472631987339264");
             case "TMS" -> guild.getRoleById("750472599041212426");
             case "PBM" -> guild.getRoleById("750479715344842832");
+            case "RAID" -> guild.getRoleById("998362055398658179");
             default -> guild.getRoleById("750472556699582565");
         };
     }
