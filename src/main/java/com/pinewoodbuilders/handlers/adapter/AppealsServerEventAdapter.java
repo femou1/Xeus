@@ -299,7 +299,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
             case "gameban" ->
                 avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(settings.getMainGroupId(), ve.getRobloxId());
             case "groupranklock" ->
-                avaire.getRobloxAPIManager().getKronosManager().isRanklocked(ve.getRobloxId(), group.toLowerCase());
+                !group.equals("PBST") || avaire.getRobloxAPIManager().getKronosManager().isRanklocked(ve.getRobloxId(), group.toLowerCase());
             case "groupblacklist" ->
                 getBlacklistByShortname(group).contains(ve.getRobloxId());
             case "groupdiscordban" -> group.equals("OTHER") ? isOtherGuildBanned(ve) : getGuildByShortName(group).retrieveBanList().stream().filter(k -> k.getUser().getIdLong() == ve.getDiscordId()).toList().size() > 0;

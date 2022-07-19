@@ -1,9 +1,11 @@
 package com.pinewoodbuilders.roblox.kronos;
 
+import com.google.gson.internal.LinkedTreeMap;
 import com.pinewoodbuilders.AppInfo;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.cache.CacheType;
 import com.pinewoodbuilders.contracts.kronos.TrellobanLabels;
+import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.service.kronos.trelloban.TrellobanService;
 import com.pinewoodbuilders.requests.service.kronos.trelloban.trello.Card;
 import com.pinewoodbuilders.requests.service.kronos.trelloban.trello.Datum;
@@ -19,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class KronosManager {
 
@@ -26,12 +29,14 @@ public class KronosManager {
     private final RobloxAPIManager manager;
     protected final String apikey;
     private final String evalApiKey;
+    private final String blacklistKey;
 
     public KronosManager(Xeus avaire, RobloxAPIManager robloxAPIManager) {
         this.avaire = avaire;
         this.manager = robloxAPIManager;
         this.apikey = avaire.getConfig().getString("apiKeys.kronosDatabaseApiKey");
         this.evalApiKey = avaire.getConfig().getString("apiKeys.kronosDatabaseEvalsApiKey");
+        this.blacklistKey = avaire.getConfig().getString("apiKeys.kronosApiKey");
     }
 
     public Long getPoints(Long userId) {
@@ -104,7 +109,7 @@ public class KronosManager {
         }
         return false;
     }
-    
+
     public Object modifyEvalStatus(Long userId, String division, boolean status) {
         Request.Builder request = new Request.Builder()
             .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
@@ -133,6 +138,45 @@ public class KronosManager {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public ArrayList <Long> getBlacklist(String division) {
+        ArrayList <Long> list = new ArrayList <>();
+        String cacheToken = "blacklist."+division+".blacklists";
+
+        if (avaire.getCache().getAdapter(CacheType.FILE).has(cacheToken)) {
+            List <LinkedTreeMap <String, Double>> items = (List <LinkedTreeMap <String, Double>>) avaire.getCache()
+                .getAdapter(CacheType.FILE).get(cacheToken);
+            for (LinkedTreeMap <String, Double> item : items) {
+                list.add(item.get("id").longValue());
+            }
+            //log.info("pbm Blacklist has been requested.");
+        } else {
+            Request.Builder request = new Request.Builder()
+                .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
+                .addHeader("Access-Key", blacklistKey)
+                .url("https://pb-kronos.dev/"+division.toLowerCase()+"/blacklist");
+
+            try (okhttp3.Response response = manager.getClient().newCall(request.build()).execute()) {
+                if (response.code() == 200 && response.body() != null) {
+                    List <LinkedTreeMap <String, Double>> service =
+                        (List <LinkedTreeMap <String, Double>>) manager.toService(response.body().string(), List.class);
+                    for (LinkedTreeMap <String, Double> item : service) {
+                        list.add(item.get("id").longValue());
+                    }
+                    avaire.getCache().getAdapter(CacheType.FILE).remember(cacheToken, 60 * 60, () -> service);
+                } else if (response.code() == 404) {
+                    return list;
+                } else {
+                    throw new Exception("Kronos API returned something else then 200 or 400, please retry.");
+                }
+            } catch (IOException e) {
+                Xeus.getLogger().error("Failed sending request to Kronos API: " + e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return list;
     }
 
 
