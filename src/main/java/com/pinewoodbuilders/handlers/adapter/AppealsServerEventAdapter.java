@@ -141,7 +141,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
     }
 
     private Modal buildQuestionsModal(ButtonInteractionEvent event) {
-        VerificationEntity verificationEntity = avaire.getRobloxAPIManager().getVerification().fetchInstantVerificationWithBackup(event.getMember().getId());
+        VerificationEntity verificationEntity = avaire.getRobloxAPIManager().getVerification().fetchInstantVerificationWithBackup(event.getUser().getId());
 
         String fetchedUsername = verificationEntity != null ? verificationEntity.getRobloxUsername() : event.getMember().getEffectiveName();
 
@@ -242,16 +242,22 @@ public class AppealsServerEventAdapter extends EventAdapter {
         String roles = value[1];
         String type = value[2];
         AppealType appealType = AppealType.fromName(type);
-        VerificationEntity ve = avaire.getRobloxAPIManager().getVerification().fetchInstantVerificationWithBackup(event.getMember().getId());
+        VerificationEntity ve = avaire.getRobloxAPIManager().getVerification().fetchInstantVerificationWithBackup(event.getUser().getId());
 
-        if (!checkIfCanAppeal(type, roles, ve, g)) {
-            event.editMessageEmbeds(new EmbedBuilder().setDescription("You may not appeal for " + appealType.getCleanName() + ". You either don't have this punishment, or something went wrong. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
+        if (ve == null) {
+            event.reply("You are not verified in Xeus, Rover, Bloxlink or RoWifi, please verify with any of these providers before we allow you to appeal.").setEphemeral(true).queue();
             return;
         }
 
-        String name = type + "-" + RandomUtil.generateString(5);
 
-        c.createTextChannel(name).setTopic(type.toLowerCase() + " - " + event.getMember().getId() + " - " + roles + " - OPEN").submit()
+        if (!checkIfCanAppeal(type, roles, ve, g) || !avaire.getBotAdmins().getUserById(event.getUser().getId()).isGlobalAdmin()) {
+            event.editMessageEmbeds(new EmbedBuilder().setDescription("You may not appeal with " + roles + "for " + appealType.getCleanName() + ". You either don't have this punishment, or something went wrong. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
+            return;
+        }
+
+        String name = type + "-" + roles + "-" + RandomUtil.generateString(5);
+
+        c.createTextChannel(name).setTopic(type.toLowerCase() + " - " + event.getUser().getId() + " - " + roles + " - OPEN").submit()
             .thenCompose((channel) -> channel.upsertPermissionOverride(event.getMember()).setAllowed(Permission.VIEW_CHANNEL).submit())
             .thenCompose((override) -> override.getChannel().upsertPermissionOverride(getAppealRole(roles, event.getGuild())).setAllowed(Permission.VIEW_CHANNEL).submit())
             .thenCompose((chan) -> event.getGuild().getTextChannelById(chan.getChannel().getId()).sendMessage(event.getMember().getAsMention())
@@ -293,6 +299,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
 
     private boolean checkIfCanAppeal(String type, String group, VerificationEntity ve, Guild g) {
         GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
+
         return switch (type.toLowerCase()) {
             case "globalban" ->
                 avaire.getGlobalPunishmentManager().isGlobalBanned(settings.getMainGroupId(), String.valueOf(ve.getDiscordId()));
