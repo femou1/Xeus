@@ -280,7 +280,7 @@ public class AppealCommand extends Command {
                                             .addField("Direct Transcript", "[Direct Transcript (TT Website)](https://tickettool.xyz/direct?url=" + message.getAttachments().get(0).getUrl() + ")", true)
                                             .addField("Users In Transcript", "ETA: Unknown", true)
                                             .setFooter(context.guild.getName(), context.guild.getIconUrl())
-                                            .setColor(new Color(253, 253, 253))
+                                            .setColor(appealType.getColor())
                                             .build();
 
                                         if (appealer != null) appealer.openPrivateChannel().submit()
@@ -293,7 +293,7 @@ public class AppealCommand extends Command {
                                         trancriptMessage.editMessageEmbeds(new EmbedBuilder()
                                             .setTitle("Transcript Closed")
                                             .setDescription("The transcript has been sent to the channels it had to be sent to!")
-                                            .setColor(new Color(253, 253, 253))
+                                            .setColor(appealType.getColor())
                                             .build()).submit();
                                     });
 
@@ -396,7 +396,7 @@ public class AppealCommand extends Command {
 
         context.getTextChannel().upsertPermissionOverride(appealer).setDenied(Permission.MESSAGE_SEND).queue();
 
-        context.makeInfo("Appeal closed by " + context.getMember().getAsMention() + " for:\n```" + reason + "```")
+        context.makeInfo("Appeal closed by " + context.getMember().getAsMention() + " for:\n```" + reason + "``` Reminder that the person who started the appeal **is able to see everything typed here now**.")
             .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
             .setTitle("Pinewood - Appeal System")
             .setThumbnail(appealType.getEmoteImage())

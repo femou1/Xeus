@@ -135,6 +135,10 @@ public class AppealsServerEventAdapter extends EventAdapter {
                             "guild:groupblacklist",
                             "You may appeal a group blacklist here.",
                             Emoji.fromMarkdown("<:blacklist:998332444916858880>"))
+                        .addOption("Create a appeal for something else",
+                            "appeal:PIA:other",
+                            "Any special cases go here..",
+                            Emoji.fromMarkdown("<:CadetThinking:893602259693338665>"))
                         .setRequiredRange(1, 1).build().asEnabled()).queue();
             case "questions-respond" -> event.replyModal(buildQuestionsModal(event)).queue();
         }
@@ -251,7 +255,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
 
 
         if (!checkIfCanAppeal(type, roles, ve, g) || !avaire.getBotAdmins().getUserById(event.getUser().getId()).isGlobalAdmin()) {
-            event.editMessageEmbeds(new EmbedBuilder().setDescription("You may not appeal with " + roles + "for " + appealType.getCleanName() + ". You either don't have this punishment, or something went wrong. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
+            event.editMessageEmbeds(new EmbedBuilder().setColor(appealType.getColor()).setDescription("You may not appeal with " + roles + "for " + appealType.getCleanName() + ". You either don't have this punishment, or something went wrong. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
             return;
         }
 
@@ -261,7 +265,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
             .thenCompose((channel) -> channel.upsertPermissionOverride(event.getMember()).setAllowed(Permission.VIEW_CHANNEL).submit())
             .thenCompose((override) -> override.getChannel().upsertPermissionOverride(getAppealRole(roles, event.getGuild())).setAllowed(Permission.VIEW_CHANNEL).submit())
             .thenCompose((chan) -> event.getGuild().getTextChannelById(chan.getChannel().getId()).sendMessage(event.getMember().getAsMention())
-                .setEmbeds(new PlaceholderMessage(new EmbedBuilder(),
+                .setEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(appealType.getColor()),
                     """
                     We have created an appeal channel for your :appeal appeal!
                     Below this embed there will be a button for you to answer some questions about why we should accept your appeal.
@@ -275,10 +279,10 @@ public class AppealsServerEventAdapter extends EventAdapter {
                     .buildEmbed())
                 .setActionRow(Button.primary("questions-respond", "Click this button to obtain the questions.").asEnabled())
                 .submit())
-            .thenCompose((s) -> event.editMessageEmbeds(new EmbedBuilder().setDescription("Your appeal channel has been created in "+ s.getChannel().getAsMention()+"!").build())
+            .thenCompose((s) -> event.editMessageEmbeds(new EmbedBuilder().setColor(appealType.getColor()).setDescription("Your appeal channel has been created in "+ s.getChannel().getAsMention()+"!").build())
                 .setActionRows(Collections.emptyList()).submit())
             .thenCompose((s) -> getTextChannelByRole(roles, event.getGuild())
-                .sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder(),
+                .sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(appealType.getColor()),
                     """
                     ***Logged Info***:
                     **`User`**: :userMention
@@ -309,7 +313,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
                 !group.equals("PBST") || avaire.getRobloxAPIManager().getKronosManager().isRanklocked(ve.getRobloxId(), group.toLowerCase());
             case "groupblacklist" ->
                 getBlacklistByShortname(group).contains(ve.getRobloxId());
-            case "groupdiscordban" -> group.equals("OTHER") ? isOtherGuildBanned(ve) : getGuildByShortName(group).retrieveBanList().stream().filter(k -> k.getUser().getIdLong() == ve.getDiscordId()).toList().size() > 0;
+            case "groupdiscordban" -> group.equals("OTHER") ? isOtherGuildBanned(ve) : getGuildByShortName(group).retrieveBanList().complete().stream().filter(k -> k.getUser().getIdLong() == ve.getDiscordId()).toList().size() > 0;
             case "trelloban" ->
                 avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().containsKey(ve.getRobloxId()) &&
                     avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().get(ve.getRobloxId()).stream().anyMatch(TrellobanLabels::isAppealable);
@@ -318,9 +322,9 @@ public class AppealsServerEventAdapter extends EventAdapter {
     }
 
     private boolean isOtherGuildBanned(VerificationEntity ve) {
-        boolean kddBanned = avaire.getShardManager().getGuildById("791168471093870622").retrieveBanList().stream().filter(k -> k.getUser().getIdLong() == ve.getDiscordId()).toList().size() > 0;
-        boolean pbBanned = avaire.getShardManager().getGuildById("371062894315569173").retrieveBanList().stream().filter(k -> k.getUser().getIdLong() == ve.getDiscordId()).toList().size() > 0;
-        boolean pbqaBanned = avaire.getShardManager().getGuildById("791168471093870622").retrieveBanList().stream().filter(k -> k.getUser().getIdLong() == ve.getDiscordId()).toList().size() > 0;
+        boolean kddBanned = avaire.getShardManager().getGuildById("791168471093870622").retrieveBanList().complete().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
+        boolean pbBanned = avaire.getShardManager().getGuildById("371062894315569173").retrieveBanList().complete().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
+        boolean pbqaBanned = avaire.getShardManager().getGuildById("791168471093870622").retrieveBanList().complete().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
 
         return kddBanned || pbBanned || pbqaBanned;
     }
