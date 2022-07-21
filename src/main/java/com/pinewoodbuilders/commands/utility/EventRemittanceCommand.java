@@ -22,6 +22,8 @@ import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
@@ -154,7 +156,7 @@ public class EventRemittanceCommand extends Command {
                     }
 
                 });
-                l.addReaction("❌").queue();
+                l.addReaction(Emoji.fromFormatted("❌").queue();
                 l.editMessageEmbeds(context.makeInfo("Welcome to the event remittance system. With this feature, you can record your patrolling/raiding for groups that have this enabled! (Please check the rules regarding what events they allow remittance for)\n\n" + sb.toString()).buildEmbed()).queue(
                     message -> {
                         avaire.getWaiter().waitForEvent(MessageReactionAddEvent.class, event -> {
@@ -447,19 +449,19 @@ public class EventRemittanceCommand extends Command {
         if (args.length < 3) {
             return sendErrorMessage(context, "Incorrect arguments");
         }
-        Emote e;
+        RichCustomEmoji e;
         GuildChannel c = MentionableUtil.getChannel(context.message, args, 1);
         if (c == null) {
             return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Channel)");
         }
 
         if (NumberUtil.isNumeric(args[1])) {
-            e = avaire.getShardManager().getEmoteById(args[1]);
+            e = avaire.getShardManager().getEmojiById(args[1]);
             if (e == null) {
                 return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - ID)");
             }
-        } else if (context.message.getMentions().getEmotes().size() == 1) {
-            e = context.message.getMentions().getEmotes().get(0);
+        } else if (context.message.getMentions().getCustomEmojis().size() == 1) {
+            e = context.message.getMentions().getCustomEmojis().get(0);
             if (e == null) {
                 return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - Mention)");
             }
@@ -490,7 +492,7 @@ public class EventRemittanceCommand extends Command {
     }
 
 
-    private boolean updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel, Emote emote) {
+    private boolean updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel, RichCustomEmoji emote) {
         transformer.setPatrolRemittance(channel.getId());
     
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
@@ -509,12 +511,12 @@ public class EventRemittanceCommand extends Command {
     }
 
     public static void createReactions(Message r) {
-        r.addReaction("\uD83D\uDC4D").queue();   // 👍
-        r.addReaction("\uD83D\uDC4E").queue();  // 👎
-        r.addReaction("✅").queue();
-        r.addReaction("❌").queue();
-        r.addReaction("🚫").queue();
-        r.addReaction("\uD83D\uDD04").queue(); // 🔄
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDC4D")).queue();   // 👍
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDC4E")).queue();  // 👎
+        r.addReaction(Emoji.fromFormatted("✅")).queue();
+        r.addReaction(Emoji.fromFormatted("❌")).queue();
+        r.addReaction(Emoji.fromFormatted("🚫")).queue();
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDD04")).queue(); // 🔄
     }
 
     private static Long getRobloxId(String un) {

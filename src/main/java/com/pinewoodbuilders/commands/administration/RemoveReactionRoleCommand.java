@@ -35,7 +35,7 @@ import com.pinewoodbuilders.database.transformers.GuildTypeTransformer;
 import com.pinewoodbuilders.database.transformers.ReactionTransformer;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
-import net.dv8tion.jda.api.entities.Emote;
+import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,11 +177,11 @@ public class RemoveReactionRoleCommand extends Command {
 
     @SuppressWarnings("ConstantConditions")
     private boolean removeSingleRoleOrEmoteFromMessage(CommandMessage context, String[] args, DataRow row) {
-        if (context.getMessage().getMentions().getEmotes().isEmpty()) {
+        if (context.getMessage().getMentions().getCustomEmojis().isEmpty()) {
             return sendErrorMessage(context, context.i18n("mustIncludeEmote"));
         }
 
-        Emote emote = context.getMessage().getMentions().getEmotes().get(0);
+        RichCustomEmoji emote = context.getGuild().getEmojiById(context.getMessage().getMentions().getCustomEmojis().get(0).getId());
         if (emote.getGuild() == null || emote.getGuild().getIdLong() != context.getGuild().getIdLong()) {
             return sendErrorMessage(context, context.i18n("emoteDoestBelongToServer"));
         }

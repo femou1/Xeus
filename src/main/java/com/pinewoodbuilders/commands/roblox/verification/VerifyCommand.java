@@ -5,7 +5,7 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.VerificationCommandContract;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.contracts.verification.VerificationProviders;
-import net.dv8tion.jda.api.entities.Emoji;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -97,14 +97,14 @@ public class VerifyCommand extends VerificationCommandContract {
 
                     SelectMenu.Builder menu = SelectMenu.create("menu:provider-to-verify-with" + ":" + context.getMember().getId() + ":" + context.getMessage().getId())
                             .setPlaceholder("Select the verification provider!") // shows the placeholder indicating what this menu is for
-                            .addOption("Verify a new account!", "verify-new-account", "Select this to verify a new account.", Emoji.fromMarkdown("<:PBST_GOD:857728071183237141>"))
+                            .addOption("Verify a new account!", "verify-new-account", "Select this to verify a new account.", Emoji.fromFormatted("<:PBST_GOD:857728071183237141>"))
                             .setRequiredRange(1, 1); // only one can be selected
 
                     for (VerificationEntity ve : verificationEntities) {
                         VerificationProviders provider = VerificationProviders.resolveProviderFromProvider(ve.getProvider());
                         if (provider != null) {
                             String username = ve.getRobloxUsername() != null ? ve.getRobloxUsername() : "Deleted";
-                            menu.addOption(username, ve.getProvider() + ":" + username, "Verify with " + username + " from " + provider.provider, Emoji.fromMarkdown(provider.emoji));
+                            menu.addOption(username, ve.getProvider() + ":" + username, "Verify with " + username + " from " + provider.provider, Emoji.fromFormatted(provider.emoji));
                         }
                     }
 
@@ -168,7 +168,7 @@ public class VerifyCommand extends VerificationCommandContract {
                 .setPlaceholder("Select the verification method!") // shows the placeholder indicating what this menu is for
                 .setRequiredRange(1, 1) // only one can be selected
                 .addOption("In-game Verification", "game-verification", "Join a game on roblox to verify!", Emoji.fromUnicode("\uD83D\uDC68\u200D\uD83D\uDE80"))
-                .addOption("Edit Description", "edit-description", "Add text to your profile description!", Emoji.fromMarkdown("<:roblox:863179377080401960>"))
+                .addOption("Edit Description", "edit-description", "Add text to your profile description!", Emoji.fromFormatted("<:roblox:863179377080401960>"))
                 .build();
 
         originalMessage.editMessageEmbeds(context.makeInfo("Account was found on roblox, how would you like to verify?").requestedBy(context).buildEmbed())

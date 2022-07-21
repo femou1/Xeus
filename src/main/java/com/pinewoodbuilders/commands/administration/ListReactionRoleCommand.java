@@ -33,7 +33,7 @@ import com.pinewoodbuilders.database.controllers.ReactionController;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.google.gson.reflect.TypeToken;
-import net.dv8tion.jda.api.entities.Emote;
+import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -122,7 +122,7 @@ public class ListReactionRoleCommand extends Command {
                     }.getType());
 
                 for (Map.Entry<Long, Long> item : dbRoles.entrySet()) {
-                    Emote emote = avaire.getShardManager().getEmoteById(item.getKey());
+                    RichCustomEmoji emote = avaire.getShardManager().getEmojiById(item.getKey());
                     if (emote == null) {
                         continue;
                     }

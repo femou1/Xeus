@@ -169,8 +169,8 @@ public class RoleSettingsCommand extends SystemCommand {
 
         int finalCount = count;
         context.makeWarning("Would you like to prune `:count` members for archiving the server?").set("count", count).queue(countMessage -> {
-            countMessage.addReaction("\uD83D\uDC4D").queue();
-            countMessage.addReaction("\uD83D\uDC4E").queue();
+            countMessage.addReaction(Emoji.fromFormatted("\uD83D\uDC4D").queue();
+            countMessage.addReaction(Emoji.fromFormatted("\uD83D\uDC4E").queue();
             avaire.getWaiter().waitForEvent(MessageReactionAddEvent.class, check -> check.getMember().equals(context.member) && check.getMessageId().equals(countMessage.getId()), action -> {
 
                     switch (action.getReactionEmote().getName()) {

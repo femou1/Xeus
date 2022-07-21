@@ -70,12 +70,12 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
     }
 
     public static void createReactions(Message r) {
-        r.addReaction("\uD83D\uDC4D").queue();   // 👍
-        r.addReaction("\uD83D\uDC4E").queue();  // 👎
-        r.addReaction("✅").queue();
-        r.addReaction("❌").queue();
-        r.addReaction("🚫").queue();
-        r.addReaction("\uD83D\uDD04").queue(); // 🔄
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDC4D").queue();   // 👍
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDC4E").queue();  // 👎
+        r.addReaction(Emoji.fromFormatted("✅").queue();
+        r.addReaction(Emoji.fromFormatted("❌").queue();
+        r.addReaction(Emoji.fromFormatted("🚫").queue();
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDD04").queue(); // 🔄
     }
 
     public void onEmoteRemoved(EmoteRemovedEvent event) {
@@ -529,13 +529,13 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                 return;
                                             }
                                             msg.clearReactions().queue();
-                                            msg.addReaction("\uD83D\uDC4D").queue(); //
-                                            msg.addReaction("\uD83D\uDC4E").queue(); // 👎
-                                            msg.addReaction("✅").queue();
-                                            msg.addReaction("❌").queue();
-                                            msg.addReaction("\uD83D\uDCAC").queue();
-                                            msg.addReaction("\uD83D\uDEAB").queue(); // 🚫
-                                            msg.addReaction("\uD83D\uDD04").queue(); // 🔄
+                                            msg.addReaction(Emoji.fromFormatted("\uD83D\uDC4D").queue(); //
+                                            msg.addReaction(Emoji.fromFormatted("\uD83D\uDC4E").queue(); // 👎
+                                            msg.addReaction(Emoji.fromFormatted("✅").queue();
+                                            msg.addReaction(Emoji.fromFormatted("❌").queue();
+                                            msg.addReaction(Emoji.fromFormatted("\uD83D\uDCAC").queue();
+                                            msg.addReaction(Emoji.fromFormatted("\uD83D\uDEAB").queue(); // 🚫
+                                            msg.addReaction(Emoji.fromFormatted("\uD83D\uDD04").queue(); // 🔄
                                     }
                                 }
                                 if (e.getReactionEmote().getName().equals("\uD83D\uDEAB")) { //
@@ -609,11 +609,11 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                         }
 
                                         finalCtc.sendMessageEmbeds(mb.buildEmbed()).queue(p -> {
-                                            p.addReaction("✅").queue();
-                                            p.addReaction("❌").queue();
-                                            p.addReaction("\uD83D\uDEAB").queue();
-                                            p.addReaction("\uD83D\uDD04").queue();
-                                            p.addReaction("\uD83D\uDCAC").queue(); // 💬
+                                            p.addReaction(Emoji.fromFormatted("✅").queue();
+                                            p.addReaction(Emoji.fromFormatted("❌").queue();
+                                            p.addReaction(Emoji.fromFormatted("\uD83D\uDEAB").queue();
+                                            p.addReaction(Emoji.fromFormatted("\uD83D\uDD04").queue();
+                                            p.addReaction(Emoji.fromFormatted("\uD83D\uDCAC").queue(); // 💬
                                             try {
                                                 qb.update(l -> {
                                                     l.set("suggestion_message_id", p.getId());
@@ -745,12 +745,12 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                 return;
                             }
                             m.clearReactions().queue();
-                            m.addReaction("\uD83D\uDC4D").queue();
-                            m.addReaction("\uD83D\uDC4E").queue();
-                            m.addReaction("✅").queue();
-                            m.addReaction("❌").queue();
-                            m.addReaction("🚫").queue();
-                            m.addReaction("\uD83D\uDD04").queue();
+                            m.addReaction(Emoji.fromFormatted("\uD83D\uDC4D").queue();
+                            m.addReaction(Emoji.fromFormatted("\uD83D\uDC4E").queue();
+                            m.addReaction(Emoji.fromFormatted("✅").queue();
+                            m.addReaction(Emoji.fromFormatted("❌").queue();
+                            m.addReaction(Emoji.fromFormatted("🚫").queue();
+                            m.addReaction(Emoji.fromFormatted("\uD83D\uDD04").queue();
                     }
                 });
         } catch (SQLException e) {

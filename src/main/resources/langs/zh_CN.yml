@@ -292,11 +292,11 @@ administration:
     messageIdMustBeGreaterThanOne: "给出的 `message id` 无效, 这个 `message id`必须至少为1或更高."
     messageIdMustBeLowerThanRolesSize: "给出的 `message id` 无效, 这个 `message id` 不能高于服务器当前拥有的反应角色数量，即 `{0}` 现在."
     failedToFetchMessage: "尝试获取ID为 `{0}`, 如果这个问题继续发生，请向我的一个开发人员报告。如果你不知道怎么办，请联系QQ:1653573879."
-    mustIncludeEmote: "您必须包括要从反应消息中删除的表情."
+    mustIncludeRichCustomEmoji: "您必须包括要从反应消息中删除的表情."
     emoteDoestBelongToServer: "这个表情不属于这个服务器，你只能使用这个服务器上的表情作为反应动作。."
     roleNotFoundOnMessage: "指定的反应消息没有附加到它的反应角色。 {0} 表情."
     deletedMessage: "ID为 **#:id** 已成功删除!"
-    deletedEmote: "这个 :emote 表情已成功从反应消息中删除.\n该消息已 `:roleSlots` 更多可用于消息的反应角色插槽，以及 `:messageSlots` 可用的反应消息插槽."
+    deletedRichCustomEmoji: "这个 :emote 表情已成功从反应消息中删除.\n该消息已 `:roleSlots` 更多可用于消息的反应角色插槽，以及 `:messageSlots` 可用的反应消息插槽."
   RemoveSelfAssignableRoleCommand:
     message: "这个 **:role** 角色已从自我分配列表中删除。.\n服务器具有 `:slots` 更多可自我分配的角色插槽可用."
   RoleLevelCommand:

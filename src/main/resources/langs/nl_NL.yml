@@ -292,11 +292,11 @@ administration:
     messageIdMustBeGreaterThanOne: "Ongeldige `message id` gegeven, het `message id` moet minstens 1 of groter zijn."
     messageIdMustBeLowerThanRolesSize: "Ongeldige `message id` gegeven, het `message id` kan niet groter zijn dan de hoeveelheid reactie rollen, wat momenteel `{0}` is."
     failedToFetchMessage: "Er ging iets fout met het opvragen van het reactie rol bericht met een ID van `{0}`, als dit probleem blijft, laat het dan weten bij een van de developers."
-    mustIncludeEmote: "Je moet de emote meegeven die je wil verwijderen van het reactie bericht."
+    mustIncludeRichCustomEmoji: "Je moet de emote meegeven die je wil verwijderen van het reactie bericht."
     emoteDoestBelongToServer: "Die emote is niet van deze server, je kan alleen emotes gebruiken van deze server als reactie emotes."
     roleNotFoundOnMessage: "Het gegeven reactie bericht heeft geen reactie emote verbonden met die gebruik maakt van de {0} emote."
     deletedMessage: "Het reactie rol bericht met het ID van **#:id** is succesvol verwijderd!"
-    deletedEmote: "De :emote emote is succesvol verwijderd van het reactie bericht.\nHet bericht heeft nog `:roleSlots` reactie rol plekken over voor het bericht, en `:messageSlots` reactie berichten beschikbaar."
+    deletedRichCustomEmoji: "De :emote emote is succesvol verwijderd van het reactie bericht.\nHet bericht heeft nog `:roleSlots` reactie rol plekken over voor het bericht, en `:messageSlots` reactie berichten beschikbaar."
   RemoveSelfAssignableRoleCommand:
     message: "De **:role** rol is verwijderd van de zelf toegeven lijst.\nDe server heeft nog `:slots` plekken voor zelf toe te geven rollen."
   RoleLevelCommand:

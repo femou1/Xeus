@@ -174,8 +174,8 @@ public class VerificationCommand extends VerificationCommandContract {
         }
         int finalCount = count;
         context.makeWarning("Would you like to prune `:count` member who don't have the main discord role.").set("count", count).queue(countMessage -> {
-            countMessage.addReaction("\uD83D\uDC4D").queue();
-            countMessage.addReaction("\uD83D\uDC4E").queue();
+            countMessage.addReaction(Emoji.fromFormatted("\uD83D\uDC4D").queue();
+            countMessage.addReaction(Emoji.fromFormatted("\uD83D\uDC4E").queue();
 
             builder.setItems(members.stream().map(member -> "\n- `"+member.getEffectiveName() + "`").collect(Collectors.toList()));
             builder.setItemsPerPage(10).build().paginate(context.getChannel(), 0);

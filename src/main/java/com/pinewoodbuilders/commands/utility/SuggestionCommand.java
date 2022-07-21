@@ -396,8 +396,8 @@ public class SuggestionCommand extends Command {
     }
 
     public static void createReactions(Message r) {
-        r.addReaction("\uD83D\uDC4D").queue();   // 👍
-        r.addReaction("\uD83D\uDC4E").queue();  // 👎
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDC4D").queue();   // 👍
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDC4E").queue();  // 👎
         /*r.addReaction("✅").queue();
         r.addReaction("❌").queue();
         r.addReaction("🚫").queue();

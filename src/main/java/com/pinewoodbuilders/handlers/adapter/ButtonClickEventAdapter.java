@@ -593,8 +593,8 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     return;
                                                 }
                                                 msg.clearReactions().queue();
-                                                msg.addReaction("\uD83D\uDC4D").queue(); //
-                                                msg.addReaction("\uD83D\uDC4E").queue(); // 👎
+                                                msg.addReaction(Emoji.fromFormatted("\uD83D\uDC4D").queue(); //
+                                                msg.addReaction(Emoji.fromFormatted("\uD83D\uDC4E").queue(); // 👎
                                             }
                                         }
                                     }
@@ -720,7 +720,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
     }
 
     private void startAcceptedEval(ButtonInteractionEvent event, InteractionHook l) {
-        event.getMessage().addReaction("\uD83D\uDC4D").queue();
+        event.getMessage().addReaction(Emoji.fromFormatted("\uD83D\uDC4D").queue();
         RobloxAPIManager manager = avaire.getRobloxAPIManager();
         try {
             Collection c = avaire.getDatabase().newQueryBuilder(Constants.PENDING_QUIZ_TABLE_NAME).where("message_id", event.getMessageId()).get();
@@ -779,7 +779,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
     }
 
     private void startRejectedEval(ButtonInteractionEvent event, InteractionHook l) {
-        event.getMessage().addReaction("⛔").queue();
+        event.getMessage().addReaction(Emoji.fromFormatted("⛔").queue();
         RobloxAPIManager manager = avaire.getRobloxAPIManager();
         try {
             Collection c = avaire.getDatabase().newQueryBuilder(Constants.PENDING_QUIZ_TABLE_NAME).where("message_id", event.getMessageId()).get();

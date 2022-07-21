@@ -140,7 +140,7 @@ public class RequestRewardCommand extends Command {
                     }
 
                 });
-                l.addReaction("❌").queue();
+                l.addReaction(Emoji.fromFormatted("❌").queue();
                 l.editMessageEmbeds(context.makeInfo("Welcome to the recorded reward request system. Please select the group you wanna reward someone in!\n\n" + sb.toString()).buildEmbed()).queue(
                     message -> {
                         avaire.getWaiter().waitForEvent(MessageReactionAddEvent.class, event -> {
@@ -250,12 +250,12 @@ public class RequestRewardCommand extends Command {
     }
 
     public static void createReactions(Message r) {
-        r.addReaction("\uD83D\uDC4D").queue();   // 👍
-        r.addReaction("\uD83D\uDC4E").queue();  // 👎
-        r.addReaction("✅").queue();
-        r.addReaction("❌").queue();
-        r.addReaction("🚫").queue();
-        r.addReaction("\uD83D\uDD04").queue(); // 🔄
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDC4D").queue();   // 👍
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDC4E").queue();  // 👎
+        r.addReaction(Emoji.fromFormatted("✅").queue();
+        r.addReaction(Emoji.fromFormatted("❌").queue();
+        r.addReaction(Emoji.fromFormatted("🚫").queue();
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDD04").queue(); // 🔄
     }
 
     private static Long getRobloxId(String un) {

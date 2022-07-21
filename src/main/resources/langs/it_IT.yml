@@ -292,11 +292,11 @@ administration:
     messageIdMustBeGreaterThanOne: "`id messaggio` non valido, l'`id messaggio` deve essere almeno 1 o maggiore."
     messageIdMustBeLowerThanRolesSize: "`id messaggio` non valido, l'`id messaggio` non può essere maggiore della quantità di ruoli reazione attualmente presenti sul server, che è `{0}` al momento."
     failedToFetchMessage: "Qualcosa è andato storto mentre cercavo di recuperare il messaggio del ruolo reazione con un ID di `{0}`, se questo problema continua a verificarsi, segnalalo a uno dei miei sviluppatori."
-    mustIncludeEmote: "Devi includere l'emote che desideri rimuovere dal messaggio di reazione."
+    mustIncludeRichCustomEmoji: "Devi includere l'emote che desideri rimuovere dal messaggio di reazione."
     emoteDoestBelongToServer: "L'emote non appartiene a questo server, è possibile utilizzare solo emote da questo server come emote di reazione."
     roleNotFoundOnMessage: "Il messaggio di reazione specificato non ha un ruolo reazione collegato all'emote {0}."
     deletedMessage: "Il messaggio del ruolo reazione con un ID di **#:id** è stato cancellato con successo!"
-    deletedEmote: "L'emote :emote è stata rimossa con successo dal messaggio di reazione.\nIl messaggio ha ancora `:roleSlots` slot di ruoli reazione disponibili, e `:messageSlots` slot di messaggi di reazione disponibili."
+    deletedRichCustomEmoji: "L'emote :emote è stata rimossa con successo dal messaggio di reazione.\nIl messaggio ha ancora `:roleSlots` slot di ruoli reazione disponibili, e `:messageSlots` slot di messaggi di reazione disponibili."
   RemoveSelfAssignableRoleCommand:
     message: "Il ruolo **:role** è stato rimosso dalla lista dei ruoli auto-assegnabili.\nIl server ha ancora `:slots` slot disponibili per i ruoli auto-assegnabili."
   RoleLevelCommand:

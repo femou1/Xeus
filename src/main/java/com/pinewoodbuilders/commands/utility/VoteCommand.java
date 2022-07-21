@@ -506,8 +506,8 @@ public class VoteCommand extends Command {
                             } catch (SQLException throwables) {
                                 Xeus.getLogger().error("ERROR: ", throwables);
                             }
-                            message.addReaction("✅").queue();
-                            message.addReaction("❌").queue();
+                            message.addReaction(Emoji.fromFormatted("✅").queue();
+                            message.addReaction(Emoji.fromFormatted("❌").queue();
                         });
                     }
 

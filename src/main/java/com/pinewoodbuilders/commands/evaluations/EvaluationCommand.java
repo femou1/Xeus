@@ -152,9 +152,9 @@ public class EvaluationCommand extends Command {
                             .set("status", "Passed").queue(
                                 message -> {
                                     message.createThreadChannel(username).queue();
-                                    message.addReaction("\uD83D\uDC4D").queue(); //
-                                    message.addReaction("✋").queue(); //
-                                    message.addReaction("\uD83D\uDC4E").queue(); //
+                                    message.addReaction(Emoji.fromFormatted("\uD83D\uDC4D").queue(); //
+                                    message.addReaction(Emoji.fromFormatted("✋").queue(); //
+                                    message.addReaction(Emoji.fromFormatted("\uD83D\uDC4E").queue(); //
                                 }
                             );
 
