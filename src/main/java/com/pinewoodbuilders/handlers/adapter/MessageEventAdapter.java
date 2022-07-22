@@ -1035,7 +1035,7 @@ public class MessageEventAdapter extends EventAdapter {
                                     }
 
                                     try {
-                                        avaire.getGlobalPunishmentManager().registerGlobalBan(String.valueOf(moderatorEntity.getDiscordId()), gst.getMainGroupId(), bannedEntity.getDiscordId() != 0 ? String.valueOf(bannedEntity.getDiscordId()) : null, finalBannedRobloxId, finalUsernameFinal, finalReason);
+                                        avaire.getGlobalPunishmentManager().registerGlobalBan(String.valueOf(moderatorEntity.getDiscordId()), gst.getMainGroupId(), bannedEntity != null && bannedEntity.getRobloxId() != 0 ? String.valueOf(bannedEntity.getDiscordId()) : null, finalBannedRobloxId, finalUsernameFinal, finalReason);
                                         if (bannedEntity != null) {
                                             List <Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(gst.getMainGroupId(), false);
                                             for (Guild g : guilds) {
