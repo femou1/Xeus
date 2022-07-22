@@ -253,10 +253,14 @@ public class AppealsServerEventAdapter extends EventAdapter {
             return;
         }
 
+        boolean canAppeal = checkIfCanAppeal(type, roles, ve, g);
+        boolean isBotAdmin = avaire.getBotAdmins().getUserById(event.getUser().getId()).isGlobalAdmin();
 
-        if (!(checkIfCanAppeal(type, roles, ve, g) && avaire.getBotAdmins().getUserById(event.getUser().getId()).isGlobalAdmin())) {
-            event.editMessageEmbeds(new EmbedBuilder().setColor(appealType.getColor()).setDescription("You may not appeal with `" + roles + "` for `" + appealType.getCleanName() + "`. You either don't have this punishment, or something went wrong. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
-            return;
+        if (!isBotAdmin) {
+            if (!canAppeal) {
+                event.editMessageEmbeds(new EmbedBuilder().setColor(appealType.getColor()).setDescription("You may not appeal with `" + roles + "` for `" + appealType.getCleanName() + "`. You either don't have this punishment, or something went wrong. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
+                return;
+            }
         }
 
         String name = type + "-" + roles + "-" + RandomUtil.generateString(5);

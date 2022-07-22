@@ -34,11 +34,11 @@ public class GlobalPunishmentManager {
             globalBans.put(mgi, new HashSet <>());
         }
 
-        if (isGlobalBanned(mgi, userId)) {
+        if (userId != null && isGlobalBanned(mgi, userId)) {
             unregisterDiscordGlobalBan(mgi, userId);
         }
 
-        if (isRobloxGlobalBanned(mgi,  robloxId)) {
+        if (robloxId != 0 && isRobloxGlobalBanned(mgi,  robloxId)) {
             unregisterRobloxGlobalBan(mgi, robloxId);
         }
 

@@ -730,14 +730,11 @@ public class VerificationManager {
         if (cache.getIfPresent(discordUserId) != null) {
             cache.invalidate(discordUserId);
         }
-        switch (discordUserId.split(":")[0]) {
-            case "rover":
-                return callUserFromRoverAPI(discordUserId.split(":")[1]);
-            case "bloxlink":
-                return callUserFromBloxlinkAPI(discordUserId.split(":")[1]);
-            default:
-                return callUserFromDatabaseAPI(discordUserId.split(":")[1]);
-        }
+        return switch (discordUserId.split(":")[0]) {
+            case "rover" -> callUserFromRoverAPI(discordUserId.split(":")[1]);
+            case "bloxlink" -> callUserFromBloxlinkAPI(discordUserId.split(":")[1]);
+            default -> callUserFromDatabaseAPI(discordUserId.split(":")[1]);
+        };
     }
 
     public VerificationEntity callUserFromDatabaseAPI(String discordUserId) {
