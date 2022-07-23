@@ -23,6 +23,7 @@ import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 
+import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
@@ -258,7 +259,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
 
         if (!isBotAdmin) {
             if (!canAppeal) {
-                event.editMessageEmbeds(new EmbedBuilder().setColor(appealType.getColor()).setDescription("You may not appeal with `" + roles + "` for `" + appealType.getCleanName() + "`. You either don't have this punishment, or something went wrong. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
+                event.editMessageEmbeds(new EmbedBuilder().setColor(appealType != null ? appealType.getColor() : new Color(0, 0, 0)).setDescription("You may not appeal with `" + roles + "` for `" + appealType.getCleanName() + "`. You either don't have this punishment, or something went wrong. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
                 return;
             }
         }
@@ -269,13 +270,13 @@ public class AppealsServerEventAdapter extends EventAdapter {
             .thenCompose((channel) -> channel.upsertPermissionOverride(event.getMember()).setAllowed(Permission.VIEW_CHANNEL).submit())
             .thenCompose((override) -> override.getChannel().upsertPermissionOverride(getAppealRole(roles, event.getGuild())).setAllowed(Permission.VIEW_CHANNEL).submit())
             .thenCompose((chan) -> event.getGuild().getTextChannelById(chan.getChannel().getId()).sendMessage(event.getMember().getAsMention())
-                .setEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(appealType.getColor()),
+                .setEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(appealType != null ? appealType.getColor() : new Color(0, 0, 0)),
                     """
-                    We have created an appeal channel for your :appeal appeal!
-                    Below this embed there will be a button for you to answer some questions about why we should accept your appeal.
-                    
-                    Please click this button and respond within 24 hours, otherwise we will close your appeal.
-                    """
+                        We have created an appeal channel for your :appeal appeal!
+                        Below this embed there will be a button for you to answer some questions about why we should accept your appeal.
+                                            
+                        Please click this button and respond within 24 hours, otherwise we will close your appeal.
+                        """
                 ).set("appeal", appealType != null ? appealType.getCleanName() : type)
                     .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
                     .setTitle("Pinewood - Appeal System")
