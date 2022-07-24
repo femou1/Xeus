@@ -23,8 +23,8 @@ import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 
-import java.awt.*;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 public class AppealsServerEventAdapter extends EventAdapter {
@@ -237,6 +237,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
 
 
     private void createAppealChannel(SelectMenuInteractionEvent event, String[] value) {
+        if (event.getMember() == null) return;
         Guild g = event.getGuild();
         Category c = g != null ? g.getCategoryById("834325263240003595") : null;
         if (c == null) {
@@ -246,7 +247,10 @@ public class AppealsServerEventAdapter extends EventAdapter {
 
         String roles = value[1];
         String type = value[2];
-        AppealType appealType = AppealType.fromName(type);
+        AppealType appealTypeDeclare = AppealType.fromName(type);
+        if (appealTypeDeclare == null) appealTypeDeclare = AppealType.OTHER;
+        final AppealType appealType = appealTypeDeclare;
+
         VerificationEntity ve = avaire.getRobloxAPIManager().getVerification().fetchInstantVerificationWithBackup(event.getUser().getId());
 
         if (ve == null) {
@@ -259,25 +263,25 @@ public class AppealsServerEventAdapter extends EventAdapter {
 
         if (!isBotAdmin) {
             if (!canAppeal) {
-                event.editMessageEmbeds(new EmbedBuilder().setColor(appealType != null ? appealType.getColor() : new Color(0, 0, 0)).setDescription("You may not appeal with `" + roles + "` for `" + appealType.getCleanName() + "`. You either don't have this punishment, or something went wrong. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
+                event.editMessageEmbeds(new EmbedBuilder().setColor(appealType.getColor()).setDescription("You may not appeal with `" + roles + "` for `" + appealType.getCleanName() + "`. You either don't have this punishment or you have a punishment that overrides others (**Example**: `A trelloban overrides a global-ban`, `A globalban overrides a group discord ban` and so on. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
                 return;
             }
         }
 
         String name = type + "-" + roles + "-" + RandomUtil.generateString(5);
 
-        c.createTextChannel(name).setTopic(type.toLowerCase() + " - " + event.getUser().getId() + " - " + roles + " - OPEN").submit()
-            .thenCompose((channel) -> channel.upsertPermissionOverride(event.getMember()).setAllowed(Permission.VIEW_CHANNEL).submit())
-            .thenCompose((override) -> override.getChannel().upsertPermissionOverride(getAppealRole(roles, event.getGuild())).setAllowed(Permission.VIEW_CHANNEL).submit())
-            .thenCompose((chan) -> event.getGuild().getTextChannelById(chan.getChannel().getId()).sendMessage(event.getMember().getAsMention())
-                .setEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(appealType != null ? appealType.getColor() : new Color(0, 0, 0)),
+        c.createTextChannel(name).setTopic(type.toLowerCase() + " - " + event.getUser().getId() + " - " + roles + " - OPEN")
+            .addMemberPermissionOverride(event.getMember().getIdLong(), Permission.VIEW_CHANNEL.getRawValue(), 0L)
+            .addRolePermissionOverride(getAppealRole(roles, event.getGuild()).getIdLong(), Permission.VIEW_CHANNEL.getRawValue(), 0L).submit()
+            .thenCompose((chan) -> chan.sendMessage(event.getMember().getAsMention())
+                .setEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(appealType.getColor()),
                     """
                         We have created an appeal channel for your :appeal appeal!
                         Below this embed there will be a button for you to answer some questions about why we should accept your appeal.
                                             
                         Please click this button and respond within 24 hours, otherwise we will close your appeal.
                         """
-                ).set("appeal", appealType != null ? appealType.getCleanName() : type)
+                ).set("appeal", appealType.getCleanName())
                     .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
                     .setTitle("Pinewood - Appeal System")
                     .setThumbnail(appealType.getEmoteImage())
@@ -294,8 +298,8 @@ public class AppealsServerEventAdapter extends EventAdapter {
                     **`Type`**: :appeal - (:emote)
                     """)
                     .set("userMention", event.getMember().getAsMention())
-                    .set("appeal", appealType != null ? appealType.getCleanName() : type)
-                    .set("emote", appealType != null ? appealType.getEmote() : "")
+                    .set("appeal", appealType.getCleanName())
+                    .set("emote", appealType.getEmote())
                     .setThumbnail(appealType.getEmoteImage())
                     .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
                 .setAuthor(event.getUser().getAsTag() + " - Appeal System", null, event.getUser().getEffectiveAvatarUrl())
@@ -309,22 +313,33 @@ public class AppealsServerEventAdapter extends EventAdapter {
     private boolean checkIfCanAppeal(String type, String group, VerificationEntity ve, Guild g) {
         GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
 
+        boolean isGlobalBanned = avaire.getGlobalPunishmentManager().isGlobalBanned(settings.getMainGroupId(), String.valueOf(ve.getDiscordId()));
+        boolean isGameBanned = avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(settings.getMainGroupId(), ve.getRobloxId());
+
+        HashMap <Long, List <TrellobanLabels>> trellobans = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans();
+        boolean isTrelloBanned = trellobans.containsKey(ve.getRobloxId()) &&
+            trellobans.get(ve.getRobloxId()).stream().anyMatch(TrellobanLabels::isAppealable);
+
+        boolean isGroupRanklocked = !group.equals("PBST") || avaire.getRobloxAPIManager().getKronosManager().isRanklocked(ve.getRobloxId(), group.toLowerCase());
+        boolean isGroupBlacklisted = getBlacklistByShortname(group).contains(ve.getRobloxId());
+
+        boolean isGroupDiscordBanned = group.equals("OTHER") ? isOtherGuildBanned(ve) : getGuildByShortName(group).retrieveBanList().complete()
+            .stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
 
         return switch (type.toLowerCase()) {
             case "globalban" ->
-                avaire.getGlobalPunishmentManager().isGlobalBanned(settings.getMainGroupId(), String.valueOf(ve.getDiscordId()));
+                isGlobalBanned && !isTrelloBanned;
             case "gameban" ->
-                avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(settings.getMainGroupId(), ve.getRobloxId());
+                isGameBanned && !isTrelloBanned;
             case "groupranklock" ->
-                !group.equals("PBST") || avaire.getRobloxAPIManager().getKronosManager().isRanklocked(ve.getRobloxId(), group.toLowerCase());
+                isGroupRanklocked && !isGlobalBanned && !isGameBanned && !isTrelloBanned;
             case "groupblacklist" ->
-                getBlacklistByShortname(group).contains(ve.getRobloxId());
-            case "groupdiscordban" -> group.equals("OTHER") ? isOtherGuildBanned(ve) : getGuildByShortName(group).retrieveBanList().complete()
-                .stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
+                isGroupBlacklisted && !isGameBanned && !isGlobalBanned && !isTrelloBanned;
+            case "groupdiscordban" ->
+                isGroupDiscordBanned && !isGameBanned && !isGlobalBanned && !isTrelloBanned;
             case "trelloban" ->
-                avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().containsKey(ve.getRobloxId()) &&
-                    avaire.getRobloxAPIManager().getKronosManager().getTrelloBans().get(ve.getRobloxId()).stream().anyMatch(TrellobanLabels::isAppealable);
-            default -> true;
+                isTrelloBanned;
+            default -> !isTrelloBanned;
         };
     }
 

@@ -46,7 +46,7 @@ public class GetEvaluationStatus extends SparkRoute {
         if (collection.size() < 1) {
             root.put("passed_quiz", false);
             root.put("quizPending", Xeus.getInstance().getRobloxAPIManager().getEvaluationManager().hasPendingQuiz(robloxId));
-            root.put("enoughPoints", points >= 75);
+            root.put("enoughPoints", points >= 50);
             root.put("points", points);
             root.put("rankLocked", Xeus.getInstance().getRobloxAPIManager().getKronosManager().isRanklocked(robloxId));
             root.put("onCooldown", getCooldownFromCache(robloxId));
@@ -68,7 +68,7 @@ public class GetEvaluationStatus extends SparkRoute {
         Boolean pc = row.getBoolean("passed_combat");
 
 
-        String evaluator = row.getString("evaluator") != null ? row.getString("evaluator") : "Unkown Evaluator";
+        String evaluator = row.getString("evaluator") != null ? row.getString("evaluator") : "Unknown Evaluator";
 
         root.put("passed_quiz", pq);
         root.put("passed_patrol", pp);
@@ -76,7 +76,7 @@ public class GetEvaluationStatus extends SparkRoute {
         root.put("evaluator", evaluator);
         root.put("roblox_id", robloxId);
         root.put("quizPending", Xeus.getInstance().getRobloxAPIManager().getEvaluationManager().hasPendingQuiz(robloxId));
-        root.put("enoughPoints", points >= 75);
+        root.put("enoughPoints", points >= 50);
         root.put("rankLocked", Xeus.getInstance().getRobloxAPIManager().getKronosManager().isRanklocked(robloxId));
         root.put("onCooldown", getCooldownFromCache(robloxId));
         root.put("isEvalRank", isEvalRank(guildId, robloxId));
