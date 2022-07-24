@@ -16,7 +16,6 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Modal;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -72,8 +71,8 @@ public class AppealsServerEventAdapter extends EventAdapter {
         String[] selection = event.getSelectedOptions().get(0).getValue().split(":");
 
         switch (selection[0].toLowerCase()) {
-            case "guild" -> guildSelectionMenu(selection, event.getHook());
-            case "appeal" -> createAppealChannel(selection, event.getHook(), event.getGuild(), event.getUser());
+            case "guild" -> guildSelectionMenu(selection, event);
+            case "appeal" -> createAppealChannel(selection, event, event.getGuild(), event.getUser());
         }
     }
 
@@ -193,10 +192,10 @@ public class AppealsServerEventAdapter extends EventAdapter {
         ).build();
     }
 
-    private void guildSelectionMenu(String[] value, InteractionHook reply) {
+    private void guildSelectionMenu(String[] value, SelectMenuInteractionEvent reply) {
         AppealType type = AppealType.fromName(value[1]);
-        if (type == null) {reply.editOriginal("Type not found.").queue(); return;}
-        if (!type.isGuildSelect()) {reply.editOriginal("No guild select.").queue(); return;}
+        if (type == null) {reply.editMessage("Type not found.").queue(); return;}
+        if (!type.isGuildSelect()) {reply.editMessage("No guild select.").queue(); return;}
         SelectMenu.Builder menu = SelectMenu.create("user-selection")
             .addOption("Pinewood Builders Security Team",
                 "appeal:PBST:" + type.getName(),
@@ -227,7 +226,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
         }
 
 
-        reply.editOriginalEmbeds(new EmbedBuilder().setDescription(
+        reply.editMessageEmbeds(new EmbedBuilder().setDescription(
             """
                 You have selected to appeal for a **""" + type.getCleanName() + """
                 **
@@ -236,10 +235,10 @@ public class AppealsServerEventAdapter extends EventAdapter {
     }
 
 
-    private void createAppealChannel(String[] value, InteractionHook reply, Guild g, User user) {
+    private void createAppealChannel(String[] value, SelectMenuInteractionEvent reply, Guild g, User user) {
         Category c = g != null ? g.getCategoryById("834325263240003595") : null;
         if (c == null) {
-            reply.editOriginal("Category not found.").queue();
+            reply.editMessage("Category not found.").queue();
             return;
         }
 
@@ -251,12 +250,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
         VerificationEntity ve = avaire.getRobloxAPIManager().getVerification().fetchInstantVerificationWithBackup(user.getId());
 
         if (ve == null) {
-            reply.editOriginal("You are not verified in any database, please contact a moderator and send them a screenshot of this message.").queue();
-            return;
-        }
-
-        if (!checkIfCanAppeal(type, roles, ve, g)) {
-            reply.editOriginalEmbeds(new EmbedBuilder().setDescription("You may not appeal for " + appealType.getCleanName() + ". You either don't have this punishment, or something went wrong. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
+            reply.editMessage("You are not verified in any database, please contact a moderator and send them a screenshot of this message.").queue();
             return;
         }
 
@@ -265,50 +259,55 @@ public class AppealsServerEventAdapter extends EventAdapter {
 
         if (!isBotAdmin) {
             if (!canAppeal) {
-                reply.editOriginalEmbeds(new EmbedBuilder().setColor(appealType.getColor()).setDescription("You may not appeal with `" + roles + "` for `" + appealType.getCleanName() + "`. You either don't have this punishment or you have a punishment that overrides others (**Example**: `A trelloban overrides a global-ban`, `A globalban overrides a group discord ban` and so on. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
+                reply.editMessageEmbeds(new EmbedBuilder().setColor(appealType.getColor()).setDescription("You may not appeal with `" + roles + "` for `" + appealType.getCleanName() + "`. You either don't have this punishment or you have a punishment that overrides others (**Example**: `A trelloban overrides a global-ban`, `A globalban overrides a group discord ban` and so on. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
                 return;
             }
         }
 
-        String name = type + "-" + roles + "-" + RandomUtil.generateString(5);
-        c.createTextChannel(name).setTopic(type.toLowerCase() + " - " + user.getId() + " - " + roles + " - OPEN")
-            .addMemberPermissionOverride(user.getIdLong(), Permission.VIEW_CHANNEL.getRawValue(), 0L)
-            .addRolePermissionOverride(getAppealRole(roles, g).getIdLong(), Permission.VIEW_CHANNEL.getRawValue(), 0L).submit()
-            .thenCompose((chan) -> chan.sendMessage(user.getAsMention())
-                .setEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(appealType.getColor()),
-                    """
-                        We have created an appeal channel for your :appeal appeal!
-                        Below this embed there will be a button for you to answer some questions about why we should accept your appeal.
-                                            
-                        Please click this button and respond within 24 hours, otherwise we will close your appeal.
-                        """
-                ).set("appeal", appealType.getCleanName())
-                    .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
-                    .setTitle("Pinewood - Appeal System")
-                    .setThumbnail(appealType.getEmoteImage())
-                    .buildEmbed())
-                .setActionRow(Button.primary("questions-respond", "Click this button to obtain the questions.").asEnabled())
-                .submit())
-            .thenCompose((s) -> reply.editOriginalEmbeds(new EmbedBuilder().setDescription("Your appeal channel has been created in " + s.getChannel().getAsMention() + "!").build())
-                .setActionRows(Collections.emptyList()).submit())
-            .thenCompose((s) -> getTextChannelByRole(roles, g)
-                .sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(appealType.getColor()),
-                    """
-                        ***Logged Info***:
-                        **`User`**: :userMention
-                        **`Type`**: :appeal - (:emote)
-                        """)
-                    .set("userMention", user.getAsMention())
-                    .set("appeal", appealType.getCleanName())
-                    .set("emote", appealType.getEmote())
-                    .setThumbnail(appealType.getEmoteImage())
-                    .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
-                    .setAuthor(user.getAsTag() + " - Appeal System", null, user.getEffectiveAvatarUrl())
-                    .buildEmbed()).submit())
-            .whenComplete((s, error) -> {
-                if (error != null) error.printStackTrace();
+        reply.deferEdit().queue(
+            newReply -> {
+                String name = type + "-" + roles + "-" + RandomUtil.generateString(5);
+                c.createTextChannel(name).setTopic(type.toLowerCase() + " - " + user.getId() + " - " + roles + " - OPEN")
+                    .addMemberPermissionOverride(user.getIdLong(), Permission.VIEW_CHANNEL.getRawValue(), 0L)
+                    .addRolePermissionOverride(getAppealRole(roles, g).getIdLong(), Permission.VIEW_CHANNEL.getRawValue(), 0L).submit()
+                    .thenCompose((chan) -> chan.sendMessage(user.getAsMention())
+                        .setEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(appealType.getColor()),
+                            """
+                                We have created an appeal channel for your :appeal appeal!
+                                Below this embed there will be a button for you to answer some questions about why we should accept your appeal.
+                                                    
+                                Please click this button and respond within 24 hours, otherwise we will close your appeal.
+                                """
+                        ).set("appeal", appealType.getCleanName())
+                            .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
+                            .setTitle("Pinewood - Appeal System")
+                            .setThumbnail(appealType.getEmoteImage())
+                            .buildEmbed())
+                        .setActionRow(Button.primary("questions-respond", "Click this button to obtain the questions.").asEnabled())
+                        .submit())
+                    .thenCompose((s) -> newReply.editOriginalEmbeds(new EmbedBuilder().setDescription("Your appeal channel has been created in " + s.getChannel().getAsMention() + "!").build())
+                        .setActionRows(Collections.emptyList()).submit())
+                    .thenCompose((s) -> getTextChannelByRole(roles, g)
+                        .sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(appealType.getColor()),
+                            """
+                                ***Logged Info***:
+                                **`User`**: :userMention
+                                **`Type`**: :appeal - (:emote)
+                                """)
+                            .set("userMention", user.getAsMention())
+                            .set("appeal", appealType.getCleanName())
+                            .set("emote", appealType.getEmote())
+                            .setThumbnail(appealType.getEmoteImage())
+                            .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
+                            .setAuthor(user.getAsTag() + " - Appeal System", null, user.getEffectiveAvatarUrl())
+                            .buildEmbed()).submit())
+                    .whenComplete((s, error) -> {
+                        if (error != null) error.printStackTrace();
+                    });
+            }
+        );
 
-            });
+
     }
 
     private boolean checkIfCanAppeal(String type, String group, VerificationEntity ve, Guild g) {
