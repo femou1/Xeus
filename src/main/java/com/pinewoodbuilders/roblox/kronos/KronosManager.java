@@ -5,7 +5,6 @@ import com.pinewoodbuilders.AppInfo;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.cache.CacheType;
 import com.pinewoodbuilders.contracts.kronos.TrellobanLabels;
-import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.service.kronos.trelloban.TrellobanService;
 import com.pinewoodbuilders.requests.service.kronos.trelloban.trello.Card;
 import com.pinewoodbuilders.requests.service.kronos.trelloban.trello.Datum;
@@ -21,7 +20,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class KronosManager {
 
@@ -71,32 +69,25 @@ public class KronosManager {
 
     public boolean isRanklocked(Long userId) {
         return isRanklocked(userId, "pbst");
-
     }
 
     public boolean isRanklocked(Long userId, String division) {
         Request.Builder request = new Request.Builder()
             .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
             .addHeader("Access-Key", apikey)
-            .url("https://www.pb-kronos.dev/api/v2/database/" + division.toLowerCase() + "?userids=" + userId);
+            .url("https://pb-kronos.dev/api/v2/users/" + userId + "/ranklocks");
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200 && response.body() != null) {
                 String body = response.body().string();
-                JSONArray array = new JSONArray(body);
 
-                if (array.length() == 0) {
+                JSONObject jsonObject = new JSONObject(body);
+                if (jsonObject.length() == 0) {
                     return false;
                 }
 
-                JSONObject jsonObject = (JSONObject) array.get(0);
-                if (!jsonObject.has("ExtraData")) {
-                    return false;
-                }
-                if (!jsonObject.getJSONObject("ExtraData").has("Ranklock")) {
-                    return false;
-                }
-                return jsonObject.getJSONObject("ExtraData").getInt("Ranklock") >= 1;
+
+                return jsonObject.getJSONObject(division.toLowerCase()).getBoolean("Ranklocked");
             } else if (response.code() == 404) {
                 return false;
             } else {
