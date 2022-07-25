@@ -504,10 +504,10 @@ public class VerificationManager {
             GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
             if (settings.getGlobalBan()) continue;
             if (settings.isOfficialSubGroup()) {
-                guild.ban(m, time, "Banned by: " + m.getEffectiveName() + "\n" + "For: "
+                guild.ban(m, time, "Banned by: " + guild.getSelfMember().getEffectiveName() + "\n" + "For: "
                         + reason
                         + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
-                    .reason("Global Ban, executed by " + m.getEffectiveName() + ". For: \n"
+                    .reason("Global Ban, executed by " + guild.getSelfMember().getEffectiveName() + ". For: \n"
                         + reason)
                     .queue();
             } else {
