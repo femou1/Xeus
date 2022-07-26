@@ -90,12 +90,24 @@ public class AppealsServerEventAdapter extends EventAdapter {
                     **1**. If you do not do anything in your appeal for 24 hours, the ticket will be deleted.
                     **2**. You cannot appeal negative points/marks in divisions, reach out to a leader in that division instead.
                     **3**. Purchases of in-game content with Robux does not exempt you from the rules nor entitle you to a free unban. Rules are rules, and they apply to everyone.
-                    **4**. Your account is your responsibility, unless you have indisputable proof we will not accept any excuse about unauthorized account usage.
-                    **5**. If you are found to be using a fake account to appeal, you will be banned.
-                    **6**. Do not make appeals for no reason; if you do so multiple times, you will be removed from the server.
-                                    
+                    **4**. You waive any rights to a refund, maintaining any points you have earned in a subgroup. Or credits you have earned in-game (If applicable, this is a case-by-case basis).
+                    **5**. Your account is your responsibility, unless you have indisputable proof we will not accept any excuse about unauthorized account usage.
+                    **6**. If you are found to be using a fake account to appeal, you will be banned.
+                    **7**. Do not make appeals for no reason; if you do so multiple times, you will be removed from the server.
+                    """).build(), new EmbedBuilder().setDescription(
+                """
+                    Please allow up to 96 hours before your appeal starts to be reviewed.
+                    Responses are given in our free time, you may not get a response if your appeal is denied.
+                    Make sure your DM's are enabled so Xeus can send you a transcript.
+                                        
+                    And you may NOT contact a moderator or lead of a division to view your appeal quicker, do this and they have the full right to delete the appeal.
+                    The time until you may appeal again is decided by the leader/moderator responding to your appeal.
+                    
                     __We have the full right to decide what to do with your appeal, being able to appeal is a privilege. If you cannot deal with this, you will be removed from the server.__
-                    """).build()).addActionRow(Button.primary("agree-rules",
+                    
+                    Pressing the button below confirms you agree to these terms and rules. If you choose to ignore this we have the full right to deny your appeal.
+                    """
+            ).build()).addActionRow(Button.primary("agree-rules",
                 "I have read and approve of the rules listed in the embed above.")).queue();
             case "agree-rules" -> event.getInteraction().editMessageEmbeds(new EmbedBuilder().setDescription(
                 """
@@ -254,18 +266,19 @@ public class AppealsServerEventAdapter extends EventAdapter {
             return;
         }
 
-        boolean canAppeal = checkIfCanAppeal(type, roles, ve, g);
-        boolean isBotAdmin = avaire.getBotAdmins().getUserById(user.getId()).isGlobalAdmin();
-
-        if (!isBotAdmin) {
-            if (!canAppeal) {
-                reply.editMessageEmbeds(new EmbedBuilder().setColor(appealType.getColor()).setDescription("You may not appeal with `" + roles + "` for `" + appealType.getCleanName() + "`. You either don't have this punishment or you have a punishment that overrides others (**Example**: `A trelloban overrides a global-ban`, `A globalban overrides a group discord ban` and so on. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
-                return;
-            }
-        }
-
         reply.deferEdit().queue(
             newReply -> {
+
+                boolean canAppeal = checkIfCanAppeal(type, roles, ve, g);
+                boolean isBotAdmin = avaire.getBotAdmins().getUserById(user.getId()).isGlobalAdmin();
+
+                if (!isBotAdmin) {
+                    if (!canAppeal) {
+                        newReply.editOriginalEmbeds(new EmbedBuilder().setColor(appealType.getColor()).setDescription("You may not appeal with `" + roles + "` for `" + appealType.getCleanName() + "`. You either don't have this punishment or you have a punishment that overrides others (**Example**: `A trelloban overrides a global-ban`, `A globalban overrides a group discord ban` and so on. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
+                        return;
+                    }
+                }
+
                 String name = type + "-" + roles + "-" + RandomUtil.generateString(5);
                 c.createTextChannel(name).setTopic(type.toLowerCase() + " - " + user.getId() + " - " + roles + " - OPEN")
                     .addMemberPermissionOverride(user.getIdLong(), Permission.VIEW_CHANNEL.getRawValue(), 0L)
@@ -323,18 +336,16 @@ public class AppealsServerEventAdapter extends EventAdapter {
         boolean isGroupRanklocked = avaire.getRobloxAPIManager().getKronosManager().isRanklocked(ve.getRobloxId(), group.toLowerCase());
         boolean isGroupBlacklisted = getBlacklistByShortname(group).contains(ve.getRobloxId());
 
-        boolean isGroupDiscordBanned = group.equals("OTHER") ? isOtherGuildBanned(ve) : getGuildByShortName(group).retrieveBanList().complete()
-            .stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
-
         return switch (type.toLowerCase()) {
             case "trelloban" -> isTrelloBanned;
             case "globalban" -> isGlobalBanned && !isTrelloBanned;
             case "gameban" -> isGameBanned && !isTrelloBanned;
             case "groupblacklist" -> isGroupBlacklisted && !isGameBanned && !isGlobalBanned && !isTrelloBanned;
             case "groupdiscordban" ->
-                isGroupDiscordBanned && !isGameBanned && !isGlobalBanned && !isTrelloBanned && !isGroupBlacklisted;
+                group.equals("OTHER") ? isOtherGuildBanned(ve) : getGuildByShortName(group).retrieveBanList().complete()
+                    .stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId()) && !isGameBanned && !isGlobalBanned && !isTrelloBanned && !isGroupBlacklisted;
             case "groupranklock" ->
-                isGroupRanklocked && !isGlobalBanned && !isGameBanned && !isTrelloBanned && !isGroupBlacklisted && !isGroupDiscordBanned;
+                isGroupRanklocked && !isGlobalBanned && !isGameBanned && !isTrelloBanned && !isGroupBlacklisted;
             default -> !isTrelloBanned;
         };
     }
