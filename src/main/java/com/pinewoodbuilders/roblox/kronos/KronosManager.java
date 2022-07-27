@@ -101,6 +101,39 @@ public class KronosManager {
         return false;
     }
 
+    public boolean hasRanklockAnywhere(Long userId) {
+        Request.Builder request = new Request.Builder()
+            .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
+            .addHeader("Access-Key", apikey)
+            .url("https://pb-kronos.dev/api/v2/users/" + userId + "/ranklocks");
+
+        try (Response response = manager.getClient().newCall(request.build()).execute()) {
+            if (response.code() == 200 && response.body() != null) {
+                String body = response.body().string();
+
+                JSONObject jsonObject = new JSONObject(body);
+                if (jsonObject.length() == 0) {
+                    return false;
+                }
+
+                for (String group : jsonObject.keySet()) {
+                    if (jsonObject.getJSONObject(group).getBoolean("Ranklocked")) return true;
+                }
+
+                return false;
+            } else if (response.code() == 404) {
+                return false;
+            } else {
+                throw new Exception("Kronos API returned something else then 200, please retry.");
+            }
+        } catch (IOException e) {
+            Xeus.getLogger().error("Failed sending request to Kronos API: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public Object modifyEvalStatus(Long userId, String division, boolean status) {
         Request.Builder request = new Request.Builder()
             .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)

@@ -93,11 +93,10 @@ public class AppealsServerEventAdapter extends EventAdapter {
                                     
                     ***__Policies you will agree to__***
                     **1**. Your data will not be recoverable. This is an irreversible process.
-                    **2**. All data will be removed from our databases. Unless they are connected to punishments like global-bans, game-mutes, trello-bans or other punishments.
-                    **3**. We will not offer any refund for credits/points/marks that you have requested to be removed, even if they are bought with Robux. By agreeing to these rules you allow us to remove your credits even if they where bought with Robux.
-                    **4**. You waive any rights to a refund, regaining the data that you have requested to be removed.
+                    **2**. All data will be removed from our databases. Unless they are connected to punishments like global-bans, game-mutes, trello-bans, rank locks or blacklists.
+                    **4**. You waive any rights to a requesting your points or data to be restored.
                     **5**. Data deletion requests will be reviewed by a Facilitator or above, do not ping anyone, or your deletion request may be denied.
-                    **6**. If this system is abused, you may recieve punishment as the Facilitators see fit.
+                    **6**. If this system is abused, you may receive punishment as the Facilitators see fit.
                     **7**. Do not go begging for your data to be restored. ___YOU WILL NOT BE ABLE TO RESTORE YOUR DATA___.
                     **8**. In case of a Xeus deletion, you will be given a 72 hour block on the bot, unable to verify or use the bot in any discord.
                     **9**. If you are trello-banned, you cannot use this system.
