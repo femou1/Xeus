@@ -1,4 +1,4 @@
-package com.pinewoodbuilders.commands.appeals;
+package com.pinewoodbuilders.commands.deletions;
 
 import com.pinewoodbuilders.Constants;
 import com.pinewoodbuilders.Xeus;
@@ -45,7 +45,7 @@ public class AppealCommand extends Command {
 
     @Override
     public List <String> getTriggers() {
-        return Arrays.asList("deletion");
+        return Arrays.asList("appeal", "appeal-management", "ticket", "deletion", "deletion-management");
     }
 
     @Override
