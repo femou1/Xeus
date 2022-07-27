@@ -14,7 +14,8 @@ public enum AppealType {
     GROUPRANKLOCK(6, "<:ranklock:998332416991170651>", "ranklock", true, MessageType.INFO.getColor(), "https://cdn.discordapp.com/emojis/998332416991170651.png?size=512"),
     GROUPDISCORDBAN(7, "<:groupdiscordban:998332587447681135>", "discord ban", true, MessageType.INFO.getColor(), "https://cdn.discordapp.com/emojis/998332587447681135.png?size=512"),
     GROUPBLACKLIST(8, "<:blacklist:998332444916858880>", "blacklist", true, MessageType.INFO.getColor(), "https://cdn.discordapp.com/emojis/998332444916858880.png?size=512"),
-    OTHER(9, "<:CadetThinking:893602259693338665>", "support appeal", true, MessageType.WARNING.getColor(), "https://cdn.discordapp.com/emojis/893602259693338665.png?size=512");
+    OTHER(9, "<:CadetThinking:893602259693338665>", "support appeal", true, MessageType.WARNING.getColor(), "https://cdn.discordapp.com/emojis/893602259693338665.png?size=512"),
+    DELETION(10, "<:cereal2:958119849958211664>", "data deletion", true, MessageType.ERROR.getColor(), "https://cdn.discordapp.com/emojis/958119849958211664.png?size=512");
 
 
     final int id;

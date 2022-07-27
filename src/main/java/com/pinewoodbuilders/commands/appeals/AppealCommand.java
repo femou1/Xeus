@@ -11,7 +11,6 @@ import net.dv8tion.jda.api.entities.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.awt.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -46,7 +45,7 @@ public class AppealCommand extends Command {
 
     @Override
     public List <String> getTriggers() {
-        return Arrays.asList("appeal", "appeal-management");
+        return Arrays.asList("appeal", "appeal-management", "ticket", "deletion", "deletion-management");
     }
 
     @Override
