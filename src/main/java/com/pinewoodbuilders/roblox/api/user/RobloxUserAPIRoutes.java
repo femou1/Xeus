@@ -7,8 +7,11 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.requests.service.user.inventory.RobloxGamePassService;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
+import okhttp3.MediaType;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -29,7 +32,7 @@ public class RobloxUserAPIRoutes {
         .expireAfterWrite(5, TimeUnit.MINUTES)
         .build();
 
-    public List<RobloxUserGroupRankService.Data> getUserRanks(Long botAccount) {
+    public List <RobloxUserGroupRankService.Data> getUserRanks(Long botAccount) {
         request.url("https://groups.roblox.com/v2/users/{userId}/groups/roles".replace("{userId}", botAccount.toString()));
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
@@ -79,19 +82,32 @@ public class RobloxUserAPIRoutes {
         return null;
     }
 
+    private static final MediaType json = MediaType.parse("application/json; charset=utf-8");
+
     public long getIdFromUsername(String username) {
         String userId = cache.getIfPresent("robloxId." + username);
         if (userId != null) {
             return Long.parseLong(userId);
         }
 
-        request.url("https://users.roblox.com/v1/users/{userId}".replace("{userId}", username));
+
+        request.url("https://users.roblox.com/v1/usernames/users")
+            .post(RequestBody.create("{\"usernames\":[\"" + username + "\"]}", json));
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
                 JSONObject json = new JSONObject(response.body().string());
-                cache.put("robloxId." + username, json.getString("id"));
-                return json.getLong("id");
+
+                JSONArray array = json.getJSONArray("data");
+                if (array.length() == 0) return 0;
+                for (Object o : array) {
+                    JSONObject user = (JSONObject) o;
+                    if (user.getString("name").equalsIgnoreCase(username)) {
+                        cache.put("robloxId." + username, String.valueOf(user.getLong("id")));
+                        return user.getLong("id");
+                    }
+                }
+                return 0;
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
@@ -100,10 +116,10 @@ public class RobloxUserAPIRoutes {
     }
 
 
-    public List<RobloxGamePassService.Datum> getUserGamePass(Long userId, Long gamepassId) {
+    public List <RobloxGamePassService.Datum> getUserGamePass(Long userId, Long gamepassId) {
         request.url("https://inventory.roblox.com/v1/users/{userId}/items/GamePass/{gamepassId}"
-                        .replace("{userId}", userId.toString())
-                        .replace("{gamepassId}", gamepassId.toString()));
+            .replace("{userId}", userId.toString())
+            .replace("{gamepassId}", gamepassId.toString()));
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {

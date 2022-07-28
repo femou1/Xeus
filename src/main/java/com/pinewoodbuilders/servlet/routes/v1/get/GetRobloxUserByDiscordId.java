@@ -36,7 +36,7 @@ public class GetRobloxUserByDiscordId extends SparkRoute {
             root.put("username", verificationEntity.getRobloxUsername());
             root.put("robloxId", verificationEntity.getRobloxId());
             root.put("provider", verificationEntity.getProvider());
-            log.info("{} ({}) -> {} ({})", verificationEntity.getDiscordId(), returnUsernameFromDiscord(verificationEntity.getDiscordId()), verificationEntity.getRobloxId(), verificationEntity.getRobloxUsername());
+            //log.info("{} ({}) -> {} ({})", verificationEntity.getDiscordId(), returnUsernameFromDiscord(verificationEntity.getDiscordId()), verificationEntity.getRobloxId(), verificationEntity.getRobloxUsername());
             response.status(200);
         } else {
             root.put("error", true);

@@ -31,7 +31,7 @@ public class GetDiscordIdsByRobloxId extends SparkRoute {
             root.put("provider", verificationEntity.getProvider());
             root.put("discordId", verificationEntity.getDiscordId());
             root.put("discordUsername", returnUsernameFromDiscord(verificationEntity.getDiscordId()));
-            log.info("{} ({}) -> {} ({})", verificationEntity.getRobloxId(), verificationEntity.getRobloxUsername(), verificationEntity.getDiscordId(), returnUsernameFromDiscord(verificationEntity.getDiscordId()));
+            //log.info("{} ({}) -> {} ({})", verificationEntity.getRobloxId(), verificationEntity.getRobloxUsername(), verificationEntity.getDiscordId(), returnUsernameFromDiscord(verificationEntity.getDiscordId()));
         } else {
             root.put("error", true);
             root.put("message", "The ID " + id + " doesn't have a user in any verification database.");
