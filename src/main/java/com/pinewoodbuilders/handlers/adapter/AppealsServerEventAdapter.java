@@ -407,11 +407,10 @@ public class AppealsServerEventAdapter extends EventAdapter {
 
         reply.deferEdit().queue(
             newReply -> {
-                HashMap <Long, List <TrellobanLabels>> trellobans = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans();
-                boolean isTrelloBanned = trellobans.containsKey(ve.getRobloxId()) &&
-                    trellobans.get(ve.getRobloxId()).stream().anyMatch(TrellobanLabels::isAppealable);
 
-                if (isTrelloBanned) {
+                boolean canAppeal = checkIfCanAppeal(type, roles, ve, g);
+
+                if (!canAppeal) {
                     newReply.editOriginal("According to our database, you are trello-banned. You may not request your data to be deleted.").queue();
                     return;
                 }
@@ -467,19 +466,24 @@ public class AppealsServerEventAdapter extends EventAdapter {
         boolean isTrelloBanned = trellobans.containsKey(ve.getRobloxId()) &&
             trellobans.get(ve.getRobloxId()).stream().anyMatch(TrellobanLabels::isAppealable);
 
-        boolean isGroupBlacklisted = getBlacklistByShortname(group).contains(ve.getRobloxId());
 
         return switch (type.toLowerCase()) {
             case "trelloban" -> isTrelloBanned;
             case "globalban" -> isGlobalBanned && !isTrelloBanned;
             case "gameban" -> isGameBanned && !isTrelloBanned;
-            case "groupblacklist" -> isGroupBlacklisted && !isGameBanned && !isGlobalBanned && !isTrelloBanned;
+            case "groupblacklist" -> getBlacklistByShortname(group).contains(ve.getRobloxId()) && !isGameBanned && !isGlobalBanned && !isTrelloBanned;
             case "groupdiscordban" ->
                 group.equals("OTHER") ? isOtherGuildBanned(ve) : getGuildByShortName(group).retrieveBanList().complete()
-                    .stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId()) && !isGameBanned && !isGlobalBanned && !isTrelloBanned && !isGroupBlacklisted;
+                    .stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId()) && !isGameBanned && !isGlobalBanned && !isTrelloBanned && !getBlacklistByShortname(group).contains(ve.getRobloxId());
             case "groupranklock" ->
                 avaire.getRobloxAPIManager().getKronosManager().isRanklocked(ve.getRobloxId(), group.toLowerCase()) &&
-                    !isGlobalBanned && !isGameBanned && !isTrelloBanned && !isGroupBlacklisted;
+                    !isGlobalBanned && !isGameBanned && !isTrelloBanned && !getBlacklistByShortname(group).contains(ve.getRobloxId());
+            case "deletion" ->
+                !isGlobalBanned
+                && !isGameBanned
+                && !isTrelloBanned
+                && !avaire.getBlacklistManager().isAnyBlacklisted(ve.getRobloxId())
+                && !avaire.getRobloxAPIManager().getKronosManager().hasRanklockAnywhere(ve.getRobloxId());
             default -> !isTrelloBanned;
         };
     }

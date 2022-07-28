@@ -53,8 +53,32 @@ public class CreateAppealEmbedCommand extends Command {
 
         return switch (args[0]) {
             case "appeal", "a" -> createAppealEmbed(context);
+            case "deletion", "d" -> createDeletionEmbed(context);
             default -> sendErrorMessage(context, getMissingArgsErrorMessage());
         };
+
+    }
+
+    private boolean createDeletionEmbed(CommandMessage context) {
+        context.getMessageChannel().sendMessageEmbeds(
+                new EmbedBuilder()
+                    .setTitle("Pinewood - Deletion Requests")
+                    .setDescription("""
+                    Hello and welcome to the Pinewood Data Deletion Request System.
+                    We've gotten a few requests to delete all data contained with within Kronos (Points for example).
+                    
+                    If you'd like to request a deletion of your data, please click on the button below.
+                    ***WARNING***: This is a one-time request. If you delete your data, you will not be able to retrieve it.
+                    ___WE WILL NOT BE HELD LIABLE FOR ANY POINTS, CREDITS OR OTHER DATA LOST DURING THIS PROCESS.___
+                    
+                    If you understand the above, you may continue by pressing the button below.                    
+                    """)
+                    .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
+                    .setColor(new Color(0, 0, 0))
+                    .build()
+            )
+            .setActionRow(Button.success("start-deletion", "I'd like to delete all my data!")).queue();
+        return true;
     }
 
     private boolean createAppealEmbed(CommandMessage context) {
@@ -79,7 +103,8 @@ public class CreateAppealEmbedCommand extends Command {
     private String getMissingArgsErrorMessage() {
         return """
                 You must provide a argument;
-                 - `appeal/a` - **Creates an appeal embed for the current channel.**
+                 - `appeal` - **Creates an appeal embed for the current channel.**
+                 - `deletion` - **Creates a deletion request embed for the current channel.**
                 """;
     }
 
