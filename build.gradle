@@ -13,8 +13,8 @@ group = 'com.pinewoodbuilders'
 description = 'Xeus Discord Bot'
 mainClassName = 'com.pinewoodbuilders.Main'
 
-sourceCompatibility = 18
-targetCompatibility = 18
+sourceCompatibility = 17
+targetCompatibility = 17
 
 ext {
     moduleName = 'Xeus'
