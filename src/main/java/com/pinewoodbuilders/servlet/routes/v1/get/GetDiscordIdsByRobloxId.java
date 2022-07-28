@@ -11,7 +11,7 @@ import spark.Request;
 import spark.Response;
 
 public class GetDiscordIdsByRobloxId extends SparkRoute {
-    private static final Logger log = LoggerFactory.getLogger("Verification (R->D)");
+    private static final Logger log = LoggerFactory.getLogger("V (R->D)");
 
     @Override
     public Object handle(Request request, Response response) throws Exception {

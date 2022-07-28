@@ -17,7 +17,6 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
-import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import java.sql.SQLException;
@@ -25,8 +24,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static com.pinewoodbuilders.utilities.JsonReader.readJsonFromUrl;
 
 public class RequestRewardCommand extends Command {
 
@@ -249,22 +246,5 @@ public class RequestRewardCommand extends Command {
 
     }
 
-    public static void createReactions(Message r) {
-        r.addReaction("\uD83D\uDC4D").queue();   // 👍
-        r.addReaction("\uD83D\uDC4E").queue();  // 👎
-        r.addReaction("✅").queue();
-        r.addReaction("❌").queue();
-        r.addReaction("🚫").queue();
-        r.addReaction("\uD83D\uDD04").queue(); // 🔄
-    }
-
-    private static Long getRobloxId(String un) {
-        try {
-            JSONObject json = readJsonFromUrl("https://api.roblox.com/users/get-by-username?username=" + un);
-            return Double.valueOf(json.getDouble("Id")).longValue();
-        } catch (Exception e) {
-            return 0L;
-        }
-    }
 
 }
