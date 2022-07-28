@@ -95,6 +95,9 @@ public class Category {
     public boolean isGlobalOrSystem() {
         return isGlobal || name.equalsIgnoreCase("system");
     }
+    public boolean isAppeal() {
+        return name.equalsIgnoreCase("deletions");
+    }
 
     private String asKey(Message message) {
         return message.getGuild().getId() + ":" + name;
