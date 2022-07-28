@@ -19,6 +19,7 @@ import com.pinewoodbuilders.utilities.menu.Paginator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.requests.RestAction;
@@ -174,26 +175,25 @@ public class VerificationCommand extends VerificationCommandContract {
         }
         int finalCount = count;
         context.makeWarning("Would you like to prune `:count` member who don't have the main discord role.").set("count", count).queue(countMessage -> {
-            countMessage.addReaction("\uD83D\uDC4D").queue();
-            countMessage.addReaction("\uD83D\uDC4E").queue();
+            countMessage.addReaction(Emoji.fromFormatted("\uD83D\uDC4D")).queue();
+            countMessage.addReaction(Emoji.fromFormatted("\uD83D\uDC4E")).queue();
 
             builder.setItems(members.stream().map(member -> "\n- `"+member.getEffectiveName() + "`").collect(Collectors.toList()));
             builder.setItemsPerPage(10).build().paginate(context.getChannel(), 0);
 
             avaire.getWaiter().waitForEvent(MessageReactionAddEvent.class, check -> check.getMember().equals(context.member) && check.getMessageId().equals(countMessage.getId()), action -> {
 
-                    switch (action.getReactionEmote().getName()) {
-                        case "\uD83D\uDC4D":
-                            for (Member m : members) {
-                                m.getUser().openPrivateChannel().queue(k -> k.sendMessage("You have been kicked from `" + context.getGuild().getName() + "` due to not being verified in the group. If you want to join back, rejoin by going to the group page and clicking the \"Discord\" button. \n" +
-                                    "\n").queue());
-                                action.getGuild().kick(m, "Unverified kick - Not in the group.").queue();
-                            }
-                            context.makeSuccess("`:count` members have been kicked!").set("count", finalCount).queue();
-                            break;
-                        case "\uD83D\uDC4E":
-                            context.makeInfo("Stopped kick, no-one has been kicked.").queue();
+                switch (action.getEmoji().getName()) {
+                    case "\uD83D\uDC4D" -> {
+                        for (Member m : members) {
+                            m.getUser().openPrivateChannel().queue(k -> k.sendMessage("You have been kicked from `" + context.getGuild().getName() + "` due to not being verified in the group. If you want to join back, rejoin by going to the group page and clicking the \"Discord\" button. \n" +
+                                "\n").queue());
+                            action.getGuild().kick(m, "Unverified kick - Not in the group.").queue();
+                        }
+                        context.makeSuccess("`:count` members have been kicked!").set("count", finalCount).queue();
                     }
+                    case "\uD83D\uDC4E" -> context.makeInfo("Stopped kick, no-one has been kicked.").queue();
+                }
                 }
             );
         });

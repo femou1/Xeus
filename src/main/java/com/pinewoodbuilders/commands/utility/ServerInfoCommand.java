@@ -93,7 +93,7 @@ public class ServerInfoCommand extends Command {
             new MessageEmbed.Field(context.i18n("fields.users"), NumberUtil.formatNicely(guild.getMembers().size() - bots), true),
             new MessageEmbed.Field(context.i18n("fields.bots"), NumberUtil.formatNicely(bots), true),
             //new MessageEmbed.Field(context.i18n("fields.region"), guild.getRegion().getName(), true),
-            new MessageEmbed.Field(context.i18n("fields.emotes"), NumberUtil.formatNicely(guild.getEmotes().size()), true),
+            new MessageEmbed.Field(context.i18n("fields.emotes"), NumberUtil.formatNicely(guild.getEmojis().size()), true),
             new MessageEmbed.Field(context.i18n("fields.createdAt"), time.format(context.i18n("timeFormat")) + "\n*About " + shortenDiffForHumans(time) + "*", true)
         ).setTitle(guild.getName()).setThumbnail(guild.getIconUrl());
 

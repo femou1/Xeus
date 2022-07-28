@@ -112,7 +112,7 @@ public class AppealCommand extends Command {
                 .setTitle("Pinewood - Appeal System").buildEmbed())
             .delay(40, TimeUnit.SECONDS)
             .queue(closedMessage -> {
-                String topic = closedMessage.getTextChannel().getTopic();
+                String topic = closedMessage.getChannel().asTextChannel().getTopic();
 
                 if (topic != null && topic.contains("DELETING")) {
 

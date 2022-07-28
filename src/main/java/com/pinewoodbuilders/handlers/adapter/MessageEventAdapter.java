@@ -60,6 +60,7 @@ import com.vdurmont.emoji.EmojiParser;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.GenericMessageEvent;
@@ -922,19 +923,19 @@ public class MessageEventAdapter extends EventAdapter {
     }
 
     public void sendPBACRaidVoteEmojis(MessageReceivedEvent event) {
-        event.getMessage().addReaction("pbstaye:873681160901918740").queue();
-        event.getMessage().addReaction("pbstabstain:873681268494176277").queue();
-        event.getMessage().addReaction("pbstnay:873681394499457085").queue();
-        event.getMessage().addReaction("petaye:873681238471360532").queue();
-        event.getMessage().addReaction("petabstain:873681363784564796").queue();
-        event.getMessage().addReaction("petnay:873681453316206673").queue();
-        event.getMessage().addReaction("tmsaye:873681202048016385").queue();
-        event.getMessage().addReaction("tmsabstain:873681310881837106").queue();
-        event.getMessage().addReaction("tmsnay:873681430054588456").queue();
+        event.getMessage().addReaction(Emoji.fromFormatted("pbstaye:873681160901918740")).queue();
+        event.getMessage().addReaction(Emoji.fromFormatted("pbstabstain:873681268494176277")).queue();
+        event.getMessage().addReaction(Emoji.fromFormatted("pbstnay:873681394499457085")).queue();
+        event.getMessage().addReaction(Emoji.fromFormatted("petaye:873681238471360532")).queue();
+        event.getMessage().addReaction(Emoji.fromFormatted("petabstain:873681363784564796")).queue();
+        event.getMessage().addReaction(Emoji.fromFormatted("petnay:873681453316206673")).queue();
+        event.getMessage().addReaction(Emoji.fromFormatted("tmsaye:873681202048016385")).queue();
+        event.getMessage().addReaction(Emoji.fromFormatted("tmsabstain:873681310881837106")).queue();
+        event.getMessage().addReaction(Emoji.fromFormatted("tmsnay:873681430054588456")).queue();
         if (event.getMessage().getMentions().getRoles().stream().anyMatch(role -> role.getName().equals("PIA"))) {
-            event.getMessage().addReaction("piaaye:900484641037881405").queue();
-            event.getMessage().addReaction("piaabstain:900484610771812352").queue();
-            event.getMessage().addReaction("pianay:900484582032420955").queue();
+            event.getMessage().addReaction(Emoji.fromFormatted("piaaye:900484641037881405")).queue();
+            event.getMessage().addReaction(Emoji.fromFormatted("piaabstain:900484610771812352")).queue();
+            event.getMessage().addReaction(Emoji.fromFormatted("pianay:900484582032420955")).queue();
         }
     }
 
@@ -996,7 +997,7 @@ public class MessageEventAdapter extends EventAdapter {
             Message msg = event.getMessage();
 
             if (bannedRobloxId == 0 || moderatorUserId == 0) {
-                msg.addReaction("❓").queue();
+                msg.addReaction(Emoji.fromFormatted("❓")).queue();
                 return;
             } // React with ❓
 
@@ -1004,12 +1005,12 @@ public class MessageEventAdapter extends EventAdapter {
             VerificationEntity moderatorEntity = avaire.getRobloxAPIManager().getVerification().callDiscordUserFromDatabaseAPI(moderatorUserId);
 
             if (moderatorEntity == null) {
-                msg.addReaction("\uD83E\uDD26\u200D♀️").queue();
+                msg.addReaction(Emoji.fromFormatted("\uD83E\uDD26\u200D♀️")).queue();
                 return;
             } // React with 🤦‍♀️(:woman_facepalming:)
 
             if (avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(gst.getMainGroupId(), bannedRobloxId)) {
-                msg.addReaction("⭕").queue();
+                msg.addReaction(Emoji.fromFormatted("⭕")).queue();
                 return;
             } // React with ⭕
 
@@ -1060,9 +1061,9 @@ public class MessageEventAdapter extends EventAdapter {
                                         "You just global-banned " + finalUsernameFinal + " for: ```" + finalReason + "```").queue(del -> del.deleteOriginal().queueAfter(15, TimeUnit.SECONDS));
 
                                     if (bannedEntity == null) {
-                                        msg.addReaction("☑").queue();
+                                        msg.addReaction(Emoji.fromFormatted("☑")).queue();
                                     } else {
-                                        msg.addReaction("✅").queue();
+                                        msg.addReaction(Emoji.fromFormatted("✅")).queue();
                                     }
 
                                 }
@@ -1074,7 +1075,7 @@ public class MessageEventAdapter extends EventAdapter {
 
             } catch (Exception e) {
                 e.printStackTrace(); // React with ❌
-                msg.addReaction("❌").queue();
+                msg.addReaction(Emoji.fromFormatted("❌")).queue();
             }
             return;
         }

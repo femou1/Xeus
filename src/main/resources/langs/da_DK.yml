@@ -292,11 +292,11 @@ administration:
     messageIdMustBeGreaterThanOne: "Ugyldig `besked id` givet,` meddelelses id'en skal være mindst 1 eller større."
     messageIdMustBeLowerThanRolesSize: "Ugyldig `besked id` givet, 'meddelelses id'en kan ikke være højere end mængden af reaktionsroller serveren aktuelt har, hvilket er `{0}` lige pt."
     failedToFetchMessage: "Noget gik galt, da vi forsøgte at hente reaktionsrollemeddelelsen med et ID af `{0}`. Hvis dette problem fortsat sker, skal du rapportere det til en af mine udviklere."
-    mustIncludeEmote: "Du skal inkludere den emote du vil fjerne fra reaktionsmeddelelsen."
+    mustIncludeRichCustomEmoji: "Du skal inkludere den emote du vil fjerne fra reaktionsmeddelelsen."
     emoteDoestBelongToServer: "Emoten tilhører ikke denne server, du kan kun bruge emotes fra denne server som reaktion emotes."
     roleNotFoundOnMessage: "Den angivne reaktionsmeddelelse har ikke en reaktionsrolle til knyttet den via {0} emoten."
     deletedMessage: "Reaktionsmeddelelse med ID'et **#:id** er blivet slettet!"
-    deletedEmote: ":emote emoten er succesfuldt blivet fjernet fra reaktionsmeddelelsen.\nReaktionsmeddelelsen har nu `:roleSlots` reaktionsroller-slots tilgængelige, og `:messageSlots` reaktionsmeddelelses-slots tilgængelig."
+    deletedRichCustomEmoji: ":emote emoten er succesfuldt blivet fjernet fra reaktionsmeddelelsen.\nReaktionsmeddelelsen har nu `:roleSlots` reaktionsroller-slots tilgængelige, og `:messageSlots` reaktionsmeddelelses-slots tilgængelig."
   RemoveSelfAssignableRoleCommand:
     message: "**:role** rollen er blevet fjernet fra selvtilladelige listen.\nServeren har `:slots` flere selvtilladelige roller pladser til rådighed."
   RoleLevelCommand:

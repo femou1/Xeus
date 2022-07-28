@@ -53,7 +53,7 @@ class DefaultPlaceholders {
                 }
 
                 if (object instanceof Message && ((Message) object).getChannelType().equals(ChannelType.TEXT)) {
-                    return parseChannel(((Message) object).getTextChannel(), message);
+                    return parseChannel(((Message) object).getChannel().asTextChannel(), message);
                 }
 
                 break;

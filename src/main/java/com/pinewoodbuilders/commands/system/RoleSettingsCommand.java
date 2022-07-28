@@ -28,19 +28,20 @@ import com.pinewoodbuilders.commands.CommandPriority;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.contracts.commands.SystemCommand;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
-import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.annotations.DeprecatedSince;
 import net.dv8tion.jda.annotations.ForRemoval;
 import net.dv8tion.jda.annotations.ReplaceWith;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.internal.utils.PermissionUtil;
 import org.slf4j.Logger;
@@ -169,11 +170,11 @@ public class RoleSettingsCommand extends SystemCommand {
 
         int finalCount = count;
         context.makeWarning("Would you like to prune `:count` members for archiving the server?").set("count", count).queue(countMessage -> {
-            countMessage.addReaction("\uD83D\uDC4D").queue();
-            countMessage.addReaction("\uD83D\uDC4E").queue();
+            countMessage.addReaction(Emoji.fromFormatted("\uD83D\uDC4D")).queue();
+            countMessage.addReaction(Emoji.fromFormatted("\uD83D\uDC4E")).queue();
             avaire.getWaiter().waitForEvent(MessageReactionAddEvent.class, check -> check.getMember().equals(context.member) && check.getMessageId().equals(countMessage.getId()), action -> {
 
-                    switch (action.getReactionEmote().getName()) {
+                    switch (action.getEmoji().getName()) {
                         case "\uD83D\uDC4D":
                             for (Member m : members) {
                                 m.getUser().openPrivateChannel().queue(k -> k.sendMessage("You have been kicked from `" + context.getGuild().getName() + "` due to it being archived.\n" +

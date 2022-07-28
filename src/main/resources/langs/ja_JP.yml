@@ -292,11 +292,11 @@ administration:
     messageIdMustBeGreaterThanOne: "指定された `メッセージID` は無効です。`メッセージID` は少なくとも1以上である必要があります。"
     messageIdMustBeLowerThanRolesSize: "指定された `メッセージID` が無効です。`メッセージID` は、サーバーが現在持っているリアクションロールの数、 `{0}` を超えることはできません。"
     failedToFetchMessage: "IDが `{0}` のリアクションロールメッセージの取得で問題が発生しました。この問題が引き続き発生する場合は、開発者に報告してください。"
-    mustIncludeEmote: "リアクションメッセージから削除する絵文字を含める必要があります。"
+    mustIncludeRichCustomEmoji: "リアクションメッセージから削除する絵文字を含める必要があります。"
     emoteDoestBelongToServer: "指定した絵文字はこのサーバーに存在しません。サーバーに存在する絵文字のみリアクション絵文字として使用できます。"
     roleNotFoundOnMessage: "The specified reaction message doesn't have a reaction role attached to it using the {0} emote."
     deletedMessage: "ID **#:id** のリアクションロールメッセージは正常に削除されました！"
-    deletedEmote: ":emote 絵文字がリアクションメッセージから正常に削除されました。\nメッセージに `:roleSlots` より多くのリアクションロールスロットがあります。 また、 `:messageSlots` 個のリアクションメッセージスロットが使用可能です。"
+    deletedRichCustomEmoji: ":emote 絵文字がリアクションメッセージから正常に削除されました。\nメッセージに `:roleSlots` より多くのリアクションロールスロットがあります。 また、 `:messageSlots` 個のリアクションメッセージスロットが使用可能です。"
   RemoveSelfAssignableRoleCommand:
     message: "**:role** ロールは、自己割り当て可能ロールリストから削除されました。\nこのサーバーでは `:slots` 個の自己割り当て可能なロールスロットが使用可能です。"
   RoleLevelCommand:

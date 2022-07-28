@@ -44,7 +44,11 @@ import com.pinewoodbuilders.utilities.RestActionUtil;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
@@ -593,8 +597,8 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     return;
                                                 }
                                                 msg.clearReactions().queue();
-                                                msg.addReaction("\uD83D\uDC4D").queue(); //
-                                                msg.addReaction("\uD83D\uDC4E").queue(); // 👎
+                                                msg.addReaction(Emoji.fromFormatted("\uD83D\uDC4D")).queue(); //
+                                                msg.addReaction(Emoji.fromFormatted("\uD83D\uDC4E")).queue(); // 👎
                                             }
                                         }
                                     }
@@ -720,7 +724,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
     }
 
     private void startAcceptedEval(ButtonInteractionEvent event, InteractionHook l) {
-        event.getMessage().addReaction("\uD83D\uDC4D").queue();
+        event.getMessage().addReaction(Emoji.fromFormatted("\uD83D\uDC4D")).queue();
         RobloxAPIManager manager = avaire.getRobloxAPIManager();
         try {
             Collection c = avaire.getDatabase().newQueryBuilder(Constants.PENDING_QUIZ_TABLE_NAME).where("message_id", event.getMessageId()).get();
@@ -779,7 +783,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
     }
 
     private void startRejectedEval(ButtonInteractionEvent event, InteractionHook l) {
-        event.getMessage().addReaction("⛔").queue();
+        event.getMessage().addReaction(Emoji.fromFormatted("⛔")).queue();
         RobloxAPIManager manager = avaire.getRobloxAPIManager();
         try {
             Collection c = avaire.getDatabase().newQueryBuilder(Constants.PENDING_QUIZ_TABLE_NAME).where("message_id", event.getMessageId()).get();

@@ -34,7 +34,7 @@ public enum Permissions {
     CREATE_INSTANT_INVITE("general.create_instant_invite", Permission.CREATE_INSTANT_INVITE),
     NICKNAME_MANAGE("general.manage_nickname", Permission.NICKNAME_MANAGE),
     NICKNAME_CHANGE("general.change_nickname", Permission.NICKNAME_CHANGE),
-    MANAGE_EMOTES_AND_STICKERS("general.manage_emojis", Permission.MANAGE_EMOTES_AND_STICKERS),
+    MANAGE_EMOTES_AND_STICKERS("general.manage_emojis", Permission.MANAGE_EMOJIS_AND_STICKERS),
     MANAGE_WEBHOOKS("general.manage_webhooks", Permission.MANAGE_WEBHOOKS),
     VIEW_AUDIT_LOGS("general.view_audit_logs", Permission.VIEW_AUDIT_LOGS),
 

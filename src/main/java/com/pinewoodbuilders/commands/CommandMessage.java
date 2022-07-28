@@ -181,7 +181,7 @@ public class CommandMessage implements CommandContext {
 
     @Override
     public TextChannel getTextChannel() {
-        return message.getTextChannel();
+        return message.getChannel().asTextChannel();
     }
 
     @Override

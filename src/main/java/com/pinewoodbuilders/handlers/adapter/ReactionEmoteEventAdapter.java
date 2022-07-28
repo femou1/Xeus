@@ -43,7 +43,10 @@ import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.emote.EmoteRemovedEvent;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.entities.emoji.EmojiUnion;
+import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
+import net.dv8tion.jda.api.events.emoji.EmojiRemovedEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
@@ -70,15 +73,15 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
     }
 
     public static void createReactions(Message r) {
-        r.addReaction("\uD83D\uDC4D").queue();   // 👍
-        r.addReaction("\uD83D\uDC4E").queue();  // 👎
-        r.addReaction("✅").queue();
-        r.addReaction("❌").queue();
-        r.addReaction("🚫").queue();
-        r.addReaction("\uD83D\uDD04").queue(); // 🔄
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDC4D")).queue();   // 👍
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDC4E")).queue();  // 👎
+        r.addReaction(Emoji.fromFormatted("✅")).queue();
+        r.addReaction(Emoji.fromFormatted("❌")).queue();
+        r.addReaction(Emoji.fromFormatted("🚫")).queue();
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDD04")).queue(); // 🔄
     }
 
-    public void onEmoteRemoved(EmoteRemovedEvent event) {
+    public void onEmoteRemoved(EmojiRemovedEvent event) {
         Collection collection = ReactionController.fetchReactions(avaire, event.getGuild());
         if (collection == null || collection.isEmpty()) {
             return;
@@ -88,7 +91,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
         for (DataRow row : collection) {
             ReactionTransformer transformer = new ReactionTransformer(row);
 
-            if (transformer.removeReaction(event.getEmote())) {
+            if (transformer.removeReaction(event.getEmoji())) {
                 try {
                     QueryBuilder query = avaire.getDatabase().newQueryBuilder(Constants.REACTION_ROLES_TABLE_NAME)
                         .useAsync(true)
@@ -119,17 +122,17 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
     @SuppressWarnings("ConstantConditions")
     public void onMessageReactionAdd(MessageReactionAddEvent event) {
-        if (event.getReactionEmote().isEmote()) {
+        if (event.getEmoji() instanceof RichCustomEmoji emoji) {
 
             ReactionTransformer transformer = getReactionTransformerFromMessageIdAndCheckPermissions(
-                event.getGuild(), event.getMessageId(), event.getReactionEmote().getEmote().getIdLong()
+                event.getGuild(), event.getMessageId(), emoji.getIdLong()
             );
 
             if (transformer == null) {
                 return;
             }
 
-            Role role = event.getGuild().getRoleById(transformer.getRoleIdFromEmote(event.getReactionEmote().getEmote()));
+            Role role = event.getGuild().getRoleById(transformer.getRoleIdFromEmote(emoji));
             if (role == null) {
                 return;
             }
@@ -149,16 +152,16 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
     @SuppressWarnings("ConstantConditions")
     public void onMessageReactionRemove(MessageReactionRemoveEvent event) {
-        if (event.getReactionEmote().isEmote()) {
+        if (event.getEmoji() instanceof RichCustomEmoji emoji) {
             ReactionTransformer transformer = getReactionTransformerFromMessageIdAndCheckPermissions(
-                event.getGuild(), event.getMessageId(), event.getReactionEmote().getEmote().getIdLong()
+                event.getGuild(), event.getMessageId(), emoji.getIdLong()
             );
 
             if (transformer == null) {
                 return;
             }
 
-            Role role = event.getGuild().getRoleById(transformer.getRoleIdFromEmote(event.getReactionEmote().getEmote()));
+            Role role = event.getGuild().getRoleById(transformer.getRoleIdFromEmote(emoji));
             if (role == null) {
                 return;
             }
@@ -220,7 +223,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                         message -> {
                             if (message.getEmbeds().size() > 0) {
                                 try {
-                                    if (e.getReactionEmote().getName().equals("✅")) {
+                                    if (e.getEmoji().getName().equals("✅")) {
                                         message.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(message.getChannel(), new Color(0, 255, 0))
                                             .setAuthor(message.getEmbeds().get(0).getAuthor().getName(), null, message.getEmbeds().get(0).getAuthor().getIconUrl())
                                             .setDescription(message.getEmbeds().get(0).getDescription())
@@ -241,7 +244,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                     statement.set("accepted", true);
                                                 });
                                         }
-                                    } else if (e.getReactionEmote().getName().equals("❌")) {
+                                    } else if (e.getEmoji().getName().equals("❌")) {
                                         message.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(message.getChannel(), new Color(255, 0, 0))
                                             .setAuthor(message.getEmbeds().get(0).getAuthor().getName(), null, message.getEmbeds().get(0).getAuthor().getIconUrl())
                                             .setDescription(message.getEmbeds().get(0).getDescription())
@@ -302,7 +305,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                             User memberAsReporter = avaire.getShardManager().getUserById(reporter);
 
 
-                            if ("\uD83D\uDC4D".equals(e.getReactionEmote().getName())) { // 👍
+                            if ("\uD83D\uDC4D".equals(e.getEmoji().getName())) { // 👍
                                 e.getReaction().retrieveUsers().queue(react -> {
                                     if (react.size() > 30) {
                                         tc.retrieveMessageById(c.getLong("report_message_id")).queue(v -> {
@@ -319,8 +322,8 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                     .setTimestamp(Instant.now()).set("rRank", rank)
                                                     .buildEmbed())
                                                 .queue();
-                                            v.clearReactions("\uD83D\uDC4D").queue();
-                                            v.clearReactions("\uD83D\uDC4E").queue();
+                                            v.clearReactions(Emoji.fromFormatted("\uD83D\uDC4D")).queue();
+                                            v.clearReactions(Emoji.fromFormatted("\uD83D\uDC4E")).queue();
                                         });
                                     }
                                 });
@@ -371,14 +374,14 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                         TextChannel finalCtc = ctc;
                         e.getChannel().retrieveMessageById(e.getMessageId()).queue(msg -> {
                             try {
-                                if (e.getReactionEmote().getName().equals("\uD83D\uDC4D") | e.getReactionEmote().getName().equals("\uD83D\uDC4E")) {
+                                if (e.getEmoji().getName().equals("\uD83D\uDC4D") | e.getEmoji().getName().equals("\uD83D\uDC4E")) {
                                     int likes = 0, dislikes = 0;
                                     for (MessageReaction reaction : msg.getReactions()) {
-                                        if (reaction.getReactionEmote().getName().equals("\uD83D\uDC4D")) {
+                                        if (reaction.getEmoji().getName().equals("\uD83D\uDC4D")) {
                                             likes = reaction.getCount();
                                         }
 
-                                        if (reaction.getReactionEmote().getName().equals("\uD83D\uDC4E")) {
+                                        if (reaction.getEmoji().getName().equals("\uD83D\uDC4E")) {
                                             dislikes = reaction.getCount();
                                         }
                                     }
@@ -437,8 +440,8 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                         }
 
                                         msg.editMessageEmbeds(mb.buildEmbed()).setActionRows(actionRow).queue();
-                                        msg.clearReactions("\uD83D\uDC4D").queueAfter(1, TimeUnit.SECONDS);
-                                        msg.clearReactions("\uD83D\uDC4E").queueAfter(1, TimeUnit.SECONDS);
+                                        msg.clearReactions(Emoji.fromFormatted("\uD83D\uDC4D")).queueAfter(1, TimeUnit.SECONDS);
+                                        msg.clearReactions(Emoji.fromFormatted("\uD83D\uDC4E")).queueAfter(1, TimeUnit.SECONDS);
                                     }
 
                                     if (dislikes >= 26) {
@@ -459,8 +462,8 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
                                     }
                                 }
-                                if (e.getReactionEmote().getName().equals("❌") || e.getReactionEmote().getName().equals("✅") || e.getReactionEmote().getName().equals("\uD83D\uDD04")) {
-                                    switch (e.getReactionEmote().getName()) {
+                                if (e.getEmoji().getName().equals("❌") || e.getEmoji().getName().equals("✅") || e.getEmoji().getName().equals("\uD83D\uDD04")) {
+                                    switch (e.getEmoji().getName()) {
                                         case "❌":
                                             if (!(isValidReportManager(e, 2))) {
                                                 /*e.getChannel().sendMessage(e.getMember().getAsMention()).embed(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(255, 0, 0)).setDescription("Sorry, but you're not allowed to deny this suggestion. You have to be at least a **Manager** to do this.").setFooter("This message will self-destruct in 30s").buildEmbed()).queue(v -> {
@@ -529,16 +532,16 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                 return;
                                             }
                                             msg.clearReactions().queue();
-                                            msg.addReaction("\uD83D\uDC4D").queue(); //
-                                            msg.addReaction("\uD83D\uDC4E").queue(); // 👎
-                                            msg.addReaction("✅").queue();
-                                            msg.addReaction("❌").queue();
-                                            msg.addReaction("\uD83D\uDCAC").queue();
-                                            msg.addReaction("\uD83D\uDEAB").queue(); // 🚫
-                                            msg.addReaction("\uD83D\uDD04").queue(); // 🔄
+                                            msg.addReaction(Emoji.fromFormatted("\uD83D\uDC4D")).queue(); //
+                                            msg.addReaction(Emoji.fromFormatted("\uD83D\uDC4E")).queue(); // 👎
+                                            msg.addReaction(Emoji.fromFormatted("✅")).queue();
+                                            msg.addReaction(Emoji.fromFormatted("❌")).queue();
+                                            msg.addReaction(Emoji.fromFormatted("\uD83D\uDCAC")).queue();
+                                            msg.addReaction(Emoji.fromFormatted("\uD83D\uDEAB")).queue(); // 🚫
+                                            msg.addReaction(Emoji.fromFormatted("\uD83D\uDD04")).queue(); // 🔄
                                     }
                                 }
-                                if (e.getReactionEmote().getName().equals("\uD83D\uDEAB")) { //
+                                if (e.getEmoji().getName().equals("\uD83D\uDEAB")) { //
                                     if (!(isValidReportManager(e, 1))) {
                                         /*e.getChannel().sendMessage(e.getMember().getAsMention()).embed(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(255, 0, 0)).setDescription("Sorry, but you're not allowed to delete this suggestion. You have to be at least a **Mod** to do this.").setFooter("This message will self-destruct in 30s").buildEmbed()).queue(v -> {
                                             v.delete().queueAfter(30, TimeUnit.SECONDS);
@@ -548,7 +551,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                     }
                                     msg.delete().queue();
                                 } //🚫
-                                if (e.getReactionEmote().getName().equals("\uD83D\uDCAC")) {
+                                if (e.getEmoji().getName().equals("\uD83D\uDCAC")) {
                                     if (!(e.getMember().hasPermission(Permission.MESSAGE_MANAGE) || isValidReportManager(e, 1))) {
                                         /*e.getMember().getUser().openPrivateChannel().queue(v -> v.sendMessageEmbeds(new EmbedBuilder().setDescription("Sorry, but you need to be an mod or higher to comment on a suggestion!").build()).queue());
                                          */
@@ -586,7 +589,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                         );
                                     }
                                 } //💬
-                                if (e.getReactionEmote().getName().equals("\uD83D\uDC51")) {
+                                if (e.getEmoji().getName().equals("\uD83D\uDC51")) {
                                     if (!(isValidReportManager(e, 1))) {
                                         /*e.getChannel().sendMessage(e.getMember().getAsMention()).embed(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(255, 0, 0)).setDescription("Sorry, but you're not allowed to delete this suggestion. You have to be at least a **Mod** to do this.").setFooter("This message will self-destruct in 30s").buildEmbed()).queue(v -> {
                                             v.delete().queueAfter(30, TimeUnit.SECONDS);
@@ -609,11 +612,11 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                         }
 
                                         finalCtc.sendMessageEmbeds(mb.buildEmbed()).queue(p -> {
-                                            p.addReaction("✅").queue();
-                                            p.addReaction("❌").queue();
-                                            p.addReaction("\uD83D\uDEAB").queue();
-                                            p.addReaction("\uD83D\uDD04").queue();
-                                            p.addReaction("\uD83D\uDCAC").queue(); // 💬
+                                            p.addReaction(Emoji.fromFormatted("✅")).queue();
+                                            p.addReaction(Emoji.fromFormatted("❌")).queue();
+                                            p.addReaction(Emoji.fromFormatted("\uD83D\uDEAB")).queue();
+                                            p.addReaction(Emoji.fromFormatted("\uD83D\uDD04")).queue();
+                                            p.addReaction(Emoji.fromFormatted("\uD83D\uDCAC")).queue(); // 💬
                                             try {
                                                 qb.update(l -> {
                                                     l.set("suggestion_message_id", p.getId());
@@ -654,11 +657,11 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
     private void count(MessageReactionAddEvent event, Message m, Message v, MessageReceivedEvent c) {
         int likes = 0, dislikes = 0;
         for (MessageReaction reaction : m.getReactions()) {
-            if (reaction.getReactionEmote().getName().equals("\uD83D\uDC4D")) {
+            if (reaction.getEmoji().getName().equals("\uD83D\uDC4D")) {
                 likes = reaction.getCount();
             }
 
-            if (reaction.getReactionEmote().getName().equals("\uD83D\uDC4E")) {
+            if (reaction.getEmoji().getName().equals("\uD83D\uDC4E")) {
                 dislikes = reaction.getCount();
             }
         }
@@ -689,7 +692,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
             long requester = c.getLong("discord_id");
 
-            MessageReaction.ReactionEmote emote = event.getReactionEmote();
+            EmojiUnion emote = event.getEmoji();
             event.getChannel().retrieveMessageById(event.getMessageId()).
                 queue(m -> {
                     if (m.getEmbeds().size() < 1) return;
@@ -745,12 +748,12 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                 return;
                             }
                             m.clearReactions().queue();
-                            m.addReaction("\uD83D\uDC4D").queue();
-                            m.addReaction("\uD83D\uDC4E").queue();
-                            m.addReaction("✅").queue();
-                            m.addReaction("❌").queue();
-                            m.addReaction("🚫").queue();
-                            m.addReaction("\uD83D\uDD04").queue();
+                            m.addReaction(Emoji.fromFormatted("\uD83D\uDC4D")).queue();
+                            m.addReaction(Emoji.fromFormatted("\uD83D\uDC4E")).queue();
+                            m.addReaction(Emoji.fromFormatted("✅")).queue();
+                            m.addReaction(Emoji.fromFormatted("❌")).queue();
+                            m.addReaction(Emoji.fromFormatted("🚫")).queue();
+                            m.addReaction(Emoji.fromFormatted("\uD83D\uDD04")).queue();
                     }
                 });
         } catch (SQLException e) {

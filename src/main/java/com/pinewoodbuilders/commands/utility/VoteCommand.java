@@ -21,6 +21,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -506,8 +507,8 @@ public class VoteCommand extends Command {
                             } catch (SQLException throwables) {
                                 Xeus.getLogger().error("ERROR: ", throwables);
                             }
-                            message.addReaction("✅").queue();
-                            message.addReaction("❌").queue();
+                            message.addReaction(Emoji.fromFormatted("✅")).queue();
+                            message.addReaction(Emoji.fromFormatted("❌")).queue();
                         });
                     }
 

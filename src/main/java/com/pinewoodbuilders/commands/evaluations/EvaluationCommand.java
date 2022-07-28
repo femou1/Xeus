@@ -19,6 +19,7 @@ import com.pinewoodbuilders.utilities.menu.Paginator;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -149,9 +150,9 @@ public class EvaluationCommand extends Command {
                             .set("status", "Passed").queue(
                                 message -> {
                                     message.createThreadChannel(username).queue();
-                                    message.addReaction("\uD83D\uDC4D").queue(); //
-                                    message.addReaction("✋").queue(); //
-                                    message.addReaction("\uD83D\uDC4E").queue(); //
+                                    message.addReaction(Emoji.fromFormatted("\uD83D\uDC4D")).queue(); //
+                                    message.addReaction(Emoji.fromFormatted("✋")).queue(); //
+                                    message.addReaction(Emoji.fromFormatted("\uD83D\uDC4E")).queue(); //
                                 }
                             );
 

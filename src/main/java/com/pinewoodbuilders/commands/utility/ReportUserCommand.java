@@ -17,6 +17,8 @@ import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
@@ -131,10 +133,10 @@ public class ReportUserCommand extends Command {
                 qb.get().forEach(dataRow -> {
                     if (dataRow.getString("handbook_report_channel") != null) {
                         Guild g = avaire.getShardManager().getGuildById(dataRow.getString("id"));
-                        Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("emoji_id"));
+                        RichCustomEmoji e = avaire.getShardManager().getEmojiById(dataRow.getString("emoji_id"));
 
                         if (g != null && e != null) {
-                            menu.addOption(g.getName(), g.getId() + ":" + e.getId(), "Report to " + g.getName(), Emoji.fromEmote(e));
+                            menu.addOption(g.getName(), g.getId() + ":" + e.getId(), "Report to " + g.getName(), Emoji.fromCustom(e));
                             /*sb.append("``").append(g.getName()).append("`` - ").append(e.getAsMention()).append("\n");
                             l.addReaction(e).queue();*/
                         } else {
@@ -506,33 +508,20 @@ public class ReportUserCommand extends Command {
         if (args.length < 3) {
             return sendErrorMessage(context, "Incorrect arguments");
         }
-        Emote e;
+        RichCustomEmoji e;
         GuildChannel c = MentionableUtil.getChannel(context.message, args, 1);
         if (c == null) {
             return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Channel)");
         }
 
-        if (NumberUtil.isNumeric(args[1])) {
-            e = avaire.getShardManager().getEmoteById(args[1]);
-            if (e == null) {
-                return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - ID)");
-            }
-        } else if (context.message.getMentions().getEmotes().size() == 1) {
-            e = context.message.getMentions().getEmotes().get(0);
-            if (e == null) {
-                return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - Mention)");
-            }
-        } else {
-            return sendErrorMessage(context, "Something went wrong (To many emotes).");
-        }
 
         if (NumberUtil.isNumeric(args[1])) {
-            e = avaire.getShardManager().getEmoteById(args[1]);
+            e = avaire.getShardManager().getEmojiById(args[1]);
             if (e == null) {
                 return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - ID)");
             }
-        } else if (context.message.getMentions().getEmotes().size() == 1) {
-            e = context.message.getMentions().getEmotes().get(0);
+        } else if (context.message.getMentions().getCustomEmojis().size() == 1) {
+            e = context.guild.getEmojiById(context.message.getMentions().getCustomEmojis().get(0).getId());
             if (e == null) {
                 return sendErrorMessage(context, "Something went wrong please try again or report this to a higher up! (Emote - Mention)");
             }
@@ -584,7 +573,7 @@ public class ReportUserCommand extends Command {
     }
 
 
-    private boolean updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel, Emote emote) {
+    private boolean updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel, RichCustomEmoji emote) {
         transformer.setHandbookReportChannel(channel.getIdLong());
 
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
@@ -604,8 +593,8 @@ public class ReportUserCommand extends Command {
     }
 
     public static void createReactions(Message r) {
-        r.addReaction("\uD83D\uDC4D").queue();   // 👍
-        r.addReaction("\uD83D\uDC4E").queue();  // 👎
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDC4D")).queue();   // 👍
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDC4E")).queue();  // 👎
 /*        r.addReaction("✅").queue();
         r.addReaction("❌").queue();
         r.addReaction("🚫").queue();

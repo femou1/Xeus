@@ -25,8 +25,8 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.database.transformers.Transformer;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.google.gson.reflect.TypeToken;
-import net.dv8tion.jda.api.entities.Emote;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -61,9 +61,7 @@ public class ReactionTransformer extends Transformer {
                     new TypeToken<HashMap<Long, Long>>() {
                     }.getType());
 
-                for (Map.Entry<Long, Long> item : dbRoles.entrySet()) {
-                    roles.put(item.getKey(), item.getValue());
-                }
+                roles.putAll(dbRoles);
             }
         }
     }
@@ -77,7 +75,7 @@ public class ReactionTransformer extends Transformer {
      * @return Possibly-null, the ID of the role that is linked/attached to the given emote.
      */
     @Nullable
-    public Long getRoleIdFromEmote(@Nonnull Emote emote) {
+    public Long getRoleIdFromEmote(@Nonnull RichCustomEmoji emote) {
         if (!roles.containsKey(emote.getIdLong())) {
             return null;
         }
@@ -92,7 +90,7 @@ public class ReactionTransformer extends Transformer {
      * @param emote The emote that should be added to the reaction message.
      * @param role  The role that should be linked to the given emote.
      */
-    public void addReaction(@Nonnull Emote emote, @Nonnull Role role) {
+    public void addReaction(@Nonnull RichCustomEmoji emote, @Nonnull Role role) {
         roles.put(emote.getIdLong(), role.getIdLong());
     }
 
@@ -102,7 +100,7 @@ public class ReactionTransformer extends Transformer {
      * @param emote The emote that should be removed from the reaction message.
      * @return {@code True} if the emote was removed from the message, or {@code False} if it wasn't added in the first place.
      */
-    public boolean removeReaction(@Nonnull Emote emote) {
+    public boolean removeReaction(@Nonnull RichCustomEmoji emote) {
         if (roles.containsKey(emote.getIdLong())) {
             roles.remove(emote.getIdLong());
             return true;

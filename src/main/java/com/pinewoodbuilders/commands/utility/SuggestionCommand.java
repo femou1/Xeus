@@ -16,6 +16,8 @@ import com.pinewoodbuilders.utilities.EventWaiter;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -120,10 +122,10 @@ public class SuggestionCommand extends Command {
                 qb.get().forEach(dataRow -> {
                     if (dataRow.getString("suggestion_channel_id") != null) {
                         Guild g = avaire.getShardManager().getGuildById(dataRow.getString("id"));
-                        Emote e = avaire.getShardManager().getEmoteById(dataRow.getString("emoji_id"));
+                        RichCustomEmoji e = avaire.getShardManager().getEmojiById(dataRow.getString("emoji_id"));
 
                         if (g != null && e != null) {
-                            menu.addOption(g.getName(), g.getId() + ":" + e.getId(), "Suggest to " + g.getName(), Emoji.fromEmote(e));
+                            menu.addOption(g.getName(), g.getId() + ":" + e.getId(), "Suggest to " + g.getName(), Emoji.fromCustom(e));
                             //sb.append("``").append(g.getName()).append("`` - ").append(e.getAsMention()).append("\n");
                             //l.addReaction(e).queue();
                         } else {
@@ -396,8 +398,8 @@ public class SuggestionCommand extends Command {
     }
 
     public static void createReactions(Message r) {
-        r.addReaction("\uD83D\uDC4D").queue();   // 👍
-        r.addReaction("\uD83D\uDC4E").queue();  // 👎
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDC4D")).queue();   // 👍
+        r.addReaction(Emoji.fromFormatted("\uD83D\uDC4E")).queue();  // 👎
         /*r.addReaction("✅").queue();
         r.addReaction("❌").queue();
         r.addReaction("🚫").queue();

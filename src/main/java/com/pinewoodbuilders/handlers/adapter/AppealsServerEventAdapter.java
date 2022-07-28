@@ -13,6 +13,7 @@ import com.pinewoodbuilders.utilities.RandomUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
@@ -107,43 +108,43 @@ public class AppealsServerEventAdapter extends EventAdapter {
                     .addOption("I REJECT",
                         "decline-1:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
                     .addOption("I REJECT",
                         "decline-2:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
                     .addOption("I REJECT",
                         "decline-3:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
 
                     .addOption("I REJECT",
                         "decline-4:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
 
                     .addOption("I AGREE",
                         "deletion:PIA:deletion",
                         "Use this button to confirm a data deletion request.",
-                        Emoji.fromMarkdown("<:cereal2:958119849958211664>"))
+                        Emoji.fromFormatted("<:cereal2:958119849958211664>"))
                     .addOption("I REJECT",
                         "decline-5:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
                     .addOption("I REJECT",
                         "decline-6:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
 
                     .addOption("I REJECT",
                         "decline-7:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
 
                     .addOption("I REJECT",
                         "decline-8:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
 
                     .build().asEnabled()
             ).queue();
@@ -176,49 +177,49 @@ public class AppealsServerEventAdapter extends EventAdapter {
                 "I have read and approve of the rules listed in the embed above.")).queue();
             case "agree-rules" -> event.getInteraction().editMessageEmbeds(new EmbedBuilder().setDescription(
                 """
-                    You have agreed to the rules.
-                    We're asking about your appeal now, what punishment would you like to appeal for?
-                                    
-                    __Please read through the entire selection menu!!!__
-                    """).build()).setActionRow(
-                SelectMenu.create("punishment-selection")
-                    .addOption("Appeal for a trello ban",
-                        "appeal:PIA:trelloban",
-                        "You may appeal a trello-ban through this selection. ",
-                        Emoji.fromMarkdown("<:trelloban:997965939792412823>"))
-                    .addOption("Appeal for a game ban",
-                        "appeal:PIA:gameban",
-                        "You may appeal a game-ban through this selection. ",
-                        Emoji.fromMarkdown("<:gameban:997965983153147955>"))
-                    .addOption("Appeal for a game mute",
-                        "appeal:PIA:gamemute",
-                        "You may appeal a game-mute through this selection. ",
-                        Emoji.fromMarkdown("<:gamemute:997966017143775252>"))
-                    .addOption("Appeal for a global ban",
-                        "appeal:PIA:globalban",
-                        "You may appeal a globalban through this selection. ",
-                        Emoji.fromMarkdown("<:globalban:997966041277804546>"))
-                    .addOption("Appeal for a raid blacklist",
-                        "appeal:RAID:raidblacklist",
-                        "You may appeal a raid-blacklist through this selection.",
-                        Emoji.fromMarkdown("<:raidblacklist:997966060542230538>"))
-                    .addOption("Appeal for a group discord ban",
-                        "guild:groupdiscordban",
-                        "You may appeal a discord ban here.",
-                        Emoji.fromMarkdown("<:groupdiscordban:998332587447681135>"))
-                    .addOption("Appeal for a group ranklock",
-                        "guild:groupranklock",
-                        "You may appeal a group ranklock here.",
-                        Emoji.fromMarkdown("<:ranklock:998332416991170651>"))
-                    .addOption("Appeal for a group blacklist",
-                        "guild:groupblacklist",
-                        "You may appeal a group blacklist here.",
-                        Emoji.fromMarkdown("<:blacklist:998332444916858880>"))
-                    .addOption("Create a appeal for something else",
-                        "appeal:PIA:other",
-                        "Any special cases go here..",
-                        Emoji.fromMarkdown("<:CadetThinking:893602259693338665>"))
-                    .setRequiredRange(1, 1).build().asEnabled()).queue();
+                You have agreed to the rules.
+                We're asking about your appeal now, what punishment would you like to appeal for?
+                
+                __Please read through the entire selection menu!!!__
+                """).build()).setActionRow(
+                    SelectMenu.create("punishment-selection")
+                        .addOption("Appeal for a trello ban",
+                            "appeal:PIA:trelloban",
+                            "You may appeal a trello-ban through this selection. ",
+                            Emoji.fromFormatted("<:trelloban:997965939792412823>"))
+                        .addOption("Appeal for a game ban",
+                            "appeal:PIA:gameban",
+                            "You may appeal a game-ban through this selection. ",
+                            Emoji.fromFormatted("<:gameban:997965983153147955>"))
+                        .addOption("Appeal for a game mute",
+                            "appeal:PIA:gamemute",
+                            "You may appeal a game-mute through this selection. ",
+                            Emoji.fromFormatted("<:gamemute:997966017143775252>"))
+                        .addOption("Appeal for a global ban",
+                            "appeal:PIA:globalban",
+                            "You may appeal a globalban through this selection. ",
+                            Emoji.fromFormatted("<:globalban:997966041277804546>"))
+                        .addOption("Appeal for a raid blacklist",
+                            "appeal:RAID:raidblacklist",
+                            "You may appeal a raid-blacklist through this selection.",
+                            Emoji.fromFormatted("<:raidblacklist:997966060542230538>"))
+                        .addOption("Appeal for a group discord ban",
+                            "guild:groupdiscordban",
+                            "You may appeal a discord ban here.",
+                            Emoji.fromFormatted("<:groupdiscordban:998332587447681135>"))
+                        .addOption("Appeal for a group ranklock",
+                            "guild:groupranklock",
+                            "You may appeal a group ranklock here.",
+                            Emoji.fromFormatted("<:ranklock:998332416991170651>"))
+                        .addOption("Appeal for a group blacklist",
+                            "guild:groupblacklist",
+                            "You may appeal a group blacklist here.",
+                            Emoji.fromFormatted("<:blacklist:998332444916858880>"))
+                        .addOption("Create a appeal for something else",
+                            "appeal:PIA:other",
+                            "Any special cases go here..",
+                            Emoji.fromFormatted("<:CadetThinking:893602259693338665>"))
+                        .setRequiredRange(1, 1).build().asEnabled()).queue();
             case "questions-respond" -> event.replyModal(buildQuestionsModal(event)).queue();
         }
     }
@@ -277,29 +278,29 @@ public class AppealsServerEventAdapter extends EventAdapter {
             .addOption("Pinewood Builders Security Team",
                 "appeal:PBST:" + type.getName(),
                 "Appeal your " + type.getCleanName() + " here.",
-                Emoji.fromMarkdown("<:PBST:790431720297857024>"))
+                Emoji.fromFormatted("<:PBST:790431720297857024>"))
             .addOption("Pinewood Emergency Team",
                 "appeal:PET:" + type.getName(),
                 "Appeal your " + type.getCleanName() + " here.",
-                Emoji.fromMarkdown("<:PET:694389856071319593>"))
+                Emoji.fromFormatted("<:PET:694389856071319593>"))
             .addOption("The Mayhem Syndicate",
                 "appeal:TMS:" + type.getName(),
                 "Appeal your " + type.getCleanName() + " here.",
-                Emoji.fromMarkdown("<:TMS:757737764417437827>"))
+                Emoji.fromFormatted("<:TMS:757737764417437827>"))
             .setRequiredRange(1, 1);
 
         if (!type.getName().equals("groupranklock")) {
             menu.addOption("Pinewood Builders Media",
                 "appeal:PBM:" + type.getName(),
                 "Appeal your " + type.getCleanName() + " here.",
-                Emoji.fromMarkdown("<:PBM:757736209333223434>"));
+                Emoji.fromFormatted("<:PBM:757736209333223434>"));
         }
 
         if (type.getName().equals("groupdiscordban")) {
             menu.addOption("Other discord ban",
                 "appeal:PIA:" + type.getName(),
                 "Appeal your (other) " + type.getCleanName() + " here.",
-                Emoji.fromMarkdown("<:otherservers:997966085175386212>"));
+                Emoji.fromFormatted("<:otherservers:997966085175386212>"));
         }
 
 
