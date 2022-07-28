@@ -25,7 +25,6 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.database.transformers.Transformer;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.google.gson.reflect.TypeToken;
-import net.dv8tion.jda.api.entities.Emote;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 

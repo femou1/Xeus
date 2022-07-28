@@ -82,7 +82,7 @@ public class JDAStateEventAdapter extends EventAdapter {
                         .addOption(OptionType.USER, "member", "This will use the user to get info about their ranks + roblox profile.", true),
                     Commands.slash("roleinfo", "See the information about a Discord role.")
                         .addOption(OptionType.ROLE, "role", "The role you would like to see information about.", true),
-                    Commands.user("whois").setDefaultEnabled(true)).queue();
+                    Commands.user("whois")).queue();
 
             }
         }

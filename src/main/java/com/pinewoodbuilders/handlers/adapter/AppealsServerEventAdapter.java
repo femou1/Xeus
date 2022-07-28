@@ -13,6 +13,7 @@ import com.pinewoodbuilders.utilities.RandomUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
@@ -107,43 +108,43 @@ public class AppealsServerEventAdapter extends EventAdapter {
                     .addOption("I REJECT",
                         "decline-1:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
                     .addOption("I REJECT",
                         "decline-2:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
                     .addOption("I REJECT",
                         "decline-3:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
 
                     .addOption("I REJECT",
                         "decline-4:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
 
                     .addOption("I AGREE",
                         "deletion:PIA:deletion",
                         "Use this button to confirm a data deletion request.",
-                        Emoji.fromMarkdown("<:cereal2:958119849958211664>"))
+                        Emoji.fromFormatted("<:cereal2:958119849958211664>"))
                     .addOption("I REJECT",
                         "decline-5:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
                     .addOption("I REJECT",
                         "decline-6:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
 
                     .addOption("I REJECT",
                         "decline-7:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
 
                     .addOption("I REJECT",
                         "decline-8:PIA:deletion",
                         "Use this button to reject the data deletion request.",
-                        Emoji.fromMarkdown("<:no:694270050257076304>"))
+                        Emoji.fromFormatted("<:no:694270050257076304>"))
 
                     .build().asEnabled()
             ).queue();

@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.GenericMessageEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
@@ -166,18 +167,18 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
             if(pages > 1)
             {
                 if(bulkSkipNumber > 1)
-                    m.addReaction(BIG_LEFT).queue();
-                m.addReaction(LEFT).queue();
-                m.addReaction(STOP).queue();
+                    m.addReaction(Emoji.fromFormatted(BIG_LEFT)).queue();
+                m.addReaction(Emoji.fromFormatted(LEFT)).queue();
+                m.addReaction(Emoji.fromFormatted(STOP)).queue();
                 if(bulkSkipNumber > 1)
-                    m.addReaction(RIGHT).queue();
-                m.addReaction(bulkSkipNumber > 1? BIG_RIGHT : RIGHT)
+                    m.addReaction(Emoji.fromFormatted(RIGHT)).queue();
+                m.addReaction(bulkSkipNumber > 1? Emoji.fromFormatted(BIG_RIGHT) : Emoji.fromFormatted(RIGHT))
                     .queue(v -> pagination(m, pageNum), t -> pagination(m, pageNum));
             }
             else if(waitOnSinglePage)
             {
                 // Go straight to without text-input because only one page is available
-                m.addReaction(STOP).queue(
+                m.addReaction(Emoji.fromFormatted(STOP)).queue(
                     v -> paginationWithoutTextInput(m, pageNum),
                     t -> paginationWithoutTextInput(m, pageNum)
                 );
@@ -239,9 +240,9 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
 
                 final int targetPage;
 
-                if(leftText != null && rawContent.equalsIgnoreCase(leftText) && (1 < pageNum || wrapPageEnds))
-                    targetPage = pageNum - 1 < 1 && wrapPageEnds? pages : pageNum - 1;
-                else if(rightText != null && rawContent.equalsIgnoreCase(rightText) && (pageNum < pages || wrapPageEnds))
+                if(rawContent.equalsIgnoreCase(leftText) && (1 < pageNum || wrapPageEnds))
+                    targetPage = pageNum - 1 < 1 ? pages : pageNum - 1;
+                else if(rawContent.equalsIgnoreCase(rightText) && (pageNum < pages || wrapPageEnds))
                     targetPage = pageNum + 1 > pages && wrapPageEnds? 1 : pageNum + 1;
                 else
                 {
@@ -270,7 +271,7 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
     {
         if(event.getMessageIdLong() != messageId)
             return false;
-        switch(event.getReactionEmote().getName())
+        switch(event.getEmoji().getName())
         {
             // LEFT, STOP, RIGHT, BIG_LEFT, BIG_RIGHT all fall-through to
             // return if the User is valid or not. If none trip, this defaults
@@ -291,7 +292,7 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
     private void handleMessageReactionAddAction(MessageReactionAddEvent event, Message message, int pageNum)
     {
         int newPageNum = pageNum;
-        switch(event.getReaction().getReactionEmote().getName())
+        switch(event.getReaction().getEmoji().getName())
         {
             case LEFT:
                 if(newPageNum == 1 && wrapPageEnds)

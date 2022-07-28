@@ -426,8 +426,8 @@ public class LevelManager {
             return message.getChannel();
         }
 
-        TextChannel channel = message.getGuild().getTextChannelById(levelChannel);
-        return channel == null ? message.getTextChannel() : channel;
+        MessageChannel channel = message.getGuild().getChannelById(MessageChannel.class, levelChannel);
+        return channel == null ? message.getChannel().asGuildMessageChannel() : channel;
     }
 
     private List<Role> getRoleRewards(Message message, GuildTransformer guild, long level) {

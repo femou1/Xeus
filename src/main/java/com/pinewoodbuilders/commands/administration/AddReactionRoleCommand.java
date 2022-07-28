@@ -37,7 +37,7 @@ import com.pinewoodbuilders.utilities.RoleUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
+
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,7 +125,7 @@ public class AddReactionRoleCommand extends Command {
             return sendErrorMessage(context, "errors.missingArgument", "reaction emote");
         }
 
-        Emote emote = getEmote(context, args);
+        RichCustomEmoji emote = getEmote(context, args);
         if (emote == null || emote.getGuild() == null || emote.getGuild().getIdLong() != context.getGuild().getIdLong()) {
             return sendErrorMessage(context, context.i18n("emoteDoestBelongToServer"));
         }
