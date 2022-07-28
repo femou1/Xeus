@@ -23,7 +23,6 @@ import net.dv8tion.jda.api.exceptions.PermissionException;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -34,8 +33,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static com.pinewoodbuilders.utilities.JsonReader.readJsonFromUrl;
 
 public class EvaluationCommand extends Command {
     private final Paginator.Builder builder;
@@ -639,10 +636,9 @@ public class EvaluationCommand extends Command {
         return true;
     }
 
-    private static String getRobloxUsernameFromId(Long id) {
+    private String getRobloxUsernameFromId(Long id) {
         try {
-            JSONObject json = readJsonFromUrl("https://api.roblox.com/users/" + id);
-            return json.getString("Username");
+            return avaire.getRobloxAPIManager().getUserAPI().getUsername(id);
         } catch (Exception e) {
             return "Unknown";
         }

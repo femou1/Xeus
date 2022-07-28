@@ -30,7 +30,6 @@ import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.utilities.NumberUtil;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
@@ -111,7 +110,7 @@ public class FeatureBlacklistCommand extends Command {
             records.add(I18n.format("{0} **{1}** `{2}` - `{3}`\n ► _\"{4}\"_",
                     entity.getScope().getId() == 0 ? "\uD83E\uDD26" : "\uD83C\uDFEC", entity.getScope().getName(),
                     entity.getId(), entity.getGuildId(),
-                    entity.getReason() == null ? "NRF" : entity.getReason()));
+                    entity.getReason() == null ? "NRP (No Reason Provided)" : entity.getReason()));
         });
 
         SimplePaginator<String> paginator = new SimplePaginator<>(records, 10, 1);

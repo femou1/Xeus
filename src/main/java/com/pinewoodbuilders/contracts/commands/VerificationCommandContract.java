@@ -176,22 +176,23 @@ public abstract class VerificationCommandContract extends Command {
                         interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel)
                         , statusButton -> {
                             statusButton.deferEdit().queue();
-                            if ("✅".equals(statusButton.getButton().getEmoji().getName())) {
+                        switch (statusButton.getButton().getEmoji().getName()) {
+                            case "✅" -> {
                                 String status = avaire.getRobloxAPIManager().getUserAPI().getUserStatus(robloxId);
                                 if (status != null) {
                                     if (status.contains(token)) {
                                         addAccountToDatabase(context, robloxId, originalMessage, avaire.getRobloxAPIManager().getUserAPI().getUsername(robloxId));
                                     } else {
-                                        originalMessage.editMessageEmbeds(context.makeWarning("Your status does not contain the token, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();;
+                                        originalMessage.editMessageEmbeds(context.makeWarning("Your status does not contain the token, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
                                     }
                                 } else {
-                                    originalMessage.editMessageEmbeds(context.makeWarning("Status is empty, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();;
+                                    originalMessage.editMessageEmbeds(context.makeWarning("Status is empty, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
                                 }
                                 return;
                             }
+                        }
                             originalMessage.editMessageEmbeds(context.makeWarning("System has been cancelled, if you want to verify again run the !verify command").requestedBy(context).buildEmbed()).queue();
                         }, 5, TimeUnit.MINUTES, () -> originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue()));
-        return;
     }
 
 }

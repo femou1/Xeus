@@ -68,9 +68,6 @@ public class IsCategoryEnabled extends Middleware {
     @Override
     @SuppressWarnings("ConstantConditions")
     public boolean handle(@Nonnull Message message, @Nonnull MiddlewareStack stack, String... args) {
-        if (stack.getCommand().getTriggers().contains("appeal")) {
-            return stack.next();
-        }
         if (disabledCategories.containsKey(stack.getCommandContainer().getCategory().getName())) {
             if (avaire.getBotAdmins().getUserById(message.getAuthor().getIdLong()).isAdmin()) {
                 return stack.next();

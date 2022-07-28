@@ -11,9 +11,6 @@ import com.pinewoodbuilders.database.controllers.GuildSettingsController;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.factories.MessageFactory;
-import com.pinewoodbuilders.factories.RequestFactory;
-import com.pinewoodbuilders.requests.Request;
-import com.pinewoodbuilders.requests.Response;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
@@ -31,7 +28,6 @@ import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
-import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -42,9 +38,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-
-import static com.pinewoodbuilders.utilities.JsonReader.readJsonFromUrl;
 
 
 public class ReportUserCommand extends Command {
@@ -299,8 +292,10 @@ public class ReportUserCommand extends Command {
 
         GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, g);
         TextChannel tc = avaire.getShardManager().getTextChannelById(settings.getHandbookReportChannel());
-        if (tc == null)
+        if (tc == null) {
             act.getInteraction().reply("The guild doesn't have a (valid) channel for handbook reports.").queue();
+            return;
+        }
 
         boolean isBlacklisted = checkIfBlacklisted(requestedId, tc);
         if (isBlacklisted) {
@@ -310,23 +305,23 @@ public class ReportUserCommand extends Command {
 
 
         if (settings.getRobloxGroupId() != 0 && settings.getRobloxGroupId() != 159511) {
-            Request requestedRequest = RequestFactory.makeGET("https://groups.roblox.com/v1/users/" + requestedId + "/groups/roles");
-            requestedRequest.send((Consumer <Response>) response -> {
-                if (response.getResponse().code() == 200) {
-                    RobloxUserGroupRankService grs = (RobloxUserGroupRankService) response.toService(RobloxUserGroupRankService.class);
-                    Optional <RobloxUserGroupRankService.Data> b = grs.getData().stream().filter(group -> group.getGroup().getId() == settings.getRobloxGroupId()).findFirst();
 
-                    if (b.isPresent()) {
-                        askConfirmation(modalEvidence, tc, act, modalUsername, modalReason, modalProofOfWarning, b.get().getRole().getName(), message);
-                    } else {
-                        //context.makeInfo(String.valueOf(response.getResponse().code())).queue();
-                        act.getInteraction().reply("The user who you've requested a punishment for isn't in `" + tc.getGuild().getName() + "`, please check if this is correct or not.").queue();
 
-                    }
-                } else {
-                    act.getInteraction().reply("Something went wrong with the roblox API, please try again later.").setEphemeral(true).queue();
-                }
-            });
+            List <RobloxUserGroupRankService.Data> grs = avaire.getRobloxAPIManager().getUserAPI().getUserRanks(requestedId);
+            if (grs.isEmpty()) {
+                act.getInteraction().reply("You are not in any groups.").queue();
+                return;
+            }
+            Optional <RobloxUserGroupRankService.Data> b = grs.stream().filter(group -> group.getGroup().getId() == settings.getRobloxGroupId()).findFirst();
+
+            if (b.isPresent()) {
+                askConfirmation(modalEvidence, tc, act, modalUsername, modalReason, modalProofOfWarning, b.get().getRole().getName(), message);
+            } else {
+                //context.makeInfo(String.valueOf(response.getResponse().code())).queue();
+                act.getInteraction().reply("The user who you've requested a punishment for isn't in `" + tc.getGuild().getName() + "`, please check if this is correct or not.").queue();
+
+            }
+
         } else {
             askConfirmation(modalEvidence, tc, act, modalUsername, modalReason, modalProofOfWarning, "Not in group", message);
         }
@@ -353,7 +348,7 @@ public class ReportUserCommand extends Command {
             ignored -> {
                 avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class,
                     event -> event.getChannel().getId().equals(ignored.getInteraction().getMessageChannel().getId())
-                    && ignored.getInteraction().getMember().equals(act.getMember()),
+                        && ignored.getInteraction().getMember().equals(act.getMember()),
                     send -> {
                         if (send.getButton().getEmoji().getName().equalsIgnoreCase("❌") || send.getButton().getEmoji().getName().equalsIgnoreCase("x")) {
                             act.editMessage("Report has been canceled, if you want to restart the report. Do `!ru` in any bot-commands channel.")
@@ -617,16 +612,11 @@ public class ReportUserCommand extends Command {
         r.addReaction("\uD83D\uDD04").queue(); // 🔄*/
     }
 
-    private static Long getRobloxId(String un) {
+    private Long getRobloxId(String un) {
         try {
-            JSONObject json = readJsonFromUrl("https://api.roblox.com/users/get-by-username?username=" + un);
-            return Double.valueOf(json.getDouble("Id")).longValue();
+            return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un);
         } catch (Exception e) {
             return 0L;
         }
-    }
-
-    private void tookToLong(CommandMessage event) {
-        event.makeError("<a:alerta:729735220319748117> You've taken to long to react to the message <a:alerta:729735220319748117>").queue();
     }
 }

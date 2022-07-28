@@ -11,7 +11,7 @@ import spark.Request;
 import spark.Response;
 
 public class GetRobloxUserByDiscordId extends SparkRoute {
-    private static final Logger log = LoggerFactory.getLogger("[Verification (Discord -> Roblox)]");
+    private static final Logger log = LoggerFactory.getLogger("V(D>R)");
 
     @Override
     public Object handle(Request request, Response response) throws Exception {
@@ -53,6 +53,6 @@ public class GetRobloxUserByDiscordId extends SparkRoute {
         if (u != null) {
             return u.getName() + "#" + u.getDiscriminator();
         }
-        return "Unkown";
+        return "Unknown";
     }
 }

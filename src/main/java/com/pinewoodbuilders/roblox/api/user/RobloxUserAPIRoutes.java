@@ -35,9 +35,10 @@ public class RobloxUserAPIRoutes {
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
                 RobloxUserGroupRankService grs = (RobloxUserGroupRankService) manager.toService(response, RobloxUserGroupRankService.class);
-                if (grs.hasData()) {
-                    return grs.getData();
+                if (!grs.hasData()) {
+                    return null;
                 }
+                return grs.getData();
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
@@ -59,18 +60,17 @@ public class RobloxUserAPIRoutes {
         return null;
     }
 
-    public String getUsername(String botAccount) {
-        String username = cache.getIfPresent("username." + botAccount);
+    public String getUsername(String userId) {
+        String username = cache.getIfPresent("username." + userId);
         if (username != null) {
             return username;
         }
 
-        request.url("https://users.roblox.com/v1/users/{userId}".replace("{userId}", botAccount));
-
+        request.url("https://users.roblox.com/v1/users/{userId}".replace("{userId}", userId));
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
                 JSONObject json = new JSONObject(response.body().string());
-                cache.put("username." + botAccount, json.getString("name"));
+                cache.put("username." + userId, json.getString("name"));
                 return json.getString("name");
             }
         } catch (IOException e) {
@@ -85,13 +85,13 @@ public class RobloxUserAPIRoutes {
             return Long.parseLong(userId);
         }
 
-        request.url("https://api.roblox.com/users/get-by-username?username={userId}".replace("{userId}", username));
+        request.url("https://users.roblox.com/v1/users/{userId}".replace("{userId}", username));
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
                 JSONObject json = new JSONObject(response.body().string());
-                cache.put("robloxId." + username, String.valueOf(json.getLong("Id")));
-                return json.getLong("Id");
+                cache.put("robloxId." + username, json.getString("id"));
+                return json.getLong("id");
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());

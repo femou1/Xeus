@@ -461,6 +461,7 @@ public class MainEventHandler extends EventHandler {
         buttonClickEventAdapter.onReportsButtonInteractionEvent(event);
         buttonClickEventAdapter.onFeedbackButtonInteractionEvent(event);
         buttonClickEventAdapter.onQuizButtonInteractionEvent(event);
+
         appealsServerEventAdapter.onAppealsButtonClickEvent(event);
     }
 

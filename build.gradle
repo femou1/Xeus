@@ -8,13 +8,13 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'idea'
 
-version = '5.5.0'
+version = '5.6.2'
 group = 'com.pinewoodbuilders'
 description = 'Xeus Discord Bot'
 mainClassName = 'com.pinewoodbuilders.Main'
 
-sourceCompatibility = 16
-targetCompatibility = 16
+sourceCompatibility = 17
+targetCompatibility = 17
 
 ext {
     moduleName = 'Xeus'

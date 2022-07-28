@@ -9,18 +9,15 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
+import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
-import com.pinewoodbuilders.factories.RequestFactory;
-import com.pinewoodbuilders.requests.Request;
-import com.pinewoodbuilders.requests.Response;
 import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankService;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
-import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
+import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
@@ -28,7 +25,6 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -37,9 +33,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-
-import static com.pinewoodbuilders.utilities.JsonReader.readJsonFromUrl;
 
 public class EventRemittanceCommand extends Command {
 
@@ -269,11 +262,16 @@ public class EventRemittanceCommand extends Command {
             }
 
             if (d.getInt("roblox_group_id") != 0) {
-                Request requestedRequest = RequestFactory.makeGET("https://groups.roblox.com/v1/users/" + requestedId + "/groups/roles");
-                requestedRequest.send((Consumer <Response>) response -> {
-                    if (response.getResponse().code() == 200) {
-                        RobloxUserGroupRankService grs = (RobloxUserGroupRankService) response.toService(RobloxUserGroupRankService.class);
-                        Optional <RobloxUserGroupRankService.Data> b = grs.getData().stream().filter(g -> g.getGroup().getId() == d.getInt("roblox_group_id")).findFirst();
+
+                        List <RobloxUserGroupRankService.Data> grs = avaire.getRobloxAPIManager().getUserAPI().getUserRanks(requestedId);
+
+                        if (grs.isEmpty()) {
+                            context.makeError("You are not in any groups.").queue();
+                            removeAllUserMessages(messagesToRemove);
+                            return;
+                        }
+
+                        Optional <RobloxUserGroupRankService.Data> b = grs.stream().filter(g -> g.getGroup().getId() == d.getInt("roblox_group_id")).findFirst();
 
                         if (b.isPresent()) {
                             startConfirmationWaiter(context, message, b, d, content, messagesToRemove);
@@ -282,8 +280,7 @@ public class EventRemittanceCommand extends Command {
                             context.makeError("You're not in ``:guild``, please check if this is correct or not.").set("guild", d.getString("name")).queue();
                             removeAllUserMessages(messagesToRemove);
                         }
-                    }
-                });
+
             } else {
                 startConfirmationWaiter(context, message, Optional.empty(), d, content, messagesToRemove);
             }
@@ -519,10 +516,9 @@ public class EventRemittanceCommand extends Command {
         r.addReaction(Emoji.fromFormatted("\uD83D\uDD04")).queue(); // 🔄
     }
 
-    private static Long getRobloxId(String un) {
+    private Long getRobloxId(String un) {
         try {
-            JSONObject json = readJsonFromUrl("https://api.roblox.com/users/get-by-username?username=" + un);
-            return Double.valueOf(json.getDouble("Id")).longValue();
+            return avaire.getRobloxAPIManager().getUserAPI().getIdFromUsername(un);
         } catch (Exception e) {
             return 0L;
         }

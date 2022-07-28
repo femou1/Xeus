@@ -1022,16 +1022,9 @@ public class GlobalModCommand extends Command {
             if (username != null) {
                 Collection c = avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME)
                     .where("roblox_user_id", userId).get();
-                /*avaire.getDatabase().newQueryBuilder(Constants.ANTI_UNBAN_TABLE_NAME).insert(o -> {
-                    o.set("punisherId", context.getAuthor().getId()).set("reason", reason, true)
-                        .set("roblox_username", username)
-                        .set("main_group_id", context.getGuildSettingsTransformer().getMainGroupId())
-                        .set("roblox_user_id", userId);
-                });*/
 
                 avaire.getGlobalPunishmentManager().registerGlobalBan(context.getAuthor().getId(),
-                    context.getGuildSettingsTransformer().getMainGroupId(),
-                    null, userId, username, reason);
+                    context.getGuildSettingsTransformer().getMainGroupId(), null, userId, username, reason);
 
                 if (c.size() < 1) {
                     context.makeSuccess("Permbanned ``" + args[1] + "`` in the database.").queue();
