@@ -705,8 +705,9 @@ public class VerificationManager {
                 if (json.getBoolean("success") && json.has("user")) {
 
                     JSONObject user = json.getJSONObject("user");
-                    if (!user.has("primaryAccount")) return null;
+                    if (!user.has("primaryAccount") || user.isNull("primaryAccount")) return null;
 
+                    System.out.println("[Bloxlink] Found user " + discordUserId + " in Bloxlink");
                     VerificationEntity verificationEntity = new VerificationEntity(Long.valueOf(user.getString("primaryAccount")),
                         manager.getUserAPI().getUsername(user.getString("primaryAccount")), Long.valueOf(discordUserId),
                         "bloxlink", true);
