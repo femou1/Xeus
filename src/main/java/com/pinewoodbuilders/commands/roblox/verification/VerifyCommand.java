@@ -144,7 +144,7 @@ public class VerifyCommand extends VerificationCommandContract {
                                             return;
                                         }
                                         if (provider.equals("rowifi")) {
-                                            assert bloxlink != null;
+                                            assert rowifi != null;
                                             addAccountToDatabase(context, rowifi.getRobloxId(), unverifiedMessage, username);
                                             return;
                                         }
