@@ -707,8 +707,8 @@ public class VerificationManager {
                     JSONObject user = json.getJSONObject("user");
                     if (!user.has("primaryAccount")) return null;
 
-                    VerificationEntity verificationEntity = new VerificationEntity(user.getLong("primaryAccount"),
-                        manager.getUserAPI().getUsername(user.getLong("primaryAccount")), Long.valueOf(discordUserId),
+                    VerificationEntity verificationEntity = new VerificationEntity(Long.valueOf(user.getString("primaryAccount")),
+                        manager.getUserAPI().getUsername(user.getString("primaryAccount")), Long.valueOf(discordUserId),
                         "bloxlink", true);
                     cache.put("bloxlink:" + discordUserId, verificationEntity);
                     return verificationEntity;
