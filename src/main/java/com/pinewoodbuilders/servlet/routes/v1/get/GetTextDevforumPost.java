@@ -88,6 +88,7 @@ public class GetTextDevforumPost extends SparkRoute {
                 //cache.put(type + ":" + postId, finalObject);
                 return finalObject;
             } else {
+                Xeus.getLogger().error("Failed sending request to Devforum API: Error code `" + response.code() + "`");
                 return null;
             }
         } catch (IOException e) {

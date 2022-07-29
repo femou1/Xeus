@@ -247,7 +247,6 @@ public class VerificationManager {
 
         }
 
-
         changeMemberNickname(member, guild, verificationEntity, verificationTransformer, stringBuilder);
 
         return new VerificationResult(true, verificationEntity, stringBuilder.toString() != null ? stringBuilder.toString() : "You seem to be verified but xeus is doing the weird stuff. Please consult stefano");
@@ -718,7 +717,8 @@ public class VerificationManager {
             } else if (response.code() == 404) {
                 return null;
             } else {
-                throw new Exception("Bloxlink API returned something else then 200, please retry.");
+                Xeus.getLogger().error("Failed sending request to Roblox Ranks API: Error code `" + response.code() + "`");
+                return null;
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending request to Bloxlink API: " + e.getMessage());

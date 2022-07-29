@@ -265,13 +265,13 @@ public class UniformCommand extends Command {
                 JSONObject newAsset = new JSONObject(response.body().string());
 
                 context.makeSuccess("""
-                    Successfully updated:
-                        `:assetName`.
-                    Price: `:price`
-                    Description: ```:description```
-                    Type: `:type`
-                    For Sale: `:forSale`
-                    """)
+                        Successfully updated:
+                            `:assetName`.
+                        Price: `:price`
+                        Description: ```:description```
+                        Type: `:type`
+                        For Sale: `:forSale`
+                        """)
                     .setTitle("Asset Updated {"+asset.getAssetId()+"} - Assets: " + count + "/" + total, "https://www.roblox.com/catalog/" + newAsset.get("id"))
                     .setFooter("Remaining Tokens: " + bucket.getAvailableTokens())
                     .setTimestamp(Instant.now())
@@ -283,6 +283,10 @@ public class UniformCommand extends Command {
                     .set("forSale", reset ? asset.isForSale() : forSale)
                     .queue(l -> l.delete().queueAfter(1, TimeUnit.MINUTES));
                 TimeUnit.SECONDS.sleep(60);
+            } else {
+                Xeus.getLogger().error("Failed sending request to Roblox Assets API: Error code `" + response.code() + "`");
+                busy = false;
+                return false;
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending sync with beacon request: " + e.getMessage());

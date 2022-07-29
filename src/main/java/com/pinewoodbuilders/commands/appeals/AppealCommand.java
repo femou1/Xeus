@@ -45,7 +45,7 @@ public class AppealCommand extends Command {
 
     @Override
     public List <String> getTriggers() {
-        return Arrays.asList("deletion");
+        return Arrays.asList("appeal", "a");
     }
 
     @Override

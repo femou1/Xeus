@@ -1,12 +1,12 @@
 package com.pinewoodbuilders.roblox.api.group;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.pinewoodbuilders.AppInfo;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.requests.service.group.GroupRanksService;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
 import com.pinewoodbuilders.utilities.CacheUtil;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import okhttp3.Request;
 import okhttp3.Response;
 
@@ -59,6 +59,9 @@ public class GroupAPIRoutes {
                 if (grs.getRoles().size() > 0) {
                     return grs;
                 }
+            } else {
+                Xeus.getLogger().error("Failed sending request to Roblox Group API: Error code `" + response.code() + "`");
+                return null;
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending request to Roblox Group API: " + e.getMessage());

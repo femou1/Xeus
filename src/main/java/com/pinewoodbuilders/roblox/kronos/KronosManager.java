@@ -72,7 +72,8 @@ public class KronosManager {
     }
 
     public boolean isRanklocked(Long userId, String division) {
-        Request.Builder request = new Request.Builder()
+        return false;
+        /*Request.Builder request = new Request.Builder()
             .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
             .addHeader("Access-Key", apikey)
             .url("https://pb-kronos.dev/api/v2/users/" + userId + "/ranklocks");
@@ -94,11 +95,12 @@ public class KronosManager {
                 throw new Exception("Kronos API returned something else then 200, please retry.");
             }
         } catch (IOException e) {
+            e.printStackTrace();
             Xeus.getLogger().error("Failed sending request to Kronos Ranklock API: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return false;
+        return false;*/
     }
 
     public boolean hasRanklockAnywhere(Long userId) {

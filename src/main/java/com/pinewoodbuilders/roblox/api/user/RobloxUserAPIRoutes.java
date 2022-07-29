@@ -33,7 +33,7 @@ public class RobloxUserAPIRoutes {
         .build();
 
     public List <RobloxUserGroupRankService.Data> getUserRanks(Long botAccount) {
-        request.url("https://groups.roblox.com/v2/users/{userId}/groups/roles".replace("{userId}", botAccount.toString()));
+        request.get().url("https://groups.roblox.com/v2/users/{userId}/groups/roles".replace("{userId}", botAccount.toString()));
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
@@ -42,6 +42,9 @@ public class RobloxUserAPIRoutes {
                     return null;
                 }
                 return grs.getData();
+            } else {
+                Xeus.getLogger().error("Failed sending request to Roblox Ranks API: Error code `" + response.code() + "`");
+                return null;
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending request to Roblox Ranks API: " + e.getMessage());
@@ -50,12 +53,15 @@ public class RobloxUserAPIRoutes {
     }
 
     public String getUserStatus(Long botAccount) {
-        request.url("https://users.roblox.com/v1/users/{userId}".replace("{userId}", botAccount.toString()));
+        request.get().url("https://users.roblox.com/v1/users/{userId}".replace("{userId}", botAccount.toString()));
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
                 JSONObject json = new JSONObject(response.body().string());
                 return json.getString("description");
+            } else {
+                Xeus.getLogger().error("Failed sending request to Roblox User Desc API: Error code `" + response.code() + "`");
+                return null;
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending request to Roblox User Desc API: " + e.getMessage());
@@ -69,12 +75,15 @@ public class RobloxUserAPIRoutes {
             return username;
         }
 
-        request.url("https://users.roblox.com/v1/users/{userId}".replace("{userId}", userId));
+        request.get().url("https://users.roblox.com/v1/users/{userId}".replace("{userId}", userId));
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
                 JSONObject json = new JSONObject(response.body().string());
                 cache.put("username." + userId, json.getString("name"));
                 return json.getString("name");
+            } else {
+                Xeus.getLogger().error("Failed sending request to Roblox Username API: Error code `" + response.code() + "`");
+                return null;
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending request to Roblox Username API: " + e.getMessage());
@@ -107,8 +116,10 @@ public class RobloxUserAPIRoutes {
                         return user.getLong("id");
                     }
                 }
-                return 0;
+            } else {
+                Xeus.getLogger().error("Failed sending request to Roblox Usernames API: Error code `" + response.code() + "`");
             }
+            return 0;
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending request to Roblox Usernames API: " + e.getMessage());
         }
@@ -117,7 +128,7 @@ public class RobloxUserAPIRoutes {
 
 
     public List <RobloxGamePassService.Datum> getUserGamePass(Long userId, Long gamepassId) {
-        request.url("https://inventory.roblox.com/v1/users/{userId}/items/GamePass/{gamepassId}"
+        request.get().url("https://inventory.roblox.com/v1/users/{userId}/items/GamePass/{gamepassId}"
             .replace("{userId}", userId.toString())
             .replace("{gamepassId}", gamepassId.toString()));
 
@@ -128,6 +139,9 @@ public class RobloxUserAPIRoutes {
                     return null;
                 }
                 return grs.getData();
+            } else {
+                Xeus.getLogger().error("Failed sending request to Roblox Gamepass API: Error code `" + response.code() + "`");
+                return null;
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending request to Roblox Gamepass API: " + e.getMessage());
