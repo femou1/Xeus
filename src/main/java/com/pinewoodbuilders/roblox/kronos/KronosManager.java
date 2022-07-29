@@ -60,7 +60,7 @@ public class KronosManager {
                 throw new Exception("Kronos API returned something else then 200, please retry.");
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Kronos API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to Kronos Points API: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -94,7 +94,7 @@ public class KronosManager {
                 throw new Exception("Kronos API returned something else then 200, please retry.");
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Kronos API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to Kronos Ranklock API: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -127,7 +127,7 @@ public class KronosManager {
                 throw new Exception("Kronos API returned something else then 200, please retry.");
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Kronos API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to Kronos any ranklock API: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -157,7 +157,7 @@ public class KronosManager {
                 throw new Exception("Kronos API returned something else then 200, please retry.");
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Kronos API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to Kronos Evals API: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -195,7 +195,7 @@ public class KronosManager {
                     throw new Exception("Kronos API returned something else then 200 or 400, please retry.");
                 }
             } catch (IOException e) {
-                Xeus.getLogger().error("Failed sending request to Kronos API: " + e.getMessage());
+                Xeus.getLogger().error("Failed sending request to Kronos blacklist API: " + e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -235,7 +235,7 @@ public class KronosManager {
                     throw new Exception("Kronos API returned something else then 200, please retry.");
                 }
             } catch (IOException e) {
-                Xeus.getLogger().error("Failed sending request to Kronos API: " + e.getMessage());
+                Xeus.getLogger().error("Failed sending request to Kronos trellobans API: " + e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
             }

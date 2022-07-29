@@ -80,8 +80,74 @@ public class UpdateCommand extends Command {
         return switch (args[0].toLowerCase()) {
             case "everyone", "all", "guild" -> updateEveryone(context);
             case "role" -> updateMembersWithRole(context, args);
+            case "unroled" -> updateMembersWithoutRole(context);
             default -> updateMember(context, args);
         };
+    }
+
+    private boolean updateMembersWithoutRole(CommandMessage context) {
+        int level = XeusPermissionUtil.getPermissionLevel(context).getLevel();
+        if (level < GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
+            context.makeError("You got to be LGL or above to run this command.").queue();
+            return false;
+        }
+
+        if (verificationRunning) {
+            context.makeError("Somewhere, verification is already running. Please try again later...").queue();
+            return false;
+        }
+
+        List<Member> members = context.getGuild().getMembers().stream().filter(m -> m.getRoles().isEmpty()).toList();
+        context.makeWarning(
+                "Running verification...\nDepending on the role total members (:members) this might take a while. You will be mentioned once the time is over.")
+            .set("members", members.size()).queue();
+        AtomicInteger count = new AtomicInteger();
+
+        GuildSettingsTransformer settings = context.getGuildSettingsTransformer();
+        if (settings == null) {
+            context.makeError("Guild settings not found.").queue();
+            return false;
+        }
+
+        verificationRunning = true;
+        HashMap <Member, String> ignoredMembers = new HashMap <>();
+
+        Bucket bucket = Bucket.builder()
+            .addLimit(Bandwidth.classic(45, Refill.intervally(45, Duration.ofMinutes(1))))
+            .build();
+
+        for (Member member : members) {
+
+            ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
+            if (!probe.isConsumed()) {
+                try {
+                    long timeUntilRefill = probe.getNanosToWaitForReset();
+                    long refillTime = timeUntilRefill != 0L ? timeUntilRefill : 0;
+                    long durationInMs = TimeUnit.MILLISECONDS.convert(refillTime, TimeUnit.NANOSECONDS);
+                    long durationInSeconds = TimeUnit.SECONDS.convert(refillTime, TimeUnit.NANOSECONDS);
+
+                    TimeUnit.NANOSECONDS.sleep(refillTime);
+                } catch (InterruptedException ignored) {
+                    context.makeError("Rate-limit interrupted, update cancelled.").queue();
+                    return false;
+                }
+            }
+
+            updateMember(context, count, settings, ignoredMembers, member);
+
+        }
+        context.getChannel().sendMessage(context.getMember().getAsMention())
+            .setEmbeds(context.makeSuccess("All members have been updated").buildEmbed()).queue();
+
+        List <String> failedMembers = new ArrayList <>();
+        ignoredMembers.forEach((m, r) -> {
+            failedMembers.add("`" + m.getEffectiveName() + "` - **" + r + "**");
+        });
+
+        verificationRunning = false;
+        builder.setText("All members that failed to update:").setItems(failedMembers);
+        builder.build().paginate(context.getChannel(), 0);
+        return !verificationRunning;
     }
 
     private boolean updateMembersWithRole(CommandMessage context, String[] args) {

@@ -160,7 +160,7 @@ public class EvaluationCommand extends Command {
                 }
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to Pastebin API: " + e.getMessage());
         }
         return true;
     }
@@ -193,7 +193,7 @@ public class EvaluationCommand extends Command {
                 System.out.println(failed);
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to Pastebin API: " + e.getMessage());
         }
         return true;
     }

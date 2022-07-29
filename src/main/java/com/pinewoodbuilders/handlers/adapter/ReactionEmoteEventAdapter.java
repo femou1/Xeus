@@ -43,9 +43,9 @@ import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.emoji.EmojiUnion;
-import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.events.emoji.EmojiRemovedEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
@@ -122,7 +122,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
     @SuppressWarnings("ConstantConditions")
     public void onMessageReactionAdd(MessageReactionAddEvent event) {
-        if (event.getEmoji() instanceof RichCustomEmoji emoji) {
+        if (event.getEmoji() instanceof CustomEmoji emoji) {
 
             ReactionTransformer transformer = getReactionTransformerFromMessageIdAndCheckPermissions(
                 event.getGuild(), event.getMessageId(), emoji.getIdLong()
@@ -152,7 +152,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
 
     @SuppressWarnings("ConstantConditions")
     public void onMessageReactionRemove(MessageReactionRemoveEvent event) {
-        if (event.getEmoji() instanceof RichCustomEmoji emoji) {
+        if (event.getEmoji() instanceof CustomEmoji emoji) {
             ReactionTransformer transformer = getReactionTransformerFromMessageIdAndCheckPermissions(
                 event.getGuild(), event.getMessageId(), emoji.getIdLong()
             );

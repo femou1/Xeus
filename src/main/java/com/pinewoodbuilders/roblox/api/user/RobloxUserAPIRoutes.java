@@ -44,7 +44,7 @@ public class RobloxUserAPIRoutes {
                 return grs.getData();
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to Roblox Ranks API: " + e.getMessage());
         }
         return null;
     }
@@ -58,7 +58,7 @@ public class RobloxUserAPIRoutes {
                 return json.getString("description");
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to Roblox User Desc API: " + e.getMessage());
         }
         return null;
     }
@@ -77,7 +77,7 @@ public class RobloxUserAPIRoutes {
                 return json.getString("name");
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to Roblox Username API: " + e.getMessage());
         }
         return null;
     }
@@ -92,7 +92,7 @@ public class RobloxUserAPIRoutes {
 
 
         request.url("https://users.roblox.com/v1/usernames/users")
-            .post(RequestBody.create("{\"usernames\":[\"" + username + "\"]}", json));
+            .post(RequestBody.create("{\"usernames\":[\"" + username + "\"], \"excludeBannedUsers\": false}", json));
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
@@ -102,7 +102,7 @@ public class RobloxUserAPIRoutes {
                 if (array.length() == 0) return 0;
                 for (Object o : array) {
                     JSONObject user = (JSONObject) o;
-                    if (user.getString("name").equalsIgnoreCase(username)) {
+                    if (user.getString("requestedUsername").equalsIgnoreCase(username)) {
                         cache.put("robloxId." + username, String.valueOf(user.getLong("id")));
                         return user.getLong("id");
                     }
@@ -110,7 +110,7 @@ public class RobloxUserAPIRoutes {
                 return 0;
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to Roblox Usernames API: " + e.getMessage());
         }
         return 0;
     }
@@ -129,7 +129,7 @@ public class RobloxUserAPIRoutes {
                 }
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to Roblox Gamepass API: " + e.getMessage());
         }
         return null;
     }

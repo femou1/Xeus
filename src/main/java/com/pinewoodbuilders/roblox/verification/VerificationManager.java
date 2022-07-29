@@ -704,10 +704,11 @@ public class VerificationManager {
 
                 if (json.getBoolean("success") && json.has("user")) {
 
-                    json = json.getJSONObject("user");
+                    JSONObject user = json.getJSONObject("user");
+                    if (!user.has("primaryAccount")) return null;
 
-                    VerificationEntity verificationEntity = new VerificationEntity(json.getLong("primaryAccount"),
-                        manager.getUserAPI().getUsername(json.getLong("primaryAccount")), Long.valueOf(discordUserId),
+                    VerificationEntity verificationEntity = new VerificationEntity(user.getLong("primaryAccount"),
+                        manager.getUserAPI().getUsername(user.getLong("primaryAccount")), Long.valueOf(discordUserId),
                         "bloxlink", true);
                     cache.put("bloxlink:" + discordUserId, verificationEntity);
                     return verificationEntity;
@@ -775,7 +776,7 @@ public class VerificationManager {
                 throw new Exception("Rover API returned something else then 200, please retry.");
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to Rover API: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -884,7 +885,7 @@ public class VerificationManager {
                 throw new Exception("RoWifi API returned something else then 200, please retry.");
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to RoWifi API: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }

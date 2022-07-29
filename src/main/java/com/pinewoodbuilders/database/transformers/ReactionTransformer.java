@@ -26,6 +26,7 @@ import com.pinewoodbuilders.contracts.database.transformers.Transformer;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.google.gson.reflect.TypeToken;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 
 import javax.annotation.Nonnull;
@@ -75,7 +76,7 @@ public class ReactionTransformer extends Transformer {
      * @return Possibly-null, the ID of the role that is linked/attached to the given emote.
      */
     @Nullable
-    public Long getRoleIdFromEmote(@Nonnull RichCustomEmoji emote) {
+    public Long getRoleIdFromEmote(@Nonnull CustomEmoji emote) {
         if (!roles.containsKey(emote.getIdLong())) {
             return null;
         }

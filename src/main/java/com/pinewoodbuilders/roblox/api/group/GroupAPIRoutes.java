@@ -61,7 +61,7 @@ public class GroupAPIRoutes {
                 }
             }
         } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Roblox API: " + e.getMessage());
+            Xeus.getLogger().error("Failed sending request to Roblox Group API: " + e.getMessage());
         }
         return null;
     }
