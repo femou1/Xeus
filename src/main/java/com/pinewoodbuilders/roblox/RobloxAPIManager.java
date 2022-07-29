@@ -12,9 +12,14 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class RobloxAPIManager {
-    private final OkHttpClient client = new OkHttpClient();
+    private final OkHttpClient client = new OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build();
     private final RobloxUserAPIRoutes userAPI;
     private final VerificationManager verification;
     private final GroupAPIRoutes groupAPI;

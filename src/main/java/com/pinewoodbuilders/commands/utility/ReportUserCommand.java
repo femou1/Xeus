@@ -310,7 +310,7 @@ public class ReportUserCommand extends Command {
 
 
             List <RobloxUserGroupRankService.Data> grs = avaire.getRobloxAPIManager().getUserAPI().getUserRanks(requestedId);
-            if (grs.isEmpty()) {
+            if (grs == null) {
                 act.getInteraction().reply("You are not in any groups.").queue();
                 return;
             }

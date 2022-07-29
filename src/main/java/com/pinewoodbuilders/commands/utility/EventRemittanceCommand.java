@@ -263,23 +263,23 @@ public class EventRemittanceCommand extends Command {
 
             if (d.getInt("roblox_group_id") != 0) {
 
-                        List <RobloxUserGroupRankService.Data> grs = avaire.getRobloxAPIManager().getUserAPI().getUserRanks(requestedId);
+                List <RobloxUserGroupRankService.Data> grs = avaire.getRobloxAPIManager().getUserAPI().getUserRanks(requestedId);
 
-                        if (grs.isEmpty()) {
-                            context.makeError("You are not in any groups.").queue();
-                            removeAllUserMessages(messagesToRemove);
-                            return;
-                        }
+                if (grs == null) {
+                    context.makeError("You are not in any groups.").queue();
+                    removeAllUserMessages(messagesToRemove);
+                    return;
+                }
 
-                        Optional <RobloxUserGroupRankService.Data> b = grs.stream().filter(g -> g.getGroup().getId() == d.getInt("roblox_group_id")).findFirst();
+                Optional <RobloxUserGroupRankService.Data> b = grs.stream().filter(g -> g.getGroup().getId() == d.getInt("roblox_group_id")).findFirst();
 
-                        if (b.isPresent()) {
-                            startConfirmationWaiter(context, message, b, d, content, messagesToRemove);
-                        } else {
-                            //context.makeInfo(String.valueOf(response.getResponse().code())).queue();
-                            context.makeError("You're not in ``:guild``, please check if this is correct or not.").set("guild", d.getString("name")).queue();
-                            removeAllUserMessages(messagesToRemove);
-                        }
+                if (b.isPresent()) {
+                    startConfirmationWaiter(context, message, b, d, content, messagesToRemove);
+                } else {
+                    //context.makeInfo(String.valueOf(response.getResponse().code())).queue();
+                    context.makeError("You're not in ``:guild``, please check if this is correct or not.").set("guild", d.getString("name")).queue();
+                    removeAllUserMessages(messagesToRemove);
+                }
 
             } else {
                 startConfirmationWaiter(context, message, Optional.empty(), d, content, messagesToRemove);
@@ -334,21 +334,21 @@ public class EventRemittanceCommand extends Command {
 
 
             tc.sendMessageEmbeds(context.makeEmbeddedMessage(new Color(32, 34, 37))
-                .setAuthor("Event remittance from: " + username, null, getImageByName(context.guild, username))
-                .setDescription(
-                    "**Username**: " + username + "\n" +
-                        (groupInfo.map(data -> "**Rank**: " + data.getRole().getName() + "\n").orElse("")) +
-                        "**Proof**: \n" + evidence)
-                .requestedBy(context)
-                .setTimestamp(Instant.now())
-                .setThumbnail(getImageFromDiscordId(context.getMember().getId()))
-                .buildEmbed())
+                    .setAuthor("Event remittance from: " + username, null, getImageByName(context.guild, username))
+                    .setDescription(
+                        "**Username**: " + username + "\n" +
+                            (groupInfo.map(data -> "**Rank**: " + data.getRole().getName() + "\n").orElse("")) +
+                            "**Proof**: \n" + evidence)
+                    .requestedBy(context)
+                    .setTimestamp(Instant.now())
+                    .setThumbnail(getImageFromDiscordId(context.getMember().getId()))
+                    .buildEmbed())
                 .setActionRow(b1.asEnabled(), b2.asEnabled(), b3.asEnabled())
                 .queue(
                     finalMessage -> {
 
                         message.editMessageEmbeds(context.makeSuccess("[Your remittance has been created in the correct channel.](:link).").set("link", finalMessage.getJumpUrl())
-                            .buildEmbed())
+                                .buildEmbed())
                             .queue();
                         //createReactions(finalMessage);
                         try {
@@ -477,7 +477,7 @@ public class EventRemittanceCommand extends Command {
 
     private boolean updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel, RichCustomEmoji emote) {
         transformer.setPatrolRemittance(channel.getId());
-    
+
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
         try {
             qb.update(q -> {

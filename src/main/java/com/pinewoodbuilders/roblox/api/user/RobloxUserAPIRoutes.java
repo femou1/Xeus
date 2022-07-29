@@ -124,9 +124,10 @@ public class RobloxUserAPIRoutes {
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200) {
                 RobloxGamePassService grs = (RobloxGamePassService) manager.toService(response, RobloxGamePassService.class);
-                if (grs.hasData()) {
-                    return grs.getData();
+                if (!grs.hasData()) {
+                    return null;
                 }
+                return grs.getData();
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending request to Roblox Gamepass API: " + e.getMessage());

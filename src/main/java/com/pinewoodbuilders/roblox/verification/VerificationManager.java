@@ -250,7 +250,7 @@ public class VerificationManager {
 
         changeMemberNickname(member, guild, verificationEntity, verificationTransformer, stringBuilder);
 
-        return new VerificationResult(true, verificationEntity, stringBuilder.toString());
+        return new VerificationResult(true, verificationEntity, stringBuilder.toString() != null ? stringBuilder.toString() : "You seem to be verified but xeus is doing the weird stuff. Please consult stefano");
     }
 
     private void changeMemberNickname(Member member, Guild guild, VerificationEntity verificationEntity, VerificationTransformer verificationTransformer, StringBuilder stringBuilder) {
