@@ -35,6 +35,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -55,7 +57,8 @@ public class VerificationManager {
     private final Xeus avaire;
     private final RobloxAPIManager manager;
     private final VerificationMethodsManager verificationMethodsManager;
-    private final HashMap<Long, String> inVerification = new HashMap<>();
+    private final HashMap <Long, String> inVerification = new HashMap <>();
+    private static final Logger log = LoggerFactory.getLogger(VerificationManager.class);
 
     public VerificationManager(Xeus avaire, RobloxAPIManager robloxAPIManager) {
         this.avaire = avaire;
@@ -706,7 +709,7 @@ public class VerificationManager {
                     JSONObject user = json.getJSONObject("user");
                     if (!user.has("primaryAccount") || user.isNull("primaryAccount")) return null;
 
-                    System.out.println("[Bloxlink] Found user " + discordUserId + " in Bloxlink");
+                    log.debug("[Bloxlink] Found user " + discordUserId + " in Bloxlink");
                     VerificationEntity verificationEntity = new VerificationEntity(Long.valueOf(user.getString("primaryAccount")),
                         manager.getUserAPI().getUsername(user.getString("primaryAccount")), Long.valueOf(discordUserId),
                         "bloxlink", true);
@@ -735,6 +738,7 @@ public class VerificationManager {
         return switch (discordUserId.split(":")[0]) {
             case "rover" -> callUserFromRoverAPI(discordUserId.split(":")[1]);
             case "bloxlink" -> callUserFromBloxlinkAPI(discordUserId.split(":")[1]);
+            case "wowifi" -> callUserFromRoWifiAPI(discordUserId.split(":")[1]);
             default -> callUserFromDatabaseAPI(discordUserId.split(":")[1]);
         };
     }
@@ -749,6 +753,7 @@ public class VerificationManager {
                 VerificationEntity ve = new VerificationEntity(linkedAccounts.first().getLong("robloxId"),
                     manager.getUserAPI().getUsername(linkedAccounts.first().getLong("robloxId")), Long.valueOf(discordUserId),
                     "pinewood", true);
+                log.debug("[Pinewood] Found user " + discordUserId + " in Pinewood");
                 cache.put("pinewood:" + discordUserId, ve);
                 return ve;
             }
@@ -768,7 +773,7 @@ public class VerificationManager {
 
                 VerificationEntity verificationEntity = new VerificationEntity(json.getLong("robloxId"),
                     manager.getUserAPI().getUsername(json.getLong("robloxId")), Long.valueOf(discordUserId), "rover", true);
-
+                log.debug("[Rover] Found user " + discordUserId + " in Rover");
                 cache.put(discordUserId, verificationEntity);
                 return verificationEntity;
             } else if (response.code() == 404) {

@@ -21,6 +21,7 @@
 
 package com.pinewoodbuilders.database;
 
+import com.mysql.cj.jdbc.exceptions.MySQLTransactionRollbackException;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.database.BatchQueryFunction;
 import com.pinewoodbuilders.contracts.database.Database;
@@ -33,7 +34,6 @@ import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.schema.Schema;
 import com.pinewoodbuilders.database.seeder.SeederManager;
 import com.pinewoodbuilders.metrics.Metrics;
-import com.mysql.cj.jdbc.exceptions.MySQLTransactionRollbackException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -48,7 +48,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DatabaseManager {
 
     private static final Logger log = LoggerFactory.getLogger(DatabaseManager.class);
-
     private final Xeus avaire;
     private final Schema schema;
     private final Migrations migrations;
@@ -433,9 +432,7 @@ public class DatabaseManager {
 
         Connection connection = getConnection().getConnection();
 
-        if (!runningBatchRequests.contains(batchId)) {
-            runningBatchRequests.add(batchId);
-        }
+        runningBatchRequests.add(batchId);
 
         try {
             connection.setAutoCommit(false);

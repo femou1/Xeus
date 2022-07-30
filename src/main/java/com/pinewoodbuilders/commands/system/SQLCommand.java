@@ -21,6 +21,7 @@
 
 package com.pinewoodbuilders.commands.system;
 
+import com.google.common.base.Joiner;
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.TableBuilder;
 import com.pinewoodbuilders.commands.CommandMessage;
@@ -29,7 +30,6 @@ import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.database.exceptions.DatabaseException;
 import com.pinewoodbuilders.utilities.NumberUtil;
-import com.google.common.base.Joiner;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -119,8 +119,8 @@ public class SQLCommand extends SystemCommand {
             .setContent(items)
             .build();
 
-        if (tableContent.trim().length() > 2000) {
-            tableContent = tableContent.trim().substring(0, 1900) + "\nData too long, " + NumberUtil.formatNicely(tableContent.length() - 1900) + " characters has been hidden.";
+        if (tableContent.trim().length() > 4000) {
+            tableContent = tableContent.trim().substring(0, 3900) + "\nData too long, " + NumberUtil.formatNicely(tableContent.length() - 3900) + " characters has been hidden.";
         }
 
         context.getMessageChannel()

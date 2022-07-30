@@ -137,7 +137,7 @@ public class UpdateHandbookCommand extends Command {
         if (urlParser.host().equals("devforum.pinewood-builders.com")) {
             if (avaire.getConfig().getString("apiKeys.discourse.pinewood").length() < 1) {
                 return sendErrorMessage(context, "API Key for the PB Devforum is not set, this request will not proceed.");
-            };
+            }
 
             apiKey = avaire.getConfig().getString("apiKeys.discourse.pinewood");
         }
@@ -163,7 +163,7 @@ public class UpdateHandbookCommand extends Command {
         if (devForumUrlParser.host().equals("devforum.roblox.com")) {
             if (avaire.getConfig().getString("apiKeys.discourse.roblox").length() < 1) {
                 return sendErrorMessage(context, "API Key for the PB Devforum is not set, this request will not proceed.");
-            };
+            }
 
             devForumApiKey = avaire.getConfig().getString("apiKeys.discourse.roblox");
         }
@@ -234,7 +234,7 @@ public class UpdateHandbookCommand extends Command {
             return sendErrorMessage(context, "You can't approve your own changes dummy.");
         }
 
-        if (approvals.contains(context.getAuthor().getIdLong())) {
+        if (approvals.contains(d.getUser().getIdLong())) {
             return sendErrorMessage(context, "You already approved the changes dummy.");
         }
 
@@ -244,7 +244,7 @@ public class UpdateHandbookCommand extends Command {
             context.makeError("You do not have the correct permission level (LGL)").queue();
             return false;
         }
-        approvals.add(d.getIdLong());
+        approvals.add(d.getUser().getIdLong());
 
         context.makeSuccess(d.getMember().getEffectiveName() + " has approved the changes. (" + approvals.size() + "/3)").queue();
         return approvals.size() >= 3;

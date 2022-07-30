@@ -15,6 +15,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,6 +30,7 @@ public class KronosManager {
     protected final String apikey;
     private final String evalApiKey;
     private final String blacklistKey;
+    private static final Logger log = LoggerFactory.getLogger(KronosManager.class);
 
     public KronosManager(Xeus avaire, RobloxAPIManager robloxAPIManager) {
         this.avaire = avaire;
@@ -72,11 +75,10 @@ public class KronosManager {
     }
 
     public boolean isRanklocked(Long userId, String division) {
-        return false;
-        /*Request.Builder request = new Request.Builder()
+        Request.Builder request = new Request.Builder()
             .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
             .addHeader("Access-Key", apikey)
-            .url("https://pb-kronos.dev/api/v2/users/" + userId + "/ranklocks");
+            .url("https://pb-kronos.dev/api/v2/users/" + userId + "/basic");
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200 && response.body() != null) {
@@ -100,7 +102,7 @@ public class KronosManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return false;*/
+        return false;
     }
 
     public boolean hasRanklockAnywhere(Long userId) {
@@ -136,47 +138,80 @@ public class KronosManager {
         return false;
     }
 
-    public Object modifyEvalStatus(Long userId, String division, boolean status) {
+    public boolean hasNegativePointsAnywhere(Long userId) {
+        Request.Builder request = new Request.Builder()
+            .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
+            .addHeader("Access-Key", apikey)
+            .url("https://pb-kronos.dev/api/v2/users/" + userId + "/basic");
+
+        try (Response response = manager.getClient().newCall(request.build()).execute()) {
+            if (response.code() == 200 && response.body() != null) {
+                String body = response.body().string();
+
+                JSONObject jsonObject = new JSONObject(body);
+                if (jsonObject.length() == 0) {
+                    return false;
+                }
+
+                for (String group : jsonObject.keySet()) {
+                    if (jsonObject.getJSONObject(group).getBoolean("HasNegativePoints")) return true;
+                }
+
+                return false;
+            } else if (response.code() == 404) {
+                return false;
+            } else {
+                throw new Exception("Kronos basic API returned something else then 200, please retry.");
+            }
+        } catch (IOException e) {
+            Xeus.getLogger().error("Failed sending request to Kronos any basic API: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void modifyEvalStatus(Long userId, String division, boolean status) {
         Request.Builder request = new Request.Builder()
             .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
             .addHeader("Access-Key", evalApiKey);
 
         if (status) {
-            request.url("https://pb-kronos.dev/api/v2/database/"+division+"/eval/add/" + userId);
+            request.url("https://pb-kronos.dev/api/v2/database/" + division + "/eval/add/" + userId);
         } else {
-            request.url("https://pb-kronos.dev/api/v2/database/"+division+"/eval/delete/" + userId);
+            request.url("https://pb-kronos.dev/api/v2/database/" + division + "/eval/delete/" + userId);
         }
 
         try (Response response = manager.getClient().newCall(request.build()).execute()) {
             if (response.code() == 200 && response.body() != null) {
                 String body = response.body().string();
-                return new JSONObject(body);
+                new JSONObject(body);
             } else if (response.code() == 404) {
-                return new JSONObject();
+                new JSONObject();
             } else if (response.code() == 501) {
-                return new JSONObject("[{\"error\": \"Eval status could not be set.\"}]");
+                new JSONObject("[{\"error\": \"Eval status could not be set.\"}]");
             } else {
-                throw new Exception("Kronos API returned something else then 200, please retry.");
+                throw new Exception("Kronos API returned something else then 200, 404 or 501, please retry.");
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending request to Kronos Evals API: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
     }
 
     public ArrayList <Long> getBlacklist(String division) {
         ArrayList <Long> list = new ArrayList <>();
         String cacheToken = "blacklist."+division+".blacklists";
-
+        log.debug("Getting blacklist for division: " + division);
         if (avaire.getCache().getAdapter(CacheType.FILE).has(cacheToken)) {
+            log.debug("Found blacklist in cache for division: " + division);
             List <LinkedTreeMap <String, Double>> items = (List <LinkedTreeMap <String, Double>>) avaire.getCache()
                 .getAdapter(CacheType.FILE).get(cacheToken);
             for (LinkedTreeMap <String, Double> item : items) {
                 list.add(item.get("id").longValue());
             }
-            //log.info("pbm Blacklist has been requested.");
+            log.debug("Found " + list.size() + " blacklist entries for division: " + division);
         } else {
             Request.Builder request = new Request.Builder()
                 .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
@@ -185,12 +220,15 @@ public class KronosManager {
 
             try (okhttp3.Response response = manager.getClient().newCall(request.build()).execute()) {
                 if (response.code() == 200 && response.body() != null) {
+                    log.debug("Found blacklist in Kronos for division: " + division);
                     List <LinkedTreeMap <String, Double>> service =
                         (List <LinkedTreeMap <String, Double>>) manager.toService(response.body().string(), List.class);
                     for (LinkedTreeMap <String, Double> item : service) {
                         list.add(item.get("id").longValue());
                     }
+                    log.debug("Found " + list.size() + " blacklist entries for division: " + division);
                     avaire.getCache().getAdapter(CacheType.FILE).remember(cacheToken, 60 * 60, () -> service);
+                    log.debug("Cached blacklist for division: " + division);
                 } else if (response.code() == 404) {
                     return list;
                 } else {
@@ -209,28 +247,34 @@ public class KronosManager {
     public HashMap <Long, List<TrellobanLabels>> getTrelloBans(long mainGroupId) {
         String cache = (String) avaire.getCache().getAdapter(CacheType.FILE).get("trelloban.global." + mainGroupId);
         HashMap<Long, List<TrellobanLabels>> root = new HashMap<>();
+        log.debug("Getting trello bans for main group: " + mainGroupId);
         if (cache != null) {
+            log.debug("Found trello bans in cache for main group: " + mainGroupId);
             TrellobanService tbs = (TrellobanService) avaire.getRobloxAPIManager().toService(cache, TrellobanService.class);
-            //System.out.println(avaire.getCache().getAdapter(CacheType.FILE).get("trelloban.global"));
-            //System.out.println(tbs.getLoaded());
 
             createTrelloBanList(root, tbs);
+            log.debug("Found " + root.size() + " trello bans for main group: " + mainGroupId);
 
         } else {
-
+            log.debug("No trello bans found in cache for main group: " + mainGroupId);
             Request.Builder request = new Request.Builder()
                 .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
                 .addHeader("Access-Key", avaire.getConfig().getString("apiKeys.kronosTrellobanKey"))
                 .url("https://pb-kronos.dev/api/v2/moderation/admin");
+            log.debug("Sending request to Kronos trello ban API");
 
             try (Response response = manager.getClient().newCall(request.build()).execute()) {
                 if (response.code() == 200 && response.body() != null) {
+
+                    log.debug("Found trello bans in Kronos for main group: " + mainGroupId);
                     String body = response.body().string();
 
                     TrellobanService tbs = (TrellobanService) avaire.getRobloxAPIManager().toService(body, TrellobanService.class);
 
                     createTrelloBanList(root, tbs);
-                    avaire.getCache().getAdapter(CacheType.FILE).remember("trelloban.global." + mainGroupId, (60*60)*90, () -> body);
+                    log.debug("Found " + root.size() + " trello bans for main group: " + mainGroupId);
+                    avaire.getCache().getAdapter(CacheType.FILE).remember("trelloban.global." + mainGroupId, (60 * 60) * 90, () -> body);
+                    log.debug("Cached trello bans for main group: " + mainGroupId);
                 } else if (response.code() == 404) {
                     return null;
                 } else {

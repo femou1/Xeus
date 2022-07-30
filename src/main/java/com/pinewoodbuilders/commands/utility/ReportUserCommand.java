@@ -213,7 +213,7 @@ public class ReportUserCommand extends Command {
                                                 goToStep2(act, modalUsername, modalReason, modalEvidence, modalProofOfWarning, guildId, message);
 
                                             },
-                                            3, TimeUnit.MINUTES, () -> {
+                                            2, TimeUnit.MINUTES, () -> {
                                                 select.reply("The modal has expired, please try again.").queue();
                                             });
                                     });

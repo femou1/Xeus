@@ -481,10 +481,11 @@ public class AppealsServerEventAdapter extends EventAdapter {
                     !isGlobalBanned && !isGameBanned && !isTrelloBanned && !getBlacklistByShortname(group).contains(ve.getRobloxId());
             case "deletion" ->
                 !isGlobalBanned
-                && !isGameBanned
-                && !isTrelloBanned
-                && !avaire.getBlacklistManager().isAnyBlacklisted(ve.getRobloxId())
-                && !avaire.getRobloxAPIManager().getKronosManager().hasRanklockAnywhere(ve.getRobloxId());
+                    && !isGameBanned
+                    && !isTrelloBanned
+                    && !avaire.getBlacklistManager().isAnyBlacklisted(ve.getRobloxId())
+                    && !avaire.getRobloxAPIManager().getKronosManager().hasNegativePointsAnywhere(ve.getRobloxId())
+                    && !avaire.getRobloxAPIManager().getKronosManager().hasRanklockAnywhere(ve.getRobloxId());
             default -> !isTrelloBanned;
         };
     }

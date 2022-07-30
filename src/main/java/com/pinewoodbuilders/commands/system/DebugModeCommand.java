@@ -70,6 +70,7 @@ public class DebugModeCommand extends SystemCommand {
         ComparatorUtil.ComparatorType type = ComparatorUtil.getFuzzyType(args[0]);
         RestAction.setPassContext(type.getValue());
 
+
         context.makeSuccess("Debug mode has been **:status**")
             .set("status", type.getValue() ? "Enabled" : "Disabled")
             .queue();
