@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.commands.administration;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.chat.SimplePaginator;
 import com.pinewoodbuilders.commands.CommandMessage;
@@ -36,6 +36,7 @@ import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
 import javax.annotation.Nonnull;
@@ -119,7 +120,14 @@ public class ModlogHistoryCommand extends Command {
         } else {
             if (context.getMessage().getMentions().getUsers().size() > 0) {
                 user = context.getMessage().getMentions().getUsers().get(0).getId();
-            } else {user = args[0];}
+            } else {
+                List <Member> effectiveName = context.getGuild().retrieveMembersByPrefix(args[0], 1).get();
+
+                if (effectiveName.isEmpty()) {
+                    return sendErrorMessage(context, context.i18n("mustMentionUser"));
+                }
+                user = effectiveName.get(0).getUser().getId();
+            }
 
         }
 
@@ -144,21 +152,26 @@ public class ModlogHistoryCommand extends Command {
                     .get();
             }
 
-            if (items.isEmpty()) {
-                User u = avaire.getShardManager().getUserById(user);
-                if (u != null) {
-                    context.makeWarning(context.i18n("noHistory"))
-                        .setTitle(context.i18n("title",
-                            u.getName(), u.getDiscriminator(), 0
-                        ))
-                        .queue();
+            if (items.isEmpty() && NumberUtil.isNumeric(args[0])) {
+                if (user != null) {
+                    User u = avaire.getShardManager().getUserById(user);
+                    if (u != null) {
+                        context.makeWarning(context.i18n("noHistory"))
+                            .setTitle(context.i18n("title",
+                                u.getName(), u.getDiscriminator(), 0
+                            ))
+                            .queue();
 
-                    return true;
-                } else {
-                    context.makeError("Unable to find anyone with these parameters...")
-                        .queue();
-                    return false;
+                        return true;
+                    }
                 }
+                context.makeError("Unable to find anyone with these parameters...")
+                    .queue();
+                return false;
+            }
+
+            if (user == null) {
+                return sendErrorMessage(context, context.i18n("mustMentionUser"));
             }
 
             List <String> records = new ArrayList <>();
@@ -196,12 +209,12 @@ public class ModlogHistoryCommand extends Command {
             messages.add("\n" + paginator.generateFooter(context.getGuild(), generateCommandTrigger(context.getMessage())));
 
 
-            int warns = avaire.getWarningsManager().getWarns(context.guild.getIdLong(), Long.valueOf(user)).size();
+            int warns = avaire.getWarningsManager().getWarns(context.guild.getIdLong(), Long.parseLong(user)).size();
 
             PlaceholderMessage mess = context.makeInfo(String.join("\n", messages)).setFooter("This user has " + warns + "running warnings");
             User u = avaire.getShardManager().getUserById(user);
             if (u != null) {
-                    mess.setTitle(context.i18n("title",
+                mess.setTitle(context.i18n("title",
                         u.getName(), u.getDiscriminator(), paginator.getTotal()
                     ))
                     .queue();

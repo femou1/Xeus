@@ -332,7 +332,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
             return;
         }
 
-        reply.deferEdit().queue(
+        reply.deferEdit().submit().thenAccept(
             newReply -> {
 
                 boolean canAppeal = checkIfCanAppeal(type, roles, ve, g);
@@ -490,19 +490,23 @@ public class AppealsServerEventAdapter extends EventAdapter {
     }
 
     private boolean isOtherGuildBanned(VerificationEntity ve) {
-        boolean kddBanned = avaire.getShardManager().getGuildById("791168471093870622").retrieveBanList().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
-        boolean pbBanned = avaire.getShardManager().getGuildById("371062894315569173").retrieveBanList().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
-        boolean pbqaBanned = avaire.getShardManager().getGuildById("791168471093870622").retrieveBanList().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
+        boolean kddBanned = avaire.getShardManager().getGuildById("791168471093870622").retrieveBanList().complete().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
+        boolean pbBanned = avaire.getShardManager().getGuildById("371062894315569173").retrieveBanList().complete().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
+        boolean pbqaBanned = avaire.getShardManager().getGuildById("791168471093870622").retrieveBanList().complete().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
 
         return kddBanned || pbBanned || pbqaBanned;
     }
 
     private boolean isBannedFromShortname(String group, VerificationEntity ve) {
         return switch (group) {
-            case "PBST" -> avaire.getShardManager().getGuildById("438134543837560832").retrieveBanList().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
-            case "PET" -> avaire.getShardManager().getGuildById("436670173777362944").retrieveBanList().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
-            case "TMS" -> avaire.getShardManager().getGuildById("572104809973415943").retrieveBanList().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
-            case "PBM" -> avaire.getShardManager().getGuildById("498476405160673286").retrieveBanList().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
+            case "PBST" ->
+                avaire.getShardManager().getGuildById("438134543837560832").retrieveBanList().complete().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
+            case "PET" ->
+                avaire.getShardManager().getGuildById("436670173777362944").retrieveBanList().complete().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
+            case "TMS" ->
+                avaire.getShardManager().getGuildById("572104809973415943").retrieveBanList().complete().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
+            case "PBM" ->
+                avaire.getShardManager().getGuildById("498476405160673286").retrieveBanList().complete().stream().anyMatch(k -> k.getUser().getIdLong() == ve.getDiscordId());
             default -> false;
         };
     }

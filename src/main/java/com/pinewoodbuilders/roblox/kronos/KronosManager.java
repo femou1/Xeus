@@ -94,7 +94,8 @@ public class KronosManager {
             } else if (response.code() == 404) {
                 return false;
             } else {
-                throw new Exception("Kronos API returned something else then 200, please retry.");
+                log.debug("Kronos API returned something else then 200 " + response.code() + ", please retry.");
+                return false;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -128,7 +129,8 @@ public class KronosManager {
             } else if (response.code() == 404) {
                 return false;
             } else {
-                throw new Exception("Kronos API returned something else then 200, please retry.");
+                log.debug("Kronos API returned something else then 200 " + response.code() + ", please retry.");
+                return false;
             }
         } catch (IOException e) {
             Xeus.getLogger().error("Failed sending request to Kronos any ranklock API: " + e.getMessage());
