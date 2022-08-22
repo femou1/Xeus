@@ -17,6 +17,7 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Modal;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -71,7 +72,8 @@ public class AppealsServerEventAdapter extends EventAdapter {
     public void onAppealsSelectMenuInteractionEvent(SelectMenuInteractionEvent event) {
         String[] selection = event.getSelectedOptions().get(0).getValue().split(":");
 
-        if (selection[0].startsWith("decline")) event.editMessageEmbeds(new EmbedBuilder().setDescription("Rejected").build()).queue();
+        if (selection[0].startsWith("decline"))
+            event.editMessageEmbeds(new EmbedBuilder().setDescription("Rejected").build()).queue();
 
         switch (selection[0].toLowerCase()) {
             case "guild" -> guildSelectionMenu(selection, event);
@@ -79,7 +81,6 @@ public class AppealsServerEventAdapter extends EventAdapter {
             case "deletion" -> createDeletionChannel(selection, event, event.getGuild(), event.getUser());
         }
     }
-
 
 
     // start-appeal
@@ -101,7 +102,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
                     **7**. Do not go begging for your data to be restored. ___YOU WILL NOT BE ABLE TO RESTORE YOUR DATA___.
                     **8**. In case of a Xeus deletion, you will be given a 72 hour block on the bot, unable to verify or use the bot in any discord.
                     **9**. If you are trello-banned, you cannot use this system.
-                    
+                                        
                     By clicking on the "I AGREE" selector below ___YOU CONFIRM THAT YOU WANT YOUR DATA DELETED, THAT THIS IS AN IRREVERSIBLE ACTION AND THAT WE CANNOT BE HELD ACCOUNTABLE FOR ANY LOSSES AFTER THE DELETION___
                     """).setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL).build()).addActionRow(
                 SelectMenu.create("punishment-selection")
@@ -168,58 +169,58 @@ public class AppealsServerEventAdapter extends EventAdapter {
                                         
                     And you may NOT contact a moderator or lead of a division to view your appeal quicker, do this and they have the full right to delete the appeal.
                     The time until you may appeal again is decided by the leader/moderator responding to your appeal.
-                    
+                                        
                     __We have the full right to decide what to do with your appeal, being able to appeal is a privilege. If you cannot deal with this, you will be removed from the server.__
-                    
+                                        
                     Pressing the button below confirms you agree to these terms and rules. If you choose to ignore this we have the full right to deny your appeal.
                     """
             ).build()).addActionRow(Button.primary("agree-rules",
                 "I have read and approve of the rules listed in the embed above.")).queue();
             case "agree-rules" -> event.getInteraction().editMessageEmbeds(new EmbedBuilder().setDescription(
                 """
-                You have agreed to the rules.
-                We're asking about your appeal now, what punishment would you like to appeal for?
-                
-                __Please read through the entire selection menu!!!__
-                """).build()).setActionRow(
-                    SelectMenu.create("punishment-selection")
-                        .addOption("Appeal for a trello ban",
-                            "appeal:PIA:trelloban",
-                            "You may appeal a trello-ban through this selection. ",
-                            Emoji.fromFormatted("<:trelloban:997965939792412823>"))
-                        .addOption("Appeal for a game ban",
-                            "appeal:PIA:gameban",
-                            "You may appeal a game-ban through this selection. ",
-                            Emoji.fromFormatted("<:gameban:997965983153147955>"))
-                        .addOption("Appeal for a game mute",
-                            "appeal:PIA:gamemute",
-                            "You may appeal a game-mute through this selection. ",
-                            Emoji.fromFormatted("<:gamemute:997966017143775252>"))
-                        .addOption("Appeal for a global ban",
-                            "appeal:PIA:globalban",
-                            "You may appeal a globalban through this selection. ",
-                            Emoji.fromFormatted("<:globalban:997966041277804546>"))
-                        .addOption("Appeal for a raid blacklist",
-                            "appeal:RAID:raidblacklist",
-                            "You may appeal a raid-blacklist through this selection.",
-                            Emoji.fromFormatted("<:raidblacklist:997966060542230538>"))
-                        .addOption("Appeal for a group discord ban",
-                            "guild:groupdiscordban",
-                            "You may appeal a discord ban here.",
-                            Emoji.fromFormatted("<:groupdiscordban:998332587447681135>"))
-                        .addOption("Appeal for a group ranklock",
-                            "guild:groupranklock",
-                            "You may appeal a group ranklock here.",
-                            Emoji.fromFormatted("<:ranklock:998332416991170651>"))
-                        .addOption("Appeal for a group blacklist",
-                            "guild:groupblacklist",
-                            "You may appeal a group blacklist here.",
-                            Emoji.fromFormatted("<:blacklist:998332444916858880>"))
-                        .addOption("Create a appeal for something else",
-                            "appeal:PIA:other",
-                            "Any special cases go here..",
-                            Emoji.fromFormatted("<:CadetThinking:893602259693338665>"))
-                        .setRequiredRange(1, 1).build().asEnabled()).queue();
+                    You have agreed to the rules.
+                    We're asking about your appeal now, what punishment would you like to appeal for?
+                                    
+                    __Please read through the entire selection menu!!!__
+                    """).build()).setActionRow(
+                SelectMenu.create("punishment-selection")
+                    .addOption("Appeal for a trello ban",
+                        "appeal:PIA:trelloban",
+                        "You may appeal a trello-ban through this selection. ",
+                        Emoji.fromFormatted("<:trelloban:997965939792412823>"))
+                    .addOption("Appeal for a game ban",
+                        "appeal:PIA:gameban",
+                        "You may appeal a game-ban through this selection. ",
+                        Emoji.fromFormatted("<:gameban:997965983153147955>"))
+                    .addOption("Appeal for a game mute",
+                        "appeal:PIA:gamemute",
+                        "You may appeal a game-mute through this selection. ",
+                        Emoji.fromFormatted("<:gamemute:997966017143775252>"))
+                    .addOption("Appeal for a global ban",
+                        "appeal:PIA:globalban",
+                        "You may appeal a globalban through this selection. ",
+                        Emoji.fromFormatted("<:globalban:997966041277804546>"))
+                    .addOption("Appeal for a raid blacklist",
+                        "appeal:RAID:raidblacklist",
+                        "You may appeal a raid-blacklist through this selection.",
+                        Emoji.fromFormatted("<:raidblacklist:997966060542230538>"))
+                    .addOption("Appeal for a group discord ban",
+                        "guild:groupdiscordban",
+                        "You may appeal a discord ban here.",
+                        Emoji.fromFormatted("<:groupdiscordban:998332587447681135>"))
+                    .addOption("Appeal for a group ranklock",
+                        "guild:groupranklock",
+                        "You may appeal a group ranklock here.",
+                        Emoji.fromFormatted("<:ranklock:998332416991170651>"))
+                    .addOption("Appeal for a group blacklist",
+                        "guild:groupblacklist",
+                        "You may appeal a group blacklist here.",
+                        Emoji.fromFormatted("<:blacklist:998332444916858880>"))
+                    .addOption("Create a appeal for something else",
+                        "appeal:PIA:other",
+                        "Any special cases go here..",
+                        Emoji.fromFormatted("<:CadetThinking:893602259693338665>"))
+                    .setRequiredRange(1, 1).build().asEnabled()).queue();
             case "questions-respond" -> event.replyModal(buildQuestionsModal(event)).queue();
         }
     }
@@ -406,55 +407,46 @@ public class AppealsServerEventAdapter extends EventAdapter {
             return;
         }
 
-        reply.deferEdit().queue(
-            newReply -> {
+        InteractionHook newReply = reply.deferEdit().complete();
+        boolean canAppeal = checkIfCanAppeal(type, roles, ve, g);
 
-                boolean canAppeal = checkIfCanAppeal(type, roles, ve, g);
+        if (!canAppeal) {
+            newReply.editOriginal("According to our database, you have some form of punishment preventing the deletion of your data. You may not request your data to be deleted.").queue();
+            return;
+        }
 
-                if (!canAppeal) {
-                    newReply.editOriginal("According to our database, you are trello-banned. You may not request your data to be deleted.").queue();
-                    return;
-                }
-
-                String name = type + "-" + roles + "-" + RandomUtil.generateString(5);
-                c.createTextChannel(name).setTopic(type.toLowerCase() + " - " + user.getId() + " - " + roles + " - OPEN")
-                    .addMemberPermissionOverride(user.getIdLong(), Permission.VIEW_CHANNEL.getRawValue(), 0L)
-                    .addRolePermissionOverride(getAppealRole(roles, g).getIdLong(), Permission.VIEW_CHANNEL.getRawValue(), 0L).submit()
-                    .thenCompose((chan) -> chan.sendMessage(user.getAsMention())
-                        .setEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(delType.getColor()),
-                            """
-                                We have created an data deletion request channel for your account!
-                                The facilitator handling your request will contact you soon, do not ping them.
-                                """
-                        ).set("appeal", delType.getCleanName())
-                            .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
-                            .setTitle("Pinewood - Deletion Request System")
-                            .setThumbnail(delType.getEmoteImage())
-                            .buildEmbed())
-                        .submit())
-                    .thenCompose((s) -> newReply.editOriginalEmbeds(new EmbedBuilder().setDescription("Your data deletion channel has been created in " + s.getChannel().getAsMention() + "!").build())
-                        .setActionRows(Collections.emptyList()).submit())
-                    .thenCompose((s) -> getTextChannelByRole(roles, g)
-                        .sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(delType.getColor()),
-                            """
-                                ***Logged Info***:
-                                **`User`**: :userMention
-                                **`Type`**: :appeal - (:emote)
-                                """)
-                            .set("userMention", user.getAsMention())
-                            .set("appeal", delType.getCleanName())
-                            .set("emote", delType.getEmote())
-                            .setThumbnail(delType.getEmoteImage())
-                            .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
-                            .setAuthor(user.getAsTag() + " - Deletion Request System", null, user.getEffectiveAvatarUrl())
-                            .buildEmbed()).submit())
-                    .whenComplete((s, error) -> {
-                        if (error != null) error.printStackTrace();
-                    });
-            }
-        );
-
-
+        String name = type + "-" + roles + "-" + RandomUtil.generateString(5);
+        c.createTextChannel(name).setTopic(type.toLowerCase() + " - " + user.getId() + " - " + roles + " - OPEN")
+            .addMemberPermissionOverride(user.getIdLong(), Permission.VIEW_CHANNEL.getRawValue(), 0L)
+            .addRolePermissionOverride(getAppealRole(roles, g).getIdLong(), Permission.VIEW_CHANNEL.getRawValue(), 0L).submit()
+            .thenCompose((chan) -> chan.sendMessage(user.getAsMention())
+                .setEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(delType.getColor()),
+                    """
+                        We have created an data deletion request channel for your account!
+                        The facilitator handling your request will contact you soon, do not ping them.
+                        """
+                ).set("appeal", delType.getCleanName())
+                    .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
+                    .setTitle("Pinewood - Deletion Request System")
+                    .setThumbnail(delType.getEmoteImage())
+                    .buildEmbed())
+                .submit())
+            .thenCompose((s) -> newReply.editOriginalEmbeds(new EmbedBuilder().setDescription("Your data deletion channel has been created in " + s.getChannel().getAsMention() + "!").build())
+                .setActionRows(Collections.emptyList()).submit())
+            .thenCompose((s) -> getTextChannelByRole(roles, g)
+                .sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(delType.getColor()),
+                    """
+                        ***Logged Info***:
+                        **`User`**: :userMention
+                        **`Type`**: :appeal - (:emote)
+                        """)
+                    .set("userMention", user.getAsMention())
+                    .set("appeal", delType.getCleanName())
+                    .set("emote", delType.getEmote())
+                    .setThumbnail(delType.getEmoteImage())
+                    .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
+                    .setAuthor(user.getAsTag() + " - Deletion Request System", null, user.getEffectiveAvatarUrl())
+                    .buildEmbed()).submit());
     }
 
     private boolean checkIfCanAppeal(String type, String group, VerificationEntity ve, Guild g) {
@@ -464,27 +456,28 @@ public class AppealsServerEventAdapter extends EventAdapter {
         boolean isGameBanned = avaire.getGlobalPunishmentManager().isRobloxGlobalBanned(settings.getMainGroupId(), ve.getRobloxId());
 
         HashMap <Long, List <TrellobanLabels>> trellobans = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans();
-        boolean isTrelloBanned = trellobans.containsKey(ve.getRobloxId()) &&
-            trellobans.get(ve.getRobloxId()).stream().anyMatch(TrellobanLabels::isAppealable);
+        boolean isTrelloBanned = trellobans.containsKey(ve.getRobloxId());
+        boolean canAppealTrello = isTrelloBanned && trellobans.get(ve.getRobloxId()).stream().anyMatch(TrellobanLabels::isAppealable);
 
 
         return switch (type.toLowerCase()) {
-            case "trelloban" -> isTrelloBanned;
+            case "trelloban" -> canAppealTrello;
             case "globalban" -> isGlobalBanned && !isTrelloBanned;
             case "gameban" -> isGameBanned && !isTrelloBanned;
-            case "groupblacklist" -> getBlacklistByShortname(group).contains(ve.getRobloxId()) && !isGameBanned && !isGlobalBanned && !isTrelloBanned;
+            case "groupblacklist" ->
+                getBlacklistByShortname(group).contains(ve.getRobloxId()) && !isGameBanned && !isGlobalBanned && !isTrelloBanned;
             case "groupdiscordban" ->
-                group.equals("OTHER") ? isOtherGuildBanned(ve) : isBannedFromShortname(group, ve) && !isGameBanned && !isGlobalBanned && !isTrelloBanned && !getBlacklistByShortname(group).contains(ve.getRobloxId());
+                /*group.equals("OTHER") ? isOtherGuildBanned(ve) : isBannedFromShortname(group, ve) && */
+                !isGameBanned && !isGlobalBanned && !isTrelloBanned && !getBlacklistByShortname(group).contains(ve.getRobloxId());
             case "groupranklock" ->
                 avaire.getRobloxAPIManager().getKronosManager().isRanklocked(ve.getRobloxId(), group.toLowerCase()) &&
                     !isGlobalBanned && !isGameBanned && !isTrelloBanned && !getBlacklistByShortname(group).contains(ve.getRobloxId());
-            case "deletion" ->
-                !isGlobalBanned
-                    && !isGameBanned
-                    && !isTrelloBanned
-                    && !avaire.getBlacklistManager().isAnyBlacklisted(ve.getRobloxId())
-                    && !avaire.getRobloxAPIManager().getKronosManager().hasNegativePointsAnywhere(ve.getRobloxId())
-                    && !avaire.getRobloxAPIManager().getKronosManager().hasRanklockAnywhere(ve.getRobloxId());
+            case "deletion" -> !isGlobalBanned
+                && !isGameBanned
+                && !isTrelloBanned
+                && !avaire.getBlacklistManager().isAnyBlacklisted(ve.getRobloxId())
+                && !avaire.getRobloxAPIManager().getKronosManager().hasNegativePointsAnywhere(ve.getRobloxId())
+                && !avaire.getRobloxAPIManager().getKronosManager().hasRanklockAnywhere(ve.getRobloxId());
             default -> !isTrelloBanned;
         };
     }

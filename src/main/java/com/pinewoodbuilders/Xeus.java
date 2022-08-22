@@ -440,7 +440,7 @@ public class Xeus {
                 sentryClient.setEnvironment(getEnvironment().getName());
                 switch (getEnvironment()) {
                     case PRODUCTION:
-                        sentryClient.setRelease(GitInfo.getGitInfo().commitId);
+                        sentryClient.setRelease(GitInfo.getGitInfo().commitId + "-" + AppInfo.getAppInfo().version);
                         break;
 
                     default:

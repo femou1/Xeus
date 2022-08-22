@@ -21,7 +21,6 @@ public class GlobalPunishmentManager {
 
     public GlobalPunishmentManager(Xeus xeus) {
         this.avaire = xeus;
-
         syncWithDatabase();
     }
 
