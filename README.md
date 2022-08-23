@@ -125,6 +125,11 @@ Visit our [website](https://xeus.pinewood-builders.com/) for more information.
 
 Thank you for considering contributing to Xeus! Please use the issues feature if you'd like to make a feature and/or make a PR!
 
+## I want to use Xeus
+
+So you are interested in using Xeus for your own groups?
+Please contact me through Discord by going to the support server down below, or sending me a DM on Stefano#7366.
+
 ## License
 
 Xeus is open-sourced software licensed under the [GNU General Public License v3.0](http://www.gnu.org/licenses/gpl.html).
