@@ -1,3 +1,5 @@
+<details>
+<summary>The original readme file (Credits "[AvaIre Discord Bot](https://avairebot.com/)")</summary>
 <p align="center">
     <img src="https://cdn.avairebot.com/image/simple-banner.png">
 </p>
@@ -89,4 +91,71 @@ AvaIre relies on the following projects:
 <p align="center">
   <a href="https://avairebot.com/support"><img src="https://discordapp.com/api/guilds/284083636368834561/widget.png?style=banner2" alt="Discord server"></a>
   <br>AvaIre support server: https://avairebot.com/support
+</p>
+</details>
+
+---
+
+
+<p align="center">
+    <img src="https://xeus.pinewood-builders.com/img/xeus-1024x1024.png">
+</p>
+
+
+## About Xeus
+
+Xeus is a multipurpose Discord bot made for fun, (re-)written in Java 17, using the [JDA](https://github.com/DV8FromTheWorld/JDA) library.
+
+## Main features
+
+- Moderation commands (Ban, kick, slowmode)
+- Global Moderation Features
+- Search for comics and reaction gifs
+- Extended server functionality (Welcome messages, server and user info, roblox verification and group specific blacklists)
+- High level of customization
+    - Changing messages on a per-server basis
+    - Create custom aliases for existing commands
+    - Change the prefix Xeus uses on a per-module basis
+- And more, check the [full command reference](https://xeus.pinewood-builders.com/commands) for all the commands!
+
+Visit our [website](https://xeus.pinewood-builders.com/) for more information.
+
+
+## Contributing
+
+Thank you for considering contributing to Xeus! Please use the issues feature if you'd like to make a feature and/or make a PR!
+
+## I want to use Xeus
+
+So you are interested in using Xeus for your own groups?
+Please contact me through Discord by going to the support server down below, or sending me a DM on Stefano#7366.
+
+## License
+
+Xeus is open-sourced software licensed under the [GNU General Public License v3.0](http://www.gnu.org/licenses/gpl.html).
+
+## Third Party Licenses
+Xeus relies on the following projects:
+
+| Name | License  |
+|:---|:---|
+| [JDA (Java Discord API)](https://github.com/DV8FromTheWorld/JDA) | [Apache License 2.0](https://github.com/DV8FromTheWorld/JDA/blob/master/LICENSE) |
+| [google-gson](https://github.com/google/gson) | [Apache License 2.0](https://github.com/google/gson/blob/master/LICENSE) |
+| [Apache Commons](https://commons.apache.org/) | [Apache License 2.0](http://www.apache.org/licenses/) |
+| [SnakeYAML](https://bitbucket.org/asomov/snakeyaml) | [Apache License 2.0](https://bitbucket.org/asomov/snakeyaml/src/09b3c585c1a5b1452a13c41ec63da6466bce9137/LICENSE.txt?at=default&fileviewer=file-view-default) |
+| [Prometheus](https://github.com/prometheus) | [Apache License 2.0](https://github.com/prometheus/client_java/blob/master/LICENSE) |
+| [DialogFlow SDK (Previusly api.ai)](https://github.com/dialogflow/dialogflow-java-client) | [Apache License 2.0](https://github.com/dialogflow/dialogflow-java-client/blob/master/LICENSE) |
+| [MySQL Connector/J](https://github.com/mysql/mysql-connector-j) | [GNU General Public License v2.0](https://github.com/mysql/mysql-connector-j/blob/release/5.1/COPYING) |
+| [logback-classic](https://github.com/qos-ch/logback/tree/master/logback-classic) | [Eclipse Public License v1.0](https://github.com/qos-ch/logback/blob/master/LICENSE.txt) and<br>[GNU Lesser General Public License version 2.1](https://github.com/qos-ch/logback/blob/master/LICENSE.txt) |
+| [Sentry SDK for Java](https://github.com/getsentry/sentry-java) | [BSD 3-clause "New" or "Revised" License](https://github.com/getsentry/sentry-java/blob/master/LICENSE) |
+| [jsoup: Java HTML Parser](https://github.com/jhy/jsoup) | [MIT License](https://github.com/jhy/jsoup/blob/master/LICENSE) |
+| [emoji-java](https://github.com/vdurmont/emoji-java) | [MIT License](https://github.com/vdurmont/emoji-java/blob/master/LICENSE.md) |
+| [EvalEx - Java Expression Evaluator](https://github.com/uklimaschewski/EvalEx) | [MIT License](https://github.com/uklimaschewski/EvalEx/blob/master/LICENSE) |
+| [Reflections](https://github.com/ronmamo/reflections) | [Do What The F\*ck You Want To Public License](https://github.com/ronmamo/reflections/blob/master/COPYING.txt) |
+
+---
+
+<p align="center">
+  <a href="https://xeus.pinewood-builders.com/support"><img src="https://discordapp.com/api/guilds/669672893730258964/widget.png?style=banner2" alt="Discord server"></a>
+  <br>Xeus support server: https://xeus.pinewood-builders.com/support
 </p>
