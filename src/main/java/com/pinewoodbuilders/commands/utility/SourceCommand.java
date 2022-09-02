@@ -38,7 +38,7 @@ import java.util.List;
 
 public class SourceCommand extends Command {
 
-    private final String rootUrl = "https://gitlab.com/pinewood-builders/discord/xeus";
+    private final String rootUrl = "https://gitlab.com/S-FGR/global-projects/discord-bots/xeus";
 
     public SourceCommand(Xeus avaire) {
         super(avaire);

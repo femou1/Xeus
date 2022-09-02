@@ -105,7 +105,7 @@ public class Constants {
     public static final String AUDIO_HAS_SENT_NOW_PLAYING_METADATA = "has-sent-now-playing";
 
     // Command source link
-    public static final String SOURCE_URI = "https://gitlab.com/pinewood-builders/discord/xeus/-/blob/master/src/main/java/com/avairebot/commands/%s/%s.java";
+    public static final String SOURCE_URI = "https://gitlab.com/S-FGR/global-projects/discord-bots/xeus/-/blob/jda-5/src/main/java/com/pinewoodbuilders/commands/%s/%s.java";
 
     public static final String PIA_LOG_CHANNEL = "788316320747094046";
 
