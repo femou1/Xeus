@@ -137,6 +137,7 @@ public class VerificationManager {
         }
 
         if (isBlacklisted(guild, verificationEntity)) {
+            member.ban(0, "Blacklisted on Discord").queue();
             return new VerificationResult(false, "Blacklisted on " + guild.getName());
         }
 

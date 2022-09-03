@@ -457,7 +457,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
 
         HashMap <Long, List <TrellobanLabels>> trellobans = avaire.getRobloxAPIManager().getKronosManager().getTrelloBans();
         boolean isTrelloBanned = trellobans.containsKey(ve.getRobloxId());
-        boolean canAppealTrello = isTrelloBanned && trellobans.get(ve.getRobloxId()).stream().anyMatch(TrellobanLabels::isAppealable);
+        boolean canAppealTrello = isTrelloBanned && trellobans.get(ve.getRobloxId()).stream().noneMatch(card -> card.equals(TrellobanLabels.BLACKLISTED_WITHOUT_APPEAL));
 
 
         return switch (type.toLowerCase()) {
