@@ -16,6 +16,6 @@ public class GetOauth2Redirect extends SparkRoute {
      */
     @Override
     public Object handle(Request request, Response response) throws Exception {
-        return Xeus.getInstance().getOauth2Manager().handleRedirect(request, response);
+        return Xeus.getInstance().getOauth2Manager().handleVerificationRedirect(request, response);
     }
 }
