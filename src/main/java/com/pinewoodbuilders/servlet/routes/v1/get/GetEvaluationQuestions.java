@@ -58,7 +58,7 @@ public class GetEvaluationQuestions extends SparkRoute {
         }
 
         Random random_method = new Random();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 8; i++) {
             int index = random_method.nextInt(transformer.getEvalQuestions().size());
             String question = transformer.getEvalQuestions().get(index);
             if (questions.contains(question)) {

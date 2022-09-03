@@ -76,6 +76,7 @@ import com.pinewoodbuilders.plugin.PluginManager;
 import com.pinewoodbuilders.roblox.RobloxAPIManager;
 import com.pinewoodbuilders.scheduler.ScheduleHandler;
 import com.pinewoodbuilders.servlet.WebServlet;
+import com.pinewoodbuilders.servlet.handlers.oauth.OAUTH2Manager;
 import com.pinewoodbuilders.servlet.routes.v1.delete.DeleteAccountVerificationLink;
 import com.pinewoodbuilders.servlet.routes.v1.get.*;
 import com.pinewoodbuilders.servlet.routes.v1.post.PostAccountVerificationLink;
@@ -157,6 +158,7 @@ public class Xeus {
     private final GlobalPunishmentManager globalPunishmentManager;
     private final GlobalWatchManager globalWatchManager;
     private final LinkFilterManager linkFilterManager;
+    private OAUTH2Manager oauth2Manager;
 
     private Carbon shutdownTime = null;
     private int shutdownCode = ExitCodes.EXIT_CODE_RESTART;
@@ -415,15 +417,34 @@ public class Xeus {
         if (getConfig().getBoolean("web-servlet.api-routes.roblox-verification", true)) {
             servlet.registerGet("/verification/discord/:discordId", new GetRobloxUserByDiscordId());
             servlet.registerGet("/verification/roblox/:robloxId", new GetDiscordIdsByRobloxId());
-            servlet.registerPost("/verification/verify/:robloxId", new PostAccountVerificationLink());
             servlet.registerGet("/verification/verify/:robloxId", new GetAccountVerificationLink());
+            servlet.registerPost("/verification/verify/:robloxId", new PostAccountVerificationLink());
             servlet.registerDelete("/verification/verify/:robloxId", new DeleteAccountVerificationLink());
+
         }
 
         if (getConfig().getBoolean("web-servlet.api-routes.evaluations", true)) {
             servlet.registerGet("/evaluations/status/:guildId/:robloxId", new GetEvaluationStatus());
             servlet.registerGet("/evaluations/questions/:guildId", new GetEvaluationQuestions());
             servlet.registerPost("/evaluations/answers/:guildId", new PostEvalAnswers());
+        }
+
+        if (getConfig().getBoolean("web-servlet.api-routes.oauth", true)) {
+            String clientId = config.getString("apiKeys.roblox.clientId", null);
+            String clientSecret = config.getString("apiKeys.roblox.clientSecret", null);
+            String redirectUri = config.getString("URL.oauth");
+            if (clientId != null
+                && clientSecret != null
+                && redirectUri != null) {
+
+                log.info("Preparing and setting up Roblox OAuth");
+                oauth2Manager = new OAUTH2Manager(this, clientId, clientSecret, redirectUri.replace("%location%", "/oauth2/roblox"));
+
+                servlet.registerGet("/oauth2/roblox", new GetOauth2Redirect());
+            } else {
+                oauth2Manager = null;
+            }
+
         }
 
         servlet.registerGet("/devforum/handbooks", new GetTextDevforumPost());
@@ -711,17 +732,17 @@ public class Xeus {
 
     private ShardManager buildShardManager() throws LoginException {
         DefaultShardManagerBuilder builder = DefaultShardManagerBuilder.create(EnumSet.of(
-            GatewayIntent.GUILD_MEMBERS,
-            GatewayIntent.GUILD_BANS,
-            GatewayIntent.GUILD_EMOJIS_AND_STICKERS,
-            GatewayIntent.GUILD_INVITES,
-            GatewayIntent.GUILD_MESSAGES,
-            GatewayIntent.GUILD_MESSAGE_REACTIONS,
-            GatewayIntent.GUILD_VOICE_STATES,
-            GatewayIntent.DIRECT_MESSAGES,
-            GatewayIntent.DIRECT_MESSAGE_REACTIONS,
-            GatewayIntent.MESSAGE_CONTENT
-        ))
+                GatewayIntent.GUILD_MEMBERS,
+                GatewayIntent.GUILD_BANS,
+                GatewayIntent.GUILD_EMOJIS_AND_STICKERS,
+                GatewayIntent.GUILD_INVITES,
+                GatewayIntent.GUILD_MESSAGES,
+                GatewayIntent.GUILD_MESSAGE_REACTIONS,
+                GatewayIntent.GUILD_VOICE_STATES,
+                GatewayIntent.DIRECT_MESSAGES,
+                GatewayIntent.DIRECT_MESSAGE_REACTIONS,
+                GatewayIntent.MESSAGE_CONTENT
+            ))
             .setToken(getConfig().getString("discord.token"))
             .setSessionController(new SessionControllerAdapter())
             .setActivity(Activity.watching("pinewood dominate the world!"))
@@ -772,6 +793,9 @@ public class Xeus {
         return voiceWhitelistManager;
     }
 
+    public OAUTH2Manager getOauth2Manager() {
+        return oauth2Manager;
+    }
 
     public WarnsManager getWarningsManager() {
         return warnsManager;
