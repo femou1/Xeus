@@ -8,9 +8,9 @@ import com.pinewoodbuilders.contracts.verification.VerificationResult;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.utilities.RandomUtil;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
@@ -138,26 +138,26 @@ public abstract class VerificationCommandContract extends Command {
                                                 verification.remove(robloxId);
                                                 addAccountToDatabase(context, robloxId, originalMessage, avaire.getRobloxAPIManager().getUserAPI().getUsername(robloxId));
                                             } else {
-                                                originalMessage.editMessageEmbeds(context.makeWarning("Verification has not been confirmed, verification cancelled.").buildEmbed()).setActionRows(Collections.emptyList()).queue();;
+                                                originalMessage.editMessageEmbeds(context.makeWarning("Verification has not been confirmed, verification cancelled.").buildEmbed()).setActionRows(Collections.emptyList()).queue();
                                                 verification.remove(robloxId);
                                             }
                                             break;
                                         } else {
-                                            originalMessage.editMessageEmbeds(context.makeWarning("Verification code has disappeared. Try again later").buildEmbed()).setActionRows(Collections.emptyList()).queue();;
+                                            originalMessage.editMessageEmbeds(context.makeWarning("Verification code has disappeared. Try again later").buildEmbed()).setActionRows(Collections.emptyList()).queue();
                                         }
                                         break;
                                     case "❌":
                                         verification.remove(robloxId);
-                                        originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (User action)...").buildEmbed()).setActionRows(Collections.emptyList()).queue();;
+                                        originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (User action)...").buildEmbed()).setActionRows(Collections.emptyList()).queue();
                                         break;
                                     default:
                                         verification.remove(robloxId);
-                                        originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (Invalid Emoji)...").buildEmbed()).setActionRows(Collections.emptyList()).queue();;
+                                        originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (Invalid Emoji)...").buildEmbed()).setActionRows(Collections.emptyList()).queue();
                                 }
                             }, 5, TimeUnit.MINUTES, () -> {
-                                verification.remove(robloxId);
-                                originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue();;
-                            });
+                            verification.remove(robloxId);
+                            originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue();
+                        });
                 });
 
     }
@@ -167,32 +167,87 @@ public abstract class VerificationCommandContract extends Command {
         Button b1 = Button.success("check:" + originalMessage.getId(), "Check your status").withEmoji(Emoji.fromUnicode("✅"));
         Button b2 = Button.danger("cancel:" + originalMessage.getId(), "Cancel verification").withEmoji(Emoji.fromUnicode("❌"));
         originalMessage.editMessageEmbeds(context.makeError("Please go to [your profile](https://www.roblox.com/users/:robloxId/profile) and edit your description!\n\nMake sure it contains the following text before confirming you`ve changed it!\n" +
-                "```" + token + "```")
+                    "```" + token + "```")
                 .set("robloxId", robloxId)
                 .setImage("https://i.imgur.com/VXoXcIS.png")
                 .setThumbnail("https://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&userid=" + robloxId).requestedBy(context).buildEmbed())
-                .setActionRow(b1.asEnabled(), b2.asEnabled())
-                .queue(statusCheck -> avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class,
-                        interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel)
-                        , statusButton -> {
-                            statusButton.deferEdit().queue();
-                        switch (statusButton.getButton().getEmoji().getName()) {
-                            case "✅" -> {
-                                String status = avaire.getRobloxAPIManager().getUserAPI().getUserStatus(robloxId);
-                                if (status != null) {
-                                    if (status.contains(token)) {
+            .setActionRow(b1.asEnabled(), b2.asEnabled())
+            .queue(statusCheck -> avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class,
+                interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel)
+                , statusButton -> {
+                    statusButton.deferEdit().queue();
+                    switch (statusButton.getButton().getEmoji().getName()) {
+                        case "✅" -> {
+                            String status = avaire.getRobloxAPIManager().getUserAPI().getUserStatus(robloxId);
+                            if (status != null) {
+                                if (status.contains(token)) {
+                                    addAccountToDatabase(context, robloxId, originalMessage, avaire.getRobloxAPIManager().getUserAPI().getUsername(robloxId));
+                                } else {
+                                    originalMessage.editMessageEmbeds(context.makeWarning("Your status does not contain the token, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                }
+                            } else {
+                                originalMessage.editMessageEmbeds(context.makeWarning("Status is empty, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                            }
+                            return;
+                        }
+                    }
+                    originalMessage.editMessageEmbeds(context.makeWarning("System has been cancelled, if you want to verify again run the !verify command").requestedBy(context).buildEmbed()).queue();
+                }, 5, TimeUnit.MINUTES, () -> originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue()));
+    }
+
+    public void runOAuthVerification(CommandMessage context, Message originalMessage, Long robloxId) {
+        String verificationCode = RandomUtil.generateString(16);
+        HashMap <Long, String> verification = avaire.getRobloxAPIManager().getVerification().getInVerification();
+        if (verification.containsKey(robloxId)) {
+            originalMessage.editMessageEmbeds(context.makeError("This account is already running an in oauth/game verification, please try again in 5 minutes.").buildEmbed()).queue();
+            return;
+        }
+        String oauthLink = avaire.getOauth2Manager().makeVerificationAuthRequest(robloxId, context.getAuthor().getIdLong(), verificationCode);
+
+        verification.put(robloxId, context.getAuthor().getId() + ":" + verificationCode);
+        originalMessage.editMessageEmbeds(context.makeInfo("[Please click on this link](" + oauthLink + "), and allow PB to read your profile data. When you've verified the confirmation, please click the :white_check_mark: button.").setImage("https://i.imgur.com/0Fh5yFw.png").buildEmbed())
+            .setActionRow(
+                Button.success("confirm-verify:" + originalMessage.getId(), "I've allowed Xeus to read my data!").withEmoji(Emoji.fromUnicode("✅")).asEnabled(),
+                Button.danger("confirm-reject:" + originalMessage.getId(), "I don't wanna confirm anymore.").withEmoji(Emoji.fromUnicode("❌")).asEnabled(),
+                Button.link(oauthLink, "Open this website to verify!").withEmoji(Emoji.fromUnicode("\uD83D\uDD17")).asEnabled())
+            .queue(verifyMessage -> {
+                avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class,
+                    interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel),
+                    action -> {
+                        action.deferEdit().queue();
+                        switch (action.getButton().getEmoji().getName()) {
+                            case "✅":
+                                if (verification.containsKey(robloxId)) {
+                                    String discordId = verification.get(robloxId).split(":")[0];
+                                    String verificationId = verification.get(robloxId).split(":")[1];
+
+                                    if (verificationId.equals("verified") && discordId.equals(context.getAuthor().getId())) {
+                                        verification.remove(robloxId);
                                         addAccountToDatabase(context, robloxId, originalMessage, avaire.getRobloxAPIManager().getUserAPI().getUsername(robloxId));
                                     } else {
-                                        originalMessage.editMessageEmbeds(context.makeWarning("Your status does not contain the token, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                        originalMessage.editMessageEmbeds(context.makeWarning("Verification has not been confirmed, verification cancelled.").buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                        verification.remove(robloxId);
                                     }
+                                    break;
                                 } else {
-                                    originalMessage.editMessageEmbeds(context.makeWarning("Status is empty, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                    originalMessage.editMessageEmbeds(context.makeWarning("Verification code has disappeared. Try again later").buildEmbed()).setActionRows(Collections.emptyList()).queue();
                                 }
-                                return;
-                            }
+                                break;
+                            case "❌":
+                                verification.remove(robloxId);
+                                originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (User action)...").buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                break;
+                            default:
+                                verification.remove(robloxId);
+                                originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (Invalid Emoji)...").buildEmbed()).setActionRows(Collections.emptyList()).queue();
                         }
-                            originalMessage.editMessageEmbeds(context.makeWarning("System has been cancelled, if you want to verify again run the !verify command").requestedBy(context).buildEmbed()).queue();
-                        }, 5, TimeUnit.MINUTES, () -> originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue()));
+                    }, 5, TimeUnit.MINUTES, () -> {
+                        verification.remove(robloxId);
+                        originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue();
+                    });
+            });
+
     }
+
 
 }

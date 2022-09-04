@@ -438,7 +438,7 @@ public class Xeus {
                 && redirectUri != null) {
 
                 log.info("Preparing and setting up Roblox OAuth");
-                oauth2Manager = new OAUTH2Manager(this, clientId, clientSecret, redirectUri.replace("%location%", "/oauth2/roblox"));
+                oauth2Manager = new OAUTH2Manager(this, clientId, clientSecret, redirectUri);
 
                 servlet.registerGet("/oauth2/roblox", new GetOauth2Redirect());
             } else {
