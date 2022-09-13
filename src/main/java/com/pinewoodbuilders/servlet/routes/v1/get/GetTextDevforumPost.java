@@ -55,6 +55,15 @@ public class GetTextDevforumPost extends SparkRoute {
                 postInfo.put("error", true);
             } else {
                 postInfo.put("error", false);
+                if (postInfo.getBoolean("cached")) {
+                    String robloxPlaceId = request.headers("roblox-id");
+                    if (robloxPlaceId == null) {
+                        Xeus.getLogger().info("[Handbooks] Hmm? I seem to miss the roblox ID of this request... access granted anyway");
+                    } else {
+                        Xeus.getLogger().info("[Handbooks] Request for "+key+" obtained from: " + robloxPlaceId);
+                    }
+
+                }
             }
 
             root.put(key, postInfo);
@@ -67,11 +76,10 @@ public class GetTextDevforumPost extends SparkRoute {
 
     private JSONObject getPostInformation(String type, String postId) {
         JSONObject cacheObject = cache.getIfPresent(type + ":" + postId);
-
-        /*if (cacheObject != null) {
+        if (cacheObject != null) {
             cacheObject.put("cached", true);
             return cacheObject;
-        }*/
+        }
 
         okhttp3.Request.Builder request = new okhttp3.Request.Builder()
             .addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
@@ -85,7 +93,7 @@ public class GetTextDevforumPost extends SparkRoute {
 
                 JSONObject finalObject = new JSONObject(response.body().string());
                 finalObject.put("cached", false);
-                //cache.put(type + ":" + postId, finalObject);
+                cache.put(type + ":" + postId, finalObject);
                 return finalObject;
             } else {
                 Xeus.getLogger().error("Failed sending request to Devforum API: Error code `" + response.code() + "`");

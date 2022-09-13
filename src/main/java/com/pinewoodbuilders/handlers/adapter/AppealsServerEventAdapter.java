@@ -203,7 +203,11 @@ public class AppealsServerEventAdapter extends EventAdapter {
                     .addOption("Appeal for a raid blacklist",
                         "appeal:RAID:raidblacklist",
                         "You may appeal a raid-blacklist through this selection.",
-                        Emoji.fromFormatted("<:raidblacklist:997966060542230538>"))
+                        Emoji.fromFormatted("<:raidblacklist:1018269384281690304>"))
+                    .addOption("Appeal for a weapon ban",
+                        "appeal:PIA:weaponban",
+                        "You may appeal a weaponban through this selection.",
+                        Emoji.fromFormatted("<:weaponban:997966060542230538>"))
                     .addOption("Appeal for a group discord ban",
                         "guild:groupdiscordban",
                         "You may appeal a discord ban here.",
@@ -478,6 +482,8 @@ public class AppealsServerEventAdapter extends EventAdapter {
                 && !avaire.getBlacklistManager().isAnyBlacklisted(ve.getRobloxId())
                 && !avaire.getRobloxAPIManager().getKronosManager().hasNegativePointsAnywhere(ve.getRobloxId())
                 && !avaire.getRobloxAPIManager().getKronosManager().hasRanklockAnywhere(ve.getRobloxId());
+            case "weaponban" -> !isGameBanned
+                && !isTrelloBanned;
             default -> !isTrelloBanned;
         };
     }

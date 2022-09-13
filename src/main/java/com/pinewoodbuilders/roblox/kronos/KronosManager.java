@@ -31,6 +31,7 @@ public class KronosManager {
     private final String evalApiKey;
     private final String blacklistKey;
     private static final Logger log = LoggerFactory.getLogger(KronosManager.class);
+    private final String weaponbanKey;
 
     public KronosManager(Xeus avaire, RobloxAPIManager robloxAPIManager) {
         this.avaire = avaire;
@@ -38,6 +39,8 @@ public class KronosManager {
         this.apikey = avaire.getConfig().getString("apiKeys.kronosDatabaseApiKey");
         this.evalApiKey = avaire.getConfig().getString("apiKeys.kronosDatabaseEvalsApiKey");
         this.blacklistKey = avaire.getConfig().getString("apiKeys.kronosApiKey");
+        this.weaponbanKey = avaire.getConfig().getString("apikeys.kronosWeaponbanKey");
+        
     }
 
     public Long getPoints(Long userId) {

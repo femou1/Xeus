@@ -98,7 +98,7 @@ public final class Carbon {
             }
         }
 
-        throw new InvalidFormatException("'%s' does not follow any of the supported time formats, failed to creae Carbon instance.", time);
+        throw new InvalidFormatException("'%s' does not follow any of the supported time formats, failed to create Carbon instance.", time);
     }
 
     /**

@@ -97,7 +97,7 @@ public class OnWatchCommand extends OnWatchableCommand {
 
     @Override
     public List<String> getMiddleware() {
-        return Arrays.asList("isPinewoodGuild",
+        return Arrays.asList(
             "isGuildHROrHigher",
             "require:bot,general.manage_roles",
             "throttle:guild,1,4"
