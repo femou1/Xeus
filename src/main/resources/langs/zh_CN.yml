@@ -764,7 +764,7 @@ utility:
       10000: '这毫无意义：思考：#BlameAlexis'
       other: '慢腾腾的af.：眩晕的脸：'
   RankBackgroundCommand:
-    canBeUnlocked: "级别背景可以使用 **[Vote Points](https://discordbots.org/bot/Xeus)**,\nyou'll 到达 **1 point** 每次你投票给机器人."
+    canBeUnlocked: "级别背景可以使用 **[Pinecoins](https://discordbots.org/bot/Xeus)**,\nyou'll 到达 **1 point** 每次你投票给机器人."
     listTitle: "等级背景 ({0})"
     youHaveVotePoints: "你有 {0} 投票点数."
     exampleTitle: "{0} 例子"
