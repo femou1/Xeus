@@ -57,7 +57,8 @@ public class EvalCommand extends SystemCommand {
             .allowHostAccess(HostAccess.ALL)
             .allowHostClassLookup(s -> true)
             .allowExperimentalOptions(true)
-            .option("js.nashorn-compat", "true");
+            .option("js.nashorn-compat", "true")
+            .option("js.script-engine-global-scope-import", "200");
         GraalJSEngineFactory factory = new GraalJSEngineFactory();
         engine = GraalJSScriptEngine.create(factory.getPolyglotEngine(), context);
 

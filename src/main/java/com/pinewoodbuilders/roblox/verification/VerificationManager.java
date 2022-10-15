@@ -243,7 +243,7 @@ public class VerificationManager {
                 }
             }).collect(Collectors.joining("\n"))) : "No roles have been added");
             stringBuilder.append(rolesToAddAsString);
-
+            stringBuilder.append("\n\n```If you require to alter the account you verify with, use the command '!reverify'.```");
             String rolesToRemoveAsString = "\nRoles to remove:\n" + (bindingRoleMap.size() > 0
                 ? (rolesToRemove.stream().map(role -> "- `" + role.getName() + "`").collect(Collectors.joining("\n")))
                 : "No roles have been removed");
@@ -253,7 +253,7 @@ public class VerificationManager {
 
         changeMemberNickname(member, guild, verificationEntity, verificationTransformer, stringBuilder);
 
-        return new VerificationResult(true, verificationEntity, stringBuilder.toString() != null ? stringBuilder.toString() : "You seem to be verified but xeus is doing the weird stuff. Please consult stefano");
+        return new VerificationResult(true, verificationEntity, stringBuilder.toString());
     }
 
     private void changeMemberNickname(Member member, Guild guild, VerificationEntity verificationEntity, VerificationTransformer verificationTransformer, StringBuilder stringBuilder) {
@@ -491,7 +491,7 @@ public class VerificationManager {
     private VerificationResult executeGlobalBan(GlobalBanContainer container, Member m, GuildSettingsTransformer settingsTransformer, Guild appealsGuild, VerificationEntity ve) {
         int time = 0;
         String reason = container.getReason();
-        List<Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(avaire, settingsTransformer.getMainGroupId());
+        List<Guild> guilds = avaire.getRobloxAPIManager().getVerification().getGuildsByMainGroupId(settingsTransformer.getMainGroupId(), false);
 
         for (Guild guild : guilds) {
             if (appealsGuild != null) {

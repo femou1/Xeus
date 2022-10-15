@@ -57,15 +57,12 @@ public class ReverifyCommand extends VerificationCommandContract {
     public boolean onCommand(CommandMessage context, String[] args) {
         context.makeInfo("<a:loading:742658561414266890> Checking external databases... <a:loading:742658561414266890>").queue(
                 unverifiedMessage -> {
-                    VerificationEntity rover = avaire.getRobloxAPIManager().getVerification().callUserFromRoverAPI(context.member.getId());
                     VerificationEntity bloxlink = avaire.getRobloxAPIManager().getVerification().callUserFromBloxlinkAPI(context.member.getId());
                     VerificationEntity pinewood = avaire.getRobloxAPIManager().getVerification().callUserFromDatabaseAPI(context.member.getId());
                     VerificationEntity rowifi = avaire.getRobloxAPIManager().getVerification().callUserFromRoWifiAPI(context.member.getId());
 
                     List<VerificationEntity> verificationEntities = new ArrayList<>();
-                    if (rover != null) {
-                        verificationEntities.add(rover);
-                    }
+
                     if (bloxlink != null) {
                         verificationEntities.add(bloxlink);
                     }
@@ -108,7 +105,7 @@ public class ReverifyCommand extends VerificationCommandContract {
                             interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(unverifiedMessage),
                                 providerSelect -> {
                                     providerSelect.deferEdit().queue();
-                                    selectProvider(context, unverifiedMessage, rover, bloxlink, pinewood, rowifi, providerSelect);
+                                    selectProvider(context, unverifiedMessage, bloxlink, pinewood, rowifi, providerSelect);
                                 },
                                 5, TimeUnit.MINUTES, () -> unverifiedMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue());
                     });
@@ -118,7 +115,7 @@ public class ReverifyCommand extends VerificationCommandContract {
         return true;
     }
 
-    private void selectProvider(CommandMessage context, Message unverifiedMessage, VerificationEntity rover, VerificationEntity bloxlink, VerificationEntity pinewood, VerificationEntity rowifi, SelectMenuInteractionEvent providerSelect) {
+    private void selectProvider(CommandMessage context, Message unverifiedMessage, VerificationEntity bloxlink, VerificationEntity pinewood, VerificationEntity rowifi, SelectMenuInteractionEvent providerSelect) {
         if (providerSelect.getSelectedOptions() != null) {
             for (SelectOption so : providerSelect.getSelectedOptions()) {
                 if (so.getValue().equals("verify-new-account")) {
@@ -136,10 +133,6 @@ public class ReverifyCommand extends VerificationCommandContract {
                 String provider = so.getValue().split(":")[0];
                 String username = so.getValue().split(":")[1];
 
-                if (rover != null && provider.equals("rover")) {
-                    addAccountToDatabase(context, rover.getRobloxId(), unverifiedMessage, username);
-                    return;
-                }
                 if (bloxlink != null && provider.equals("bloxlink")) {
                     addAccountToDatabase(context, bloxlink.getRobloxId(), unverifiedMessage, username);
                     return;
@@ -175,7 +168,7 @@ public class ReverifyCommand extends VerificationCommandContract {
                 .setActionRow(menu).queue(m -> avaire.getWaiter().waitForEvent(SelectMenuInteractionEvent.class,
                 interaction -> interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(originalMessage),
                 accountSelect -> accountSelect.deferEdit().queue(k -> selectAccount(context, originalMessage, robloxId, accountSelect))
-                , 5, TimeUnit.MINUTES, () -> originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue()));
+                , 5, TimeUnit.MINUTES, () -> originalMessage.editMessage(context.getMessage().getAuthor().getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue()));
     }
 
     private void selectAccount(CommandMessage context, Message originalMessage, Long robloxId, SelectMenuInteractionEvent accountSelect) {

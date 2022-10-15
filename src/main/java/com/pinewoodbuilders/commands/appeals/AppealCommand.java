@@ -107,10 +107,10 @@ public class AppealCommand extends Command {
 
         context.getTextChannel().getManager().setTopic(String.format("%s - %s - %s - DELETING", appealType.getName(), userId, information[2])).queue();
         String finalReason = reason;
-        context.getTextChannel().sendMessageEmbeds(context.makeError("Appeal will be closed in 1 minute, if you would like to cancel. Run $appeal cancel.")
+        context.getTextChannel().sendMessageEmbeds(context.makeError("Appeal will be closed in 20 seconds, if you would like to cancel. Run $appeal cancel.")
                 .setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL)
                 .setTitle("Pinewood - Appeal System").buildEmbed())
-            .delay(40, TimeUnit.SECONDS)
+            .delay(10, TimeUnit.SECONDS)
             .queue(closedMessage -> {
                 String topic = closedMessage.getChannel().asTextChannel().getTopic();
 
@@ -125,7 +125,7 @@ public class AppealCommand extends Command {
                                 JSONObject userIdObject = new JSONObject();
                                 userIdObject.put("name", message.getAuthor().getName());
                                 userIdObject.put("tag", message.getAuthor().getDiscriminator());
-                                userIdObject.put("nick", message.getMember().getEffectiveName());
+                                userIdObject.put("nick", message.getMember() == null ? message.getAuthor().getName() : message.getMember().getEffectiveName());
                                 userIdObject.put("avatar", message.getAuthor().getAvatarId());
 
                                 JSONObject discordData = new JSONObject();
@@ -224,7 +224,7 @@ public class AppealCommand extends Command {
                                 messageJson.put("bot", message.getAuthor().isBot());
                                 messageJson.put("verified", true);
                                 messageJson.put("username", message.getAuthor().getName());
-                                messageJson.put("nick", message.getMember().getEffectiveName());
+                                messageJson.put("nick",  message.getMember() == null ? message.getAuthor().getName() : message.getMember().getEffectiveName());
                                 messageJson.put("tag", message.getAuthor().getDiscriminator());
                                 messageJson.put("avatar", message.getAuthor().getAvatarId());
                                 messageJson.put("id", message.getId());
@@ -301,7 +301,7 @@ public class AppealCommand extends Command {
                                 }
                             });
                     });
-                    closedMessage.getChannel().delete().queueAfter(20, TimeUnit.SECONDS);
+                    closedMessage.getChannel().delete().queueAfter(10, TimeUnit.SECONDS);
                 } else {
                     context.makeError("Deletion has been cancelled, appeal will not be deleted.").queue();
                     closedMessage.delete().queue();
