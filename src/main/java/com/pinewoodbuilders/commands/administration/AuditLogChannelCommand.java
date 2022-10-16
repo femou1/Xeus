@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.commands.administration;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
@@ -32,8 +32,8 @@ import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.GuildChannel;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,14 +126,14 @@ public class AuditLogChannelCommand extends Command {
         }
 
         if (!((TextChannel) channel).canTalk() || !context.getGuild().getSelfMember().hasPermission(channel, Permission.MESSAGE_EMBED_LINKS)) {
-            return sendErrorMessage(context, context.i18n("\"I can't send embedded messages in the specified channel, please change my permission level for the {0} channel if you want to use it as a \"audit log\" channel.", ((TextChannel) channel).getAsMention()));
+            return sendErrorMessage(context, context.i18n("\"I can't send embedded messages in the specified channel, please change my permission level for the {0} channel if you want to use it as a \"audit log\" channel.", channel.getAsMention()));
         }
 
         try {
             updateVoteValidation(transformer, context, channel.getIdLong());
 
             context.makeSuccess("The audit log channel is set to :channel this guild.")
-                .set("channel", ((TextChannel) channel).getAsMention())
+                .set("channel", channel.getAsMention())
                 .queue();
         } catch (SQLException ex) {
             Xeus.getLogger().error(ex.getMessage(), ex);
@@ -200,14 +200,14 @@ public class AuditLogChannelCommand extends Command {
         }
 
         if (!((TextChannel) channel).canTalk() || !context.getGuild().getSelfMember().hasPermission(channel, Permission.MESSAGE_EMBED_LINKS)) {
-            return sendErrorMessage(context, context.i18n("\"I can't send embedded messages in the specified channel, please change my permission level for the {0} channel if you want to use it as a \"Join Logs\" channel.", ((TextChannel) channel).getAsMention()));
+            return sendErrorMessage(context, context.i18n("\"I can't send embedded messages in the specified channel, please change my permission level for the {0} channel if you want to use it as a \"Join Logs\" channel.", channel.getAsMention()));
         }
 
         try {
             updateJoinLogs(transformer, context, channel.getIdLong());
 
             context.makeSuccess("The join log channel is set to :channel this guild.")
-                .set("channel", ((TextChannel) channel).getAsMention())
+                .set("channel", channel.getAsMention())
                 .queue();
         } catch (SQLException ex) {
             Xeus.getLogger().error(ex.getMessage(), ex);

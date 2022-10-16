@@ -39,11 +39,11 @@ import com.pinewoodbuilders.imagegen.renders.RankBackgroundRender;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RandomUtil;
-import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.vote.VoteCacheEntity;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.utils.FileUpload;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -233,7 +233,7 @@ public class RankBackgroundCommand extends Command {
             .setRank("1")
             .setPercentage(percentage);
 
-        MessageBuilder message = new MessageBuilder();
+        MessageCreateBuilder message = new MessageCreateBuilder();
         EmbedBuilder embed = new EmbedBuilder()
             .setTitle(context.i18n("exampleTitle", background.getName()))
             .setFooter(context.i18n("exampleFooter", background.getName(), background.getCost()), null)
@@ -243,9 +243,11 @@ public class RankBackgroundCommand extends Command {
 
         try {
             //noinspection ConstantConditions
-            context.getMessageChannel().sendMessage(message.build()).addFile(
-                new ByteArrayInputStream(render.renderToBytes()),
-                "rank-background.png"
+            context.getMessageChannel().sendMessage(message.build()).addFiles(
+                FileUpload.fromData(
+                    new ByteArrayInputStream(render.renderToBytes()),
+                    "rank-background.png"
+                )
             ).queue();
         } catch (IOException e) {
             log.error("Failed to render background image: {}", e.getMessage(), e);

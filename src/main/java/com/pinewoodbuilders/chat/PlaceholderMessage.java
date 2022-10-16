@@ -26,9 +26,9 @@ import com.pinewoodbuilders.contracts.chat.Restable;
 import com.pinewoodbuilders.utilities.StringReplacementUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import javax.annotation.Nonnull;
 import java.awt.*;

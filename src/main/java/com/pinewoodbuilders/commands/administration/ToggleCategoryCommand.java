@@ -34,7 +34,7 @@ import com.pinewoodbuilders.database.transformers.ChannelTransformer;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.ThreadChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 
 import javax.annotation.Nonnull;
 import java.sql.SQLException;

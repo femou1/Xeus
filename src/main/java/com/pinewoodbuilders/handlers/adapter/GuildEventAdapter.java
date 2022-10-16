@@ -38,7 +38,13 @@ import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.TargetType;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.UserSnowflake;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.api.events.guild.GuildBanEvent;
@@ -52,9 +58,7 @@ import net.dv8tion.jda.api.events.guild.update.GuildUpdateAfkChannelEvent;
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateBoostCountEvent;
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateBoostTierEvent;
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateSystemChannelEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.message.GenericMessageEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
@@ -268,7 +272,7 @@ public class GuildEventAdapter extends EventAdapter {
                                 + "**Old name**: ``" + e.getOldNickname() + "``\n" + "**New name**: ``"
                                 + e.getNewNickname() + "``")
                             .setFooter("UserID: " + e.getUser().getId()).setTimestamp(Instant.now()).queue();
-                    } else if (event instanceof GuildVoiceJoinEvent e) {
+                    } else if (event instanceof GuildVoiceUpdateEvent e) {
 
                         MessageFactory.makeEmbeddedMessage(tc, new Color(28, 255, 0))
                             .setAuthor(e.getMember().getEffectiveName() + " joined a voice channel!", null,

@@ -18,7 +18,11 @@ import com.pinewoodbuilders.requests.service.user.rank.RobloxUserGroupRankServic
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -150,7 +154,7 @@ public class EventRemittanceCommand extends Command {
 
                 });
                 l.addReaction(Emoji.fromFormatted("❌")).queue();
-                l.editMessageEmbeds(context.makeInfo("Welcome to the event remittance system. With this feature, you can record your patrolling/raiding for groups that have this enabled! (Please check the rules regarding what events they allow remittance for)\n\n" + sb.toString()).buildEmbed()).queue(
+                l.editMessageEmbeds(context.makeInfo("Welcome to the event remittance system. With this feature, you can record your patrolling/raiding for groups that have this enabled! (Please check the rules regarding what events they allow remittance for)\n\n" + sb).buildEmbed()).queue(
                     message -> {
                         avaire.getWaiter().waitForEvent(MessageReactionAddEvent.class, event -> {
                                 return event.getMember().equals(context.member) && event.getMessageId().equalsIgnoreCase(message.getId());
@@ -301,14 +305,14 @@ public class EventRemittanceCommand extends Command {
             //l.addReaction("❌").queue();
             avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class, r -> isValidMember(r, context, l), send -> {
                 if (send.getButton().getEmoji().getName().equalsIgnoreCase("❌") || send.getButton().getEmoji().getName().equalsIgnoreCase("x")) {
-                    message.editMessageEmbeds(context.makeSuccess("Remittance has been canceled, if you want to restart the report. Do ``!pr`` in any bot-commands channel.").buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                    message.editMessageEmbeds(context.makeSuccess("Remittance has been canceled, if you want to restart the report. Do ``!pr`` in any bot-commands channel.").buildEmbed()).setActionRow(Collections.emptyList()).queue();
                     removeAllUserMessages(messagesToRemove);
                 } else if (send.getButton().getEmoji().getName().equalsIgnoreCase("✅")) {
-                    message.editMessage("Remittance has been \"sent\".").setActionRows(Collections.emptyList()).queue();
+                    message.editMessage("Remittance has been \"sent\".").setActionRow(Collections.emptyList()).queue();
                     sendReport(context, message, b, d, context.getMember().getEffectiveName(), content.getMessage().getContentRaw(), messagesToRemove);
                     removeAllUserMessages(messagesToRemove);
                 } else {
-                    message.editMessage("Invalid button given, report deleted!").setActionRows(Collections.emptyList()).queue();
+                    message.editMessage("Invalid button given, report deleted!").setActionRow(Collections.emptyList()).queue();
                     removeAllUserMessages(messagesToRemove);
                 }
             }, 5, TimeUnit.MINUTES, () -> {

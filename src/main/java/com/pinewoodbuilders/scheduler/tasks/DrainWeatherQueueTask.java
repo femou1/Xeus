@@ -32,7 +32,7 @@ import com.pinewoodbuilders.requests.Response;
 import com.pinewoodbuilders.requests.service.WeatherService;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +45,8 @@ import java.util.function.Consumer;
 public class DrainWeatherQueueTask implements Task {
 
     private static final Logger log = LoggerFactory.getLogger(DrainVoteQueueTask.class);
-    private static final String directions[] = {"North", "North East", "East", "South East", "South", "South West", "West", "North West", "North"};
-    private static final DelayQueue<WeatherEntity> queue = new DelayQueue<>();
+    private static final String[] directions = {"North", "North East", "East", "South East", "South", "South West", "West", "North West", "North"};
+    private static final DelayQueue <WeatherEntity> queue = new DelayQueue <>();
     private static long lastCheck = -1;
 
     /**

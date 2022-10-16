@@ -10,7 +10,7 @@ import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 import javax.annotation.Nonnull;
 import java.time.Instant;

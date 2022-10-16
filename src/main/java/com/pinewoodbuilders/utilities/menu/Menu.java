@@ -1,7 +1,11 @@
 package com.pinewoodbuilders.utilities.menu;
 
 import com.pinewoodbuilders.utilities.EventWaiter;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;

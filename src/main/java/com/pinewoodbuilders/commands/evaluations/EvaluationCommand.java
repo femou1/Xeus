@@ -18,7 +18,7 @@ import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.menu.Paginator;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import okhttp3.Request;

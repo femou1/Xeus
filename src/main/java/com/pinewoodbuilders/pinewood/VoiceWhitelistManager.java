@@ -2,9 +2,9 @@ package com.pinewoodbuilders.pinewood;
 
 import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
-import net.dv8tion.jda.api.entities.AudioChannel;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 
 import java.util.ArrayList;
 import java.util.HashMap;

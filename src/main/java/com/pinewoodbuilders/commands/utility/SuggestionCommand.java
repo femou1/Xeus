@@ -15,7 +15,11 @@ import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.utilities.EventWaiter;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
@@ -155,7 +159,7 @@ public class SuggestionCommand extends Command {
         waiter.waitForEvent(SelectMenuInteractionEvent.class, l -> l.getMember().equals(member) && message.getId().equals(l.getMessageId()), emote -> {
 
             if (emote.getInteraction().getSelectedOptions().get(0).getEmoji().getName().equalsIgnoreCase("❌")) {
-                message.editMessageEmbeds(MessageFactory.makeWarning(message, "Cancelled the system").buildEmbed()).setActionRows(Collections.emptySet()).queue();
+                message.editMessageEmbeds(MessageFactory.makeWarning(message, "Cancelled the system").buildEmbed()).setActionRow(Collections.emptySet()).queue();
                 /*message.clearReactions().queue();*/
                 return;
             }
@@ -173,14 +177,14 @@ public class SuggestionCommand extends Command {
             if (c != null) {
 
                 if (avaire.getFeatureBlacklist().isBlacklisted(member.getUser(), c.getGuild().getIdLong(), FeatureScope.SUGGESTIONS)) {
-                    message.editMessageEmbeds(MessageFactory.makeError(message, "You have been blacklisted from creating suggestions for this guild. Please ask a **Level 4** or higher to remove you from the `"+c.getGuild().getName()+"` suggestion blacklist. (Or global, if you're globally banned from all features)")
-                        .buildEmbed())
-                        .setActionRows(Collections.emptySet())
+                    message.editMessageEmbeds(MessageFactory.makeError(message, "You have been blacklisted from creating suggestions for this guild. Please ask a **Level 4** or higher to remove you from the `" + c.getGuild().getName() + "` suggestion blacklist. (Or global, if you're globally banned from all features)")
+                            .buildEmbed())
+                        .setActionRow(Collections.emptySet())
                         .queue();
                     return;
                 }
 
-                message.editMessageEmbeds(MessageFactory.makeError(message, "You have been sent a modal, please respond to the questions asked and come back here, if you're not back in 3 minutes. The modal expires").buildEmbed()).setActionRows(Collections.emptySet()).queue();
+                message.editMessageEmbeds(MessageFactory.makeError(message, "You have been sent a modal, please respond to the questions asked and come back here, if you're not back in 3 minutes. The modal expires").buildEmbed()).setActionRow(Collections.emptySet()).queue();
 
                 TextInput suggestion = TextInput.create("suggestion", "Type your suggestion here!", TextInputStyle.PARAGRAPH)
                     .setPlaceholder("This can be anything, just make sure it's appropriate for the guild.")
@@ -231,14 +235,14 @@ public class SuggestionCommand extends Command {
             .setAuthor("Suggestion for: " + c.getGuild().getName(), null, c.getGuild().getIconUrl())
             .requestedBy(member).setDescription(suggestionModal != null ? suggestionModal.getAsString() : "No suggestion provided.")
             .setTimestamp(Instant.now())
-            .buildEmbed()).setActionRows(actionRow).queue(v -> {
+            .buildEmbed()).setActionRow(actionRow.getActionComponents()).queue(v -> {
             p.replyEmbeds(MessageFactory.
                 makeSuccess(message, "[Your suggestion has been posted in the correct suggestion channel.](:link)")
                 .set("link", v.getJumpUrl()).buildEmbed()).setEphemeral(true).queue();
 
             message.editMessage("The modal has been correctly received and the suggestion has been sent.")
                 .setEmbeds(Collections.emptySet())
-                .setActionRows(Collections.emptySet())
+                .setActionRow(Collections.emptySet())
                 .queue();
 
             createReactions(v);
@@ -298,10 +302,10 @@ public class SuggestionCommand extends Command {
         }
 
 
-        return updateApprovedSuggestionChannelInDatabase(transformer, context, (TextChannel) channel);
+        return updateApprovedSuggestionChannelInDatabase(transformer, context, channel);
     }
 
-    private boolean updateApprovedSuggestionChannelInDatabase(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel) {
+    private boolean updateApprovedSuggestionChannelInDatabase(GuildSettingsTransformer transformer, CommandMessage context, GuildChannel channel) {
         transformer.setSuggestionApprovedChannelId(channel.getIdLong());
 
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());
@@ -339,10 +343,10 @@ public class SuggestionCommand extends Command {
         }
 
 
-        return updateCommunityChannelInDatabase(transformer, context, (TextChannel) channel);
+        return updateCommunityChannelInDatabase(transformer, context, channel);
     }
 
-    private boolean updateCommunityChannelInDatabase(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel) {
+    private boolean updateCommunityChannelInDatabase(GuildSettingsTransformer transformer, CommandMessage context, GuildChannel channel) {
         transformer.setSuggestionCommunityChannelId(channel.getIdLong());
 
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());

@@ -30,7 +30,7 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

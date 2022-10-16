@@ -33,10 +33,10 @@ import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.PermissionOverride;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 
 import javax.annotation.Nonnull;
 import java.awt.*;

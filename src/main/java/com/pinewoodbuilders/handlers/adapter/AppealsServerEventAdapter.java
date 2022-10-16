@@ -12,7 +12,11 @@ import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.RandomUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.IPermissionHolder;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.Category;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -65,7 +69,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
                         .set("whyRemove", event.getValue("whyRemove").getAsString())
                         .set("prevention", event.getValue("prevention").getAsString())
                         .buildEmbed()
-                ).setActionRows(Collections.emptyList()).queue();
+                ).setActionRow(Collections.emptyList()).queue();
         }
     }
 
@@ -345,7 +349,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
 
                 if (!isBotAdmin) {
                     if (!canAppeal) {
-                        newReply.editOriginalEmbeds(new EmbedBuilder().setColor(appealType.getColor()).setDescription("You may not appeal with `" + roles + "` for `" + appealType.getCleanName() + "`. You either don't have this punishment or you have a punishment that overrides others (**Example**: `A trelloban overrides a global-ban`, `A globalban overrides a group discord ban` and so on. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRows(Collections.emptyList()).queue();
+                        newReply.editOriginalEmbeds(new EmbedBuilder().setColor(appealType.getColor()).setDescription("You may not appeal with `" + roles + "` for `" + appealType.getCleanName() + "`. You either don't have this punishment or you have a punishment that overrides others (**Example**: `A trelloban overrides a global-ban`, `A globalban overrides a group discord ban` and so on. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRow(Collections.emptyList()).queue();
                         return;
                     }
                 }
@@ -370,7 +374,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
                         .setActionRow(Button.primary("questions-respond", "Click this button to obtain the questions.").asEnabled())
                         .submit())
                     .thenCompose((s) -> newReply.editOriginalEmbeds(new EmbedBuilder().setDescription("Your appeal channel has been created in " + s.getChannel().getAsMention() + "!").build())
-                        .setActionRows(Collections.emptyList()).submit())
+                        .setActionRow(Collections.emptyList()).submit())
                     .thenCompose((s) -> getTextChannelByRole(roles, g)
                         .sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(appealType.getColor()),
                             """
@@ -436,7 +440,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
                     .buildEmbed())
                 .submit())
             .thenCompose((s) -> newReply.editOriginalEmbeds(new EmbedBuilder().setDescription("Your data deletion channel has been created in " + s.getChannel().getAsMention() + "!").build())
-                .setActionRows(Collections.emptyList()).submit())
+                .setActionRow(Collections.emptyList()).submit())
             .thenCompose((s) -> getTextChannelByRole(roles, g)
                 .sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(delType.getColor()),
                     """

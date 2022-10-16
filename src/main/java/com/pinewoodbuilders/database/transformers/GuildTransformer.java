@@ -28,8 +28,8 @@ import com.pinewoodbuilders.contracts.database.transformers.Transformer;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.GuildChannel;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
@@ -53,8 +53,8 @@ public class GuildTransformer extends Transformer {
     private final Set <Long> lockableChannels = new HashSet <>();
     private final Set <Long> lockableChannelsRoles = new HashSet <>();
 
-    private final Set<Long> adminCommandChannels = new HashSet <>();
-    private Set<Long> ignoredAuditLogChannels = new HashSet <>();
+    private final Set <Long> adminCommandChannels = new HashSet <>();
+    private final Set <Long> ignoredAuditLogChannels = new HashSet <>();
 
     private final GuildTypeTransformer guildType;
     private boolean partner;

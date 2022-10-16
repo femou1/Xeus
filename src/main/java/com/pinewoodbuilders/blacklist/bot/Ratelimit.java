@@ -21,17 +21,17 @@
 
 package com.pinewoodbuilders.blacklist.bot;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.pinewoodbuilders.contracts.blacklist.PunishmentLevel;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.middleware.ThrottleMiddleware;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.CacheUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,10 +120,10 @@ public class Ratelimit {
      * @param expires The carbon time instance or when the blacklist expires.
      */
     public void sendBlacklistMessage(Object obj, Carbon expires) {
-        if (obj instanceof User) {
-            sendBlacklistMessage((User) obj, expires);
-        } else if (obj instanceof MessageChannel) {
-            sendBlacklistMessage((MessageChannel) obj, expires);
+        if (obj instanceof User u) {
+            sendBlacklistMessage(u, expires);
+        } else if (obj instanceof MessageChannel c) {
+            sendBlacklistMessage(c, expires);
         }
     }
 

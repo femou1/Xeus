@@ -19,8 +19,8 @@ import com.pinewoodbuilders.utilities.RandomString;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.GuildChannel;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 import javax.annotation.Nonnull;
@@ -580,14 +580,14 @@ public class VoteCommand extends Command {
         }
 
         if (!((TextChannel) channel).canTalk() || !context.getGuild().getSelfMember().hasPermission(channel, Permission.MESSAGE_EMBED_LINKS)) {
-            return sendErrorMessage(context, context.i18n("\"I can't send embedded messages in the specified channel, please change my permission level for the {0} channel if you want to use it as a \"vote validation\" channel.", ((TextChannel) channel).getAsMention()));
+            return sendErrorMessage(context, context.i18n("\"I can't send embedded messages in the specified channel, please change my permission level for the {0} channel if you want to use it as a \"vote validation\" channel.", channel.getAsMention()));
         }
 
         try {
             updateVoteValidation(transformer, context, channel.getIdLong());
 
             context.makeSuccess("The vote validation channel is set to :channel this guild.")
-                .set("channel", ((TextChannel) channel).getAsMention())
+                .set("channel", channel.getAsMention())
                 .queue();
         } catch (SQLException ex) {
             Xeus.getLogger().error(ex.getMessage(), ex);

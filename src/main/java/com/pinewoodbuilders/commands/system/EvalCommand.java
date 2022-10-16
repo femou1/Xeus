@@ -27,7 +27,7 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.SystemCommand;
 import com.pinewoodbuilders.utilities.NumberUtil;
-import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.slf4j.Logger;
@@ -169,7 +169,7 @@ public class EvalCommand extends SystemCommand {
                         + "})();");
 
                 Xeus.getLogger().debug("Eval output: {}", out == null ? "NULL" : out.toString());
-                String output = out == null ? ":thumbsup::skin-tone-3:" : "```\n" + out.toString() + "\n```";
+                String output = out == null ? ":thumbsup::skin-tone-3:" : "```\n" + out + "\n```";
 
                 context.getMessageChannel().sendMessage(String.format("**Input** ```java\n%s```\n**Output**\n%s\nEval took _%sms_",
                     source, output, System.currentTimeMillis() - started

@@ -8,7 +8,7 @@ import com.pinewoodbuilders.contracts.commands.CommandGroup;
 import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

@@ -23,9 +23,9 @@ package com.pinewoodbuilders.vote;
 
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.utilities.RestActionUtil;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
