@@ -329,7 +329,6 @@ public class GuildEventAdapter extends EventAdapter {
                         .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")))
                     .setFooter("UserID: " + e.getUser().getId()).setTimestamp(Instant.now()).queue();
             } else if (event instanceof GuildMemberRemoveEvent e) {
-
                 MessageFactory.makeEmbeddedMessage(tc, new Color(255, 67, 65))
                     .setAuthor("Member left the server!", null, e.getUser().getEffectiveAvatarUrl())
                     .setDescription("**Member**: " + e.getUser().getAsMention() + "\n" + "**User**: "
