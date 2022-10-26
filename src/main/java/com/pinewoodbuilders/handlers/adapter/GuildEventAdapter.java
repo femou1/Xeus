@@ -42,6 +42,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.UserSnowflake;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -104,10 +105,9 @@ public class GuildEventAdapter extends EventAdapter {
                                 + "**, however, I could not find the user responsible for the unban. Please check the audit logs in the responsible server for more information. (User has been re-banned)")
                             .buildEmbed()).queue();
                     }
-                    e.getGuild().ban(UserSnowflake.fromId(e.getUser().getId()), 0,
-                            "User was unbanned, user has been re-banned due to permban system in Xeus. Original ban reason (Do not unban without MGM permission): "
-                                + unbanCollection.get(0).getReason())
-                        .reason("PIA BAN: " + unbanCollection.get(0).getReason()).queue();
+                    e.getGuild().ban(UserSnowflake.fromId(e.getUser().getId()), 0, TimeUnit.HOURS)
+                        .reason("PIA BAN: "
+                            + unbanCollection.get(0).getReason()).queue();
                 } else {
                     if (tc != null) {
                         if (logs.get(0).getUser().equals(e.getJDA().getSelfUser()))
@@ -150,11 +150,10 @@ public class GuildEventAdapter extends EventAdapter {
                             String agent = avaire.getShardManager().getUserById(unbanCollection.get(0).getPunisherId()) != null ?
                                 avaire.getShardManager().getUserById(unbanCollection.get(0).getPunisherId()).getName()
                                 : "No MGM Moderator found";
-                            e.getGuild().ban(UserSnowflake.fromId(e.getUser().getId()), 0, "Banned by: " + agent + "\n" + "For: "
+                            e.getGuild().ban(UserSnowflake.fromId(e.getUser().getId()), 0, TimeUnit.HOURS)
+                                .reason("Banned by: " + agent + "\n" + "For: "
                                     + unbanCollection.get(0).getReason()
-                                    + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
-                                .reason("Global Ban, executed by " + agent + ". For: \n"
-                                    + unbanCollection.get(0).getReason())
+                                    + "\n>>>PIA BAN<<<!")
                                 .queue();
                         }
                     }
@@ -183,6 +182,7 @@ public class GuildEventAdapter extends EventAdapter {
                 }
 
             }
+
         } else if (ev instanceof GenericGuildEvent event) {
             GuildSettingsTransformer transformer = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, event.getGuild());
             if (transformer.getAuditLogsChannelId() != 0) {
@@ -194,23 +194,25 @@ public class GuildEventAdapter extends EventAdapter {
                             .setDescription(
                                 e.getUser().getName() + "#" + e.getUser().getDiscriminator() + "**(:banned)**")
                             .set("banned", e.getUser().getAsMention()).setTimestamp(Instant.now()).queue();
-                    } else if (event instanceof GuildUpdateAfkChannelEvent) {
-                        GuildChannel oldChannel = getModifiedChannel(event, false);
-                        GuildChannel newChannel = getModifiedChannel(event, true);
+                    } else if (event instanceof GuildUpdateAfkChannelEvent channelEvent) {
+                        GuildChannel oldChannel = channelEvent.getOldAfkChannel();
+                        GuildChannel newChannel = channelEvent.getNewAfkChannel();
 
                         MessageFactory.makeEmbeddedMessage(tc, new Color(255, 0, 15))
                             .setAuthor("AFK Channel was modified", null, event.getGuild().getIconUrl())
-                            .addField("**Old Channel**:", oldChannel.getName(), true)
-                            .addField("**New channel**:", newChannel.getName(), true).setTimestamp(Instant.now())
+                            .addField("**Old Channel**:", oldChannel != null ? oldChannel.getName() : "NULL", true)
+                            .addField("**New channel**:", newChannel != null ? newChannel.getName() : "NULL", true)
+                            .setTimestamp(Instant.now())
                             .queue();
-                    } else if (event instanceof GuildUpdateSystemChannelEvent) {
-                        GuildChannel oldChannel = getModifiedChannel(event, false);
-                        GuildChannel newChannel = getModifiedChannel(event, true);
+                    } else if (event instanceof GuildUpdateSystemChannelEvent channelEvent) {
+                        GuildChannel oldChannel = channelEvent.getOldSystemChannel();
+                        GuildChannel newChannel = channelEvent.getNewSystemChannel();
 
                         MessageFactory.makeEmbeddedMessage(tc, new Color(120, 120, 120))
                             .setAuthor("System Channel was modified", null, event.getGuild().getIconUrl())
-                            .addField("**Old Channel**:", oldChannel.getName(), true)
-                            .addField("**New channel**:", newChannel.getName(), true).setTimestamp(Instant.now())
+                            .addField("**Old Channel**:", oldChannel != null ? oldChannel.getName() : "NULL", true)
+                            .addField("**New channel**:", newChannel != null ? newChannel.getName() : "NULL", true)
+                            .setTimestamp(Instant.now())
                             .queue();
                     } else if (event instanceof GuildUpdateBoostCountEvent e) {
                         MessageFactory.makeEmbeddedMessage(tc, new Color(255, 0, 255))
@@ -281,28 +283,6 @@ public class GuildEventAdapter extends EventAdapter {
                                 + "**User**: " + e.getMember().getUser().getName() + "#"
                                 + e.getMember().getUser().getDiscriminator() + "\n"
                                 + "**Joined channel**: \uD83D\uDD08 " + e.getChannelJoined().getName())
-                            .setFooter("UserID: " + e.getMember().getUser().getId()).setTimestamp(Instant.now())
-                            .queue();
-                    } else if (event instanceof GuildVoiceLeaveEvent e) {
-
-                        MessageFactory.makeEmbeddedMessage(tc, new Color(255, 11, 0))
-                            .setAuthor(e.getMember().getEffectiveName() + " left a voice channel!", null,
-                                e.getMember().getUser().getEffectiveAvatarUrl())
-                            .setDescription("**Member**: " + e.getMember().getUser().getAsMention() + "\n"
-                                + "**User**: " + e.getMember().getUser().getName() + "#"
-                                + e.getMember().getUser().getDiscriminator() + "\n"
-                                + "**Left channel**: \uD83D\uDD07 " + e.getChannelLeft().getName())
-                            .setFooter("UserID: " + e.getMember().getUser().getId()).setTimestamp(Instant.now())
-                            .queue();
-                    } else if (event instanceof GuildVoiceMoveEvent e) {
-                        MessageFactory.makeEmbeddedMessage(tc, new Color(156, 0, 255))
-                            .setAuthor(e.getMember().getEffectiveName() + " moved voice channels!", null,
-                                e.getMember().getUser().getEffectiveAvatarUrl())
-                            .setDescription("**Member**: " + e.getMember().getUser().getAsMention() + "\n"
-                                + "**User**: " + e.getMember().getUser().getName() + "#"
-                                + e.getMember().getUser().getDiscriminator() + "\n"
-                                + "**Joined channel**: \uD83D\uDD08 " + e.getChannelJoined().getName() + "\n"
-                                + "**Left channel**: \uD83D\uDD07 " + e.getChannelLeft().getName())
                             .setFooter("UserID: " + e.getMember().getUser().getId()).setTimestamp(Instant.now())
                             .queue();
                     }

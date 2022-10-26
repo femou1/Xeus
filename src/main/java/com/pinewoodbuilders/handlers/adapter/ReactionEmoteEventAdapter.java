@@ -43,6 +43,8 @@ import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.emoji.EmojiUnion;
@@ -410,7 +412,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                 mb.requestedBy(m);
                                             }
 
-                                            finalCtc.sendMessageEmbeds(mb.buildEmbed()).setActionRows(actionRow).queue(p -> {
+                                            finalCtc.sendMessageEmbeds(mb.buildEmbed()).setActionRow(actionRow.getActionComponents()).queue(p -> {
                                                 /*
                                                 p.addReaction("✅").queue();
                                                 p.addReaction("❌").queue();
@@ -439,7 +441,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                             mb.requestedBy(m);
                                         }
 
-                                        msg.editMessageEmbeds(mb.buildEmbed()).setActionRows(actionRow).queue();
+                                        msg.editMessageEmbeds(mb.buildEmbed()).setActionRow(actionRow.getActionComponents()).queue();
                                         msg.clearReactions(Emoji.fromFormatted("\uD83D\uDC4D")).queueAfter(1, TimeUnit.SECONDS);
                                         msg.clearReactions(Emoji.fromFormatted("\uD83D\uDC4E")).queueAfter(1, TimeUnit.SECONDS);
                                     }
@@ -456,7 +458,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                             mb.requestedBy(m);
                                         }
 
-                                        msg.editMessageEmbeds(mb.buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                        msg.editMessageEmbeds(mb.buildEmbed()).setActionRow(Collections.emptyList()).queue();
                                         msg.clearReactions().queue();
                                         qb.delete();
 
@@ -477,7 +479,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                 .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                 .setDescription(msg.getEmbeds().get(0).getDescription())
                                                 .setTimestamp(Instant.now())
-                                                .buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                                .buildEmbed()).setActionRow(Collections.emptyList()).queue();
                                             msg.clearReactions().queue();
                                             qb.delete();
                                             break;
@@ -498,7 +500,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                         .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                         .setDescription(msg.getEmbeds().get(0).getDescription())
                                                         .setTimestamp(Instant.now())
-                                                        .buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                                        .buildEmbed()).setActionRow(Collections.emptyList()).queue();
                                                     msg.delete().queue();
                                                 } else {
                                                     msg.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
@@ -506,7 +508,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                         .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                         .setDescription(msg.getEmbeds().get(0).getDescription())
                                                         .setTimestamp(Instant.now())
-                                                        .buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                                        .buildEmbed()).setActionRow(Collections.emptyList()).queue();
                                                     msg.clearReactions().queue();
 
                                                 }
@@ -516,7 +518,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                     .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                     .setDescription(msg.getEmbeds().get(0).getDescription())
                                                     .setTimestamp(Instant.now())
-                                                    .buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                                    .buildEmbed()).setActionRow(Collections.emptyList()).queue();
                                                 msg.clearReactions().queue();
 
                                             }
