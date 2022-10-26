@@ -96,7 +96,7 @@ public class ModSettingsSubCommand extends SettingsSubCommand {
 
                 if (entity == null) {
                     context.makeError(
-                            "There is no record found of this user in the database, or any connected verification registry (Bloxlink, RoVer, etc). Due to security, this user cannot be added to the database, due to it requiring the user ID for security reasons")
+                            "There is no record found of this user in the database, or any connected verification registry (Bloxlink, etc). Due to security, this user cannot be added to the database, due to it requiring the user ID for security reasons")
                             .queue();
                     return false;
                 }
@@ -193,20 +193,17 @@ public class ModSettingsSubCommand extends SettingsSubCommand {
                         if (!context.getMessage().getContentRaw().endsWith("--force")) {
                             context.makeError(
                                     "You are trying to give someone moderator privileges, however the roblox id stored on their discord account is not the same in the database. (Or they are not in the database, if this is the case. Permissions won't be granted at all) \n\n"
-                                            + "Out of security, this action has been cancelled. Run the command with `--force` to bypass this.")
-                                    .queue();
+                                        + "Out of security, this action has been cancelled. Run the command with `--force` to bypass this.")
+                                .queue();
                             return false;
                         }
                     }
-    
-                    boolean isLead = false;
-                    if (args[2].equals("true")) {
-                        isLead = true;
-                    }
-    
+
+                    boolean isLead = args[2].equals("true");
+
                     try {
                         addUserToModerationTable(transformer.getMainGroupId(), Long.valueOf(args[0]), Long.valueOf(args[1]),
-                                isLead, false);
+                            isLead, false);
                         context.makeSuccess("Added <@" + args[0] + ">").queue();
                         return true;
                     } catch (SQLException e) {

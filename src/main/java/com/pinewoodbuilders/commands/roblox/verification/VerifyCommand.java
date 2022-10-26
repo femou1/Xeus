@@ -5,8 +5,8 @@ import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.VerificationCommandContract;
 import com.pinewoodbuilders.contracts.verification.VerificationEntity;
 import com.pinewoodbuilders.contracts.verification.VerificationProviders;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
@@ -67,14 +67,10 @@ public class VerifyCommand extends VerificationCommandContract {
 
         context.makeInfo("<a:loading:742658561414266890> You haven't verified with the Xeus verification database yet. Checking external databases... <a:loading:742658561414266890>").queue(
                 unverifiedMessage -> {
-                    VerificationEntity rover = avaire.getRobloxAPIManager().getVerification().callUserFromRoverAPI(context.member.getId());
                     VerificationEntity bloxlink = avaire.getRobloxAPIManager().getVerification().callUserFromBloxlinkAPI(context.member.getId());
                     VerificationEntity rowifi = avaire.getRobloxAPIManager().getVerification().callUserFromRoWifiAPI(context.member.getId());
 
                     List<VerificationEntity> verificationEntities = new ArrayList<>();
-                    if (rover != null) {
-                        verificationEntities.add(rover);
-                    }
                     if (bloxlink != null) {
                         verificationEntities.add(bloxlink);
                     }
@@ -133,11 +129,6 @@ public class VerifyCommand extends VerificationCommandContract {
                                         String provider = so.getValue().split(":")[0];
                                         String username = so.getValue().split(":")[1];
 
-                                        if (provider.equals("rover")) {
-                                            assert rover != null;
-                                            addAccountToDatabase(context, rover.getRobloxId(), unverifiedMessage, username);
-                                            return;
-                                        }
                                         if (provider.equals("bloxlink")) {
                                             assert bloxlink != null;
                                             addAccountToDatabase(context, bloxlink.getRobloxId(), unverifiedMessage, username);
