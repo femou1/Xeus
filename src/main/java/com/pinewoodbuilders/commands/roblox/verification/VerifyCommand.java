@@ -67,14 +67,10 @@ public class VerifyCommand extends VerificationCommandContract {
 
         context.makeInfo("<a:loading:742658561414266890> You haven't verified with the Xeus verification database yet. Checking external databases... <a:loading:742658561414266890>").queue(
                 unverifiedMessage -> {
-                    VerificationEntity rover = avaire.getRobloxAPIManager().getVerification().callUserFromRoverAPI(context.member.getId());
                     VerificationEntity bloxlink = avaire.getRobloxAPIManager().getVerification().callUserFromBloxlinkAPI(context.member.getId());
                     VerificationEntity rowifi = avaire.getRobloxAPIManager().getVerification().callUserFromRoWifiAPI(context.member.getId());
 
                     List<VerificationEntity> verificationEntities = new ArrayList<>();
-                    if (rover != null) {
-                        verificationEntities.add(rover);
-                    }
                     if (bloxlink != null) {
                         verificationEntities.add(bloxlink);
                     }
@@ -133,11 +129,6 @@ public class VerifyCommand extends VerificationCommandContract {
                                         String provider = so.getValue().split(":")[0];
                                         String username = so.getValue().split(":")[1];
 
-                                        if (provider.equals("rover")) {
-                                            assert rover != null;
-                                            addAccountToDatabase(context, rover.getRobloxId(), unverifiedMessage, username);
-                                            return;
-                                        }
                                         if (provider.equals("bloxlink")) {
                                             assert bloxlink != null;
                                             addAccountToDatabase(context, bloxlink.getRobloxId(), unverifiedMessage, username);
