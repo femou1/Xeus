@@ -606,8 +606,6 @@ public class VerificationManager {
         switch (selectedApi != null ? selectedApi : "pinewood") {
             case "bloxlink":
                 return fetchVerificationFromBloxlink(discordUserId, fromCache);
-            case "rover":
-                return fetchVerificationFromRover(discordUserId, fromCache);
             case "pinewood":
             default:
                 return fetchVerificationFromDatabase(discordUserId, fromCache);
@@ -618,9 +616,6 @@ public class VerificationManager {
     @CheckReturnValue
     public VerificationEntity fetchVerificationWithBackup(String discordUserId, boolean fromCache) {
         VerificationEntity entity = fetchVerificationFromDatabase(discordUserId, fromCache);
-        if (entity == null) {
-            entity = fetchVerificationFromRover(discordUserId, fromCache);
-        }
 
         if (entity == null) {
             entity = fetchVerificationFromBloxlink(discordUserId, fromCache);
@@ -633,9 +628,6 @@ public class VerificationManager {
     @CheckReturnValue
     public VerificationEntity fetchInstantVerificationWithBackup(String discordUserId) {
         VerificationEntity entity = callUserFromDatabaseAPI(discordUserId);
-        if (entity == null) {
-            entity = callUserFromRoverAPI(discordUserId);
-        }
 
         if (entity == null) {
             entity = callUserFromBloxlinkAPI(discordUserId);
@@ -662,19 +654,6 @@ public class VerificationManager {
         }
     }
 
-    @Nullable
-    @CheckReturnValue
-    public VerificationEntity fetchVerificationFromRover(String discordUserId, boolean fromCache) {
-        if (!fromCache) {
-            return forgetAndCache("rover:" + discordUserId);
-        }
-        try {
-            return (VerificationEntity) CacheUtil.getUncheckedUnwrapped(cache, "rover:" + discordUserId,
-                () -> callUserFromRoverAPI(discordUserId));
-        } catch (CacheLoader.InvalidCacheLoadException e) {
-            return null;
-        }
-    }
 
     @Nullable
     @CheckReturnValue
@@ -736,7 +715,6 @@ public class VerificationManager {
             cache.invalidate(discordUserId);
         }
         return switch (discordUserId.split(":")[0]) {
-            case "rover" -> callUserFromRoverAPI(discordUserId.split(":")[1]);
             case "bloxlink" -> callUserFromBloxlinkAPI(discordUserId.split(":")[1]);
             case "wowifi" -> callUserFromRoWifiAPI(discordUserId.split(":")[1]);
             default -> callUserFromDatabaseAPI(discordUserId.split(":")[1]);
@@ -762,32 +740,6 @@ public class VerificationManager {
         }
     }
 
-    @Nullable
-    public VerificationEntity callUserFromRoverAPI(String discordUserId) {
-        Request.Builder request = new Request.Builder().addHeader("User-Agent", "Xeus v" + AppInfo.getAppInfo().version)
-            .url("https://verify.eryn.io/api/user/" + discordUserId);
-
-        try (Response response = manager.getClient().newCall(request.build()).execute()) {
-            if (response.code() == 200 && response.body() != null) {
-                JSONObject json = new JSONObject(response.body().string());
-
-                VerificationEntity verificationEntity = new VerificationEntity(json.getLong("robloxId"),
-                    manager.getUserAPI().getUsername(json.getLong("robloxId")), Long.valueOf(discordUserId), "rover", true);
-                log.debug("[Rover] Found user " + discordUserId + " in Rover");
-                cache.put(discordUserId, verificationEntity);
-                return verificationEntity;
-            } else if (response.code() == 404) {
-                return null;
-            } else {
-                throw new Exception("Rover API returned something else then 200, please retry.");
-            }
-        } catch (IOException e) {
-            Xeus.getLogger().error("Failed sending request to Rover API: " + e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
     public VerificationEntity callDiscordUserFromDatabaseAPI(Long robloxId) {
         try {

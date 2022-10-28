@@ -40,7 +40,6 @@ public class KronosManager {
         this.evalApiKey = avaire.getConfig().getString("apiKeys.kronosDatabaseEvalsApiKey");
         this.blacklistKey = avaire.getConfig().getString("apiKeys.kronosApiKey");
         this.weaponbanKey = avaire.getConfig().getString("apikeys.kronosWeaponbanKey");
-        
     }
 
     public Long getPoints(Long userId) {
@@ -232,7 +231,7 @@ public class KronosManager {
                         list.add(item.get("id").longValue());
                     }
                     log.debug("Found " + list.size() + " blacklist entries for division: " + division);
-                    avaire.getCache().getAdapter(CacheType.FILE).remember(cacheToken, 60 * 60, () -> service);
+                    avaire.getCache().getAdapter(CacheType.FILE).remember(cacheToken, 60 * 15, () -> service);
                     log.debug("Cached blacklist for division: " + division);
                 } else if (response.code() == 404) {
                     return list;
