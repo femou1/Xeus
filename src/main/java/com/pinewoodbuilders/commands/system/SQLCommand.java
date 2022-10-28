@@ -90,7 +90,8 @@ public class SQLCommand extends SystemCommand {
 
                 default:
                     context.makeWarning(
-                        "Invalid or unsupported SQL action given, you just use one of the following: `SELECT`, `UPDATE`, `DELETE`, or `INSERT`"
+                        "Invalid or unsupported SQL action given, you just use one of the following: `SELECT`, " +
+                            "`UPDATE`, `DELETE`, or `INSERT`"
                     ).queue();
             }
         } catch (SQLException | DatabaseException e) {
@@ -119,9 +120,10 @@ public class SQLCommand extends SystemCommand {
             .setContent(items)
             .build();
 
-        if (tableContent.trim().length() > 4000) {
-            tableContent = tableContent.trim().substring(0, 3900) + "\nData too long, " + NumberUtil.formatNicely(tableContent.length() - 3900) + " characters has been hidden.";
-        }
+        if (tableContent.trim().length() > 2000)
+            tableContent = tableContent.trim().substring(0, 3900) +
+                "\nData too long, " + NumberUtil.formatNicely(tableContent.length() - 3900) +
+                " characters has been hidden.";
 
         context.getMessageChannel()
             .sendMessage("```" + tableContent + "```")

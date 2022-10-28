@@ -44,6 +44,7 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.GenericEvent;
@@ -249,7 +250,7 @@ public class GuildEventAdapter extends EventAdapter {
                         for (Role role : e.getRoles()) {
                             sb.append("\n - **").append(role.getName()).append("**");
                         }
-                        MessageFactory.makeEmbeddedMessage(tc, new Color(255, 129, 31))
+                        MessageFactory.makeEmbeddedMessage(tc, new Color(255, 127, 0))
                             .setAuthor("Roles were added to member!", null, e.getUser().getEffectiveAvatarUrl())
                             .setDescription("**Member**: " + e.getUser().getAsMention() + "\n" + "**User**: "
                                 + e.getUser().getName() + "#" + e.getUser().getDiscriminator() + "\n"
@@ -276,13 +277,19 @@ public class GuildEventAdapter extends EventAdapter {
                             .setFooter("UserID: " + e.getUser().getId()).setTimestamp(Instant.now()).queue();
                     } else if (event instanceof GuildVoiceUpdateEvent e) {
 
-                        MessageFactory.makeEmbeddedMessage(tc, new Color(28, 255, 0))
-                            .setAuthor(e.getMember().getEffectiveName() + " joined a voice channel!", null,
+                        String joinedChannel = e.getChannelJoined() != null ? e.getChannelJoined().getAsMention() : "`Left voice`";
+                        String leftChannel = e.getChannelLeft() != null ? e.getChannelLeft().getAsMention() : "`Wasn't in a channel before`";
+
+
+                        MessageFactory.makeEmbeddedMessage(tc, new Color(255, 127, 0))
+                            .setAuthor(e.getMember().getEffectiveName() + " modified his state in a voice channel!", null,
                                 e.getMember().getUser().getEffectiveAvatarUrl())
                             .setDescription("**Member**: " + e.getMember().getUser().getAsMention() + "\n"
                                 + "**User**: " + e.getMember().getUser().getName() + "#"
                                 + e.getMember().getUser().getDiscriminator() + "\n"
-                                + "**Joined channel**: \uD83D\uDD08 " + e.getChannelJoined().getName())
+                                + "**Joined channel**: \uD83D\uDD08 " + joinedChannel
+                                + "\n**Left channel**: \uD83D\uDD08 " + leftChannel
+                            )
                             .setFooter("UserID: " + e.getMember().getUser().getId()).setTimestamp(Instant.now())
                             .queue();
                     }
