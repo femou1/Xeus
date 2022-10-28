@@ -60,6 +60,11 @@ import com.vdurmont.emoji.EmojiParser;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -1048,7 +1053,7 @@ public class MessageEventAdapter extends EventAdapter {
 
                                                 if (!g.getSelfMember().hasPermission(Permission.BAN_MEMBERS)) continue;
 
-                                                g.ban(UserSnowflake.fromId(bannedEntity.getDiscordId()), 0).reason(finalReason).queue();
+                                                g.ban(UserSnowflake.fromId(bannedEntity.getDiscordId()), 0, TimeUnit.DAYS).reason(finalReason).queue();
                                             }
                                         }
                                     } catch (SQLException ex) {

@@ -7,8 +7,11 @@ import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.time.Carbon;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 import java.awt.*;
 import java.sql.SQLException;
@@ -55,7 +58,6 @@ public class SendRemindersTask implements Task
                             buildMessage(user,content,timeStamp)
                         ).queue(
                             success -> markMessageSent(avaire, id));
-                        ;
                     }
                 } else {
                     sendPrivateMessage(avaire,user,content,timeStamp,id);
@@ -100,9 +102,8 @@ public class SendRemindersTask implements Task
 
     }
 
-    private Message buildMessage(User author, String content, Carbon timeStamp)
-    {
-        return new MessageBuilder()
+    private MessageCreateData buildMessage(User author, String content, Carbon timeStamp) {
+        return new MessageCreateBuilder()
             .setContent(String.format("%s, %s you asked to be reminded about:",
                 author.getAsMention(),
                 timeStamp.diffForHumans()

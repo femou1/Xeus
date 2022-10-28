@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.contracts.utilities;
 
-import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

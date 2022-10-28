@@ -29,15 +29,16 @@ import com.pinewoodbuilders.contracts.handlers.EventHandler;
 import com.pinewoodbuilders.database.controllers.PlayerController;
 import com.pinewoodbuilders.handlers.adapter.*;
 import com.pinewoodbuilders.metrics.Metrics;
-import com.pinewoodbuilders.pinewood.adapter.WhitelistEventAdapter;
 import com.pinewoodbuilders.utilities.CacheUtil;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.ReadyEvent;
-import net.dv8tion.jda.api.events.ReconnectedEvent;
-import net.dv8tion.jda.api.events.ResumedEvent;
 import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.channel.update.ChannelUpdateNameEvent;
@@ -50,13 +51,11 @@ import net.dv8tion.jda.api.events.guild.invite.GuildInviteDeleteEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateNameEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.events.message.*;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
@@ -66,6 +65,9 @@ import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
 import net.dv8tion.jda.api.events.role.update.RoleUpdateNameEvent;
 import net.dv8tion.jda.api.events.role.update.RoleUpdatePermissionsEvent;
 import net.dv8tion.jda.api.events.role.update.RoleUpdatePositionEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
+import net.dv8tion.jda.api.events.session.SessionRecreateEvent;
+import net.dv8tion.jda.api.events.session.SessionResumeEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateAvatarEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateDiscriminatorEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
@@ -91,7 +93,6 @@ public class MainEventHandler extends EventHandler {
     private final ChangelogEventAdapter changelogEventAdapter;
     private final ReactionEmoteEventAdapter reactionEmoteEventAdapter;
     private final GuildEventAdapter guildEventAdapter;
-    private final WhitelistEventAdapter whitelistEventAdapter;
     private final ButtonClickEventAdapter buttonClickEventAdapter;
     private final SlashCommandEventAdapter slashCommandEventAdapter;
     private final AppealsServerEventAdapter appealsServerEventAdapter;
@@ -122,14 +123,13 @@ public class MainEventHandler extends EventHandler {
         this.changelogEventAdapter = new ChangelogEventAdapter(avaire);
         this.reactionEmoteEventAdapter = new ReactionEmoteEventAdapter(avaire);
         this.guildEventAdapter = new GuildEventAdapter(avaire);
-        this.whitelistEventAdapter = new WhitelistEventAdapter(avaire, avaire.getVoiceWhitelistManager());
         this.buttonClickEventAdapter = new ButtonClickEventAdapter(avaire);
         this.slashCommandEventAdapter = new SlashCommandEventAdapter(avaire);
         this.appealsServerEventAdapter = new AppealsServerEventAdapter(avaire);
     }
 
     @Override
-    public void onGenericEvent(GenericEvent event) {
+    public void onGenericEvent(@NotNull GenericEvent event) {
         prepareGuildMembers(event);
         Metrics.jdaEvents.labels(event.getClass().getSimpleName()).inc();
 
@@ -149,12 +149,12 @@ public class MainEventHandler extends EventHandler {
     }
 
     @Override
-    public void onResumed(ResumedEvent event) {
+    public void onSessionResume(SessionResumeEvent event) {
         jdaStateEventAdapter.onConnectToShard(event.getJDA());
     }
 
     @Override
-    public void onReconnected(ReconnectedEvent event) {
+    public void onSessionRecreate(SessionRecreateEvent event) {
         jdaStateEventAdapter.onConnectToShard(event.getJDA());
     }
 
@@ -213,16 +213,6 @@ public class MainEventHandler extends EventHandler {
 
             channelEvent.updateChannelData(channel.getGuild(), channel);
         }
-    }
-
-    @Override
-    public void onGuildVoiceJoin(@Nonnull GuildVoiceJoinEvent event) {
-        whitelistEventAdapter.whitelistCheckEvent(event);
-    }
-
-    @Override
-    public void onGuildVoiceMove(@Nonnull GuildVoiceMoveEvent event) {
-        whitelistEventAdapter.whitelistCheckEvent(event);
     }
 
 
@@ -466,8 +456,8 @@ public class MainEventHandler extends EventHandler {
     }
 
     @Override
-    public void onSelectMenuInteraction(@Nonnull SelectMenuInteractionEvent event) {
-        appealsServerEventAdapter.onAppealsSelectMenuInteractionEvent(event);
+    public void onStringSelectInteraction(@Nonnull StringSelectInteractionEvent event) {
+        appealsServerEventAdapter.onAppealsStringSelectInteraction(event);
     }
 
     @Override

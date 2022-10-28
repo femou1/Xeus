@@ -8,6 +8,9 @@ import com.pinewoodbuilders.contracts.commands.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.utils.FileUpload;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -269,7 +272,7 @@ public class AppealCommand extends Command {
                                     writer.close();
 
                                     TextChannel tc = getTextChannelFromTypeAndName(appealType, roles, context.getGuild());
-                                    tc.sendFile(file, "transcript.html").submit().thenCompose(message -> {
+                                    tc.sendFiles(FileUpload.fromData(file, "transcript.html")).submit().thenCompose(message -> {
                                         file.deleteOnExit();
                                         MessageEmbed embedLog = new EmbedBuilder()
                                             .setAuthor(appealer != null ? appealer.getAsTag() : "User not found", null, appealer != null ? appealer.getEffectiveAvatarUrl() : "https://i.imgur.com/ICK2lr1.jpeg")

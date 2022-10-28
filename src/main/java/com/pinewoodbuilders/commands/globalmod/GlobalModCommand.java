@@ -34,6 +34,7 @@ import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,6 +42,7 @@ import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -791,7 +793,7 @@ public class GlobalModCommand extends Command {
             if (tc != null) {
                 tc.sendMessageEmbeds(context.makeInfo("[``:global-unbanned-id`` was unbanned from all discords by :user](:link)").set("global-unbanned-id", args[0]).set("user", context.getMember().getAsMention()).set("link", context.getMessage().getJumpUrl()).buildEmbed()).queue();
             }
-            context.makeError("**:userId** has been removed from the anti-unban system!\n\n" + sb.toString()).set("userId", args[0]).queue();
+            context.makeError("**:userId** has been removed from the anti-unban system!\n\n" + sb).set("userId", args[0]).queue();
         } else {
             context.makeError("This user is not banned!").queue();
         }
@@ -927,16 +929,14 @@ public class GlobalModCommand extends Command {
             GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
             if (settings.getGlobalBan()) continue;
             if (settings.isOfficialSubGroup()) {
-                guild.ban(UserSnowflake.fromId(args[0]), time, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: "
-                        + reason
-                        + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
+                guild.ban(UserSnowflake.fromId(args[0]), time, TimeUnit.DAYS)
                     .reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n"
                         + reason)
                     .queue();
                 sb.append("``").append(guild.getName()).append("`` - :white_check_mark:\n");
             } else {
-                guild.ban(UserSnowflake.fromId(args[0]), time,
-                        "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
+                guild.ban(UserSnowflake.fromId(args[0]), time, TimeUnit.DAYS)
+                    .reason("This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
                     .queue();
                 sb.append("``").append(guild.getName()).append("`` - :ballot_box_with_check:\n");
             }
@@ -1158,17 +1158,11 @@ public class GlobalModCommand extends Command {
                     if (dr.getString("userId") == null)
                         continue;
                     if (mainGroupId == 0L) {
-                        context.guild.ban(UserSnowflake.fromId(dr.getString("userId")), 0,
-                                "THIS BAN MAY ONLY BE REVERTED BY A MGM MODERATOR. ORIGINAL BAN REASON: "
-                                    + dr.getString("reason"))
-                            .reason("Ban sync").queue();
+                        context.guild.ban(UserSnowflake.fromId(dr.getString("userId")), 0, TimeUnit.DAYS)
+                            .reason("Global-Ban sync").queue();
                     } else if (mainGroupId == dr.getLong("main_group_id")) {
-                        context.guild.ban(UserSnowflake.fromId(dr.getString("userId")), 0,
-                                "THIS BAN MAY ONLY BE REVERTED BY A MGM MODERATOR. ORIGINAL BAN REASON: "
-                                    + dr.getString("reason"))
-                            .reason("Ban sync").queue();
-                    } else {
-                        continue;
+                        context.guild.ban(UserSnowflake.fromId(dr.getString("userId")), 0, TimeUnit.DAYS)
+                            .reason("Global-Ban sync").queue();
                     }
                 }
             } else {
@@ -1176,17 +1170,11 @@ public class GlobalModCommand extends Command {
                     if (dr.getString("userId") == null)
                         continue;
                     if (mainGroupId == 0L) {
-                        context.guild.ban(UserSnowflake.fromId(dr.getString("userId")), 0,
-                                "THIS BAN MAY ONLY BE REVERTED BY A MGM MODERATOR. ORIGINAL BAN REASON: "
-                                    + dr.getString("reason"))
+                        context.guild.ban(UserSnowflake.fromId(dr.getString("userId")), 0, TimeUnit.DAYS)
                             .reason("Ban sync").queue();
                     } else if (mainGroupId == dr.getLong("main_group_id")) {
-                        context.guild.ban(UserSnowflake.fromId(dr.getString("userId")), 0,
-                                "THIS BAN MAY ONLY BE REVERTED BY A MGM MODERATOR. ORIGINAL BAN REASON: "
-                                    + "Hidden for un-official guilds.")
+                        context.guild.ban(UserSnowflake.fromId(dr.getString("userId")), 0, TimeUnit.DAYS)
                             .reason("Ban sync").queue();
-                    } else {
-                        continue;
                     }
                 }
 

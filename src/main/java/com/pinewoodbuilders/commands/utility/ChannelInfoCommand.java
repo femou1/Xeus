@@ -31,10 +31,10 @@ import com.pinewoodbuilders.contracts.commands.CommandGroups;
 import com.pinewoodbuilders.factories.MessageFactory;
 import com.pinewoodbuilders.time.Carbon;
 import com.pinewoodbuilders.utilities.MentionableUtil;
-import net.dv8tion.jda.api.entities.GuildChannel;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.ThreadChannel;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -120,19 +120,13 @@ public class ChannelInfoCommand extends Command {
                 .addField(context.i18n("fields.nsfw"), textChannel.isNSFW() ? "ON" : "OFF", true);
         }
 
-        if (channel instanceof VoiceChannel) {
-            VoiceChannel voiceChannel = (VoiceChannel) channel;
+        if (channel instanceof VoiceChannel voiceChannel) {
             int bitRate = voiceChannel.getBitrate() / 1000;
-
-            placeholder
-                .addField(context.i18n("fields.bitRate"), bitRate + " kbps", true);
+            placeholder.addField(context.i18n("fields.bitRate"), bitRate + " kbps", true);
         }
 
-        if (channel instanceof ThreadChannel) {
-            ThreadChannel threadChannel = (ThreadChannel) channel;
-
-            placeholder
-                .addField("Channel Owner", threadChannel.getOwner().getEffectiveName(), true);
+        if (channel instanceof ThreadChannel threadChannel) {
+            placeholder.addField("Channel Owner", threadChannel.getOwner().getEffectiveName(), true);
         }
 
         placeholder
@@ -149,8 +143,7 @@ public class ChannelInfoCommand extends Command {
     }
 
     private String getCategoryFor(GuildChannel channel) {
-        if (channel instanceof VoiceChannel) {
-            VoiceChannel voiceChannel = (VoiceChannel) channel;
+        if (channel instanceof VoiceChannel voiceChannel) {
 
             if (voiceChannel.getParentCategory() == null) {
                 return "*No Category*";
@@ -158,13 +151,11 @@ public class ChannelInfoCommand extends Command {
             return voiceChannel.getParentCategory().getName();
         }
 
-        if (channel instanceof ThreadChannel) {
-            ThreadChannel threadChannel = (ThreadChannel) channel;
+        if (channel instanceof ThreadChannel threadChannel) {
             return threadChannel.getParentChannel().getName();
         }
 
-        if (channel instanceof TextChannel) {
-            TextChannel textChannel = (TextChannel) channel;
+        if (channel instanceof TextChannel textChannel) {
             if (textChannel.getParentCategory() == null) {
                 return "*No Category*";
             }

@@ -8,9 +8,9 @@ import com.pinewoodbuilders.contracts.verification.VerificationResult;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.utilities.RandomUtil;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
@@ -93,12 +93,12 @@ public abstract class VerificationCommandContract extends Command {
                 context.makeError("Something went wrong during verification of your account..." + vr.getMessage()).buildEmbed();
 
 
-            originalMessage.editMessageEmbeds(embed1, embed2).setActionRows(Collections.emptyList()).queue();
+            originalMessage.editMessageEmbeds(embed1, embed2).setComponents(Collections.emptyList()).queue();
 
 
 
         } catch (SQLException throwables) {
-            originalMessage.editMessageEmbeds(context.makeError("Something went wrong adding your account to the database :(").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
+            originalMessage.editMessageEmbeds(context.makeError("Something went wrong adding your account to the database :(").requestedBy(context).buildEmbed()).setComponents(Collections.emptyList()).queue();
             throwables.printStackTrace();
         }
     }
@@ -138,26 +138,26 @@ public abstract class VerificationCommandContract extends Command {
                                                 verification.remove(robloxId);
                                                 addAccountToDatabase(context, robloxId, originalMessage, avaire.getRobloxAPIManager().getUserAPI().getUsername(robloxId));
                                             } else {
-                                                originalMessage.editMessageEmbeds(context.makeWarning("Verification has not been confirmed, verification cancelled.").buildEmbed()).setActionRows(Collections.emptyList()).queue();;
+                                                originalMessage.editMessageEmbeds(context.makeWarning("Verification has not been confirmed, verification cancelled.").buildEmbed()).setComponents(Collections.emptyList()).queue();
                                                 verification.remove(robloxId);
                                             }
                                             break;
                                         } else {
-                                            originalMessage.editMessageEmbeds(context.makeWarning("Verification code has disappeared. Try again later").buildEmbed()).setActionRows(Collections.emptyList()).queue();;
+                                            originalMessage.editMessageEmbeds(context.makeWarning("Verification code has disappeared. Try again later").buildEmbed()).setComponents(Collections.emptyList()).queue();
                                         }
                                         break;
                                     case "❌":
                                         verification.remove(robloxId);
-                                        originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (User action)...").buildEmbed()).setActionRows(Collections.emptyList()).queue();;
+                                        originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (User action)...").buildEmbed()).setComponents(Collections.emptyList()).queue();
                                         break;
                                     default:
                                         verification.remove(robloxId);
-                                        originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (Invalid Emoji)...").buildEmbed()).setActionRows(Collections.emptyList()).queue();;
+                                        originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (Invalid Emoji)...").buildEmbed()).setComponents(Collections.emptyList()).queue();
                                 }
                             }, 5, TimeUnit.MINUTES, () -> {
-                                verification.remove(robloxId);
-                                originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue();;
-                            });
+                            verification.remove(robloxId);
+                            originalMessage.editMessage(context.member.getAsMention()).setEmbeds(context.makeError("No response received after 5 minutes, the verification system has been stopped.").buildEmbed()).queue();
+                        });
                 });
 
     }
@@ -183,10 +183,10 @@ public abstract class VerificationCommandContract extends Command {
                                     if (status.contains(token)) {
                                         addAccountToDatabase(context, robloxId, originalMessage, avaire.getRobloxAPIManager().getUserAPI().getUsername(robloxId));
                                     } else {
-                                        originalMessage.editMessageEmbeds(context.makeWarning("Your status does not contain the token, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                        originalMessage.editMessageEmbeds(context.makeWarning("Your status does not contain the token, verification cancelled.").requestedBy(context).buildEmbed()).setComponents(Collections.emptyList()).queue();
                                     }
                                 } else {
-                                    originalMessage.editMessageEmbeds(context.makeWarning("Status is empty, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                    originalMessage.editMessageEmbeds(context.makeWarning("Status is empty, verification cancelled.").requestedBy(context).buildEmbed()).setComponents(Collections.emptyList()).queue();
                                 }
                                 return;
                             }

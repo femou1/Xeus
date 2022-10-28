@@ -2,7 +2,7 @@ package com.pinewoodbuilders.utilities;
 
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.ShutdownEvent;
+import net.dv8tion.jda.api.events.session.SessionDisconnectEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.SubscribeEvent;
 import net.dv8tion.jda.internal.utils.Checks;
@@ -27,7 +27,7 @@ import java.util.stream.Stream;
  * {@link java.util.concurrent.ScheduledExecutorService Executor}, and thus a proper
  * shutdown of said executor. The default constructor for an EventWaiter sets up a
  * working, "live", EventWaiter whose shutdown is triggered via JDA firing a
- * {@link net.dv8tion.jda.api.events.ShutdownEvent ShutdownEvent}.
+ * {@link net.dv8tion.jda.api.events.session.SessionDisconnectEvent SessionDisconnectEvent}.
  * <br>A more "shutdown adaptable" constructor allows the provision of a
  * {@code ScheduledExecutorService} and a choice of how exactly shutdown will be handled
  * (see {@link EventWaiter#EventWaiter(ScheduledExecutorService, boolean)} for more details).
@@ -63,7 +63,7 @@ public class EventWaiter implements EventListener
      * <p>{@code shutdownAutomatically} is required to be manually specified by developers as a way of
      * verifying a contract that the developer will conform to the behavior of the newly generated EventWaiter:
      * <ul>
-     *     <li>If {@code true}, shutdown is handled when a {@link net.dv8tion.jda.api.events.ShutdownEvent ShutdownEvent}
+     *     <li>If {@code true}, shutdown is handled when a {@link net.dv8tion.jda.api.events.session.SessionDisconnectEvent SessionDisconnectEvent}
      *     is fired. This means that any external functions of the provided Executor is now impossible and any externally
      *     queued tasks are lost if they have yet to be run.</li>
      *     <li>If {@code false}, shutdown is now placed as a responsibility of the developer, and no attempt will be
@@ -79,7 +79,7 @@ public class EventWaiter implements EventListener
      *         The ScheduledExecutorService to use for this EventWaiter's threadpool.
      * @param  shutdownAutomatically
      *         Whether or not the {@code threadpool} will shutdown automatically when a
-     *         {@link net.dv8tion.jda.api.events.ShutdownEvent ShutdownEvent} is fired.
+     *         {@link net.dv8tion.jda.api.events.session.SessionDisconnectEvent SessionDisconnectEvent} is fired.
      *
      * @throws java.lang.IllegalArgumentException
      *         If the threadpool provided is {@code null} or
@@ -219,9 +219,8 @@ public class EventWaiter implements EventListener
         // is primitive, void, or (in this case) Object.
         while(c != null)
         {
-            if(waitingEvents.containsKey(c))
-            {
-                Set<WaitingEvent> set = waitingEvents.get(c);
+            if (waitingEvents.containsKey(c)) {
+                Set <WaitingEvent> set = waitingEvents.get(c);
                 WaitingEvent[] toRemove = set.toArray(new WaitingEvent[set.size()]);
 
                 // WaitingEvent#attempt invocations that return true have passed their condition tests
@@ -229,8 +228,7 @@ public class EventWaiter implements EventListener
                 // remove them all from the set.
                 set.removeAll(Stream.of(toRemove).filter(i -> i.attempt(event)).collect(Collectors.toSet()));
             }
-            if(event instanceof ShutdownEvent && shutdownAutomatically)
-            {
+            if (event instanceof SessionDisconnectEvent && shutdownAutomatically) {
                 threadpool.shutdown();
             }
             c = c.getSuperclass();

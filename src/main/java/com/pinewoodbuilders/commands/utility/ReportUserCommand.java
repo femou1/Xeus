@@ -16,19 +16,23 @@ import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Modal;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 
 import javax.annotation.Nonnull;
@@ -125,7 +129,7 @@ public class ReportUserCommand extends Command {
             QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("handbook_report_channel");
             try {
 
-                SelectMenu.Builder menu = SelectMenu.create("selector:server-to-report-to:" + context.getMember().getId() + ":" + context.getMessage().getId())
+                StringSelectMenu.Builder menu = StringSelectMenu.create("selector:server-to-report-to:" + context.getMember().getId() + ":" + context.getMessage().getId())
                     .setPlaceholder("Select the group to report to!") // shows the placeholder indicating what this menu is for
                     .addOption("Cancel", "cancel", "Stop reporting someone", Emoji.fromUnicode("❌"))
                     .setRequiredRange(1, 1); // only one can be selected
@@ -152,11 +156,11 @@ public class ReportUserCommand extends Command {
 
                     ***__Please choose the group you would like to report to here__***""").buildEmbed()).setActionRow(menu.build()).queue(
                     message -> {
-                        avaire.getWaiter().waitForEvent(SelectMenuInteractionEvent.class, interaction -> {
+                        avaire.getWaiter().waitForEvent(StringSelectInteractionEvent.class, interaction -> {
                                 return interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(message);
                             }, select -> {
                                 if (select.getInteraction().getSelectedOptions().get(0).getEmoji().getName().equalsIgnoreCase("❌")) {
-                                    message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).setActionRows(Collections.emptySet()).queue();
+                                    message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).setActionRow(Collections.emptySet()).queue();
                                     /*message.clearReactions().queue();*/
                                     return;
                                 }
@@ -197,7 +201,7 @@ public class ReportUserCommand extends Command {
                                 }
 
 
-                                message.editMessageEmbeds(context.makeInfo("You have been sent a modal, please respond to the questions asked and come back here, if you're not back in 3 minutes. The modal expires").buildEmbed()).setActionRows(Collections.emptySet())
+                                message.editMessageEmbeds(context.makeInfo("You have been sent a modal, please respond to the questions asked and come back here, if you're not back in 3 minutes. The modal expires").buildEmbed()).setActionRow(Collections.emptySet())
                                     .queue(p -> {
                                         select.replyModal(modal.build()).queue();
                                         avaire.getWaiter().waitForEvent(ModalInteractionEvent.class,
@@ -355,7 +359,7 @@ public class ReportUserCommand extends Command {
                         if (send.getButton().getEmoji().getName().equalsIgnoreCase("❌") || send.getButton().getEmoji().getName().equalsIgnoreCase("x")) {
                             act.editMessage("Report has been canceled, if you want to restart the report. Do `!ru` in any bot-commands channel.")
                                 .setEmbeds(Collections.emptyList())
-                                .setActionRows(Collections.emptyList()).queue();
+                                .setActionRow(Collections.emptyList()).queue();
                             return;
                         } else if (send.getButton().getEmoji().getName().equalsIgnoreCase("✅")) {
                             sendReport(tc, send, modalUsername, modalReason, modalProofOfWarning, rank, modalEvidence, message);
@@ -366,7 +370,7 @@ public class ReportUserCommand extends Command {
                     () -> {
                         act.editMessage("You took to long to respond, please restart the report system!")
                             .setEmbeds(Collections.emptyList())
-                            .setActionRows(Collections.emptyList()).queue();
+                            .setActionRow(Collections.emptyList()).queue();
                     });
             }
         );
@@ -393,12 +397,12 @@ public class ReportUserCommand extends Command {
             .queue(
                 finalMessage -> {
                     message.editMessageEmbeds(MessageFactory.makeSuccess(finalMessage, "[Your report has been created in the correct channel.](:link).").set("link", finalMessage.getJumpUrl())
-                            .buildEmbed()).setActionRows(Collections.emptyList())
+                            .buildEmbed()).setActionRow(Collections.emptyList())
                         .queue();
 
                     act.editMessage("Please check the previous message for the report.")
                         .setEmbeds(Collections.emptySet())
-                        .setActionRows(Collections.emptySet())
+                        .setActionRow(Collections.emptySet())
                         .queue();
 
                     createReactions(finalMessage);
@@ -534,7 +538,7 @@ public class ReportUserCommand extends Command {
             context.makeError("I can't pull the guilds information, please try again later.").queue();
             return false;
         }
-        return updateChannelAndEmote(transformer, context, (TextChannel) c, e);
+        return updateChannelAndEmote(transformer, context, c, e);
     }
 
     private boolean runSetGroupId(CommandMessage context, String[] args) {
@@ -573,7 +577,7 @@ public class ReportUserCommand extends Command {
     }
 
 
-    private boolean updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel, RichCustomEmoji emote) {
+    private boolean updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, GuildChannel channel, RichCustomEmoji emote) {
         transformer.setHandbookReportChannel(channel.getIdLong());
 
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());

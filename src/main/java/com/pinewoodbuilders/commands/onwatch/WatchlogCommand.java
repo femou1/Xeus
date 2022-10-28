@@ -21,8 +21,8 @@
 
 package com.pinewoodbuilders.commands.onwatch;
 
-import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.chat.PlaceholderMessage;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.commands.Command;
@@ -32,8 +32,8 @@ import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.GuildChannel;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 
 import javax.annotation.Nonnull;
 import java.sql.SQLException;
@@ -125,14 +125,14 @@ public class WatchlogCommand extends Command {
         }
 
         if (!((TextChannel) channel).canTalk() || !context.getGuild().getSelfMember().hasPermission(channel, Permission.MESSAGE_EMBED_LINKS)) {
-            return sendErrorMessage(context, context.i18n("cantSendEmbedMessages", ((TextChannel) channel).getAsMention()));
+            return sendErrorMessage(context, context.i18n("cantSendEmbedMessages", channel.getAsMention()));
         }
 
         try {
             updateModlog(transformer, context, channel.getIdLong());
 
             context.makeSuccess(context.i18n("enable"))
-                .set("on_watch", ((TextChannel) channel).getAsMention())
+                .set("on_watch", channel.getAsMention())
                 .queue();
         } catch (SQLException ex) {
             Xeus.getLogger().error(ex.getMessage(), ex);

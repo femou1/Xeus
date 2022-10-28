@@ -22,7 +22,13 @@
 package com.pinewoodbuilders.chat;
 
 import com.pinewoodbuilders.utilities.StringReplacementUtil;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 class DefaultPlaceholders {
 
@@ -52,8 +58,8 @@ class DefaultPlaceholders {
                     return parseChannel(threadChannel, message);
                 }
 
-                if (object instanceof Message && ((Message) object).getChannelType().equals(ChannelType.TEXT)) {
-                    return parseChannel(((Message) object).getChannel().asTextChannel(), message);
+                if (object instanceof Message mess && mess.getChannelType().equals(ChannelType.TEXT)) {
+                    return parseChannel(mess.getChannel().asTextChannel(), message);
                 }
 
                 break;

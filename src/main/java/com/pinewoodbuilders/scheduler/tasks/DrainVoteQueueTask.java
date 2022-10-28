@@ -31,8 +31,8 @@ import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.vote.VoteCacheEntity;
 import com.pinewoodbuilders.vote.VoteEntity;
 import com.pinewoodbuilders.vote.VoteMetricType;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

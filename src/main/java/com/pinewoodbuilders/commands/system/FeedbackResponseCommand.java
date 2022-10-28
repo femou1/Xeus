@@ -29,8 +29,8 @@ import com.pinewoodbuilders.commands.CommandPriority;
 import com.pinewoodbuilders.contracts.commands.SystemCommand;
 import com.pinewoodbuilders.database.collection.DataRow;
 import com.pinewoodbuilders.utilities.NumberUtil;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 import java.sql.SQLException;
 import java.util.Arrays;

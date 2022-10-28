@@ -28,9 +28,9 @@ import com.pinewoodbuilders.contracts.chat.Restable;
 import com.pinewoodbuilders.exceptions.FriendlyException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.requests.restaction.MessageEditAction;
 import net.dv8tion.jda.internal.utils.Checks;
 
 import javax.annotation.Nonnull;
@@ -317,7 +317,7 @@ public class ProgressMessage extends Restable {
                 step.setException(e);
             }
 
-            MessageAction messageAction = getChannelPermissionType().canSendEmbed()
+            MessageEditAction messageAction = getChannelPermissionType().canSendEmbed()
                 ? message.editMessageEmbeds(buildEmbed())
                 : message.editMessage(toString());
 

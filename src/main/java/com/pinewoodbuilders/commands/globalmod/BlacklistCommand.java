@@ -29,7 +29,7 @@ import com.pinewoodbuilders.commands.CommandPriority;
 import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.utilities.NumberUtil;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 import java.util.ArrayList;
 import java.util.Arrays;

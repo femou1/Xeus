@@ -1,11 +1,11 @@
 
 package com.pinewoodbuilders.requests.service.kronos.trelloban;
 
-import com.pinewoodbuilders.requests.service.kronos.trelloban.trello.Datum;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import com.pinewoodbuilders.requests.service.kronos.trelloban.trello.Datum;
 
-import javax.annotation.Generated;
+import javax.annotation.processing.Generated;
 import java.util.List;
 
 @Generated("jsonschema2pojo")

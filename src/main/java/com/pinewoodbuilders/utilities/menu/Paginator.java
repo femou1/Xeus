@@ -2,28 +2,32 @@ package com.pinewoodbuilders.utilities.menu;
 
 import com.pinewoodbuilders.utilities.EventWaiter;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.GenericMessageEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.dv8tion.jda.internal.utils.Checks;
 
 import java.awt.*;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.*;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
- * A {@link com.pinewoodbuilders.utilities.menu.Menu Menu} implementation that paginates a
+ * A {@link com.jagrosh.jdautilities.menu.Menu Menu} implementation that paginates a
  * set of one or more text items across one or more pages.
  *
  * <p>When displayed, a Paginator will add three reactions in the following order:
@@ -32,7 +36,7 @@ import java.util.function.Consumer;
  *     <li><b>Stop</b> - Stops the Paginator.</li>
  *     <li><b>Right Arrow</b> - Causes the Paginator to traverse one page forwards.</li>
  * </ul>
- *
+ * <p>
  * Additionally, if specified in the {@link Paginator.Builder}, two "bulk skip" reactions
  * will be added to allow a certain number of pages to be skipped left or right.
  * <br>Paginator.Builders can also set a Paginator to accept various forms of text-input,
@@ -40,17 +44,16 @@ import java.util.function.Consumer;
  *
  * @author John Grosh
  */
-public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
-{
-    private final BiFunction<Integer,Integer,Color> color;
-    private final BiFunction<Integer,Integer,String> text;
+public class Paginator extends Menu {
+    private final BiFunction <Integer, Integer, Color> color;
+    private final BiFunction <Integer, Integer, String> text;
     private final int columns;
     private final int itemsPerPage;
     private final boolean showPageNumbers;
     private final boolean numberItems;
-    private final List<String> strings;
+    private final List <String> strings;
     private final int pages;
-    private final Consumer<Message> finalAction;
+    private final Consumer <Message> finalAction;
     private final boolean waitOnSinglePage;
     private final int bulkSkipNumber;
     private final boolean wrapPageEnds;
@@ -90,7 +93,7 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
 
     /**
      * Begins pagination on page 1 as a new {@link net.dv8tion.jda.api.entities.Message Message}
-     * in the provided {@link net.dv8tion.jda.api.entities.MessageChannel MessageChannel}.
+     * in the provided {@link MessageChannel}.
      *
      * <p>Starting on another page is available via {@link
      * Paginator#paginate(MessageChannel, int)
@@ -123,7 +126,7 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
 
     /**
      * Begins pagination as a new {@link net.dv8tion.jda.api.entities.Message Message}
-     * in the provided {@link net.dv8tion.jda.api.entities.MessageChannel MessageChannel}, starting
+     * in the provided {@link MessageChannel}, starting
      * on whatever page number is provided.
      *
      * @param  channel
@@ -131,14 +134,13 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
      * @param  pageNum
      *         The page number to begin on
      */
-    public void paginate(MessageChannel channel, int pageNum)
-    {
-        if(pageNum<1)
+    public void paginate(MessageChannel channel, int pageNum) {
+        if (pageNum < 1)
             pageNum = 1;
-        else if (pageNum>pages)
+        else if (pageNum > pages)
             pageNum = pages;
-        Message msg = renderPage(pageNum);
-        initialize(channel.sendMessage(msg), pageNum);
+        MessageEditData msg = renderPage(pageNum);
+        initialize(channel.sendMessage(MessageCreateData.fromEditData(msg)), pageNum);
     }
 
     /**
@@ -157,7 +159,7 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
             pageNum = 1;
         else if (pageNum>pages)
             pageNum = pages;
-        Message msg = renderPage(pageNum);
+        MessageEditData msg = renderPage(pageNum);
         initialize(message.editMessage(msg), pageNum);
     }
 
@@ -172,7 +174,7 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
                 m.addReaction(Emoji.fromFormatted(STOP)).queue();
                 if(bulkSkipNumber > 1)
                     m.addReaction(Emoji.fromFormatted(RIGHT)).queue();
-                m.addReaction(bulkSkipNumber > 1? Emoji.fromFormatted(BIG_RIGHT) : Emoji.fromFormatted(RIGHT))
+                m.addReaction(Emoji.fromFormatted(bulkSkipNumber > 1 ? BIG_RIGHT : RIGHT))
                     .queue(v -> pagination(m, pageNum), t -> pagination(m, pageNum));
             }
             else if(waitOnSinglePage)
@@ -233,19 +235,17 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
             {
                 handleMessageReactionAddAction((MessageReactionAddEvent) event, message, pageNum);
             }
-            else
-            {
+            else {
                 MessageReceivedEvent mre = ((MessageReceivedEvent) event);
                 String rawContent = mre.getMessage().getContentRaw().trim();
 
                 final int targetPage;
 
-                if(rawContent.equalsIgnoreCase(leftText) && (1 < pageNum || wrapPageEnds))
-                    targetPage = pageNum - 1 < 1 ? pages : pageNum - 1;
-                else if(rawContent.equalsIgnoreCase(rightText) && (pageNum < pages || wrapPageEnds))
-                    targetPage = pageNum + 1 > pages && wrapPageEnds? 1 : pageNum + 1;
-                else
-                {
+                if (leftText != null && rawContent.equalsIgnoreCase(leftText) && (1 < pageNum || wrapPageEnds))
+                    targetPage = pageNum - 1 < 1 && wrapPageEnds ? pages : pageNum - 1;
+                else if (rightText != null && rawContent.equalsIgnoreCase(rightText) && (pageNum < pages || wrapPageEnds))
+                    targetPage = pageNum + 1 > pages && wrapPageEnds ? 1 : pageNum + 1;
+                else {
                     // This will run without fail because we know the above conditions don't apply but our logic
                     // when checking the event in the block above this action block has guaranteed this is the only
                     // option at this point
@@ -341,17 +341,15 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
         message.editMessage(renderPage(newPageNum)).queue(m -> pagination(m, n));
     }
 
-    private Message renderPage(int pageNum)
-    {
-        MessageBuilder mbuilder = new MessageBuilder();
+    private MessageEditData renderPage(int pageNum) {
+        MessageEditBuilder mbuilder = new MessageEditBuilder();
         EmbedBuilder ebuilder = new EmbedBuilder();
-        int start = (pageNum-1)*itemsPerPage;
-        int end = strings.size() < pageNum*itemsPerPage ? strings.size() : pageNum*itemsPerPage;
-        if(columns == 1)
-        {
+        int start = (pageNum - 1) * itemsPerPage;
+        int end = Math.min(strings.size(), pageNum * itemsPerPage);
+        if (columns == 1) {
             StringBuilder sbuilder = new StringBuilder();
-            for(int i=start; i<end; i++)
-                sbuilder.append("\n").append(numberItems ? "`"+(i+1)+".` " : "").append(strings.get(i));
+            for (int i = start; i < end; i++)
+                sbuilder.append("\n").append(numberItems ? "`" + (i + 1) + ".` " : "").append(strings.get(i));
             ebuilder.setDescription(sbuilder.toString());
         }
         else
@@ -371,21 +369,20 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
             ebuilder.setFooter("Page "+pageNum+"/"+pages, null);
         mbuilder.setEmbeds(ebuilder.build());
         if(text!=null)
-            mbuilder.append(text.apply(pageNum, pages));
+            mbuilder.setContent(text.apply(pageNum, pages));
         return mbuilder.build();
     }
 
     /**
-     * The {@link com.pinewoodbuilders.utilities.menu.Menu.Builder Menu.Builder} for
-     * a {@link Paginator Paginator}.
+     * The {@link com.jagrosh.jdautilities.menu.Menu.Builder Menu.Builder} for
+     * a {@link com.jagrosh.jdautilities.menu.Paginator Paginator}.
      *
      * @author John Grosh
      */
-    public static class Builder extends Menu.Builder<Paginator.Builder, Paginator>
-    {
-        private BiFunction<Integer,Integer,Color> color = (page, pages) -> null;
-        private BiFunction<Integer,Integer,String> text = (page, pages) -> null;
-        private Consumer<Message> finalAction = m -> m.delete().queue();
+    public static class Builder extends Menu.Builder <Builder, Paginator> {
+        private BiFunction <Integer, Integer, Color> color = (page, pages) -> null;
+        private BiFunction <Integer, Integer, String> text = (page, pages) -> null;
+        private Consumer <Message> finalAction = m -> m.delete().queue();
         private int columns = 1;
         private int itemsPerPage = 12;
         private boolean showPageNumbers = true;
@@ -400,7 +397,7 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
         private final List<String> strings = new LinkedList<>();
 
         /**
-         * Builds the {@link Paginator Paginator}
+         * Builds the {@link com.jagrosh.jdautilities.menu.Paginator Paginator}
          * with this Builder.
          *
          * @return The Paginator built from this Builder.
@@ -426,13 +423,10 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
         /**
          * Sets the {@link java.awt.Color Color} of the {@link net.dv8tion.jda.api.entities.MessageEmbed MessageEmbed}.
          *
-         * @param  color
-         *         The Color of the MessageEmbed
-         *
+         * @param color The Color of the MessageEmbed
          * @return This builder
          */
-        public Paginator.Builder setColor(Color color)
-        {
+        public Builder setColor(Color color) {
             this.color = (i0, i1) -> color;
             return this;
         }
@@ -449,15 +443,14 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
          *
          * @return This builder
          */
-        public Paginator.Builder setColor(BiFunction<Integer,Integer,Color> colorBiFunction)
-        {
+        public Builder setColor(BiFunction <Integer, Integer, Color> colorBiFunction) {
             this.color = colorBiFunction;
             return this;
         }
 
         /**
          * Sets the text of the {@link net.dv8tion.jda.api.entities.Message Message} to be displayed
-         * when the {@link Paginator Paginator} is built.
+         * when the {@link com.jagrosh.jdautilities.menu.Paginator Paginator} is built.
          *
          * <p>This is displayed directly above the embed.
          *
@@ -466,8 +459,7 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
          *
          * @return This builder
          */
-        public Paginator.Builder setText(String text)
-        {
+        public Builder setText(String text) {
             this.text = (i0, i1) -> text;
             return this;
         }
@@ -484,23 +476,21 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
          *
          * @return This builder
          */
-        public Paginator.Builder setText(BiFunction<Integer,Integer,String> textBiFunction)
-        {
+        public Builder setText(BiFunction <Integer, Integer, String> textBiFunction) {
             this.text = textBiFunction;
             return this;
         }
 
         /**
          * Sets the {@link java.util.function.Consumer Consumer} to perform if the
-         * {@link Paginator Paginator} times out.
+         * {@link com.jagrosh.jdautilities.menu.Paginator Paginator} times out.
          *
          * @param  finalAction
          *         The Consumer action to perform if the Paginator times out
          *
          * @return This builder
          */
-        public Paginator.Builder setFinalAction(Consumer<Message> finalAction)
-        {
+        public Builder setFinalAction(Consumer <Message> finalAction) {
             this.finalAction = finalAction;
             return this;
         }
@@ -514,9 +504,8 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
          *
          * @return This builder
          */
-        public Paginator.Builder setColumns(int columns)
-        {
-            if(columns<1 || columns>3)
+        public Builder setColumns(int columns) {
+            if (columns < 1 || columns > 3)
                 throw new IllegalArgumentException("Only 1, 2, or 3 columns are supported");
             this.columns = columns;
             return this;
@@ -533,9 +522,8 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
          *
          * @return This builder
          */
-        public Paginator.Builder setItemsPerPage(int num)
-        {
-            if(num<1)
+        public Builder setItemsPerPage(int num) {
+            if (num < 1)
                 throw new IllegalArgumentException("There must be at least one item per page");
             this.itemsPerPage = num;
             return this;
@@ -549,8 +537,7 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
          *
          * @return This builder
          */
-        public Paginator.Builder showPageNumbers(boolean show)
-        {
+        public Builder showPageNumbers(boolean show) {
             this.showPageNumbers = show;
             return this;
         }
@@ -563,14 +550,13 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
          *
          * @return This builder
          */
-        public Paginator.Builder useNumberedItems(boolean number)
-        {
+        public Builder useNumberedItems(boolean number) {
             this.numberItems = number;
             return this;
         }
 
         /**
-         * Sets whether the {@link Paginator Paginator} will instantly
+         * Sets whether the {@link com.jagrosh.jdautilities.menu.Paginator Paginator} will instantly
          * timeout, and possibly run a provided {@link java.lang.Runnable Runnable}, if only a single slide is available to display.
          *
          * @param  wait
@@ -578,8 +564,7 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
          *
          * @return This builder
          */
-        public Paginator.Builder waitOnSinglePage(boolean wait)
-        {
+        public Builder waitOnSinglePage(boolean wait) {
             this.waitOnSinglePage = wait;
             return this;
         }
@@ -589,8 +574,7 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
          *
          * @return This builder
          */
-        public Paginator.Builder clearItems()
-        {
+        public Builder clearItems() {
             strings.clear();
             return this;
         }
@@ -603,38 +587,35 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
          *
          * @return This builder
          */
-        public Paginator.Builder addItems(String... items)
-        {
+        public Builder addItems(String... items) {
             strings.addAll(Arrays.asList(items));
             return this;
+        }
+
+        /**
+         * Gets the String list of items to paginate.
+         * <br>Useful when determining amount of items are being paginated.
+         *
+         * @return the String list
+         */
+        public List <String> getItems() {
+            return strings;
         }
 
         /**
          * Sets the String list of items to paginate.
          * <br>This method clears all previously set items before setting.
          *
-         * @param  items
-         *         The String list of items to paginate
-         *
+         * @param items The String list of items to paginate
          * @return This builder
          */
-        public Paginator.Builder setItems(String... items)
-        {
+        public Builder setItems(String... items) {
             strings.clear();
             strings.addAll(Arrays.asList(items));
             return this;
         }
 
-        /**
-         * Sets the String list of items to paginate.
-         * <br>This method clears all previously set items before setting.
-         *
-         * @param  items
-         *         The String list of items to paginate
-         *
-         * @return This builder
-         */
-        public Paginator.Builder setItems(List <String> items)
+        public Builder setItems(List<String> items)
         {
             strings.clear();
             strings.addAll(items);
@@ -642,7 +623,7 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
         }
 
         /**
-         * Sets the {@link Paginator Paginator}'s bulk-skip
+         * Sets the {@link com.jagrosh.jdautilities.menu.Paginator Paginator}'s bulk-skip
          * function to skip multiple pages using alternate forward and backwards
          *
          * @param  bulkSkipNumber
@@ -650,14 +631,13 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
          *
          * @return This builder
          */
-        public Paginator.Builder setBulkSkipNumber(int bulkSkipNumber)
-        {
+        public Builder setBulkSkipNumber(int bulkSkipNumber) {
             this.bulkSkipNumber = Math.max(bulkSkipNumber, 1);
             return this;
         }
 
         /**
-         * Sets the {@link Paginator Paginator} to wrap
+         * Sets the {@link com.jagrosh.jdautilities.menu.Paginator Paginator} to wrap
          * from the last page to the first when traversing right and visa versa from the left.
          *
          * @param  wrapPageEnds
@@ -665,14 +645,13 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
          *
          * @return This builder
          */
-        public Paginator.Builder wrapPageEnds(boolean wrapPageEnds)
-        {
+        public Builder wrapPageEnds(boolean wrapPageEnds) {
             this.wrapPageEnds = wrapPageEnds;
             return this;
         }
 
         /**
-         * Sets the {@link Paginator Paginator} to allow
+         * Sets the {@link com.jagrosh.jdautilities.menu.Paginator Paginator} to allow
          * a page number to be specified by a user via text.
          *
          * <p>Note that setting this doesn't mean that left and right text inputs
@@ -685,16 +664,15 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
          *
          * @return This builder
          */
-        public Paginator.Builder allowTextInput(boolean allowTextInput)
-        {
+        public Builder allowTextInput(boolean allowTextInput) {
             this.allowTextInput = allowTextInput;
             return this;
         }
 
         /**
-         * Sets the {@link Paginator Paginator} to traverse
+         * Sets the {@link com.jagrosh.jdautilities.menu.Paginator Paginator} to traverse
          * left or right when a provided text input is sent in the form of a Message to
-         * the {@link net.dv8tion.jda.api.entities.GuildChannel GuildChannel} the menu is displayed in.
+         * the {@link net.dv8tion.jda.api.entities.channel.middleman.GuildChannel GuildChannel} the menu is displayed in.
          *
          * <p>If one or both these parameters are provided {@code null} this resets
          * both of them and they will no longer be available when the Paginator is built.
@@ -706,15 +684,11 @@ public class Paginator extends com.pinewoodbuilders.utilities.menu.Menu
          *
          * @return This builder
          */
-        public Paginator.Builder setLeftRightText(String left, String right)
-        {
-            if(left == null || right == null)
-            {
+        public Builder setLeftRightText(String left, String right) {
+            if (left == null || right == null) {
                 textToLeft = null;
                 textToRight = null;
-            }
-            else
-            {
+            } else {
                 textToLeft = left;
                 textToRight = right;
             }

@@ -28,7 +28,8 @@ import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.factories.RequestFactory;
 import com.pinewoodbuilders.requests.Response;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.utils.FileUpload;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import okhttp3.ResponseBody;
 
 import java.util.Arrays;
@@ -83,14 +84,14 @@ public class MonikaCommand extends Command {
                 }
 
                 context.getChannel().sendMessage(
-                    new MessageBuilder().setEmbeds(
+                    new MessageCreateBuilder().setEmbeds(
                         new EmbedBuilder()
                             .setImage("attachment://just-monika.jpg")
                             .setDescription("Just Monika")
                             .setFooter("Just Monika", null)
                             .build()
-                    ).build()).addFile(body.byteStream(),
-                    "just-monika.jpg"
+                    ).build()).addFiles(FileUpload.fromData(body.byteStream(),
+                    "just-monika.jpg")
                 ).queue();
             });
         return true;
