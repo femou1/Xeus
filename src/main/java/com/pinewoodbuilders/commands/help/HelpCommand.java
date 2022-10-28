@@ -37,7 +37,7 @@ import com.pinewoodbuilders.utilities.StringReplacementUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.ThreadChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 
 import javax.annotation.Nonnull;
 import java.util.*;

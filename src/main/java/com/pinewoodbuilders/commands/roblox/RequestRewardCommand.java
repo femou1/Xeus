@@ -13,7 +13,10 @@ import com.pinewoodbuilders.database.query.QueryBuilder;
 import com.pinewoodbuilders.database.transformers.GuildSettingsTransformer;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -140,7 +143,7 @@ public class RequestRewardCommand extends Command {
 
                 });
                 l.addReaction(Emoji.fromFormatted("❌")).queue();
-                l.editMessageEmbeds(context.makeInfo("Welcome to the recorded reward request system. Please select the group you wanna reward someone in!\n\n" + sb.toString()).buildEmbed()).queue(
+                l.editMessageEmbeds(context.makeInfo("Welcome to the recorded reward request system. Please select the group you wanna reward someone in!\n\n" + sb).buildEmbed()).queue(
                     message -> {
                         avaire.getWaiter().waitForEvent(MessageReactionAddEvent.class, event -> {
                                 return event.getMember().equals(context.member) && event.getMessageId().equalsIgnoreCase(message.getId());
@@ -228,11 +231,11 @@ public class RequestRewardCommand extends Command {
             context.makeError("I can't pull the guilds information, please try again later.").queue();
             return;
         }
-        updateChannelAndEmote(transformer, context, (TextChannel) c);
+        updateChannelAndEmote(transformer, context, c);
     }
 
 
-    private void updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, TextChannel channel) {
+    private void updateChannelAndEmote(GuildSettingsTransformer transformer, CommandMessage context, GuildChannel channel) {
         transformer.setPatrolRemittanceChannel(channel.getIdLong());
 
         QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).where("id", context.guild.getId());

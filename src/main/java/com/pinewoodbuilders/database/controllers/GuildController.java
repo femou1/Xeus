@@ -21,13 +21,19 @@
 
 package com.pinewoodbuilders.database.controllers;
 
-import com.pinewoodbuilders.Xeus;
-import com.pinewoodbuilders.Constants;
-import com.pinewoodbuilders.database.transformers.GuildTransformer;
-import com.pinewoodbuilders.utilities.CacheUtil;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import net.dv8tion.jda.api.entities.*;
+import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
+import com.pinewoodbuilders.database.transformers.GuildTransformer;
+import com.pinewoodbuilders.utilities.CacheUtil;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,14 +91,15 @@ public class GuildController {
         return (GuildTransformer) CacheUtil.getUncheckedUnwrapped(cache, guild.getIdLong(), () -> loadGuildFromDatabase(avaire, guild));
     }
 
-    public static String buildChannelData(List<TextChannel> textChannels) {
-        List<Map<String, Object>> channels = new ArrayList<>();
-        for (TextChannel channel : textChannels) {
-            Map<String, Object> item = new HashMap<>();
+    public static String buildChannelData(List <GuildChannel> textChannels) {
+        List <Map <String, Object>> channels = new ArrayList <>();
+        for (GuildChannel channel : textChannels) {
+            Map <String, Object> item = new HashMap <>();
 
             item.put("id", channel.getId());
             item.put("name", channel.getName());
-            item.put("position", channel.getPosition());
+            if (channel instanceof TextChannel tc) item.put("position", tc.getPosition());
+            if (channel instanceof VoiceChannel vc) item.put("position", vc.getPosition());
 
             channels.add(item);
         }
@@ -164,7 +171,7 @@ public class GuildController {
                         .set("owner", owner == null ? 0 : owner.getIdLong())
                         .set("name", guild.getName(), true)
                         .set("roles_data", buildRoleData(guild.getRoles()), true)
-                        .set("channels_data", buildChannelData(guild.getTextChannels()), true);
+                        .set("channels_data", buildChannelData(guild.getChannels()), true);
 
                     if (guild.getIconId() != null) {
                         statement.set("icon", guild.getIconId());

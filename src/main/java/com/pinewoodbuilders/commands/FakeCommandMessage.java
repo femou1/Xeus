@@ -28,7 +28,13 @@ import com.pinewoodbuilders.database.transformers.GuildTransformer;
 import com.pinewoodbuilders.database.transformers.PlayerTransformer;
 import com.pinewoodbuilders.database.transformers.VerificationTransformer;
 import com.pinewoodbuilders.handlers.DatabaseEventHolder;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

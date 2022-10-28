@@ -34,7 +34,7 @@ import com.pinewoodbuilders.middleware.MiddlewareStack;
 import com.pinewoodbuilders.utilities.RestActionUtil;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.ThreadChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

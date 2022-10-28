@@ -31,9 +31,9 @@ import com.pinewoodbuilders.utilities.ComparatorUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.GuildChannel;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;

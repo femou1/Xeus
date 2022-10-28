@@ -28,13 +28,15 @@ import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.utils.FileUpload;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -107,7 +109,7 @@ public class UndertaleTextBoxCommand extends Command {
         }
 
         try {
-            MessageBuilder messageBuilder = new MessageBuilder();
+            MessageCreateBuilder messageBuilder = new MessageCreateBuilder();
             EmbedBuilder embedBuilder = context.makeEmbeddedMessage()
                 .setImage("attachment://" + getClass().getSimpleName() + "-" + args[0] + ".png")
                 .requestedBy(context)
@@ -116,7 +118,7 @@ public class UndertaleTextBoxCommand extends Command {
             messageBuilder.setEmbeds(embedBuilder.build());
 
             InputStream stream = getImageInputStream(args);
-            context.getMessageChannel().sendMessage(messageBuilder.build()).addFile(stream, getClass().getSimpleName() + "-" + args[0] + ".png").queue();
+            context.getMessageChannel().sendMessage(messageBuilder.build()).addFiles(FileUpload.fromData(stream, getClass().getSimpleName() + "-" + args[0] + ".png")).queue();
 
             return true;
         } catch (IOException e) {
@@ -135,7 +137,7 @@ public class UndertaleTextBoxCommand extends Command {
     }
 
     private String encode(String string) throws UnsupportedEncodingException {
-        return URLEncoder.encode(string, "UTF-8").replace("+", "%20");
+        return URLEncoder.encode(string, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
     private boolean sendCharacterList(CommandMessage context, String[] args) {

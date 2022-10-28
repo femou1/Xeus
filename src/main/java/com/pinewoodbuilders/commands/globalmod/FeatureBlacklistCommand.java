@@ -31,8 +31,8 @@ import com.pinewoodbuilders.contracts.permission.GuildPermissionCheckType;
 import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 import java.util.ArrayList;
 import java.util.Arrays;

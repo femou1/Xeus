@@ -24,10 +24,10 @@ package com.pinewoodbuilders.contracts.chat;
 import com.pinewoodbuilders.utilities.CheckPermissionUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.requests.RestAction;
-import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -138,7 +138,7 @@ public abstract class Restable {
      * @throws java.lang.IllegalArgumentException If the provided TimeUnit is {@code null}
      */
     public final Future<?> queueAfter(long delay, TimeUnit unit) {
-        Optional<MessageAction> messageAction = sendMessage();
+        Optional <MessageCreateAction> messageAction = sendMessage();
         if (messageAction.isPresent()) {
             return messageAction.get().queueAfter(
                 delay,
@@ -172,7 +172,7 @@ public abstract class Restable {
      * @throws java.lang.IllegalArgumentException If the provided TimeUnit is {@code null}
      */
     public final Future<?> queueAfter(long delay, TimeUnit unit, Consumer<Message> success) {
-        Optional<MessageAction> messageAction = sendMessage();
+        Optional <MessageCreateAction> messageAction = sendMessage();
         if (messageAction.isPresent()) {
             return messageAction.get().queueAfter(
                 delay,
@@ -206,7 +206,7 @@ public abstract class Restable {
      * @throws java.lang.IllegalArgumentException If the provided TimeUnit is {@code null}
      */
     public final Future<?> queueAfter(long delay, TimeUnit unit, Consumer<Message> success, Consumer<Throwable> failure) {
-        Optional<MessageAction> messageAction = sendMessage();
+        Optional <MessageCreateAction> messageAction = sendMessage();
         if (messageAction.isPresent()) {
             return messageAction.get().queueAfter(
                 delay,
@@ -238,7 +238,7 @@ public abstract class Restable {
      * @throws java.lang.IllegalArgumentException If the provided TimeUnit or ScheduledExecutorService is {@code null}
      */
     public final Future<?> queueAfter(long delay, TimeUnit unit, ScheduledExecutorService executor) {
-        Optional<MessageAction> messageAction = sendMessage();
+        Optional <MessageCreateAction> messageAction = sendMessage();
         if (messageAction.isPresent()) {
             return messageAction.get().queueAfter(
                 delay,
@@ -273,7 +273,7 @@ public abstract class Restable {
      * @throws java.lang.IllegalArgumentException If the provided TimeUnit or ScheduledExecutorService is {@code null}
      */
     public final Future<?> queueAfter(long delay, TimeUnit unit, Consumer<Message> success, ScheduledExecutorService executor) {
-        Optional<MessageAction> messageAction = sendMessage();
+        Optional <MessageCreateAction> messageAction = sendMessage();
         if (messageAction.isPresent()) {
             return messageAction.get().queueAfter(
                 delay,
@@ -307,7 +307,7 @@ public abstract class Restable {
      * @throws java.lang.IllegalArgumentException If the provided TimeUnit or ScheduledExecutorService is {@code null}
      */
     public final Future<?> queueAfter(long delay, TimeUnit unit, Consumer<Message> success, Consumer<Throwable> failure, ScheduledExecutorService executor) {
-        Optional<MessageAction> messageAction = sendMessage();
+        Optional <MessageCreateAction> messageAction = sendMessage();
         if (messageAction.isPresent()) {
             return messageAction.get().queueAfter(
                 delay,
@@ -352,7 +352,7 @@ public abstract class Restable {
      * @return An optional message action with the REST call that is best
      * suited for the bots current permission in the set channel.
      */
-    protected final Optional<MessageAction> sendMessage() {
+    protected final Optional <MessageCreateAction> sendMessage() {
         if (channel == null) {
             throw new RuntimeException("Message channel is NULL, can't queue message if the channel is not set!");
         }

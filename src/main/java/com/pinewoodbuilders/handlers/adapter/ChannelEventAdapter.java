@@ -28,9 +28,9 @@ import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.database.controllers.GuildController;
 import com.pinewoodbuilders.database.controllers.ReactionController;
 import com.pinewoodbuilders.database.transformers.GuildTransformer;
-import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +103,7 @@ public class ChannelEventAdapter extends EventAdapter {
                 .useAsync(true)
                 .where("id", guild.getId())
                 .update(statement -> {
-                    statement.set("channels_data", GuildController.buildChannelData(guild.getTextChannels()), true);
+                    statement.set("channels_data", GuildController.buildChannelData(guild.getChannels()), true);
                 });
         } catch (SQLException e) {
             Xeus.getLogger().error("ERROR: ", e);

@@ -23,7 +23,13 @@ package com.pinewoodbuilders.utilities;
 
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.contracts.utilities.MentionChannelFinder;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

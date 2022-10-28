@@ -17,15 +17,15 @@ import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.XeusPermissionUtil;
 import com.pinewoodbuilders.utilities.menu.Paginator;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 
 import java.awt.*;
 import java.sql.SQLException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class ServerSettingsSubCommand extends SettingsSubCommand {
@@ -354,7 +354,7 @@ public class ServerSettingsSubCommand extends SettingsSubCommand {
             runAdminRolesCheck(context, admins.size() > 0, sb, admins);
             runModRolesCheck(context, mods.size() > 0, sb, mods);
 
-            context.makeSuccess(sb.toString() + "\n\nHave been added to the database!").queue();
+            context.makeSuccess(sb + "\n\nHave been added to the database!").queue();
             return true;
         } catch (SQLException throwables) {
             context.makeError("Something went wrong when saving the roles to the database.").queue();

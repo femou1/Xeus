@@ -25,7 +25,7 @@ import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.contracts.changelog.ChangelogLoader;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageHistory;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 import java.util.*;
 import java.util.stream.Collectors;

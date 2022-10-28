@@ -21,8 +21,10 @@
 
 package com.pinewoodbuilders.commands.utility;
 
-import com.pinewoodbuilders.Xeus;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.pinewoodbuilders.Constants;
+import com.pinewoodbuilders.Xeus;
 import com.pinewoodbuilders.commands.CommandHandler;
 import com.pinewoodbuilders.commands.CommandMessage;
 import com.pinewoodbuilders.commands.CommandPriority;
@@ -43,12 +45,11 @@ import com.pinewoodbuilders.language.I18n;
 import com.pinewoodbuilders.utilities.CacheUtil;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.utils.FileUpload;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -284,7 +285,7 @@ public class RankCommand extends Command {
             author.getId()
         );
 
-        MessageBuilder message = new MessageBuilder();
+        MessageCreateBuilder message = new MessageCreateBuilder();
         EmbedBuilder embed = new EmbedBuilder()
             .setImage("attachment://" + attachmentName)
             .setColor(background.getBackgroundColors().getExperienceForegroundColor());
@@ -292,9 +293,10 @@ public class RankCommand extends Command {
 
         try {
             //noinspection ConstantConditions
-            context.getMessageChannel().sendMessage(message.build()).addFile(
-                new ByteArrayInputStream(render.renderToBytes()),
-                attachmentName
+            context.getMessageChannel().sendMessage(message.build()).addFiles(FileUpload.fromData(
+                    new ByteArrayInputStream(render.renderToBytes()),
+                    attachmentName
+                )
             ).queue();
         } catch (IOException e) {
             log.error("Failed to generate the rank background: {}", e.getMessage(), e);

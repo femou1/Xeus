@@ -37,6 +37,7 @@ import net.dv8tion.jda.api.entities.UserSnowflake;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -114,7 +115,7 @@ public abstract class BanableCommand extends Command {
 
         final Carbon finalExpiresAt = expiresAt;
 
-        context.getGuild().ban(UserSnowflake.fromId(userId), soft ? 0 : 7, String.format("%s - %s#%s (%s)", reason,
+        context.getGuild().ban(UserSnowflake.fromId(userId), soft ? 0 : 7, TimeUnit.DAYS).reason(String.format("%s - %s#%s (%s)", reason,
                 context.getAuthor().getName(), context.getAuthor().getDiscriminator(), context.getAuthor().getId()))
                 .queue(aVoid -> {
                     User user = avaire.getShardManager().getUserById(userId);
@@ -187,12 +188,11 @@ public abstract class BanableCommand extends Command {
 
         Modlog.notifyUser(user, context.getGuild(), modlogAction, caseId);
 
-        context.getGuild().ban(user, soft ? 0 : 7, String.format("%s - %s#%s (%s)", reason,
+        context.getGuild().ban(user, soft ? 0 : 7, TimeUnit.DAYS).reason(String.format("%s - %s#%s (%s)", reason,
                 context.getAuthor().getName(), context.getAuthor().getDiscriminator(), context.getAuthor().getId()))
             .queue(aVoid -> {
                 try {
                     if (finalExpiresAt != null) avaire.getBanManger().registerBan(caseId, context.getGuild().getIdLong(), user.getIdLong(), finalExpiresAt);
-
 
                     context.makeSuccess(":target has been banned :time")
                         .set("target", user.getAsMention())
@@ -230,7 +230,7 @@ public abstract class BanableCommand extends Command {
         do {
             String group = matcher.group();
 
-            String type = group.substring(group.length() - 1, group.length());
+            String type = group.substring(group.length() - 1);
             int timeToAdd = NumberUtil.parseInt(group.substring(0, group.length() - 1));
 
             switch (type.toLowerCase()) {

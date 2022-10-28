@@ -31,8 +31,8 @@ import com.pinewoodbuilders.contracts.commands.Command;
 import com.pinewoodbuilders.database.collection.Collection;
 import com.pinewoodbuilders.factories.MessageFactory;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import java.sql.SQLException;
 import java.time.Instant;
