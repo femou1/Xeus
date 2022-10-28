@@ -121,11 +121,11 @@ public class AuditLogChannelCommand extends Command {
         }
 
         GuildChannel channel = MentionableUtil.getChannel(context.getMessage(), args, 1);
-        if (!(channel instanceof TextChannel)) {
+        if (!(channel instanceof TextChannel tc)) {
             return sendErrorMessage(context, "You must mentions a channel, or call out it's exact name!");
         }
 
-        if (!((TextChannel) channel).canTalk() || !context.getGuild().getSelfMember().hasPermission(channel, Permission.MESSAGE_EMBED_LINKS)) {
+        if (!tc.canTalk() || !context.getGuild().getSelfMember().hasPermission(channel, Permission.MESSAGE_EMBED_LINKS)) {
             return sendErrorMessage(context, context.i18n("\"I can't send embedded messages in the specified channel, please change my permission level for the {0} channel if you want to use it as a \"audit log\" channel.", channel.getAsMention()));
         }
 
@@ -195,11 +195,11 @@ public class AuditLogChannelCommand extends Command {
         }
 
         GuildChannel channel = MentionableUtil.getChannel(context.getMessage(), args, 1);
-        if (!(channel instanceof TextChannel)) {
+        if (!(channel instanceof TextChannel tc)) {
             return sendErrorMessage(context, "You must mentions a channel, or call out it's exact name!");
         }
 
-        if (!((TextChannel) channel).canTalk() || !context.getGuild().getSelfMember().hasPermission(channel, Permission.MESSAGE_EMBED_LINKS)) {
+        if (!tc.canTalk() || !context.getGuild().getSelfMember().hasPermission(channel, Permission.MESSAGE_EMBED_LINKS)) {
             return sendErrorMessage(context, context.i18n("\"I can't send embedded messages in the specified channel, please change my permission level for the {0} channel if you want to use it as a \"Join Logs\" channel.", channel.getAsMention()));
         }
 
