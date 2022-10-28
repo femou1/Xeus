@@ -137,7 +137,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                                                 "**Punishment**: \n``" + run.getMessage().getContentRaw() + "`` points pending removal.")
                                                                         .requestedBy(memberAsReporter != null ? memberAsReporter : e.getMember().getUser())
                                                                         .setTimestamp(Instant.now()).set("rRank", rank)
-                                                                        .buildEmbed()).setActionRows(Collections.emptyList())
+                                                                        .buildEmbed()).setComponents(Collections.emptyList())
                                                                     .queue();
                                                                 try {
                                                                     qb.useAsync(true).update(statement -> {
@@ -198,7 +198,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                                             "**Punishment**: \n" + run.getMessage().getContentRaw())
                                                                     .requestedBy(memberAsReporter != null ? memberAsReporter : e.getMember().getUser())
                                                                     .setTimestamp(Instant.now()).set("rRank", rank)
-                                                                    .buildEmbed()).setActionRows(Collections.emptyList())
+                                                                    .buildEmbed()).setComponents(Collections.emptyList())
                                                                 .queue();
                                                             try {
                                                                 qb.useAsync(true).update(statement -> {
@@ -243,7 +243,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                                         "**Denial Reason**: \n" + run.getMessage().getContentRaw())
                                                                 .requestedBy(memberAsReporter != null ? memberAsReporter : e.getMember().getUser())
                                                                 .setTimestamp(Instant.now()).set("rRank", rank)
-                                                                .buildEmbed()).setActionRows(Collections.emptyList())
+                                                                .buildEmbed()).setComponents(Collections.emptyList())
                                                             .queue();
                                                         v.clearReactions().queue();
                                                         try {
@@ -341,7 +341,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                                             "\n**Points awarded**: \n" + run.getMessage().getContentRaw())
                                                                     .requestedBy(memberAsReporter != null ? memberAsReporter : e.getMember().getUser())
                                                                     .setTimestamp(Instant.now()).set("rRank", rank)
-                                                                    .buildEmbed()).setActionRows(Collections.emptyList())
+                                                                    .buildEmbed()).setComponents(Collections.emptyList())
                                                                 .queue();
 
                                                             Request.Builder request = new Request.Builder()
@@ -393,7 +393,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                                             "\n**Reward/Acceptal Reason**: \n" + run.getMessage().getContentRaw())
                                                                     .requestedBy(memberAsReporter != null ? memberAsReporter : e.getMember().getUser())
                                                                     .setTimestamp(Instant.now()).set("rRank", rank)
-                                                                    .buildEmbed()).setActionRows(Collections.emptyList())
+                                                                    .buildEmbed()).setComponents(Collections.emptyList())
                                                                 .queue();
                                                             try {
                                                                 qb.useAsync(true).update(statement -> {
@@ -439,7 +439,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                                 .requestedBy(memberAsReporter != null ? memberAsReporter : e.getMember().getUser())
                                                                 .setTimestamp(Instant.now()).set("rRank", rank)
                                                                 .buildEmbed())
-                                                            .setActionRows(Collections.emptyList())
+                                                            .setComponents(Collections.emptyList())
                                                             .queue();
                                                         try {
                                                             qb.useAsync(true).delete();
@@ -539,7 +539,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                     .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                     .setDescription(msg.getEmbeds().get(0).getDescription())
                                                     .setTimestamp(Instant.now())
-                                                    .buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                                    .buildEmbed()).setComponents(Collections.emptyList()).queue();
                                                 msg.clearReactions().queue();
                                                 qb.delete();
                                                 if (msg.getStartedThread() != null && !msg.getStartedThread().isArchived() && !msg.getStartedThread().isLocked()) {
@@ -559,7 +559,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                             .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                             .setDescription(msg.getEmbeds().get(0).getDescription())
                                                             .setTimestamp(Instant.now())
-                                                            .buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                                            .buildEmbed()).setComponents(Collections.emptyList()).queue();
                                                         msg.delete().queue();
                                                     } else {
                                                         msg.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
@@ -567,7 +567,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                             .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                             .setDescription(msg.getEmbeds().get(0).getDescription())
                                                             .setTimestamp(Instant.now())
-                                                            .buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                                            .buildEmbed()).setComponents(Collections.emptyList()).queue();
                                                         msg.clearReactions().queue();
 
                                                     }
@@ -577,7 +577,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                                                         .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                         .setDescription(msg.getEmbeds().get(0).getDescription())
                                                         .setTimestamp(Instant.now())
-                                                        .buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                                        .buildEmbed()).setComponents(Collections.emptyList()).queue();
                                                     msg.clearReactions().queue();
 
                                                 }
@@ -769,7 +769,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                 }
-                event.getMessage().editMessageEmbeds(event.getMessage().getEmbeds()).setActionRows(Collections.emptyList()).queue();
+                event.getMessage().editMessageEmbeds(event.getMessage().getEmbeds()).setComponents(Collections.emptyList()).queue();
                 event.getChannel().sendMessageEmbeds(MessageFactory.makeSuccess(event.getMessage(), "Eval has been accepted, record has been updated in the database!").buildEmbed()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
 
                 avaire.getShardManager().getTextChannelById("980947919022731315").sendMessageEmbeds(MessageFactory.makeSuccess(event.getMessage(), "`" + username + "` has passed the `quiz` evaluation.").requestedBy(event.getMember()).buildEmbed()).queue();
@@ -812,7 +812,7 @@ public class ButtonClickEventAdapter extends EventAdapter {
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                 }
-                event.getMessage().editMessageEmbeds(event.getMessage().getEmbeds()).setActionRows(Collections.emptyList()).queue();
+                event.getMessage().editMessageEmbeds(event.getMessage().getEmbeds()).setComponents(Collections.emptyList()).queue();
                 event.getChannel().sendMessageEmbeds(MessageFactory.makeError(event.getMessage(), "Eval has been rejected, record has been updated in the database!").buildEmbed()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
                 CacheAdapter cache = Xeus.getInstance().getRobloxAPIManager().getEvaluationManager().getCooldownCache();
                 cache.put("evaluation." + userId + ".cooldown", true, 60 * 60 * 48);

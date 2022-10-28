@@ -51,6 +51,7 @@ import com.pinewoodbuilders.utilities.RestActionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -249,7 +250,7 @@ public class WarnCommand extends Command {
         );
         context.getMessageChannel()
             .sendMessageEmbeds(messageEmbed)
-            .setActionRows(ar)
+            .setComponents(ar)
             .queue(message -> listenForInteraction(message, context, user, size, grade));
 
     }
@@ -295,7 +296,7 @@ public class WarnCommand extends Command {
             return false;
         }, interaction -> {
             interaction.getInteraction().deferEdit()
-                .flatMap(k -> messageExecute.editMessageEmbeds(new EmbedBuilder().setDescription("Checking pressed button...").build()).setActionRows(Collections.emptyList()))
+                .flatMap(k -> messageExecute.editMessageEmbeds(new EmbedBuilder().setDescription("Checking pressed button...").build()).setComponents(Collections.emptyList()))
                 .delay(Duration.ofSeconds(1))
                 .queue(edit -> punishUserDependingOnButton(interaction, context, user, edit, size, grade));
         }, 1, TimeUnit.MINUTES, () -> {
@@ -321,7 +322,7 @@ public class WarnCommand extends Command {
             case "globalmute14" -> muteUserQueue(context, Carbon.now().addWeeks(2).addSecond(), user, messageExecute);
             case "globalwatch14" -> watchUserQueue(context, Carbon.now().addWeeks(2).addSecond(), user, messageExecute);
             case "cancel" ->
-                messageExecute.editMessageEmbeds(new EmbedBuilder().setDescription("No punishments have been given.").build()).setActionRows(Collections.emptyList()).queue();
+                messageExecute.editMessageEmbeds(new EmbedBuilder().setDescription("No punishments have been given.").build()).setComponents(Collections.emptyList()).queue();
             default ->
                 messageExecute.editMessage("ÍNVALID RESPONSE").setEmbeds(Collections.emptyList()).setActionRow(Collections.emptyList()).queue();
         }
@@ -364,16 +365,14 @@ public class WarnCommand extends Command {
             GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
             if (settings.getGlobalBan()) continue;
             if (settings.isOfficialSubGroup()) {
-                guild.ban(UserSnowflake.fromId(user.getId()), 0, "Banned by: " + context.member.getEffectiveName() + "\n" + "For: "
-                        + reason
-                        + "\n*This is a global-ban ran due to reaching 15 warnings in a guild.*")
+                guild.ban(UserSnowflake.fromId(user.getId()), 0, TimeUnit.DAYS)
                     .reason("Global Ban, executed by " + context.member.getEffectiveName() + ". For: \n"
                         + reason)
                     .queue();
                 sb.append("``").append(guild.getName()).append("`` - :white_check_mark:\n");
             } else {
-                guild.ban(UserSnowflake.fromId(user.getId()), 0,
-                        "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
+                guild.ban(UserSnowflake.fromId(user.getId()), 0, TimeUnit.DAYS)
+                    .reason("This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
                     .queue();
                 sb.append("``").append(guild.getName()).append("`` - :ballot_box_with_check:\n");
             }
@@ -522,7 +521,8 @@ public class WarnCommand extends Command {
         Modlog.notifyUser(user, context.getGuild(), modlogAction, caseId);
 
 
-        context.guild.ban(user, 0, String.format("%s - %s#%s (%s)", reason,
+        context.guild.ban(user, 0, TimeUnit.DAYS)
+            .reason(String.format("%s - %s#%s (%s)", reason,
                 context.getAuthor().getName(), context.getAuthor().getDiscriminator(), context.getAuthor().getId()))
             .queue(aVoid -> edit.editMessageEmbeds(context.makeSuccess(":target has been banned :time")
                     .set("target", user.getAsMention())
@@ -552,7 +552,7 @@ public class WarnCommand extends Command {
         if (!(grade.isGlobalWatch() && size >= 9)) gwatch14 = gwatch14.asDisabled();
 
         messageExecute.editMessageEmbeds(new EmbedBuilder().setDescription("What time and punishment should be assigned?").build())
-            .setActionRows(ActionRow.of(gmute7, gwatch7), ActionRow.of(gmute14, gwatch14), ActionRow.of(cancel))
+            .setComponents(ActionRow.of(gmute7, gwatch7), ActionRow.of(gmute14, gwatch14), ActionRow.of(cancel))
             .queue(l -> listenForInteraction(messageExecute, context, user, size, grade));
 
     }

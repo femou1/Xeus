@@ -55,7 +55,7 @@ import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.events.message.*;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
@@ -456,8 +456,8 @@ public class MainEventHandler extends EventHandler {
     }
 
     @Override
-    public void onSelectMenuInteraction(@Nonnull SelectMenuInteractionEvent event) {
-        appealsServerEventAdapter.onAppealsSelectMenuInteractionEvent(event);
+    public void onStringSelectInteraction(@Nonnull StringSelectInteractionEvent event) {
+        appealsServerEventAdapter.onAppealsStringSelectInteraction(event);
     }
 
     @Override

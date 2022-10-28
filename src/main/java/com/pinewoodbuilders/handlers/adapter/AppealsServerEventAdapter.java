@@ -20,14 +20,15 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Modal;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectInteraction;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.interactions.modals.Modal;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -73,7 +74,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
         }
     }
 
-    public void onAppealsSelectMenuInteractionEvent(SelectMenuInteractionEvent event) {
+    public void onAppealsStringSelectInteraction(StringSelectInteractionEvent event) {
         String[] selection = event.getSelectedOptions().get(0).getValue().split(":");
 
         if (selection[0].startsWith("decline"))
@@ -109,7 +110,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
                                         
                     By clicking on the "I AGREE" selector below ___YOU CONFIRM THAT YOU WANT YOUR DATA DELETED, THAT THIS IS AN IRREVERSIBLE ACTION AND THAT WE CANNOT BE HELD ACCOUNTABLE FOR ANY LOSSES AFTER THE DELETION___
                     """).setFooter("Pinewood Intelligence Agency", Constants.PIA_LOGO_URL).build()).addActionRow(
-                SelectMenu.create("punishment-selection")
+                StringSelectMenu.create("punishment-selection")
                     .addOption("I REJECT",
                         "decline-1:PIA:deletion",
                         "Use this button to reject the data deletion request.",
@@ -187,7 +188,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
                                     
                     __Please read through the entire selection menu!!!__
                     """).build()).setActionRow(
-                SelectMenu.create("punishment-selection")
+                StringSelectMenu.create("punishment-selection")
                     .addOption("Appeal for a trello ban",
                         "appeal:PIA:trelloban",
                         "You may appeal a trello-ban through this selection. ",
@@ -279,11 +280,11 @@ public class AppealsServerEventAdapter extends EventAdapter {
         ).build();
     }
 
-    private void guildSelectionMenu(String[] value, SelectMenuInteractionEvent reply) {
+    private void guildSelectionMenu(String[] value, StringSelectInteraction reply) {
         AppealType type = AppealType.fromName(value[1]);
         if (type == null) {reply.editMessage("Type not found.").queue(); return;}
         if (!type.isGuildSelect()) {reply.editMessage("No guild select.").queue(); return;}
-        SelectMenu.Builder menu = SelectMenu.create("user-selection")
+        StringSelectMenu.Builder menu = StringSelectMenu.create("user-selection")
             .addOption("Pinewood Builders Security Team",
                 "appeal:PBST:" + type.getName(),
                 "Appeal your " + type.getCleanName() + " here.",
@@ -322,7 +323,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
     }
 
 
-    private void createAppealChannel(String[] value, SelectMenuInteractionEvent reply, Guild g, User user) {
+    private void createAppealChannel(String[] value, StringSelectInteraction reply, Guild g, User user) {
         Category c = g != null ? g.getCategoryById("834325263240003595") : null;
         if (c == null) {
             reply.editMessage("Category not found.").queue();
@@ -396,7 +397,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
         );
     }
 
-    private void createDeletionChannel(String[] value, SelectMenuInteractionEvent reply, Guild g, User user) {
+    private void createDeletionChannel(String[] value, StringSelectInteraction reply, Guild g, User user) {
         Category c = g != null ? g.getCategoryById("1001914491929370765") : null;
         if (c == null) {
             reply.editMessage("Category not found.").queue();

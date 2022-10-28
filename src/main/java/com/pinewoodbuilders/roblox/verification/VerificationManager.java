@@ -30,6 +30,7 @@ import com.pinewoodbuilders.utilities.CacheUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.internal.utils.PermissionUtil;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -137,7 +138,7 @@ public class VerificationManager {
         }
 
         if (isBlacklisted(guild, verificationEntity)) {
-            member.ban(0, "Blacklisted on Discord").queue();
+            member.ban(0, TimeUnit.DAYS).reason("Blacklisted on Discord").queue();
             return new VerificationResult(false, "Blacklisted on " + guild.getName());
         }
 
@@ -470,7 +471,7 @@ public class VerificationManager {
                     .queue();
             }
         }
-        member.ban(0, "Trelloban").queue();
+        member.ban(0, TimeUnit.DAYS).reason("Trelloban").queue();
         return false;
     }
 
@@ -507,15 +508,13 @@ public class VerificationManager {
             GuildSettingsTransformer settings = GuildSettingsController.fetchGuildSettingsFromGuild(avaire, guild);
             if (settings.getGlobalBan()) continue;
             if (settings.isOfficialSubGroup()) {
-                guild.ban(m, time, "Banned by: " + guild.getSelfMember().getEffectiveName() + "\n" + "For: "
+                guild.ban(m, time, TimeUnit.DAYS)
+                    .reason("Banned by: " + guild.getSelfMember().getEffectiveName() + "\n" + "For: "
                         + reason
-                        + "\n*THIS IS A MGM GLOBAL BAN, DO NOT REVOKE THIS BAN WITHOUT CONSULTING THE MGM MODERATOR WHO INITIATED THE GLOBAL BAN, REVOKING THIS BAN WITHOUT MGM APPROVAL WILL RESULT IN DISCIPlINARY ACTION!*")
-                    .reason("Global Ban, executed by " + guild.getSelfMember().getEffectiveName() + ". For: \n"
-                        + reason)
+                        + "\n*PIA BAN!*")
                     .queue();
             } else {
-                guild.ban(m, time,
-                        "This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
+                guild.ban(m, time, TimeUnit.DAYS).reason("This is a global-ban that has been executed from the global ban list of the guild you're subscribed to... ")
                     .queue();
             }
         }

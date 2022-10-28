@@ -4,7 +4,7 @@ package com.pinewoodbuilders.requests.service.kronos.trelloban.trello;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import javax.annotation.Generated;
+import javax.annotation.processing.Generated;
 
 @Generated("jsonschema2pojo")
 public class Label {

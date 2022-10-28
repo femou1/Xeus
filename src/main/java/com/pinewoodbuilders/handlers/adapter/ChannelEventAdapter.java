@@ -103,7 +103,7 @@ public class ChannelEventAdapter extends EventAdapter {
                 .useAsync(true)
                 .where("id", guild.getId())
                 .update(statement -> {
-                    statement.set("channels_data", GuildController.buildChannelData(guild.getTextChannels()), true);
+                    statement.set("channels_data", GuildController.buildChannelData(guild.getChannels()), true);
                 });
         } catch (SQLException e) {
             Xeus.getLogger().error("ERROR: ", e);

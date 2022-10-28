@@ -25,14 +25,14 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Modal;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 
 import javax.annotation.Nonnull;
@@ -129,7 +129,7 @@ public class ReportUserCommand extends Command {
             QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE).orderBy("handbook_report_channel");
             try {
 
-                SelectMenu.Builder menu = SelectMenu.create("selector:server-to-report-to:" + context.getMember().getId() + ":" + context.getMessage().getId())
+                StringSelectMenu.Builder menu = StringSelectMenu.create("selector:server-to-report-to:" + context.getMember().getId() + ":" + context.getMessage().getId())
                     .setPlaceholder("Select the group to report to!") // shows the placeholder indicating what this menu is for
                     .addOption("Cancel", "cancel", "Stop reporting someone", Emoji.fromUnicode("❌"))
                     .setRequiredRange(1, 1); // only one can be selected
@@ -156,7 +156,7 @@ public class ReportUserCommand extends Command {
 
                     ***__Please choose the group you would like to report to here__***""").buildEmbed()).setActionRow(menu.build()).queue(
                     message -> {
-                        avaire.getWaiter().waitForEvent(SelectMenuInteractionEvent.class, interaction -> {
+                        avaire.getWaiter().waitForEvent(StringSelectInteractionEvent.class, interaction -> {
                                 return interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(message);
                             }, select -> {
                                 if (select.getInteraction().getSelectedOptions().get(0).getEmoji().getName().equalsIgnoreCase("❌")) {

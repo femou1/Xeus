@@ -23,13 +23,13 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Modal;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 
 import javax.annotation.Nonnull;
@@ -114,7 +114,7 @@ public class SuggestionCommand extends Command {
         }
 
         context.makeInfo("<a:loading:742658561414266890> Loading suggestions... <a:loading:742658561414266890>").queue(l -> {
-            SelectMenu.Builder menu = SelectMenu.create("selector:server-to-suggest-to:" + context.getMember().getId() + ":" + context.getMessage().getId())
+            StringSelectMenu.Builder menu = StringSelectMenu.create("selector:server-to-suggest-to:" + context.getMember().getId() + ":" + context.getMessage().getId())
                 .setPlaceholder("Select the place to suggest to!") // shows the placeholder indicating what this menu is for
                 .addOption("Cancel", "cancel", "Stop offering suggestions", Emoji.fromUnicode("❌"))
                 .setRequiredRange(1, 1); // only one can be selected
@@ -156,7 +156,7 @@ public class SuggestionCommand extends Command {
     }
 
     private void startMenuWaiter(Member member, Message message, EventWaiter waiter, QueryBuilder qb) {
-        waiter.waitForEvent(SelectMenuInteractionEvent.class, l -> l.getMember().equals(member) && message.getId().equals(l.getMessageId()), emote -> {
+        waiter.waitForEvent(StringSelectInteractionEvent.class, l -> l.getMember().equals(member) && message.getId().equals(l.getMessageId()), emote -> {
 
             if (emote.getInteraction().getSelectedOptions().get(0).getEmoji().getName().equalsIgnoreCase("❌")) {
                 message.editMessageEmbeds(MessageFactory.makeWarning(message, "Cancelled the system").buildEmbed()).setActionRow(Collections.emptySet()).queue();

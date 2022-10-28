@@ -33,7 +33,11 @@ import com.pinewoodbuilders.modlog.local.shared.ModlogType;
 import com.pinewoodbuilders.utilities.MentionableUtil;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import com.pinewoodbuilders.utilities.RestActionUtil;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageHistory;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.TimeUtil;
 
@@ -238,13 +242,11 @@ public class PurgeCommand extends Command {
             return messages.get(0).delete();
         }
 
-        if (context.getGuildChannel() instanceof TextChannel) {
-            TextChannel guildChannel = (TextChannel) context.getGuildChannel();
+        if (context.getGuildChannel() instanceof TextChannel guildChannel) {
             return guildChannel.deleteMessages(messages);
         }
 
-        if (context.getGuildChannel() instanceof ThreadChannel) {
-            ThreadChannel guildChannel = (ThreadChannel) context.getGuildChannel();
+        if (context.getGuildChannel() instanceof ThreadChannel guildChannel) {
             return guildChannel.deleteMessages(messages);
         }
         return null;
