@@ -95,15 +95,11 @@ public class AuditLogChannelCommand extends Command {
             return false;
         }
 
-        switch (args[0].toLowerCase()){
-            case "sc":
-            case "set-channel":
-                return runVoteUpdateChannelChannelCommand(context, args, guildTransformer);
-            case "set-join-logs":
-                return runJoinLogsUpdateChannelChannelCommand(context, args, guildTransformer);
-            default:
-                return sendErrorMessage(context, "No valid argument given");
-        }
+        return switch (args[0].toLowerCase()) {
+            case "sc", "set-channel" -> runVoteUpdateChannelChannelCommand(context, args, guildTransformer);
+            case "set-join-logs" -> runJoinLogsUpdateChannelChannelCommand(context, args, guildTransformer);
+            default -> sendErrorMessage(context, "No valid argument given");
+        };
     }
 
     private boolean runVoteUpdateChannelChannelCommand(CommandMessage context, String[] args, GuildSettingsTransformer transformer) {

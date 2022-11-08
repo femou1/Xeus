@@ -317,7 +317,9 @@ public class MainEventHandler extends EventHandler {
             return;
         }
         if (changelogEventAdapter.isChangelogMessage(event.getChannel())) changelogEventAdapter.onMessageReceived(event);
+
         messageEvent.onMessageReceived(event);
+
         if (Xeus.getEnvironment().getName().equals(Environment.DEVELOPMENT.getName())) {
             return;
         }

@@ -458,7 +458,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                             mb.requestedBy(m);
                                         }
 
-                                        msg.editMessageEmbeds(mb.buildEmbed()).setActionRow(Collections.emptyList()).queue();
+                                        msg.editMessageEmbeds(mb.buildEmbed()).setComponents(Collections.emptyList()).queue();
                                         msg.clearReactions().queue();
                                         qb.delete();
 
@@ -479,7 +479,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                 .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                 .setDescription(msg.getEmbeds().get(0).getDescription())
                                                 .setTimestamp(Instant.now())
-                                                .buildEmbed()).setActionRow(Collections.emptyList()).queue();
+                                                .buildEmbed()).setComponents(Collections.emptyList()).queue();
                                             msg.clearReactions().queue();
                                             qb.delete();
                                             break;
@@ -500,7 +500,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                         .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                         .setDescription(msg.getEmbeds().get(0).getDescription())
                                                         .setTimestamp(Instant.now())
-                                                        .buildEmbed()).setActionRow(Collections.emptyList()).queue();
+                                                        .buildEmbed()).setComponents(Collections.emptyList()).queue();
                                                     msg.delete().queue();
                                                 } else {
                                                     msg.editMessageEmbeds(MessageFactory.makeEmbeddedMessage(e.getChannel(), new Color(0, 255, 0))
@@ -508,7 +508,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                         .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                         .setDescription(msg.getEmbeds().get(0).getDescription())
                                                         .setTimestamp(Instant.now())
-                                                        .buildEmbed()).setActionRow(Collections.emptyList()).queue();
+                                                        .buildEmbed()).setComponents(Collections.emptyList()).queue();
                                                     msg.clearReactions().queue();
 
                                                 }
@@ -518,7 +518,7 @@ public class ReactionEmoteEventAdapter extends EventAdapter {
                                                     .setFooter(msg.getEmbeds().get(0).getFooter().getText(), msg.getEmbeds().get(0).getFooter().getIconUrl())
                                                     .setDescription(msg.getEmbeds().get(0).getDescription())
                                                     .setTimestamp(Instant.now())
-                                                    .buildEmbed()).setActionRow(Collections.emptyList()).queue();
+                                                    .buildEmbed()).setComponents(Collections.emptyList()).queue();
                                                 msg.clearReactions().queue();
 
                                             }

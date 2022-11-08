@@ -149,6 +149,28 @@ public class RobloxUserAPIRoutes {
         return null;
     }
 
+    public boolean hasBadge(Long userId, Long gamepassId) {
+        request.get().url("https://badges.roblox.com/v1/users/{userId}/badges/awarded-dates?badgeIds={gamepassId}"
+            .replace("{userId}", userId.toString())
+            .replace("{gamepassId}", gamepassId.toString()));
+
+        try (Response response = manager.getClient().newCall(request.build()).execute()) {
+            if (response.code() == 200) {
+                String body = response.body().string();
+                JSONObject json = new JSONObject(body);
+                JSONArray jArray = json.getJSONArray("data");
+                return jArray.length() > 0;
+            } else {
+                Xeus.getLogger().error("Failed sending request to Roblox Gamepass API: Error code `" + response.code() + "`");
+            }
+            return false;
+        } catch (IOException e) {
+            Xeus.getLogger().error("Failed sending request to Roblox Gamepass API: " + e.getMessage());
+        }
+        return false;
+    }
+
+
     public String getUsername(Long userId) {
         return getUsername(String.valueOf(userId));
     }

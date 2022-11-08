@@ -136,11 +136,11 @@ public class ReportUserCommand extends Command {
 
                 qb.get().forEach(dataRow -> {
                     if (dataRow.getString("handbook_report_channel") != null) {
-                        Guild g = avaire.getShardManager().getGuildById(dataRow.getString("id"));
-                        RichCustomEmoji e = avaire.getShardManager().getEmojiById(dataRow.getString("emoji_id"));
+                        Guild guild = avaire.getShardManager().getGuildById(dataRow.getString("id"));
+                        RichCustomEmoji emoji = avaire.getShardManager().getEmojiById(dataRow.getString("emoji_id"));
 
-                        if (g != null && e != null) {
-                            menu.addOption(g.getName(), g.getId() + ":" + e.getId(), "Report to " + g.getName(), Emoji.fromCustom(e));
+                        if (guild != null && emoji != null) {
+                            menu.addOption(guild.getName(), guild.getId() + ":" + emoji.getId(), "Report to " + guild.getName(), Emoji.fromCustom(emoji));
                             /*sb.append("``").append(g.getName()).append("`` - ").append(e.getAsMention()).append("\n");
                             l.addReaction(e).queue();*/
                         } else {
@@ -359,7 +359,7 @@ public class ReportUserCommand extends Command {
                         if (send.getButton().getEmoji().getName().equalsIgnoreCase("❌") || send.getButton().getEmoji().getName().equalsIgnoreCase("x")) {
                             act.editMessage("Report has been canceled, if you want to restart the report. Do `!ru` in any bot-commands channel.")
                                 .setEmbeds(Collections.emptyList())
-                                .setActionRow(Collections.emptyList()).queue();
+                                .setComponents(Collections.emptyList()).queue();
                             return;
                         } else if (send.getButton().getEmoji().getName().equalsIgnoreCase("✅")) {
                             sendReport(tc, send, modalUsername, modalReason, modalProofOfWarning, rank, modalEvidence, message);
@@ -370,7 +370,7 @@ public class ReportUserCommand extends Command {
                     () -> {
                         act.editMessage("You took to long to respond, please restart the report system!")
                             .setEmbeds(Collections.emptyList())
-                            .setActionRow(Collections.emptyList()).queue();
+                            .setComponents(Collections.emptyList()).queue();
                     });
             }
         );
@@ -397,7 +397,7 @@ public class ReportUserCommand extends Command {
             .queue(
                 finalMessage -> {
                     message.editMessageEmbeds(MessageFactory.makeSuccess(finalMessage, "[Your report has been created in the correct channel.](:link).").set("link", finalMessage.getJumpUrl())
-                            .buildEmbed()).setActionRow(Collections.emptyList())
+                            .buildEmbed()).setComponents(Collections.emptyList())
                         .queue();
 
                     act.editMessage("Please check the previous message for the report.")

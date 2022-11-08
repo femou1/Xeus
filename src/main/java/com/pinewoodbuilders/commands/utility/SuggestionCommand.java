@@ -87,8 +87,7 @@ public class SuggestionCommand extends Command {
 
     @Override
     public List <String> getMiddleware() {
-        return Arrays.asList(
-            "isPinewoodGuild",
+        return List.of(
             "throttle:user,1,120"
         );
     }
@@ -103,7 +102,7 @@ public class SuggestionCommand extends Command {
         if (permissionLevel >= GuildPermissionCheckType.LOCAL_GROUP_LEADERSHIP.getLevel()) {
             if (args.length > 0) {
                 return switch (args[0].toLowerCase()) {
-                    case "ss", "set-suggestions " -> runSetSuggestionChannel(context, args);
+                    case "ss", "set-suggestions" -> runSetSuggestionChannel(context, args);
                     case "sc", "set-community" -> runSetCommunityVotesChannel(context, args);
                     case "cch", "change-community-threshold" -> runChangeCommunityThreshold(context, args);
                     case "sasc", "set-approved-suggestions-channel" -> runSetApprovedSuggestionsChannel(context, args);
@@ -111,6 +110,11 @@ public class SuggestionCommand extends Command {
                     default -> sendErrorMessage(context, "Please enter in a correct argument.");
                 };
             }
+        }
+
+        if (context.getGuildSettingsTransformer() == null) {
+            context.makeError("Settings not found, please try again later or contact Stefano#7366").queue();
+            return false;
         }
 
         context.makeInfo("<a:loading:742658561414266890> Loading suggestions... <a:loading:742658561414266890>").queue(l -> {
@@ -122,6 +126,11 @@ public class SuggestionCommand extends Command {
 
             QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                 .orderBy("suggestion_channel_id");
+
+            if (context.getGuildSettingsTransformer().getMainGroupId() != 0) {
+                qb.where("main_group_id", context.getGuildSettingsTransformer().getMainGroupId());
+            }
+
             try {
                 qb.get().forEach(dataRow -> {
                     if (dataRow.getString("suggestion_channel_id") != null) {
@@ -247,7 +256,7 @@ public class SuggestionCommand extends Command {
 
             createReactions(v);
 
-            if (v.getGuild().getId().equals("438134543837560832")) v.createThreadChannel("Suggestion - " + member.getEffectiveName()).queue();
+            v.createThreadChannel("Suggestion - " + member.getEffectiveName()).queue();
 
             try {
                 avaire.getDatabase().newQueryBuilder(Constants.PB_SUGGESTIONS_TABLE_NAME).insert(data -> {

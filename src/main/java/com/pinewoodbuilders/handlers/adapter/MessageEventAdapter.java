@@ -297,7 +297,9 @@ public class MessageEventAdapter extends EventAdapter {
         if (!settings.getGlobalFilter()) {
             return;
         }
-        if (!event.getContentRaw().startsWith("debug:") && XeusPermissionUtil.getPermissionLevel(guild, genericMessageEvent.getGuild(), event.getMember()).getLevel() >= GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
+        if (!event.getContentRaw().startsWith("debug:") &&
+            XeusPermissionUtil.getPermissionLevel(guild, genericMessageEvent.getGuild(), event.getMember()).getLevel() >=
+                GuildPermissionCheckType.LOCAL_GROUP_HR.getLevel()) {
             return;
         }
 
@@ -385,6 +387,7 @@ public class MessageEventAdapter extends EventAdapter {
                         lme.add(phm.buildEmbed());
 
                         if (level.isCheckRedirect()) {
+
                             try {
                                 List <String> redirects = fetchRedirect(validLink, new ArrayList <>());
                                 if (redirects.size() > 1) {

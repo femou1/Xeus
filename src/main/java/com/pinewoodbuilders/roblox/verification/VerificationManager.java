@@ -204,21 +204,28 @@ public class VerificationManager {
                     String groupId = rank[0];
                     String rankId = rank[1];
 
-                    if (groupRankBinding.getGroups().stream().filter(group -> !group.getId().equals("GamePass")).anyMatch(
-                        group -> group.getId().equals(groupId) && group.getRanks().contains(Integer.valueOf(rankId)))) {
+                    if (groupRankBinding.getGroups().stream().filter(group -> !group.getId().equalsIgnoreCase("gamepass")).anyMatch(
+                        group -> group.getId().equalsIgnoreCase(groupId) && group.getRanks().contains(Integer.valueOf(rankId)))) {
                         bindingRoleAddMap.put(groupRankBinding, role);
                     }
 
                 }
             });
 
-            bindingRoleMap.forEach((groupRankBinding, role) -> groupRankBinding.getGroups().stream().filter(data -> data.getId().equals("GamePass"))
+            bindingRoleMap.forEach((groupRankBinding, role) -> groupRankBinding.getGroups().stream().filter(data -> data.getId().equalsIgnoreCase("gamepass"))
                 .map(pass -> avaire.getRobloxAPIManager().getUserAPI().getUserGamePass(verificationEntity.getRobloxId(),
                     Long.parseLong(pass.getRanks().get(0).toString())))
                 .filter(Objects::nonNull).forEach(pass -> bindingRoleAddMap.put(groupRankBinding, role)));
 
+            bindingRoleMap.forEach((groupRankBinding, role) -> {
+                groupRankBinding.getGroups().stream().filter(data -> data.getId().equalsIgnoreCase("badge"))
+                    .map(pass -> avaire.getRobloxAPIManager().getUserAPI().hasBadge(verificationEntity.getRobloxId(),
+                        Long.parseLong(pass.getRanks().get(0).toString())))
+                    .filter(Boolean::booleanValue).forEach(pass -> bindingRoleAddMap.put(groupRankBinding, role));
+            });
+
             // Collect the toAdd and toRemove roles from the previous maps
-            java.util.Collection<Role> rolesToAdd = bindingRoleAddMap.values().stream()
+            java.util.Collection <Role> rolesToAdd = bindingRoleAddMap.values().stream()
                 .filter(role -> PermissionUtil.canInteract(guild.getSelfMember(), role)).collect(Collectors.toList()),
                 rolesToRemove = bindingRoleMap.values().stream().filter(role -> !bindingRoleAddMap.containsValue(role)
                     && PermissionUtil.canInteract(guild.getSelfMember(), role)).collect(Collectors.toList());
@@ -259,7 +266,7 @@ public class VerificationManager {
 
     private void changeMemberNickname(Member member, Guild guild, VerificationEntity verificationEntity, VerificationTransformer verificationTransformer, StringBuilder stringBuilder) {
         if (verificationEntity.getRobloxUsername() != null) {
-            if (!verificationEntity.getRobloxUsername().equals(member.getEffectiveName())) {
+            if (!verificationEntity.getRobloxUsername().equalsIgnoreCase(member.getEffectiveName())) {
                 if (PermissionUtil.canInteract(guild.getSelfMember(), member)) {
                     guild.modifyNickname(member, verificationTransformer.getNicknameFormat()
                         .replace("%USERNAME%", verificationEntity.getRobloxUsername())).queue();
@@ -304,7 +311,9 @@ public class VerificationManager {
                 .get();
 
             for (DataRow dataRow : guildQuery) {
-                if (globalSettings.getModerationServerId() != 0 && dataRow.getString("id").equals(String.valueOf(globalSettings.getModerationServerId()))) {continue;}
+                if (globalSettings.getModerationServerId() != 0 && dataRow.getString("id").equalsIgnoreCase(String.valueOf(globalSettings.getModerationServerId()))) {
+                    continue;
+                }
 
                 Guild guild = avaire.getShardManager().getGuildById(dataRow.getString("id"));
                 if (guild != null) {
@@ -496,7 +505,7 @@ public class VerificationManager {
 
         for (Guild guild : guilds) {
             if (appealsGuild != null) {
-                if (appealsGuild.getId().equals(guild.getId())) {
+                if (appealsGuild.getId().equalsIgnoreCase(guild.getId())) {
                     continue;
                 }
             }

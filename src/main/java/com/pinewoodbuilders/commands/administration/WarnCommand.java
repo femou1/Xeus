@@ -324,7 +324,7 @@ public class WarnCommand extends Command {
             case "cancel" ->
                 messageExecute.editMessageEmbeds(new EmbedBuilder().setDescription("No punishments have been given.").build()).setComponents(Collections.emptyList()).queue();
             default ->
-                messageExecute.editMessage("ÍNVALID RESPONSE").setEmbeds(Collections.emptyList()).setActionRow(Collections.emptyList()).queue();
+                messageExecute.editMessage("ÍNVALID RESPONSE").setEmbeds(Collections.emptyList()).setComponents(Collections.emptyList()).queue();
         }
     }
 
