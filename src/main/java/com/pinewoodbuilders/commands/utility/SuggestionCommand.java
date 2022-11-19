@@ -124,6 +124,7 @@ public class SuggestionCommand extends Command {
                 .setRequiredRange(1, 1); // only one can be selected
 
 
+
             QueryBuilder qb = avaire.getDatabase().newQueryBuilder(Constants.GUILD_SETTINGS_TABLE)
                 .orderBy("suggestion_channel_id");
 
@@ -256,7 +257,8 @@ public class SuggestionCommand extends Command {
 
             createReactions(v);
 
-            v.createThreadChannel("Suggestion - " + member.getEffectiveName()).queue();
+            if (v.getGuild().getId().equals("438134543837560832"))
+                v.createThreadChannel("Suggestion - " + member.getEffectiveName()).queue();
 
             try {
                 avaire.getDatabase().newQueryBuilder(Constants.PB_SUGGESTIONS_TABLE_NAME).insert(data -> {

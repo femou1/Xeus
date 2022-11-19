@@ -63,13 +63,13 @@ public class FeatureBlacklistCommand extends Command {
 
     @Override
     public List<String> getMiddleware() {
-        return Arrays.asList("isPinewoodGuild", "isAdminOrHigher");
+        return List.of("isAdminOrHigher");
     }
 
     @Override
     public List<String> getExampleUsage() {
-        return Arrays.asList(
-                "`:command add M 321920293939203910 Doing stuff` - Blacklists the user with an ID of 321 for \"Doing stuff\" from reports in the guild you ran the command in.");
+        return List.of(
+            "`:command add M 321920293939203910 Doing stuff` - Blacklists the user with an ID of 321 for \"Doing stuff\" from reports in the guild you ran the command in.");
     }
 
     @Override
@@ -88,19 +88,12 @@ public class FeatureBlacklistCommand extends Command {
             return sendErrorMessage(context, "Missing parameter, a valid `action` must be given!");
         }
 
-        switch (args[0].toLowerCase()) {
-            case "list":
-                return listBlacklist(context, Arrays.copyOfRange(args, 1, args.length));
-
-            case "add":
-                return addEntryToBlacklist(context, Arrays.copyOfRange(args, 1, args.length));
-
-            case "remove":
-                return removeEntryFromBlacklist(context, Arrays.copyOfRange(args, 1, args.length));
-
-            default:
-                return sendErrorMessage(context, "Invalid `action` given, a valid `action` must be given!");
-        }
+        return switch (args[0].toLowerCase()) {
+            case "list" -> listBlacklist(context, Arrays.copyOfRange(args, 1, args.length));
+            case "add" -> addEntryToBlacklist(context, Arrays.copyOfRange(args, 1, args.length));
+            case "remove" -> removeEntryFromBlacklist(context, Arrays.copyOfRange(args, 1, args.length));
+            default -> sendErrorMessage(context, "Invalid `action` given, a valid `action` must be given!");
+        };
     }
 
     private boolean listBlacklist(CommandMessage context, String[] args) {
