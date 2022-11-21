@@ -130,6 +130,7 @@ public class MainEventHandler extends EventHandler {
 
     @Override
     public void onGenericEvent(@NotNull GenericEvent event) {
+        if (!avaire.areWeReadyYet()) return;
         prepareGuildMembers(event);
         Metrics.jdaEvents.labels(event.getClass().getSimpleName()).inc();
 
@@ -139,13 +140,6 @@ public class MainEventHandler extends EventHandler {
     @Override
     public void onReady(ReadyEvent event) {
         jdaStateEventAdapter.onConnectToShard(event.getJDA());
-
-        Guild guild = event.getJDA().getGuildById("438134543837560832");
-        if (guild != null) {
-            guild.retrieveInvites().queue(invites -> {
-                this.invites = invites.size();
-            });
-        }
     }
 
     @Override

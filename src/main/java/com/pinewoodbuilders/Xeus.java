@@ -97,7 +97,6 @@ import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
-import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.SessionControllerAdapter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.slf4j.Logger;
@@ -724,9 +723,9 @@ public class Xeus {
         ))
             .setToken(getConfig().getString("discord.token"))
             .setSessionController(new SessionControllerAdapter())
-            .setActivity(Activity.watching("pinewood dominate the world!"))
+            .setActivity(Activity.watching("xeus dominate the world!"))
             .setBulkDeleteSplittingEnabled(false)
-            .setMemberCachePolicy(MemberCachePolicy.ALL)
+            //.setMemberCachePolicy(MemberCachePolicy.ALL)
             .setChunkingFilter(ChunkingFilter.NONE)
             .disableCache(CacheFlag.ACTIVITY, CacheFlag.ONLINE_STATUS, CacheFlag.CLIENT_STATUS)
             .setEnableShutdownHook(true)

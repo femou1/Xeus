@@ -99,8 +99,8 @@ dependencies {
 
     implementation group: 'com.udojava', name: 'EvalEx', version: '2.7'
     implementation group: 'com.vdurmont', name: 'emoji-java', version: '5.1.1'
-    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.3'
-    implementation group: 'io.sentry', name: 'sentry-logback', version: '6.4.2'
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.4'
+    implementation group: 'io.sentry', name: 'sentry-logback', version: '6.7.0'
     implementation group: 'org.reflections', name: 'reflections', version: '0.10.2'
 
     // Chew Util
