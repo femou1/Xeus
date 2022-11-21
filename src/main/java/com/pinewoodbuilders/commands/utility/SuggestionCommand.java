@@ -257,7 +257,6 @@ public class SuggestionCommand extends Command {
 
             createReactions(v);
 
-            if (v.getGuild().getId().equals("438134543837560832"))
                 v.createThreadChannel("Suggestion - " + member.getEffectiveName()).queue();
 
             try {
