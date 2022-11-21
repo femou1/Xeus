@@ -161,6 +161,7 @@ public class ReverifyCommand extends VerificationCommandContract {
             .setRequiredRange(1, 1) // only one can be selected
             .addOption("In-game Verification", "game-verification", "Join a game on roblox to verify!", Emoji.fromUnicode("\uD83D\uDC68\u200D\uD83D\uDE80"))
             .addOption("Edit Description", "edit-description", "Add text to your profile description!", Emoji.fromFormatted("<:roblox:863179377080401960>"))
+            .addOption("OAuth Method", "oauth-method", "Use Roblox's new OAUTH2 Method!", Emoji.fromFormatted("<:oauth:1016095913925681162>"))
             .build();
 
         originalMessage.editMessageEmbeds(context.makeInfo("Account was found on roblox, how would you like to verify?").requestedBy(context).buildEmbed())
@@ -179,6 +180,11 @@ public class ReverifyCommand extends VerificationCommandContract {
 
             if (so.getValue().equals("edit-description")) {
                 runDescriptionVerification(context, originalMessage, robloxId);
+                return;
+            }
+
+            if (so.getValue().equals("oauth-method")) {
+                runOAuthVerification(context, originalMessage, robloxId);
                 return;
             }
         }

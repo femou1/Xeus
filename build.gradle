@@ -64,8 +64,8 @@ javadoc {
 }
 
 repositories {
-    mavenCentral()                     // Main maven repo
     mavenLocal()                       // Useful for developing
+    mavenCentral()                     // Main maven repo
     maven { url "https://jitpack.io" } // Build projects directly from github
 
     // Used for pulling down JDA and LavaPlayer
@@ -80,6 +80,7 @@ dependencies {
     implementation group: 'com.avairebot', name: 'Shared', version: '80809049d2'
     implementation group: 'net.dv8tion', name: 'JDA', version: '5.0.0-alpha.22'
 
+    implementation group: 'com.github.scribejava', name: 'scribejava-apis', version: '8.3.2-SNAPSHOT'
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.5.0'
     implementation group: 'org.apache.commons', name: 'commons-text', version: '1.10.0'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
