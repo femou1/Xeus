@@ -160,7 +160,7 @@ public class ReportUserCommand extends Command {
                                 return interaction.getMember() != null && interaction.getMember().equals(context.getMember()) && interaction.getChannel().equals(context.channel) && interaction.getMessage().equals(message);
                             }, select -> {
                                 if (select.getInteraction().getSelectedOptions().get(0).getEmoji().getName().equalsIgnoreCase("❌")) {
-                                    message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).setComponents(Collections.emptySet()).queue();
+                                    message.editMessageEmbeds(context.makeWarning("Cancelled the system").buildEmbed()).setActionRow(Collections.emptySet()).queue();
                                     /*message.clearReactions().queue();*/
                                     return;
                                 }
@@ -201,7 +201,7 @@ public class ReportUserCommand extends Command {
                                 }
 
 
-                                message.editMessageEmbeds(context.makeInfo("You have been sent a modal, please respond to the questions asked and come back here, if you're not back in 3 minutes. The modal expires").buildEmbed()).setComponents(Collections.emptySet())
+                                message.editMessageEmbeds(context.makeInfo("You have been sent a modal, please respond to the questions asked and come back here, if you're not back in 3 minutes. The modal expires").buildEmbed()).setActionRow(Collections.emptySet())
                                     .queue(p -> {
                                         select.replyModal(modal.build()).queue();
                                         avaire.getWaiter().waitForEvent(ModalInteractionEvent.class,
@@ -359,7 +359,7 @@ public class ReportUserCommand extends Command {
                         if (send.getButton().getEmoji().getName().equalsIgnoreCase("❌") || send.getButton().getEmoji().getName().equalsIgnoreCase("x")) {
                             act.editMessage("Report has been canceled, if you want to restart the report. Do `!ru` in any bot-commands channel.")
                                 .setEmbeds(Collections.emptyList())
-                                .setComponents(Collections.emptyList()).queue();
+                                .setActionRow(Collections.emptyList()).queue();
                             return;
                         } else if (send.getButton().getEmoji().getName().equalsIgnoreCase("✅")) {
                             sendReport(tc, send, modalUsername, modalReason, modalProofOfWarning, rank, modalEvidence, message);
@@ -370,7 +370,7 @@ public class ReportUserCommand extends Command {
                     () -> {
                         act.editMessage("You took to long to respond, please restart the report system!")
                             .setEmbeds(Collections.emptyList())
-                            .setComponents(Collections.emptyList()).queue();
+                            .setActionRow(Collections.emptyList()).queue();
                     });
             }
         );
@@ -397,12 +397,12 @@ public class ReportUserCommand extends Command {
             .queue(
                 finalMessage -> {
                     message.editMessageEmbeds(MessageFactory.makeSuccess(finalMessage, "[Your report has been created in the correct channel.](:link).").set("link", finalMessage.getJumpUrl())
-                            .buildEmbed()).setComponents(Collections.emptyList())
+                            .buildEmbed()).setActionRow(Collections.emptyList())
                         .queue();
 
                     act.editMessage("Please check the previous message for the report.")
                         .setEmbeds(Collections.emptySet())
-                        .setComponents(Collections.emptySet())
+                        .setActionRow(Collections.emptySet())
                         .queue();
 
                     createReactions(finalMessage);

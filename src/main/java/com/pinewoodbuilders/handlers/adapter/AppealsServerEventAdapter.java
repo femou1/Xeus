@@ -70,7 +70,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
                         .set("whyRemove", event.getValue("whyRemove").getAsString())
                         .set("prevention", event.getValue("prevention").getAsString())
                         .buildEmbed()
-                ).setComponents(Collections.emptyList()).queue();
+                ).setActionRow(Collections.emptyList()).queue();
         }
     }
 
@@ -350,7 +350,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
 
                 if (!isBotAdmin) {
                     if (!canAppeal) {
-                        newReply.editOriginalEmbeds(new EmbedBuilder().setColor(appealType.getColor()).setDescription("You may not appeal with `" + roles + "` for `" + appealType.getCleanName() + "`. You either don't have this punishment or you have a punishment that overrides others (**Example**: `A trelloban overrides a global-ban`, `A globalban overrides a group discord ban` and so on. Contact a PIA Moderator if you believe this is a mistake.").build()).setComponents(Collections.emptyList()).queue();
+                        newReply.editOriginalEmbeds(new EmbedBuilder().setColor(appealType.getColor()).setDescription("You may not appeal with `" + roles + "` for `" + appealType.getCleanName() + "`. You either don't have this punishment or you have a punishment that overrides others (**Example**: `A trelloban overrides a global-ban`, `A globalban overrides a group discord ban` and so on. Contact a PIA Moderator if you believe this is a mistake.").build()).setActionRow(Collections.emptyList()).queue();
                         return;
                     }
                 }
@@ -375,7 +375,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
                         .setActionRow(Button.primary("questions-respond", "Click this button to obtain the questions.").asEnabled())
                         .submit())
                     .thenCompose((s) -> newReply.editOriginalEmbeds(new EmbedBuilder().setDescription("Your appeal channel has been created in " + s.getChannel().getAsMention() + "!").build())
-                        .setComponents(Collections.emptyList()).submit())
+                        .setActionRow(Collections.emptyList()).submit())
                     .thenCompose((s) -> getTextChannelByRole(roles, g)
                         .sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(appealType.getColor()),
                             """
@@ -441,7 +441,7 @@ public class AppealsServerEventAdapter extends EventAdapter {
                     .buildEmbed())
                 .submit())
             .thenCompose((s) -> newReply.editOriginalEmbeds(new EmbedBuilder().setDescription("Your data deletion channel has been created in " + s.getChannel().getAsMention() + "!").build())
-                .setComponents(Collections.emptyList()).submit())
+                .setActionRow(Collections.emptyList()).submit())
             .thenCompose((s) -> getTextChannelByRole(roles, g)
                 .sendMessageEmbeds(new PlaceholderMessage(new EmbedBuilder().setColor(delType.getColor()),
                     """

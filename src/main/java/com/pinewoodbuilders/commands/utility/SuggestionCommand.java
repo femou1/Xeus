@@ -169,7 +169,7 @@ public class SuggestionCommand extends Command {
         waiter.waitForEvent(StringSelectInteractionEvent.class, l -> l.getMember().equals(member) && message.getId().equals(l.getMessageId()), emote -> {
 
             if (emote.getInteraction().getSelectedOptions().get(0).getEmoji().getName().equalsIgnoreCase("❌")) {
-                message.editMessageEmbeds(MessageFactory.makeWarning(message, "Cancelled the system").buildEmbed()).setComponents(Collections.emptySet()).queue();
+                message.editMessageEmbeds(MessageFactory.makeWarning(message, "Cancelled the system").buildEmbed()).setActionRow(Collections.emptySet()).queue();
                 /*message.clearReactions().queue();*/
                 return;
             }
@@ -189,12 +189,12 @@ public class SuggestionCommand extends Command {
                 if (avaire.getFeatureBlacklist().isBlacklisted(member.getUser(), c.getGuild().getIdLong(), FeatureScope.SUGGESTIONS)) {
                     message.editMessageEmbeds(MessageFactory.makeError(message, "You have been blacklisted from creating suggestions for this guild. Please ask a **Level 4** or higher to remove you from the `" + c.getGuild().getName() + "` suggestion blacklist. (Or global, if you're globally banned from all features)")
                             .buildEmbed())
-                        .setComponents(Collections.emptySet())
+                        .setActionRow(Collections.emptySet())
                         .queue();
                     return;
                 }
 
-                message.editMessageEmbeds(MessageFactory.makeError(message, "You have been sent a modal, please respond to the questions asked and come back here, if you're not back in 3 minutes. The modal expires").buildEmbed()).setComponents(Collections.emptySet()).queue();
+                message.editMessageEmbeds(MessageFactory.makeError(message, "You have been sent a modal, please respond to the questions asked and come back here, if you're not back in 3 minutes. The modal expires").buildEmbed()).setActionRow(Collections.emptySet()).queue();
 
                 TextInput suggestion = TextInput.create("suggestion", "Type your suggestion here!", TextInputStyle.PARAGRAPH)
                     .setPlaceholder("This can be anything, just make sure it's appropriate for the guild.")
@@ -252,7 +252,7 @@ public class SuggestionCommand extends Command {
 
             message.editMessage("The modal has been correctly received and the suggestion has been sent.")
                 .setEmbeds(Collections.emptySet())
-                .setComponents(Collections.emptySet())
+                .setActionRow(Collections.emptySet())
                 .queue();
 
             createReactions(v);
