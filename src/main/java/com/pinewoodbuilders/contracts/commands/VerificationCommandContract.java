@@ -183,10 +183,10 @@ public abstract class VerificationCommandContract extends Command {
                                 if (status.contains(token)) {
                                     addAccountToDatabase(context, robloxId, originalMessage, avaire.getRobloxAPIManager().getUserAPI().getUsername(robloxId));
                                 } else {
-                                    originalMessage.editMessageEmbeds(context.makeWarning("Your status does not contain the token, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                    originalMessage.editMessageEmbeds(context.makeWarning("Your status does not contain the token, verification cancelled.").requestedBy(context).buildEmbed()).setComponents(Collections.emptyList()).queue();
                                 }
                             } else {
-                                originalMessage.editMessageEmbeds(context.makeWarning("Status is empty, verification cancelled.").requestedBy(context).buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                originalMessage.editMessageEmbeds(context.makeWarning("Status is empty, verification cancelled.").requestedBy(context).buildEmbed()).setComponents(Collections.emptyList()).queue();
                             }
                             return;
                         }
@@ -234,11 +234,11 @@ public abstract class VerificationCommandContract extends Command {
                                 break;
                             case "❌":
                                 verification.remove(robloxId);
-                                originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (User action)...").buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (User action)...").buildEmbed()).setComponents(Collections.emptyList()).queue();
                                 break;
                             default:
                                 verification.remove(robloxId);
-                                originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (Invalid Emoji)...").buildEmbed()).setActionRows(Collections.emptyList()).queue();
+                                originalMessage.editMessageEmbeds(context.makeWarning("Cancelled the verification (Invalid Emoji)...").buildEmbed()).setComponents(Collections.emptyList()).queue();
                         }
                     }, 5, TimeUnit.MINUTES, () -> {
                         verification.remove(robloxId);

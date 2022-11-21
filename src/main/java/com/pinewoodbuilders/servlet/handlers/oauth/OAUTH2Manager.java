@@ -88,6 +88,8 @@ public class OAUTH2Manager {
         String discordId = verificationData[0];
         inVerificationSystem.replace(profileInfo.getLong("sub"), discordId + ":verified");
 
-        return new JSONObject().put("error", false).put("message", "User successfully verified.");
+        oauthService.revokeToken(accessToken.getAccessToken());
+
+        return new JSONObject().put("error", false).put("message", "User successfully verified. Please head back to your verification and confirm the verification.");
     }
 }

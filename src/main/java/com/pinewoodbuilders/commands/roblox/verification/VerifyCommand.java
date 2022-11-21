@@ -163,7 +163,6 @@ public class VerifyCommand extends VerificationCommandContract {
             .addOption("OAuth Method", "oauth-method", "Use Roblox's new OAUTH2 Method!", Emoji.fromFormatted("<:oauth:1016095913925681162>"))
             .build();
 
-            .build();
 
         originalMessage.editMessageEmbeds(context.makeInfo("Account was found on roblox, how would you like to verify?").requestedBy(context).buildEmbed())
             .setActionRow(menu).queue(m -> avaire.getWaiter().waitForEvent(StringSelectInteractionEvent.class,

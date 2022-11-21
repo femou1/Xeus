@@ -305,14 +305,14 @@ public class EventRemittanceCommand extends Command {
             //l.addReaction("❌").queue();
             avaire.getWaiter().waitForEvent(ButtonInteractionEvent.class, r -> isValidMember(r, context, l), send -> {
                 if (send.getButton().getEmoji().getName().equalsIgnoreCase("❌") || send.getButton().getEmoji().getName().equalsIgnoreCase("x")) {
-                    message.editMessageEmbeds(context.makeSuccess("Remittance has been canceled, if you want to restart the report. Do ``!pr`` in any bot-commands channel.").buildEmbed()).setActionRow(Collections.emptyList()).queue();
+                    message.editMessageEmbeds(context.makeSuccess("Remittance has been canceled, if you want to restart the report. Do ``!pr`` in any bot-commands channel.").buildEmbed()).setComponents(Collections.emptyList()).queue();
                     removeAllUserMessages(messagesToRemove);
                 } else if (send.getButton().getEmoji().getName().equalsIgnoreCase("✅")) {
-                    message.editMessage("Remittance has been \"sent\".").setActionRow(Collections.emptyList()).queue();
+                    message.editMessage("Remittance has been \"sent\".").setComponents(Collections.emptyList()).queue();
                     sendReport(context, message, b, d, context.getMember().getEffectiveName(), content.getMessage().getContentRaw(), messagesToRemove);
                     removeAllUserMessages(messagesToRemove);
                 } else {
-                    message.editMessage("Invalid button given, report deleted!").setActionRow(Collections.emptyList()).queue();
+                    message.editMessage("Invalid button given, report deleted!").setComponents(Collections.emptyList()).queue();
                     removeAllUserMessages(messagesToRemove);
                 }
             }, 5, TimeUnit.MINUTES, () -> {
