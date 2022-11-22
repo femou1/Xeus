@@ -80,7 +80,7 @@ dependencies {
     implementation group: 'com.avairebot', name: 'Shared', version: '80809049d2'
     implementation group: 'net.dv8tion', name: 'JDA', version: '5.0.0-alpha.22'
 
-    implementation group: 'com.github.scribejava', name: 'scribejava-apis', version: '8.3.2-SNAPSHOT'
+    implementation group: 'com.github.scribejava', name: 'scribejava-apis', version: '8.3.4-SNAPSHOT'
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.5.0'
     implementation group: 'org.apache.commons', name: 'commons-text', version: '1.10.0'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
@@ -89,7 +89,7 @@ dependencies {
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.3'
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.10'
     implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.30'
-    implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.39.3.0'
+    implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.39.4.1'
 
     implementation group: 'com.sparkjava', name: 'spark-core', version: '2.9.4'
     implementation group: 'io.prometheus', name: 'simpleclient', version: '0.16.0'
@@ -101,7 +101,7 @@ dependencies {
     implementation group: 'com.udojava', name: 'EvalEx', version: '2.7'
     implementation group: 'com.vdurmont', name: 'emoji-java', version: '5.1.1'
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.4'
-    implementation group: 'io.sentry', name: 'sentry-logback', version: '6.7.0'
+    implementation group: 'io.sentry', name: 'sentry-logback', version: '6.8.0'
     implementation group: 'org.reflections', name: 'reflections', version: '0.10.2'
 
     // Chew Util
@@ -129,8 +129,11 @@ dependencies {
     //HikariCP
     implementation group: 'com.zaxxer', name: 'HikariCP', version: '5.0.1'
 
-    implementation 'org.graalvm.js:js:22.2.0'
-    implementation 'org.graalvm.js:js-scriptengine:22.2.0'
+    // https://mvnrepository.com/artifact/org.graalvm.js/js
+    implementation 'org.graalvm.js:js:22.3.0'
+    // https://mvnrepository.com/artifact/org.graalvm.js/js-scriptengine
+    implementation 'org.graalvm.js:js-scriptengine:22.3.0'
+
 
     // Tests
     // Only needed to run tests in a version of IntelliJ IDEA that bundles older versions

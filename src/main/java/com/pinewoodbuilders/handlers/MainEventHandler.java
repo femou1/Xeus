@@ -132,6 +132,7 @@ public class MainEventHandler extends EventHandler {
     public void onGenericEvent(@NotNull GenericEvent event) {
         if (!avaire.areWeReadyYet()) return;
         prepareGuildMembers(event);
+
         Metrics.jdaEvents.labels(event.getClass().getSimpleName()).inc();
 
         guildEventAdapter.onGenericEvent(event);
@@ -483,7 +484,7 @@ public class MainEventHandler extends EventHandler {
     }
 
 
-    public final ArrayList<String> guilds = new ArrayList<String>() {{
+    public final ArrayList<String> guilds = new ArrayList <>() {{
         add("495673170565791754"); // Aerospace
         add("438134543837560832"); // PBST
         add("791168471093870622"); // Kronos Dev

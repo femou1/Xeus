@@ -740,7 +740,8 @@ public class Xeus {
                 GatewayIntent.GUILD_VOICE_STATES,
                 GatewayIntent.DIRECT_MESSAGES,
                 GatewayIntent.DIRECT_MESSAGE_REACTIONS,
-                GatewayIntent.MESSAGE_CONTENT
+                GatewayIntent.MESSAGE_CONTENT,
+                GatewayIntent.SCHEDULED_EVENTS
             ))
             .setToken(getConfig().getString("discord.token"))
             .setSessionController(new SessionControllerAdapter())

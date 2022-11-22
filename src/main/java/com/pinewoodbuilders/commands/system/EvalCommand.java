@@ -29,6 +29,7 @@ import com.pinewoodbuilders.contracts.commands.SystemCommand;
 import com.pinewoodbuilders.utilities.NumberUtil;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.HostAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,8 +58,8 @@ public class EvalCommand extends SystemCommand {
             .allowHostAccess(HostAccess.ALL)
             .allowHostClassLookup(s -> true)
             .allowExperimentalOptions(true)
-            .option("js.nashorn-compat", "true")
-            .option("js.script-engine-global-scope-import", "200");
+            .allowAllAccess(true)
+            .option("js.nashorn-compat", "true");
         GraalJSEngineFactory factory = new GraalJSEngineFactory();
         engine = GraalJSScriptEngine.create(factory.getPolyglotEngine(), context);
 

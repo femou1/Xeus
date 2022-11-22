@@ -18,6 +18,24 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import net.dv8tion.jda.api.events.Event;
+import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.session.ShutdownEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.hooks.SubscribeEvent;
+import net.dv8tion.jda.internal.utils.Checks;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+
 /**
  * <p>The EventWaiter is capable of handling specialized forms of
  * {@link net.dv8tion.jda.api.events.Event Event} that must meet criteria not normally specifiable
@@ -27,7 +45,7 @@ import java.util.function.Predicate;
  * {@link java.util.concurrent.ScheduledExecutorService Executor}, and thus a proper
  * shutdown of said executor. The default constructor for an EventWaiter sets up a
  * working, "live", EventWaiter whose shutdown is triggered via JDA firing a
- * {@link net.dv8tion.jda.api.events.session.SessionDisconnectEvent SessionDisconnectEvent}.
+ * {@link net.dv8tion.jda.api.events.session.ShutdownEvent ShutdownEvent}.
  * <br>A more "shutdown adaptable" constructor allows the provision of a
  * {@code ScheduledExecutorService} and a choice of how exactly shutdown will be handled
  * (see {@link EventWaiter#EventWaiter(ScheduledExecutorService, boolean)} for more details).
@@ -64,7 +82,7 @@ public class EventWaiter implements EventListener
      * <p>{@code shutdownAutomatically} is required to be manually specified by developers as a way of
      * verifying a contract that the developer will conform to the behavior of the newly generated EventWaiter:
      * <ul>
-     *     <li>If {@code true}, shutdown is handled when a {@link net.dv8tion.jda.api.events.session.SessionDisconnectEvent SessionDisconnectEvent}
+     *     <li>If {@code true}, shutdown is handled when a {@link net.dv8tion.jda.api.events.session.ShutdownEvent ShutdownEvent}
      *     is fired. This means that any external functions of the provided Executor is now impossible and any externally
      *     queued tasks are lost if they have yet to be run.</li>
      *     <li>If {@code false}, shutdown is now placed as a responsibility of the developer, and no attempt will be
@@ -79,8 +97,8 @@ public class EventWaiter implements EventListener
      * @param  threadpool
      *         The ScheduledExecutorService to use for this EventWaiter's threadpool.
      * @param  shutdownAutomatically
-     *         Whether or not the {@code threadpool} will shutdown automatically when a
-     *         {@link net.dv8tion.jda.api.events.session.SessionDisconnectEvent SessionDisconnectEvent} is fired.
+     *         Whether the {@code threadpool} will shut down automatically when a
+     *         {@link net.dv8tion.jda.api.events.session.ShutdownEvent ShutdownEvent} is fired.
      *
      * @throws java.lang.IllegalArgumentException
      *         If the threadpool provided is {@code null} or
@@ -227,15 +245,15 @@ public class EventWaiter implements EventListener
         // is primitive, void, or (in this case) Object.
         while(c != null)
         {
-            if (waitingEvents.containsKey(c)) {
-                Set <WaitingEvent> set = waitingEvents.get(c);
-                WaitingEvent[] toRemove = set.toArray(new WaitingEvent[set.size()]);
-
+            final Set<WaitingEvent> set = waitingEvents.get(c);
+            if(set != null)
+            {
                 // WaitingEvent#attempt invocations that return true have passed their condition tests
                 // and executed the action. We remove the ones that have successfully ran (those that returns true)
                 set.removeIf(wEvent -> wEvent.attempt(event));
             }
-            if (event instanceof SessionDisconnectEvent && shutdownAutomatically) {
+            if(event instanceof ShutdownEvent && shutdownAutomatically)
+            {
                 threadpool.shutdown();
             }
             c = c.getSuperclass();
