@@ -72,6 +72,7 @@ public class OAUTH2Manager {
 
         if (profileInfo.getLong("sub") != xeusOAuthRequest.robloxId()) {
             response.status(400);
+            oauthService.revokeToken(accessToken.getRefreshToken());
             return new JSONObject().put("error", true).put("message", "Profile does not match the account entered during the verification request.");
         }
 
@@ -80,6 +81,7 @@ public class OAUTH2Manager {
         String verification = inVerificationSystem.get(profileInfo.getLong("sub"));
         if (verification == null) {
             response.status(400);
+            oauthService.revokeToken(accessToken.getRefreshToken());
             return new JSONObject().put("error", true).put("message", "Profile is currently not requesting verification.");
         }
 
@@ -88,7 +90,7 @@ public class OAUTH2Manager {
         String discordId = verificationData[0];
         inVerificationSystem.replace(profileInfo.getLong("sub"), discordId + ":verified");
 
-        oauthService.revokeToken(accessToken.getAccessToken());
+        oauthService.revokeToken(accessToken.getRefreshToken());
 
         return new JSONObject().put("error", false).put("message", "User successfully verified. Please head back to your verification and confirm the verification.");
     }
