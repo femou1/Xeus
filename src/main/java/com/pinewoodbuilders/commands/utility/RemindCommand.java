@@ -113,7 +113,7 @@ public class RemindCommand extends Command {
             return sendErrorMessage(context, "errors.missingArgument", "time");
         }
 
-        final Carbon time = parseTime(args[1]);
+        final Carbon time = parseTime(args[1].toLowerCase());
         if (time == null) {
             return sendErrorMessage(context, "errors.invalidProperty", "time", "time format");
         }
