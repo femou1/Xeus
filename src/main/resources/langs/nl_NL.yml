@@ -764,20 +764,20 @@ utility:
       10000: 'dit is niet logisch :thinking: #BlameAlexis'
       other: 'scheld Alexis uit voor me. :dizzy_face:'
   RankBackgroundCommand:
-    canBeUnlocked: "Rank achtergronden kunnen ontgrendeld worden met **[Vote Points](https://discordbots.org/bot/Xeus)**,\nJe krijgt **1 punt** elke keer als je op de bot stempt."
+    canBeUnlocked: "Rank achtergronden kunnen ontgrendeld worden met Pinecoins."
     listTitle: "Rank achtergronden ({0})"
-    youHaveVotePoints: "Je hebt {0} stem punten."
+    youHaveVotePoints: "Je hebt {0} Pinecoins."
     exampleTitle: "{0} Voorbeeld"
-    exampleFooter: "{0} kost {1} vote punten"
+    exampleFooter: "{0} kost {1} Pinecoins"
     alreadyOwnsBackground: "Je hebt de **:name** achtergrond al!"
-    doesntHaveEnoughPoints: "Je hebt niet genoeg punten om deze achtergrond te kopen, de achtergrond kost `{0}`, en je hebt `{1}` stem punten."
+    doesntHaveEnoughPoints: "Je hebt niet genoeg punten om deze achtergrond te kopen, de achtergrond kost `{0}`, en je hebt `{1}` Pinecoins."
     boughtBackgroundSuccessfully: "Gefeliciteerd! Je hebt nu de **:name** achtergrond!\nJe kan het `:command` commando gebruiken om de achtergrond te selecteren."
-    youDontOwnThisBackground: "Je hebt de **:name** achtergrond niet, maar je kan deze kopen met **:cost** stem punten!"
+    youDontOwnThisBackground: "Je hebt de **:name** achtergrond niet, maar je kan deze kopen met **:cost** Pinecoins!"
     successfullyChangedBackground: "Je hebt succesvol je achtergrond veranderd naar **:name**."
     disabledBackgrounds: "Rank achtergronden zijn succesvol gedeactiveerd, je gerbuikt nu weer embedded berichten voor rank commando's."
     buyNotes:
       alreadyOwns: "**{0}**\n- _Je hebt deze achtergrond al._"
-      doesntOwns: "**{0}**\n - Kost {1} stem punten."
+      doesntOwns: "**{0}**\n - Kost {1} Pinecoins."
     failedToSendExampleMessage: "Er ging is fout met een voorbeeld laten zien van de {0} achtergrond, error: {1}."
     failedToBuyTheBackground: "Er ging iets fout met het kopen van de achtergrond, error: {0}"
     failedToSetBackground: "Gefaald met het instellen van de achtergrond door een database error, probeer het later opnieuw. Als dit probleem blijft, neem dan contact op met een developer."

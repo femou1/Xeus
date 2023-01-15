@@ -97,7 +97,7 @@ public class EvalStatusCommand extends Command {
             .queue();
 
         if (status.isPassed()) {
-            context.makeSuccess("***Congratulations!*** You have passed all evaluations! If you're not yet promoted, an Leadership+ will soon promote you!").queue();
+            context.makeSuccess("***Congratulations!*** You have passed all evaluations! If you're not yet promoted, a Leadership+ will soon promote you!").queue();
         }
 
         return false;

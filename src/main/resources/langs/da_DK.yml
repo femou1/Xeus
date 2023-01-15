@@ -764,20 +764,20 @@ utility:
       10000: 'det her giver ingen mening :thinking: #BlameAlexis'
       other: 'langsom af. :dizzy_face:'
   RankBackgroundCommand:
-    canBeUnlocked: "Rang baggrunde kan låses op ved hjælp af **[Vote Points](https://discordbots.org/bot/Xeus)**,\nDu får **1 point** hver gang du stemmer for botten, eller **2 points** hvis du voter i weekenderne."
+    canBeUnlocked: "Rang baggrunde kan låses op ved hjælp af Pinecoins."
     listTitle: "Rank Baggrundsbilleder ({0})"
-    youHaveVotePoints: "Du har {0} vote points."
+    youHaveVotePoints: "Du har {0} Pinecoins."
     exampleTitle: "{0} Eksempel"
-    exampleFooter: "{0} koster {1} vote points"
+    exampleFooter: "{0} koster {1} Pinecoins"
     alreadyOwnsBackground: "Du ejer allerede **:name** baggrunden!"
-    doesntHaveEnoughPoints: "Du har ikke nok points til at købe denne baggrund, baggrunden koster `{0}`, og du har `{1}` vote points."
+    doesntHaveEnoughPoints: "Du har ikke nok points til at købe denne baggrund, baggrunden koster `{0}`, og du har `{1}` Pinecoins."
     boughtBackgroundSuccessfully: "Tillykke! Du ejer nu **:name** baggrunden!\nDu kan bruge kommandoen `:command` for at bruge baggrunden."
-    youDontOwnThisBackground: "Du ejer ikke **:name** baggrunden, men du kan købe den for **:cost** Vote Points!"
+    youDontOwnThisBackground: "Du ejer ikke **:name** baggrunden, men du kan købe den for **:cost** Pinecoins!"
     successfullyChangedBackground: "Du har ændret din baggrund til at bruge **:name** baggrunden."
     disabledBackgrounds: "Rangebaggrunde er blevet deaktiveret, du bruger nu normale meddelelser for rangkommandoer igen."
     buyNotes:
       alreadyOwns: "**{0}**\n- _Du ejer allerede denne baggrund._"
-      doesntOwns: "**{0}**\n - Koster {1} vote points."
+      doesntOwns: "**{0}**\n - Koster {1} Pinecoins."
     failedToSendExampleMessage: "Noget gik galt da vi forsøgte at sende eksempelbilledet for {0} baggrunden, fejl: {1}."
     failedToBuyTheBackground: "Noget gik galt mens du købte baggrunden, fejl: {0}"
     failedToSetBackground: "Kunne ikke angive baggrunden på grund af en databasefejl, prøv igen senere, hvis denne fejl fortsat vises, skal du kontakte en af mine udviklere."

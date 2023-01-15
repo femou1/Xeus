@@ -764,9 +764,9 @@ utility:
       10000: 'esto no tiene sentido :thinking: #AlexisCulpable'
       other: 'j*didamente lento. :dizzy_face:'
   RankBackgroundCommand:
-    canBeUnlocked: "Rank backgrounds can be unlocked using **[Vote Points](https://discordbots.org/bot/Xeus)**,\nyou'll get **1 point** each time you vote for the bot."
+    canBeUnlocked: "Rank backgrounds can be unlocked using Pinecoins."
     listTitle: "Rank Backgrounds ({0})"
-    youHaveVotePoints: "You have {0} vote points."
+    youHaveVotePoints: "You have {0} Pinecoins."
     exampleTitle: "{0} Example"
     exampleFooter: "{0} costs {1} vote points"
     alreadyOwnsBackground: "You already own the **:name** background!"
